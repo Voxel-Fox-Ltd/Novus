@@ -2516,7 +2516,7 @@ class Guild(Hashable):
 
         return roles
 
-    async def welcome_screen(self):
+    async def welcome_screen(self) -> WelcomeScreen:
         """|coro|
 
         Returns the guild's welcome screen.
@@ -2526,7 +2526,7 @@ class Guild(Hashable):
         You must have the :attr:`~Permissions.manage_guild` permission to use
         this as well.
 
-        .. versionadded:: 1.7
+        .. versionadded:: 2.0
 
         Raises
         -------
@@ -2543,6 +2543,20 @@ class Guild(Hashable):
         data = await self._state.http.get_welcome_screen(self.id)
         return WelcomeScreen(data=data, guild=self)
 
+    @overload
+    async def edit_welcome_screen(
+        self,
+        *,
+        description: Optional[str] = ...,
+        welcome_channels: Optional[List[WelcomeChannel]] = ...,
+        enabled: Optional[bool] = ...,
+    ) -> WelcomeScreen:
+        ...
+
+    @overload
+    async def edit_welcome_screen(self) -> None:
+        ...
+
     async def edit_welcome_screen(self, **kwargs):
         """|coro|
 
@@ -2554,7 +2568,7 @@ class Guild(Hashable):
         You must have the :attr:`~Permissions.manage_guild` permission to use
         this as well.
 
-        .. versionadded:: 1.7
+        .. versionadded:: 2.0
 
         Returns
         --------
