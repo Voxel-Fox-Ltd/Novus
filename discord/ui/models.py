@@ -22,11 +22,8 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
-from typing import TypeVar, Optional
+from typing import Optional
 import json
-
-
-C = TypeVar('C', bound='BaseComponent')
 
 
 class BaseComponent:
@@ -43,14 +40,14 @@ class BaseComponent:
         raise NotImplementedError()
 
     @classmethod
-    def from_dict(cls, data: dict) -> C:
+    def from_dict(cls, data: dict) -> 'BaseComponent':
         """
         Convert a response from the API into an object of this type.
         """
 
         raise NotImplementedError()
 
-    def __eq__(self, other: C) -> bool:
+    def __eq__(self, other: 'BaseComponent') -> bool:
         """
         Checks if two components are equal to one another.
         """
@@ -124,7 +121,7 @@ class ComponentHolder(BaseComponent):
         self.components.remove(component)
         return self
 
-    def disable_components(self) -> None:
+    def disable_components(self):
         """
         Disables all of the components inside this component holder that
         inherit from :class:`discord.ui.DisableableComponent`.
@@ -137,7 +134,7 @@ class ComponentHolder(BaseComponent):
                 i.disable()
         return self
 
-    def enable_components(self) -> None:
+    def enable_components(self):
         """
         Enables all of the components inside this component holder that
         inherit from :class:`discord.ui.DisableableComponent`.

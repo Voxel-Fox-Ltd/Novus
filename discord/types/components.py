@@ -78,4 +78,6 @@ class MessageComponents(TypedDict):
     components: List[Component]
 
 
-Component = Union[ActionRow, Button, SelectMenu]
+InteractionComponent = Union[Button, SelectMenu]
+LayoutComponent = Union[ActionRow]
+Component = Union[InteractionComponent, LayoutComponent]

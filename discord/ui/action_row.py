@@ -22,11 +22,8 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
-from typing import TYPE_CHECKING
-
-from .models import BaseComponent, ComponentHolder
+from .models import ComponentHolder
 from .button import Button, ButtonStyle
-from .select_menu import SelectMenu
 from ..enums import ComponentType
 from ..components import _component_factory
 from ..types.components import (
@@ -39,6 +36,11 @@ class ActionRow(ComponentHolder):
     """
     The main UI component for adding and ordering components on Discord
     messages.
+
+    Parameters
+    -----------
+    components: :class:`discord.ui.BaseComponent`
+        The components that you want to add to the row.
     """
 
     def to_dict(self) -> ActionRowPayload:
@@ -60,6 +62,11 @@ class ActionRow(ComponentHolder):
 class MessageComponents(ComponentHolder):
     """
     A set of components that are attached to a message.
+
+    Parameters
+    -----------
+    components: :class:`discord.ui.BaseComponent`
+        The components that you want to add to the message.
     """
 
     def to_dict(self) -> MessageComponentsPayload:
@@ -68,13 +75,13 @@ class MessageComponents(ComponentHolder):
     @classmethod
     def from_dict(cls, data: MessageComponentsPayload):
         new_components = []
-        for i in data:
+        for i in data['components']:
             v = _component_factory(i)
             new_components.append(v)
         return cls(*new_components)
 
     @classmethod
-    def boolean_buttons(cls, yes_id: str = None, no_id: str = None):
+    def boolean_buttons(cls, yes_id: str = None, no_id: str = None) -> 'MessageComponents':
         """
         Return a set of message components with yes/no buttons, ready for use. If provided, the given IDs
         will be used for the buttons. If not, the button custom IDs will be set to the strings
@@ -86,12 +93,17 @@ class MessageComponents(ComponentHolder):
             The custom ID of the yes button.
         no_id:  Optional[:class:`str`:
             The custom ID of the no button.
+
+        Returns
+        --------
+        :class:`discord.ui.MessageComponents`
+            A message components instance with the given buttons.
         """
 
         return cls(
             ActionRow(
-                Button("Yes", style=ButtonStyle.success, custom_id=yes_id or "YES"),
-                Button("No", style=ButtonStyle.danger, custom_id=no_id or "NO"),
+                Button(label="Yes", style=ButtonStyle.success, custom_id=yes_id or "YES"),
+                Button(label="No", style=ButtonStyle.danger, custom_id=no_id or "NO"),
             ),
         )
 

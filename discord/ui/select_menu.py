@@ -30,7 +30,11 @@ from ..emoji import Emoji
 from ..enums import ComponentType
 from ..partial_emoji import PartialEmoji, _EmojiTag
 from ..utils import MISSING
-from ..types.components import Component
+from ..types.components import (
+    Component, 
+    SelectMenu as SelectMenuPayload,
+    SelectOption as SelectOptionPayload,
+)
 
 
 class SelectOption(BaseComponent):
@@ -68,7 +72,7 @@ class SelectOption(BaseComponent):
             self.emoji = None
         self.default = default or False
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> SelectOptionPayload:
         v = {
             "label": self.label,
             "value": self.value,
@@ -125,7 +129,7 @@ class SelectMenu(DisableableComponent):
         self.max_values = max_values
         self.disabled = disabled
 
-    def to_dict(self):
+    def to_dict(self) -> SelectMenuPayload:
         return {
             "type": ComponentType.select_menu.value,
             "custom_id": self.custom_id,
@@ -138,7 +142,7 @@ class SelectMenu(DisableableComponent):
 
     @classmethod
     def from_dict(cls, data: dict):
-        v = data.get("options")
+        v = data.get("options", list())
         options = [SelectOption.from_dict(i) for i in v]
         return cls(
             custom_id=data.get("custom_id"),

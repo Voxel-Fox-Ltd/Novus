@@ -41,8 +41,6 @@ if TYPE_CHECKING:
         Button as ButtonPayload,
     )
 
-B = TypeVar('B', bound='Button')
-
 
 class Button(DisableableComponent):
     """Represents a UI button.
@@ -92,7 +90,7 @@ class Button(DisableableComponent):
         if not label and not emoji:
             raise ValueError("Both label and emoji cannot be empty")
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> ButtonPayload:
         v = {
             "type": ComponentType.button.value,
             "label": self.label,
@@ -108,7 +106,7 @@ class Button(DisableableComponent):
         return v
 
     @classmethod
-    def from_dict(cls, data: ButtonPayload) -> B:
+    def from_dict(cls, data: ButtonPayload) -> 'Button':
         """
         Construct an instance of a button from an API response.
 
@@ -119,7 +117,7 @@ class Button(DisableableComponent):
 
         Returns
         -------
-        discord.ui.Button
+        :class:`discord.ui.Button`
             The button that the payload describes.
         """
 
