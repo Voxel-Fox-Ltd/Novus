@@ -3429,40 +3429,6 @@ Message
 .. autoclass:: Message()
     :members:
 
-Component
-~~~~~~~~~~
-
-.. attributetable:: Component
-
-.. autoclass:: Component()
-    :members:
-
-ActionRow
-~~~~~~~~~~
-
-.. attributetable:: ActionRow
-
-.. autoclass:: ActionRow()
-    :members:
-
-Button
-~~~~~~~
-
-.. attributetable:: Button
-
-.. autoclass:: Button()
-    :members:
-    :inherited-members:
-
-SelectMenu
-~~~~~~~~~~~
-
-.. attributetable:: SelectMenu
-
-.. autoclass:: SelectMenu()
-    :members:
-    :inherited-members:
-
 
 DeletedReferencedMessage
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -3976,14 +3942,6 @@ PartialMessage
 .. autoclass:: PartialMessage
     :members:
 
-SelectOption
-~~~~~~~~~~~~~
-
-.. attributetable:: SelectOption
-
-.. autoclass:: SelectOption
-    :members:
-
 Intents
 ~~~~~~~~~~
 
@@ -4120,7 +4078,7 @@ Bot UI Kit
 The library has helpers to help create component-based UIs.
 
 BaseComponent
-~~~~~~~
+~~~~~~~~~~~~~~~
 
 .. attributetable:: discord.ui.BaseComponent
 
@@ -4128,7 +4086,7 @@ BaseComponent
     :members:
 
 ActionRow
-~~~~~~~
+~~~~~~~~~~~~
 
 .. attributetable:: discord.ui.ActionRow
 
@@ -4136,7 +4094,7 @@ ActionRow
     :members:
 
 MessageComponents
-~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 .. attributetable:: discord.ui.MessageComponents
 
@@ -4153,7 +4111,7 @@ Button
     :inherited-members:
 
 SelectOption
-~~~~~~~
+~~~~~~~~~~~~~~~
 
 .. attributetable:: discord.ui.SelectOption
 
@@ -4162,7 +4120,7 @@ SelectOption
     :inherited-members:
 
 SelectMenu
-~~~~~~~
+~~~~~~~~~~~~~~~
 
 .. attributetable:: discord.ui.SelectMenu
 
