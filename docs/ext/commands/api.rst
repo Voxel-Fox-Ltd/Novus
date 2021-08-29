@@ -3,7 +3,7 @@
 API Reference
 ===============
 
-The following section outlines the API of disfox's command extension module.
+The following section outlines the API of novus's command extension module.
 
 .. _ext_commands_api_bot:
 

@@ -1,15 +1,15 @@
-.. disfox documentation master file, created by
+.. novus documentation master file, created by
    sphinx-quickstart on Fri Aug 21 05:43:30 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to disfox
+Welcome to novus
 ===========================
 
 .. image:: /images/snake.svg
 .. image:: /images/snake_dark.svg
 
-disfox is a modern, easy to use, feature-rich, and async ready API wrapper
+novus is a modern, easy to use, feature-rich, and async ready API wrapper
 for Discord.
 
 **Features:**

@@ -54,12 +54,12 @@ packages = [
     'discord.ext.tasks',
 ]
 
-setup(name='disfox',
+setup(name='novus',
       author='Kae Bartlett',
-      url='https://github.com/Voxel-Fox-Ltd/disfox',
+      url='https://github.com/Voxel-Fox-Ltd/novus',
       project_urls={
-        "Documentation": "https://disfox.readthedocs.io/en/latest/",
-        "Issue tracker": "https://github.com/Voxel-Fox-Ltd/disfox/issues",
+        "Documentation": "https://novus.readthedocs.io/en/latest/",
+        "Issue tracker": "https://github.com/Voxel-Fox-Ltd/novus/issues",
       },
       version=version,
       packages=packages,

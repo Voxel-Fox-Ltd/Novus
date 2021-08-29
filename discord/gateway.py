@@ -375,8 +375,8 @@ class DiscordWebSocket:
                 'token': self.token,
                 'properties': {
                     '$os': sys.platform,
-                    '$browser': 'disfox',
-                    '$device': 'disfox',
+                    '$browser': 'novus',
+                    '$device': 'novus',
                     '$referrer': '',
                     '$referring_domain': ''
                 },

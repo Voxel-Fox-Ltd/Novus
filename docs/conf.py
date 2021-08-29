@@ -1,5 +1,5 @@
 #
-# disfox documentation build configuration file, created by
+# novus documentation build configuration file, created by
 # sphinx-quickstart on Fri Aug 21 05:43:30 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -49,7 +49,7 @@ autodoc_typehints = 'none'
 # napoleon_attr_annotations = False
 
 extlinks = {
-    'issue': ('https://github.com/Voxel-Fox-Ltd/disfox/issues/%s', 'GH-'),
+    'issue': ('https://github.com/Voxel-Fox-Ltd/novus/issues/%s', 'GH-'),
 }
 
 # Links used for cross-referencing stuff in other documentation
@@ -79,7 +79,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'disfox'
+project = 'novus'
 copyright = '2015-present, Rapptz'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -165,9 +165,9 @@ html_context = {
 
 resource_links = {
   'discord': 'https://discord.gg/vfl',
-  'issues': 'https://github.com/Voxel-Fox-Ltd/disfox/issues',
-  'discussions': 'https://github.com/Voxel-Fox-Ltd/disfox/discussions',
-  'examples': f'https://github.com/Voxel-Fox-Ltd/disfox/tree/{branch}/examples',
+  'issues': 'https://github.com/Voxel-Fox-Ltd/novus/issues',
+  'discussions': 'https://github.com/Voxel-Fox-Ltd/novus/discussions',
+  'examples': f'https://github.com/Voxel-Fox-Ltd/novus/tree/{branch}/examples',
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -268,7 +268,7 @@ html_js_files = [
 ]
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'disfoxdoc'
+htmlhelp_basename = 'novusdoc'
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -290,7 +290,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'disfox.tex', 'disfox Documentation',
+  ('index', 'novus.tex', 'novus Documentation',
    'Voxel-Fox-Ltd', 'manual'),
 ]
 
@@ -320,7 +320,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'disfox', 'disfox Documentation',
+    ('index', 'novus', 'novus Documentation',
      ['Voxel-Fox-Ltd'], 1)
 ]
 
@@ -334,8 +334,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'disfox', 'disfox Documentation',
-   'Voxel-Fox-Ltd', 'disfox', 'One line description of project.',
+  ('index', 'novus', 'novus Documentation',
+   'Voxel-Fox-Ltd', 'novus', 'One line description of project.',
    'Miscellaneous'),
 ]
 
