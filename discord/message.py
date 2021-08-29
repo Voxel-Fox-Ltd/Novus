@@ -700,7 +700,7 @@ class Message(Hashable):
                     # the channel will be the correct type here
                     ref.resolved = self.__class__(channel=chan, data=resolved, state=state)  # type: ignore
 
-        for handler in ('author', 'member', 'mentions', 'mention_roles'):
+        for handler in ('author', 'member', 'mentions', 'mention_roles', 'resolved'):
             try:
                 getattr(self, f'_handle_{handler}')(data[handler])
             except KeyError:
@@ -846,6 +846,17 @@ class Message(Hashable):
             # It's a user here
             # TODO: consider adding to cache here
             self.author = Member._from_message(message=self, data=member)
+
+    def _handle_resolved(self, data) -> None:
+        new_mentions = []
+        for user_id, payload in data['users'].items():
+            copy = payload.copy()
+            try:
+                copy.update({'member': data['members'][user_id]})
+            except KeyError:
+                pass
+            new_mentions.append(copy)
+        self._handle_mentions(new_mentions)
 
     def _handle_mentions(self, mentions: List[UserWithMemberPayload]) -> None:
         self.mentions = r = []

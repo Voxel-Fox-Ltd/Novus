@@ -55,6 +55,8 @@ __all__ = (
     'InteractionType',
     'InteractionResponseType',
     'NSFWLevel',
+    'ApplicationCommandOptionType',
+    'ApplicationCommandType',
 )
 
 
@@ -587,6 +589,25 @@ class NSFWLevel(Enum, comparable=True):
     explicit = 1
     safe = 2
     age_restricted = 3
+
+
+class ApplicationCommandOptionType(Enum):
+    subcommand = 1  # If the option is a subcommand.
+    subcommand_group = 2  # If the option is a subcommand group.
+    string = 3  # If the option is a string.
+    integer = 4  # If the option is an integer.
+    boolean = 5  # If the option is a boolean.
+    user = 6  # If the option is a user.
+    channel = 7  # If the option is a channel.
+    role = 8  # If the option is a role.
+    mentionable = 9  # Any mentionable user or role.
+    number = 10  # Any double.
+
+
+class ApplicationCommandType(Enum):
+    chat_input = 1  # Chat input application commands, like slash commands.
+    user = 2  # An application command in the user context menu.
+    message = 3  # An application command in the message context menu.
 
 
 T = TypeVar('T')
