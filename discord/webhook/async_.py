@@ -784,12 +784,11 @@ class BaseWebhook(Hashable):
         self.source_guild: Optional[PartialWebhookGuild] = source_guild
 
     def is_partial(self) -> bool:
-        """:class:`bool`: Whether the webhook is a "partial" webhook.
+        """:class:`bool`: Whether the webhook is a "partial" webhook."""
         return self.channel_id is None
 
     def is_authenticated(self) -> bool:
-        """:class:`bool`: Whether the webhook is authenticated with a bot token.
-        """
+        """:class:`bool`: Whether the webhook is authenticated with a bot token."""
         return self.auth_token is not None
 
     @property

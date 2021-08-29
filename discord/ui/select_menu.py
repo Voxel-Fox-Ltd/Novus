@@ -37,8 +37,8 @@ class SelectOption(BaseComponent):
     """
     An option menu that can go into a :class:`discord.ui.SelectMenu` object.
 
-    Parameters
-    ----------
+    Attributes
+    -----------
     label: :class:`str`
         The label that gets shown on the option.
     value: Optional[:class:`str`]
@@ -99,7 +99,7 @@ class SelectMenu(DisableableComponent):
     """
     Discord's dropdown component.
 
-    Parameters
+    Attributes
     -----------
     custom_id: :class:`str`
         The custom ID for this component.

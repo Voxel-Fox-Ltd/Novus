@@ -47,7 +47,7 @@ B = TypeVar('B', bound='Button')
 class Button(DisableableComponent):
     """Represents a UI button.
 
-    Parameters
+    Attributes
     ------------
     style: :class:`discord.ButtonStyle`
         The style of the button.

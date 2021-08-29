@@ -89,7 +89,7 @@ class ComponentHolder(BaseComponent):
     """
     A message component that holds other message components.
 
-    Parameters
+    Attributes
     -----------
     components: :class:`discord.ui.BaseComponent`
         A list of the components that this component holder holds.
