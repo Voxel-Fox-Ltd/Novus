@@ -54,7 +54,6 @@ from .object import Object
 from .invite import Invite
 from .integrations import _integration_factory
 from .interactions import Interaction
-from .ui.view import ViewStore, View
 from .stage_instance import StageInstance
 from .threads import Thread, ThreadMember
 from .sticker import GuildSticker
@@ -235,7 +234,7 @@ class ConnectionState:
 
         self.clear()
 
-    def clear(self, *, views: bool = True) -> None:
+    def clear(self) -> None:
         self.user: Optional[ClientUser] = None
         # Originally, this code used WeakValueDictionary to maintain references to the
         # global user mapping.
@@ -253,8 +252,6 @@ class ConnectionState:
         self._emojis: Dict[int, Emoji] = {}
         self._stickers: Dict[int, GuildSticker] = {}
         self._guilds: Dict[int, Guild] = {}
-        if views:
-            self._view_store: ViewStore = ViewStore(self)
 
         self._voice_clients: Dict[int, VoiceProtocol] = {}
 
@@ -358,16 +355,6 @@ class ConnectionState:
         sticker_id = int(data['id'])
         self._stickers[sticker_id] = sticker = GuildSticker(state=self, data=data)
         return sticker
-
-    def store_view(self, view: View, message_id: Optional[int] = None) -> None:
-        self._view_store.add_view(view, message_id)
-
-    def prevent_view_updates_for(self, message_id: int) -> Optional[View]:
-        return self._view_store.remove_message_tracking(message_id)
-
-    @property
-    def persistent_views(self) -> Sequence[View]:
-        return self._view_store.persistent_views
 
     @property
     def guilds(self) -> List[Guild]:
@@ -550,7 +537,7 @@ class ConnectionState:
             self._ready_task.cancel()
 
         self._ready_state = asyncio.Queue()
-        self.clear(views=False)
+        self.clear()
         self.user = ClientUser(state=self, data=data['user'])
         self.store_user(data['user'])
 
@@ -621,9 +608,6 @@ class ConnectionState:
             self.dispatch('message_edit', older_message, message)
         else:
             self.dispatch('raw_message_edit', raw)
-
-        if 'components' in data and self._view_store.is_message_tracked(raw.message_id):
-            self._view_store.update_from_message(raw.message_id, data['components'])
 
     def parse_message_reaction_add(self, data) -> None:
         emoji = data['emoji']
@@ -700,11 +684,6 @@ class ConnectionState:
 
     def parse_interaction_create(self, data) -> None:
         interaction = Interaction(data=data, state=self)
-        if data['type'] == 3:  # interaction component
-            custom_id = interaction.data['custom_id']  # type: ignore
-            component_type = interaction.data['component_type']  # type: ignore
-            self._view_store.dispatch(component_type, custom_id, interaction)
-
         self.dispatch('interaction', interaction)
 
     def parse_presence_update(self, data) -> None:

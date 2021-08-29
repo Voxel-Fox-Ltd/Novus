@@ -1,6 +1,6 @@
-from discord.ext import commands
-
 import discord
+
+from discord.ext import commands
 
 
 class Bot(commands.Bot):
@@ -11,47 +11,43 @@ class Bot(commands.Bot):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('------')
 
-
-# Define a simple View that gives us a confirmation menu
-class Confirm(discord.ui.View):
-    def __init__(self):
-        super().__init__()
-        self.value = None
-
-    # When the confirm button is pressed, set the inner value to `True` and
-    # stop the View from listening to more input.
-    # We also send the user an ephemeral message that we're confirming their choice.
-    @discord.ui.button(label='Confirm', style=discord.ButtonStyle.green)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_message('Confirming', ephemeral=True)
-        self.value = True
-        self.stop()
-
-    # This one is similar to the confirmation button except sets the inner value to `False`
-    @discord.ui.button(label='Cancel', style=discord.ButtonStyle.grey)
-    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await interaction.response.send_message('Cancelling', ephemeral=True)
-        self.value = False
-        self.stop()
-
-
 bot = Bot()
 
 
 @bot.command()
 async def ask(ctx: commands.Context):
     """Asks the user a question to confirm something."""
-    # We create the view and assign it to a variable so we can wait for it later.
-    view = Confirm()
-    await ctx.send('Do you want to continue?', view=view)
-    # Wait for the View to stop listening for input...
-    await view.wait()
-    if view.value is None:
-        print('Timed out...')
-    elif view.value:
-        print('Confirmed...')
+
+    # We create the components that we want to send with the message
+    # "custom_id" is a hidden value that we can use to define certain actions
+    components = discord.ui.MessageComponents(
+        discord.ui.ActionRow(
+            discord.ui.Button(label="Yes", custom_id="YES"),
+            discord.ui.Button(label="No", custom_id="NO"),
+        ),
+    )
+    sent_message = await ctx.send('Do you want to continue?', components=components)
+
+    # Set up a check for our `wait_for`
+    def check(interaction: discord.Interaction):
+        if interaction.user != ctx.author:
+            return True
+        if interaction.message.id != sent_message.id:
+            return True
+        return True
+
+    # Wait for the user to resopnd
+    interaction = await bot.wait_for("interaction", check=check)
+
+    # Now the user has responded, disable the buttons on the message
+    components.disable_components()
+    await interaction.response.edit_message(components=components)
+
+    # Give different responses based on what they clicked
+    if interaction.component.custom_id == "YES":
+        await interaction.followup.send("You clicked yes!")
     else:
-        print('Cancelled...')
+        await interaction.followup.send("You clicked no :<")
 
 
 bot.run('token')

@@ -57,7 +57,7 @@ from .backoff import ExponentialBackoff
 from .webhook import Webhook
 from .iterators import GuildIterator
 from .appinfo import AppInfo
-from .ui.view import View
+from .ui.action_row import MessageComponents
 from .stage_instance import StageInstance
 from .threads import Thread
 from .sticker import GuildSticker, StandardSticker, StickerPack, _sticker_factory
@@ -329,7 +329,7 @@ class Client:
         If this is not passed via ``__init__`` then this is retrieved
         through the gateway when an event contains the data. Usually
         after :func:`~discord.on_connect` is called.
-        
+
         .. versionadded:: 2.0
         """
         return self._connection.application_id
@@ -687,7 +687,7 @@ class Client:
             self._connection._activity = value.to_dict() # type: ignore
         else:
             raise TypeError('activity must derive from BaseActivity.')
-    
+
     @property
     def status(self):
         """:class:`.Status`:
@@ -758,7 +758,7 @@ class Client:
 
         This is useful if you have a channel_id but don't want to do an API call
         to send messages to it.
-        
+
         .. versionadded:: 2.0
 
         Parameters
@@ -1598,45 +1598,3 @@ class Client:
 
         data = await state.http.start_private_message(user.id)
         return state.add_dm_channel(data)
-
-    def add_view(self, view: View, *, message_id: Optional[int] = None) -> None:
-        """Registers a :class:`~discord.ui.View` for persistent listening.
-
-        This method should be used for when a view is comprised of components
-        that last longer than the lifecycle of the program.
-        
-        .. versionadded:: 2.0
-
-        Parameters
-        ------------
-        view: :class:`discord.ui.View`
-            The view to register for dispatching.
-        message_id: Optional[:class:`int`]
-            The message ID that the view is attached to. This is currently used to
-            refresh the view's state during message update events. If not given
-            then message update events are not propagated for the view.
-
-        Raises
-        -------
-        TypeError
-            A view was not passed.
-        ValueError
-            The view is not persistent. A persistent view has no timeout
-            and all their components have an explicitly provided custom_id.
-        """
-
-        if not isinstance(view, View):
-            raise TypeError(f'expected an instance of View not {view.__class__!r}')
-
-        if not view.is_persistent():
-            raise ValueError('View is not persistent. Items need to have a custom_id set and View must have no timeout')
-
-        self._connection.store_view(view, message_id)
-
-    @property
-    def persistent_views(self) -> Sequence[View]:
-        """Sequence[:class:`.View`]: A sequence of persistent views added to the client.
-        
-        .. versionadded:: 2.0
-        """
-        return self._connection.persistent_views

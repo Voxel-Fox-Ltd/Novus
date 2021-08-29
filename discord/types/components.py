@@ -36,7 +36,7 @@ class ActionRow(TypedDict):
     components: List[Component]
 
 
-class _ButtonComponentOptional(TypedDict, total=False):
+class _ButtonOptional(TypedDict, total=False):
     custom_id: str
     url: str
     disabled: bool
@@ -44,7 +44,7 @@ class _ButtonComponentOptional(TypedDict, total=False):
     label: str
 
 
-class ButtonComponent(_ButtonComponentOptional):
+class Button(_ButtonOptional):
     type: Literal[2]
     style: ButtonStyle
 
@@ -73,4 +73,8 @@ class SelectMenu(_SelectMenuOptional):
     options: List[SelectOption]
 
 
-Component = Union[ActionRow, ButtonComponent, SelectMenu]
+class MessageComponents(TypedDict):
+    components: List[Component]
+
+
+Component = Union[ActionRow, Button, SelectMenu]

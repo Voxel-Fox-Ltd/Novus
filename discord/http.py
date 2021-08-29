@@ -422,38 +422,29 @@ class HTTPClient:
         allowed_mentions: Optional[message.AllowedMentions] = None,
         message_reference: Optional[message.MessageReference] = None,
         stickers: Optional[List[sticker.StickerItem]] = None,
-        components: Optional[List[components.Component]] = None,
+        components: Optional[components.MessageComponents] = None,
     ) -> Response[message.Message]:
         r = Route('POST', '/channels/{channel_id}/messages', channel_id=channel_id)
         payload = {}
 
         if content:
             payload['content'] = content
-
         if tts:
             payload['tts'] = True
-
         if embed:
             payload['embeds'] = [embed]
-
         if embeds:
             payload['embeds'] = embeds
-
         if nonce:
             payload['nonce'] = nonce
-
         if allowed_mentions:
             payload['allowed_mentions'] = allowed_mentions
-
         if message_reference:
             payload['message_reference'] = message_reference
-
         if components:
             payload['components'] = components
-
         if stickers:
             payload['sticker_ids'] = stickers
-
         return self.request(r, json=payload)
 
     def send_typing(self, channel_id: Snowflake) -> Response[None]:
@@ -472,7 +463,7 @@ class HTTPClient:
         allowed_mentions: Optional[message.AllowedMentions] = None,
         message_reference: Optional[message.MessageReference] = None,
         stickers: Optional[List[sticker.StickerItem]] = None,
-        components: Optional[List[components.Component]] = None,
+        components: Optional[components.MessageComponents] = None,
     ) -> Response[message.Message]:
         form = []
 
@@ -531,7 +522,7 @@ class HTTPClient:
         allowed_mentions: Optional[message.AllowedMentions] = None,
         message_reference: Optional[message.MessageReference] = None,
         stickers: Optional[List[sticker.StickerItem]] = None,
-        components: Optional[List[components.Component]] = None,
+        components: Optional[components.MessageComponents] = None,
     ) -> Response[message.Message]:
         r = Route('POST', '/channels/{channel_id}/messages', channel_id=channel_id)
         return self.send_multipart_helper(

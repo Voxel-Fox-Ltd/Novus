@@ -47,6 +47,7 @@ from .guild import Guild
 from .mixins import Hashable
 from .sticker import StickerItem
 from .threads import Thread
+from .ui.action_row import MessageComponents
 
 if TYPE_CHECKING:
     from .types.message import (
@@ -74,7 +75,6 @@ if TYPE_CHECKING:
     from .mentions import AllowedMentions
     from .user import User
     from .role import Role
-    from .ui.view import View
 
     MR = TypeVar('MR', bound='MessageReference')
     EmojiInputType = Union[Emoji, PartialEmoji, str]
@@ -594,8 +594,8 @@ class Message(Hashable):
         A list of sticker items given to the message.
 
         .. versionadded:: 1.6
-    components: List[:class:`Component`]
-        A list of components in the message.
+    components: :class:`MessageComponents`
+        The components attached to the message.
 
         .. versionadded:: 2.0
     guild: Optional[:class:`Guild`]
@@ -669,7 +669,7 @@ class Message(Hashable):
         self.content: str = data['content']
         self.nonce: Optional[Union[int, str]] = data.get('nonce')
         self.stickers: List[StickerItem] = [StickerItem(data=d, state=state) for d in data.get('sticker_items', [])]
-        self.components: List[Component] = [_component_factory(d) for d in data.get('components', [])]
+        self.components: MessageComponents = MessageComponents.from_dict(data.get('components', []))
 
         try:
             # if the channel doesn't have a guild attribute, we handle that
@@ -1156,7 +1156,7 @@ class Message(Hashable):
         suppress: bool = ...,
         delete_after: Optional[float] = ...,
         allowed_mentions: Optional[AllowedMentions] = ...,
-        view: Optional[View] = ...,
+        components: Optional[MessageComponents] = ...,
     ) -> Message:
         ...
 
@@ -1170,7 +1170,7 @@ class Message(Hashable):
         suppress: bool = ...,
         delete_after: Optional[float] = ...,
         allowed_mentions: Optional[AllowedMentions] = ...,
-        view: Optional[View] = ...,
+        components: Optional[MessageComponents] = ...,
     ) -> Message:
         ...
 
@@ -1183,7 +1183,7 @@ class Message(Hashable):
         suppress: bool = MISSING,
         delete_after: Optional[float] = None,
         allowed_mentions: Optional[AllowedMentions] = MISSING,
-        view: Optional[View] = MISSING,
+        components: Optional[MessageComponents] = MISSING,
     ) -> Message:
         """|coro|
 
@@ -1228,9 +1228,11 @@ class Message(Hashable):
             are used instead.
 
             .. versionadded:: 1.4
-        view: Optional[:class:`~discord.ui.View`]
-            The updated view to update this message with. If ``None`` is passed then
-            the view is removed.
+        components: Optional[:class:`~discord.ui.MessageComponents`]
+            The updated components to update this message with. If ``None`` is passed then
+            the components are removed.
+
+            ..verisonadded:: 2.0
 
         Raises
         -------
@@ -1279,18 +1281,14 @@ class Message(Hashable):
         if attachments is not MISSING:
             payload['attachments'] = [a.to_dict() for a in attachments]
 
-        if view is not MISSING:
-            self._state.prevent_view_updates_for(self.id)
-            if view:
-                payload['components'] = view.to_components()
+        if components is not MISSING:
+            if components:
+                payload['components'] = components.to_dict()
             else:
                 payload['components'] = []
 
         data = await self._state.http.edit_message(self.channel.id, self.id, **payload)
         message = Message(state=self._state, channel=self.channel, data=data)
-
-        if view and not view.is_finished():
-            self._state.store_view(view, self.id)
 
         if delete_after is not None:
             await self.delete(delay=delete_after)
@@ -1742,9 +1740,9 @@ class PartialMessage(Hashable):
             to the object, otherwise it uses the attributes set in :attr:`~discord.Client.allowed_mentions`.
             If no object is passed at all then the defaults given by :attr:`~discord.Client.allowed_mentions`
             are used instead.
-        view: Optional[:class:`~discord.ui.View`]
-            The updated view to update this message with. If ``None`` is passed then
-            the view is removed.
+        components: Optional[:class:`~discord.ui.MessageComponents`]
+            The updated components to update this message with. If ``None`` is passed then
+            the components are removed.
 
             .. versionadded:: 2.0
 
@@ -1804,14 +1802,13 @@ class PartialMessage(Hashable):
                 fields['allowed_mentions'] = allowed_mentions
 
         try:
-            view = fields.pop('view')
+            components = fields.pop('components')
         except KeyError:
             # To check for the view afterwards
-            view = None
+            components = None
         else:
-            self._state.prevent_view_updates_for(self.id)
-            if view:
-                fields['components'] = view.to_components()
+            if components:
+                fields['components'] = components.to_dict()
             else:
                 fields['components'] = []
 
@@ -1824,6 +1821,4 @@ class PartialMessage(Hashable):
         if fields:
             # data isn't unbound
             msg = self._state.create_message(channel=self.channel, data=data)  # type: ignore
-            if view and not view.is_finished():
-                self._state.store_view(view, self.id)
             return msg

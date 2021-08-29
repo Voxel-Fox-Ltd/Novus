@@ -57,7 +57,7 @@ if TYPE_CHECKING:
     from .mentions import AllowedMentions
     from aiohttp import ClientSession
     from .embeds import Embed
-    from .ui.view import View
+    from .ui.action_row import MessageComponents
     from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, PartialMessageable
     from .threads import Thread
 
@@ -92,6 +92,15 @@ class Interaction:
         The user or member that sent the interaction.
     message: Optional[:class:`Message`]
         The message that sent this interaction.
+    component: Optional[:class:`BaseComponent`]
+        The component that was interacted with to spawn this interaction.
+        This may be `None` if the interaction was created from a slash
+        command.
+    values: Optional[List[:class:`str`]]
+        The values that were passed back from the interaction. If this interaction
+        did not give back any values then this will ne `None`. This is different from
+        the values being an empty list - that would be the user did not
+        provide any values for a valid component.
     token: :class:`str`
         The token to continue the interaction. These are valid
         for 15 minutes.
@@ -104,7 +113,10 @@ class Interaction:
         'type',
         'guild_id',
         'channel_id',
+        'message_id',
         'data',
+        'component',
+        'values',
         'application_id',
         'message',
         'user',
@@ -133,6 +145,7 @@ class Interaction:
         self.version: int = data['version']
         self.channel_id: Optional[int] = utils._get_as_snowflake(data, 'channel_id')
         self.guild_id: Optional[int] = utils._get_as_snowflake(data, 'guild_id')
+        self.message_id: Optional[int] = utils._get_as_snowflake(data['message'], 'id')
         self.application_id: int = int(data['application_id'])
 
         self.message: Optional[Message]
@@ -140,6 +153,19 @@ class Interaction:
             self.message = Message(state=self._state, channel=self.channel, data=data['message'])  # type: ignore
         except KeyError:
             self.message = None
+
+        try:
+            if self.message:
+                self.component = self.message.components.get_component(data['data']['custom_id'])
+            else:
+                self.component = None
+        except KeyError:
+            self.component = None
+
+        try:
+            self.values = data['data']['values']
+        except KeyError:
+            self.values = None
 
         self.user: Optional[Union[User, Member]] = None
         self._permissions: int = 0
@@ -259,7 +285,7 @@ class Interaction:
         embed: Optional[Embed] = MISSING,
         file: File = MISSING,
         files: List[File] = MISSING,
-        view: Optional[View] = MISSING,
+        components: Optional[MessageComponents] = MISSING,
         allowed_mentions: Optional[AllowedMentions] = None,
     ) -> InteractionMessage:
         """|coro|
@@ -289,9 +315,9 @@ class Interaction:
         allowed_mentions: :class:`AllowedMentions`
             Controls the mentions being processed in this message.
             See :meth:`.abc.Messageable.send` for more information.
-        view: Optional[:class:`~discord.ui.View`]
-            The updated view to update this message with. If ``None`` is passed then
-            the view is removed.
+        components: Optional[:class:`~discord.ui.MessageComponents`]
+            The set of message components to update the message with. If ``None`` is passed then
+            the components are removed.
 
         Raises
         -------
@@ -317,7 +343,7 @@ class Interaction:
             files=files,
             embed=embed,
             embeds=embeds,
-            view=view,
+            components=components,
             allowed_mentions=allowed_mentions,
             previous_allowed_mentions=previous_mentions,
         )
@@ -333,8 +359,6 @@ class Interaction:
 
         # The message channel types should always match
         message = InteractionMessage(state=self._state, channel=self.channel, data=data)  # type: ignore
-        if view and not view.is_finished():
-            self._state.store_view(view, message.id)
         return message
 
     async def delete_original_message(self) -> None:
@@ -456,7 +480,7 @@ class InteractionResponse:
         *,
         embed: Embed = MISSING,
         embeds: List[Embed] = MISSING,
-        view: View = MISSING,
+        components: MessageComponents = MISSING,
         tts: bool = False,
         ephemeral: bool = False,
     ) -> None:
@@ -476,12 +500,10 @@ class InteractionResponse:
             ``embeds`` parameter.
         tts: :class:`bool`
             Indicates if the message should be sent using text-to-speech.
-        view: :class:`discord.ui.View`
-            The view to send with the message.
+        components: :class:`discord.ui.MessageComponents`
+            The components to send with the messasge.
         ephemeral: :class:`bool`
             Indicates if the message should only be visible to the user who started the interaction.
-            If a view is sent with an ephemeral message and it has no timeout set then the timeout
-            is set to 15 minutes.
 
         Raises
         -------
@@ -518,8 +540,8 @@ class InteractionResponse:
         if ephemeral:
             payload['flags'] = 64
 
-        if view is not MISSING:
-            payload['components'] = view.to_components()
+        if components is not MISSING:
+            payload['components'] = components.to_dict()
 
         parent = self._parent
         adapter = async_context.get()
@@ -531,12 +553,6 @@ class InteractionResponse:
             data=payload,
         )
 
-        if view is not MISSING:
-            if ephemeral and view.timeout is None:
-                view.timeout = 15 * 60.0
-
-            self._parent._state.store_view(view)
-
         self._responded = True
 
     async def edit_message(
@@ -546,7 +562,7 @@ class InteractionResponse:
         embed: Optional[Embed] = MISSING,
         embeds: List[Embed] = MISSING,
         attachments: List[Attachment] = MISSING,
-        view: Optional[View] = MISSING,
+        components: Optional[MessageComponents] = MISSING,
     ) -> None:
         """|coro|
 
@@ -565,9 +581,9 @@ class InteractionResponse:
         attachments: List[:class:`Attachment`]
             A list of attachments to keep in the message. If ``[]`` is passed
             then all attachments are removed.
-        view: Optional[:class:`~discord.ui.View`]
-            The updated view to update this message with. If ``None`` is passed then
-            the view is removed.
+        components: Optional[:class:`~discord.ui.MessageComponents`]
+            The updated components to update this message with. If ``None`` is passed then
+            the components are removed.
 
         Raises
         -------
@@ -610,12 +626,11 @@ class InteractionResponse:
         if attachments is not MISSING:
             payload['attachments'] = [a.to_dict() for a in attachments]
 
-        if view is not MISSING:
-            state.prevent_view_updates_for(message_id)
-            if view is None:
+        if components is not MISSING:
+            if components is None:
                 payload['components'] = []
             else:
-                payload['components'] = view.to_components()
+                payload['components'] = components.to_dict()
 
         adapter = async_context.get()
         await adapter.create_interaction_response(
@@ -625,9 +640,6 @@ class InteractionResponse:
             type=InteractionResponseType.message_update.value,
             data=payload,
         )
-
-        if view and not view.is_finished():
-            state.store_view(view, message_id)
 
         self._responded = True
 
@@ -678,7 +690,7 @@ class InteractionMessage(Message):
         embed: Optional[Embed] = MISSING,
         file: File = MISSING,
         files: List[File] = MISSING,
-        view: Optional[View] = MISSING,
+        components: Optional[MessageComponents] = MISSING,
         allowed_mentions: Optional[AllowedMentions] = None,
     ) -> InteractionMessage:
         """|coro|
@@ -702,9 +714,9 @@ class InteractionMessage(Message):
         allowed_mentions: :class:`AllowedMentions`
             Controls the mentions being processed in this message.
             See :meth:`.abc.Messageable.send` for more information.
-        view: Optional[:class:`~discord.ui.View`]
-            The updated view to update this message with. If ``None`` is passed then
-            the view is removed.
+        components: Optional[:class:`~discord.ui.MessageComponents`]
+            The updated components to update this message with. If ``None`` is passed then
+            the components are removed.
 
         Raises
         -------
@@ -728,7 +740,7 @@ class InteractionMessage(Message):
             embed=embed,
             file=file,
             files=files,
-            view=view,
+            components=components,
             allowed_mentions=allowed_mentions,
         )
 

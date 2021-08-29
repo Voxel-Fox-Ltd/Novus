@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import copy
 import asyncio
+from discord.types import components
 from typing import (
     Any,
     Callable,
@@ -81,7 +82,7 @@ if TYPE_CHECKING:
     from .channel import TextChannel, DMChannel, GroupChannel, PartialMessageable
     from .threads import Thread
     from .enums import InviteTarget
-    from .ui.view import View
+    from .ui.action_row import MessageComponents
     from .types.channel import (
         PermissionOverwrite as PermissionOverwritePayload,
         Channel as ChannelPayload,
@@ -1163,7 +1164,7 @@ class Messageable:
         allowed_mentions: AllowedMentions = ...,
         reference: Union[Message, MessageReference, PartialMessage] = ...,
         mention_author: bool = ...,
-        view: View = ...,
+        components: MessageComponents = ...,
     ) -> Message:
         ...
 
@@ -1181,7 +1182,7 @@ class Messageable:
         allowed_mentions: AllowedMentions = ...,
         reference: Union[Message, MessageReference, PartialMessage] = ...,
         mention_author: bool = ...,
-        view: View = ...,
+        components: MessageComponents = ...,
     ) -> Message:
         ...
 
@@ -1199,7 +1200,7 @@ class Messageable:
         allowed_mentions: AllowedMentions = ...,
         reference: Union[Message, MessageReference, PartialMessage] = ...,
         mention_author: bool = ...,
-        view: View = ...,
+        components: MessageComponents = ...,
     ) -> Message:
         ...
 
@@ -1217,7 +1218,7 @@ class Messageable:
         allowed_mentions: AllowedMentions = ...,
         reference: Union[Message, MessageReference, PartialMessage] = ...,
         mention_author: bool = ...,
-        view: View = ...,
+        components: MessageComponents = ...,
     ) -> Message:
         ...
 
@@ -1236,7 +1237,7 @@ class Messageable:
         allowed_mentions=None,
         reference=None,
         mention_author=None,
-        view=None,
+        components=None,
     ):
         """|coro|
 
@@ -1297,8 +1298,10 @@ class Messageable:
             If set, overrides the :attr:`~discord.AllowedMentions.replied_user` attribute of ``allowed_mentions``.
 
             .. versionadded:: 1.6
-        view: :class:`discord.ui.View`
-            A Discord UI View to add to the message.
+        components: :class:`discord.ui.MessageComponents`
+            The components that you want to attach to your message.
+
+            .. versionadded:: 2.0
         embeds: List[:class:`~discord.Embed`]
             A list of embeds to upload. Must be a maximum of 10.
 
@@ -1363,13 +1366,8 @@ class Messageable:
             except AttributeError:
                 raise InvalidArgument('reference parameter must be Message, MessageReference, or PartialMessage') from None
 
-        if view:
-            if not hasattr(view, '__discord_ui_view__'):
-                raise InvalidArgument(f'view parameter must be View not {view.__class__!r}')
-
-            components = view.to_components()
-        else:
-            components = None
+        if components is not None:
+            components = components.to_dict()
 
         if file is not None and files is not None:
             raise InvalidArgument('cannot pass both file and files parameter to send()')
@@ -1433,8 +1431,6 @@ class Messageable:
             )
 
         ret = state.create_message(channel=channel, data=data)
-        if view:
-            state.store_view(view, ret.id)
 
         if delete_after is not None:
             await ret.delete(delay=delete_after)
