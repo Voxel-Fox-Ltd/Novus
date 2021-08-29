@@ -11,9 +11,9 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
-.. _vp2_0_0:
+.. _vp0_0_1:
 
-v2.0.0
+v0.0.1
 --------
 
 The new and changed features described in this section refer to changes from Rapptz's original Discord.py repo.
@@ -46,9 +46,9 @@ New Features
 * Threads as a whole (thanks to Danny).
 * Type hinting for a vast majority of the library (thanks to Danny).
 
-.. _vp1:
+.. _vp_rapptz:
 
-v1.*
+Original
 --------
 
 Everything at this point and before is forked directly from `Rapptz's Discord.py library <https://github.com/Rapptz/discord.py>`_. The changelogs from before that point (and thus before the existance of this library) have been removed.
