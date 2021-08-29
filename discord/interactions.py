@@ -432,12 +432,41 @@ class InteractionResponse:
         defer_type: int = 0
         data: Optional[Dict[str, Any]] = None
         parent = self._parent
-        if parent.type is InteractionType.component:
-            defer_type = InteractionResponseType.deferred_message_update.value
-        elif parent.type is InteractionType.application_command:
-            defer_type = InteractionResponseType.deferred_channel_message.value
-            if ephemeral:
-                data = {'flags': 64}
+        defer_type = InteractionResponseType.deferred_channel_message.value
+        if ephemeral:
+            data = {'flags': 64}
+
+        if defer_type:
+            adapter = async_context.get()
+            await adapter.create_interaction_response(
+                parent.id, parent.token, session=parent._session, type=defer_type, data=data
+            )
+            self._responded = True
+
+    async def defer_update(self) -> None:
+        """|coro|
+
+        Defers the interaction response.
+
+        This is typically used when the interaction is acknowledged
+        and a secondary action will be done later.
+
+        This is only usable if the interaction spawned from a component interaction.
+
+        Raises
+        -------
+        HTTPException
+            Deferring the interaction failed.
+        InteractionResponded
+            This interaction has already been responded to before.
+        """
+        if self._responded:
+            raise InteractionResponded(self._parent)
+
+        defer_type: int = 0
+        data: Optional[Dict[str, Any]] = None
+        parent = self._parent
+        defer_type = InteractionResponseType.deferred_message_update.value
 
         if defer_type:
             adapter = async_context.get()
@@ -480,6 +509,7 @@ class InteractionResponse:
         components: MessageComponents = MISSING,
         tts: bool = False,
         ephemeral: bool = False,
+        allowed_mentions: AllowedMentions = None,
     ) -> None:
         """|coro|
 
@@ -501,6 +531,8 @@ class InteractionResponse:
             The components to send with the messasge.
         ephemeral: :class:`bool`
             Indicates if the message should only be visible to the user who started the interaction.
+        allowed_mentions: :class:`AllowedMentions`
+            The allowed mentions that should be sent with the message.
 
         Raises
         -------
@@ -541,6 +573,16 @@ class InteractionResponse:
             payload['components'] = components.to_dict()
 
         parent = self._parent
+        parent_state = parent._state
+
+        if allowed_mentions is not None:
+            if parent_state.allowed_mentions is not None:
+                allowed_mentions = parent_state.allowed_mentions.merge(allowed_mentions).to_dict()
+            else:
+                allowed_mentions = allowed_mentions.to_dict()
+        else:
+            allowed_mentions = parent_state.allowed_mentions and parent_state.allowed_mentions.to_dict()
+
         adapter = async_context.get()
         await adapter.create_interaction_response(
             parent.id,
