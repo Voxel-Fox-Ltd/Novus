@@ -49,7 +49,7 @@ autodoc_typehints = 'none'
 # napoleon_attr_annotations = False
 
 extlinks = {
-    'issue': ('https://github.com/Rapptz/discord.py/issues/%s', 'GH-'),
+    'issue': ('https://github.com/Voxel-Fox-Ltd/discord.py/issues/%s', 'GH-'),
 }
 
 # Links used for cross-referencing stuff in other documentation
@@ -168,9 +168,9 @@ html_context = {
 
 resource_links = {
   'discord': 'https://discord.gg/r3sSKJJ',
-  'issues': 'https://github.com/Rapptz/discord.py/issues',
-  'discussions': 'https://github.com/Rapptz/discord.py/discussions',
-  'examples': f'https://github.com/Rapptz/discord.py/tree/{branch}/examples',
+  'issues': 'https://github.com/Voxel-Fox-Ltd/discord.py/issues',
+  'discussions': 'https://github.com/Voxel-Fox-Ltd/discord.py/discussions',
+  'examples': f'https://github.com/Voxel-Fox-Ltd/discord.py/tree/{branch}/examples',
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -294,7 +294,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'discord.py.tex', 'discord.py Documentation',
-   'Rapptz', 'manual'),
+   'Voxel-Fox-Ltd', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -324,7 +324,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'discord.py', 'discord.py Documentation',
-     ['Rapptz'], 1)
+     ['Voxel-Fox-Ltd'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -338,7 +338,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'discord.py', 'discord.py Documentation',
-   'Rapptz', 'discord.py', 'One line description of project.',
+   'Voxel-Fox-Ltd', 'discord.py', 'One line description of project.',
    'Miscellaneous'),
 ]
 

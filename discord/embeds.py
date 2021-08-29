@@ -1,7 +1,7 @@
 """
 The MIT License (MIT)
 
-Copyright (c) 2015-present Rapptz
+Copyright (c) 2015-2021 Rapptz
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -366,7 +366,7 @@ class Embed:
             self._footer['icon_url'] = str(icon_url)
 
         return self
-    
+
     def remove_footer(self: E) -> E:
         """Clears embed's footer information.
 
@@ -381,7 +381,7 @@ class Embed:
             pass
 
         return self
-    
+
     @property
     def image(self) -> _EmbedMediaProxy:
         """Returns an ``EmbedProxy`` denoting the image contents.
