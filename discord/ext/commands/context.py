@@ -394,7 +394,7 @@ class Context(discord.abc.Messageable, Generic[BotT]):
     async def reply(self, content: Optional[str] = None, **kwargs: Any) -> Message:
         return await self.message.reply(content, **kwargs)
 
-    async def defer(self):
+    async def defer(self, *, ephemeral: bool = False) -> None:
         await self.trigger_typing()
 
 
@@ -445,6 +445,6 @@ class SlashContext(Context):
             return await self.send(*args, **kwargs)
         return await self.interaction.followup.send(*args, **kwargs)
 
-    async def defer(self):
+    async def defer(self, *, ephemeral: bool = False) -> None:
         if not self.interaction.response.is_done():
             await self.interaction.response.defer()

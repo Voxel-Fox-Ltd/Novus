@@ -40,7 +40,7 @@ Breaking Changes
 New Features
 ~~~~~~~~~~~~~~~~
 
-* Message components are now sendable using the :ref:`bot UI kit <_discord_ui_kit>`.
+* Message components are now sendable using the :ref:`bot UI kit <discord_ui_kit>`.
 * Slash commands are now processed as message commands if sent through the gateway.
 * :func:`Client.register_application_commands` will register all of your bot's loaded commands as application commands.
 * Threads as a whole (thanks to Danny).

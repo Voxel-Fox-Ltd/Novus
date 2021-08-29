@@ -326,6 +326,9 @@ Checks
 .. autofunction:: discord.ext.commands.is_nsfw(,)
     :decorator:
 
+.. autofunction:: discord.ext.commands.defer(*, ephemeral=False)
+    :decorator:
+
 .. _ext_commands_api_context:
 
 Cooldown

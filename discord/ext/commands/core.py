@@ -95,7 +95,8 @@ __all__ = (
     'is_owner',
     'is_nsfw',
     'has_guild_permissions',
-    'bot_has_guild_permissions'
+    'bot_has_guild_permissions',
+    'defer',
 )
 
 MISSING: Any = discord.utils.MISSING
@@ -2382,3 +2383,18 @@ def after_invoke(coro) -> Callable[[T], T]:
             func.__after_invoke__ = coro
         return func
     return decorator  # type: ignore
+
+
+def defer(*, ephemeral: bool = False):
+    """A decorator that has your context send a defer response before continuing with the command.
+
+    Parameters
+    -----------
+    ephemeral: Optional[:class:`bool`]
+        Whether or not the defer should be ephemeral.
+    """
+    
+    async def predicate(ctx):
+        await ctx.defer(ephemeral=ephemeral)
+        return True
+    return check(predicate)
