@@ -5,9 +5,7 @@ from .role import Role
 from .enums import (
     ApplicationCommandOptionType,
     ApplicationCommandType,
-    MessageType,
 )
-from .flags import MessageFlags
 
 
 ApplicationCommandOptionChoiceValue = Union[str, int]
@@ -189,6 +187,6 @@ class ApplicationCommand(object):
         }
         if self.description is None:
             v.pop("description", None)
-        if self.type != ApplicationCommandType.CHAT_INPUT:
+        if self.type != ApplicationCommandType.chat_input:
             v.pop("options", None)
         return v
