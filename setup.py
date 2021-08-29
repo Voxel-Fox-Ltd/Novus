@@ -54,12 +54,12 @@ packages = [
     'discord.ext.tasks',
 ]
 
-setup(name='discord.py',
+setup(name='disfox',
       author='Rapptz',
-      url='https://github.com/Voxel-Fox-Ltd/discord.py',
+      url='https://github.com/Voxel-Fox-Ltd/disfox',
       project_urls={
-        "Documentation": "https://discordpy.readthedocs.io/en/latest/",
-        "Issue tracker": "https://github.com/Voxel-Fox-Ltd/discord.py/issues",
+        "Documentation": "https://disfox.readthedocs.io/en/latest/",
+        "Issue tracker": "https://github.com/Voxel-Fox-Ltd/disfox/issues",
       },
       version=version,
       packages=packages,

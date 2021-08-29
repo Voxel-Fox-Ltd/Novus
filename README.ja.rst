@@ -1,17 +1,17 @@
-discord.py
+disfox
 ==========
 
 .. image:: https://discord.com/api/guilds/208895639164026880/embed.png
    :target: https://discord.gg/nXzj3dg
    :alt: Discordサーバーの招待
-.. image:: https://img.shields.io/pypi/v/discord.py.svg
-   :target: https://pypi.python.org/pypi/discord.py
+.. image:: https://img.shields.io/pypi/v/disfox.svg
+   :target: https://pypi.python.org/pypi/disfox
    :alt: PyPIのバージョン情報
-.. image:: https://img.shields.io/pypi/pyversions/discord.py.svg
-   :target: https://pypi.python.org/pypi/discord.py
+.. image:: https://img.shields.io/pypi/pyversions/disfox.svg
+   :target: https://pypi.python.org/pypi/disfox
    :alt: PyPIのサポートしているPythonのバージョン
 
-discord.py は機能豊富かつモダンで使いやすい、非同期処理にも対応したDiscord用のAPIラッパーです。
+disfox は機能豊富かつモダンで使いやすい、非同期処理にも対応したDiscord用のAPIラッパーです。
 
 主な特徴
 -------------
@@ -30,28 +30,28 @@ discord.py は機能豊富かつモダンで使いやすい、非同期処理に
 .. code:: sh
 
     # Linux/OS X
-    python3 -m pip install -U discord.py
+    python3 -m pip install -U disfox
 
     # Windows
-    py -3 -m pip install -U discord.py
+    py -3 -m pip install -U disfox
 
 音声サポートが必要なら、次のコマンドを実行しましょう:
 
 .. code:: sh
 
     # Linux/OS X
-    python3 -m pip install -U discord.py[voice]
+    python3 -m pip install -U disfox[voice]
 
     # Windows
-    py -3 -m pip install -U discord.py[voice]
+    py -3 -m pip install -U disfox[voice]
 
 
 開発版をインストールしたいのならば、次の手順に従ってください:
 
 .. code:: sh
 
-    $ git clone https://github.com/Voxel-Fox-Ltd/discord.py
-    $ cd discord.py
+    $ git clone https://github.com/Voxel-Fox-Ltd/disfox
+    $ cd disfox
     $ python3 -m pip install -U .[voice]
 
 
@@ -108,6 +108,6 @@ examplesディレクトリに更に多くのサンプルがあります。
 リンク
 ------
 
-- `ドキュメント <https://discordpy.readthedocs.io/ja/latest/index.html>`_
+- `ドキュメント <https://disfox.readthedocs.io/ja/latest/index.html>`_
 - `公式Discordサーバー <https://discord.gg/nXzj3dg>`_
 - `Discord API <https://discord.gg/discord-api>`_

@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version:  discordpy\n"
+"Project-Id-Version:  disfox\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-10-23 22:41-0400\n"
 "PO-Revision-Date: 2020-10-24 02:41+0000\n"
@@ -15,14 +15,14 @@ msgstr ""
 "Generated-By: Babel 2.5.3\n"
 
 #: ../../index.rst:7
-msgid "Welcome to discord.py"
-msgstr "discord.py へようこそ。"
+msgid "Welcome to disfox"
+msgstr "disfox へようこそ。"
 
 #: ../../index.rst:11
 msgid ""
-"discord.py is a modern, easy to use, feature-rich, and async ready API "
+"disfox is a modern, easy to use, feature-rich, and async ready API "
 "wrapper for Discord."
-msgstr "discord.py は機能豊富かつモダンで使いやすい、非同期処理にも対応したDiscord用のAPIラッパーです。"
+msgstr "disfox は機能豊富かつモダンで使いやすい、非同期処理にも対応したDiscord用のAPIラッパーです。"
 
 #: ../../index.rst:14
 msgid "**Features:**"

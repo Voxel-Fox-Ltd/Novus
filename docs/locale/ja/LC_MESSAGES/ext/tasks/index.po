@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version:  discordpy\n"
+"Project-Id-Version:  disfox\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-10-23 22:41-0400\n"
 "PO-Revision-Date: 2020-10-24 02:41+0000\n"
@@ -39,9 +39,9 @@ msgstr "スリープできる最大時間は何秒ですか？"
 
 #: ../../ext/tasks/index.rst:14
 msgid ""
-"The goal of this discord.py extension is to abstract all these worries "
+"The goal of this disfox extension is to abstract all these worries "
 "away from you."
-msgstr "discord.pyの拡張機能の目的は、こういった苦労の種を抽象化することです。"
+msgstr "disfoxの拡張機能の目的は、こういった苦労の種を抽象化することです。"
 
 #: ../../ext/tasks/index.rst:17
 msgid "Recipes"
