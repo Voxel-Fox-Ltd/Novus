@@ -1,7 +1,7 @@
 discord.py
 ==========
 
-.. image:: https://discord.com/api/guilds/336642139381301249/embed.png
+.. image:: https://discord.com/api/guilds/208895639164026880/embed.png
    :target: https://discord.gg/nXzj3dg
    :alt: Discordサーバーの招待
 .. image:: https://img.shields.io/pypi/v/discord.py.svg
@@ -50,7 +50,7 @@ discord.py は機能豊富かつモダンで使いやすい、非同期処理に
 
 .. code:: sh
 
-    $ git clone https://github.com/Rapptz/discord.py
+    $ git clone https://github.com/Voxel-Fox-Ltd/discord.py
     $ cd discord.py
     $ python3 -m pip install -U .[voice]
 
