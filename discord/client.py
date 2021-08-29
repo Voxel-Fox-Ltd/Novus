@@ -1550,7 +1550,7 @@ class Client:
         return state.add_dm_channel(data)
 
     async def register_application_commands(
-            self, commands: List[ApplicationCommand]) -> List[ApplicationCommand]:
+            self, commands: List[ApplicationCommand], *, guild: Optional[Guild] = None) -> List[ApplicationCommand]:
         """|coro|
 
         Register the bot's commands as application commands. Providing ``None``
@@ -1563,6 +1563,8 @@ class Client:
         commands: List[:class:`ApplicationCommand`]    async def register_application_commands(
             self, commands: Optional[List[ApplicationCommand]] = MISSING) -> List[ApplicationCommand]:
             A list of commands that you want to register in Discord.
+        guild: Optional[:class:`Guild`]
+            The guild that the commands should be registered to.
 
         Returns
         --------
@@ -1579,5 +1581,8 @@ class Client:
         if application_id is None:
             application_info = await self.application_info()
             application_id = application_info.id
-        data = self.http.bulk_upsert_global_commands(application_id, [c.to_json() for c in commands])
+        if guild:
+            data = await self.http.bulk_upsert_guild_commands(application_id, guild.id, [c.to_json() for c in commands])
+        else:
+            data = await self.http.bulk_upsert_global_commands(application_id, [c.to_json() for c in commands])
         return [ApplicationCommand.from_data(c) for c in data]

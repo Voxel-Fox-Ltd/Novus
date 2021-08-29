@@ -54,6 +54,7 @@ if TYPE_CHECKING:
         Check,
         CoroFunc,
     )
+    from discord.guild import Guild
 
 __all__ = (
     'when_mentioned',
@@ -1116,7 +1117,7 @@ class BotBase(GroupMixin):
         await self.process_slash_commands(interaction)
 
     async def register_application_commands(
-            self, commands: Optional[List[ApplicationCommand]] = MISSING) -> List[ApplicationCommand]:
+            self, commands: Optional[List[ApplicationCommand]] = MISSING, *, guild: Optional[Guild]) -> List[ApplicationCommand]:
         """|coro|
 
         Register the bot's commands as application commands. Providing ``None``
@@ -1128,6 +1129,8 @@ class BotBase(GroupMixin):
         -----------
         commands: Optional[List[:class:`ApplicationCommand`]]
             A list of commands that you want to register in Discord.
+        guild: Optional[:class:`Guild`]
+            The guild that the commands should be registered to.
 
         Returns
         --------
@@ -1139,12 +1142,12 @@ class BotBase(GroupMixin):
         if commands is MISSING:
             commands = []
             for command in self.commands:
-                if not command.add_slash_command or command.hidden or not commands.enabled:
+                if not command.add_slash_command or command.hidden or not command.enabled:
                     continue
                 commands.append(command.to_application_command())
 
         # Upsert
-        return await super().register_application_commands(commands)
+        return await super().register_application_commands(commands, guild=guild)
 
 
 class Bot(BotBase, discord.Client):

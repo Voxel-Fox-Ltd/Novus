@@ -1173,12 +1173,12 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         finally:
             ctx.command = original
 
-    def to_application_command(self) -> ApplicationCommand:
+    def to_application_command(self) -> Union[ApplicationCommand, ApplicationCommandOption]:
         """Convert the current command instance to an application command.
 
         Returns
         --------
-        :class:`ApplicationCommand`
+        Union[:class:`ApplicationCommand`, :class:`ApplicationCommandOption`]
             An application command equivelant to the current command instance.
         """
 
@@ -1196,7 +1196,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         for name, arg in self.clean_params.items():
             command.add_option(ApplicationCommandOption(
                 name=name,
-                description=self.param_descriptions[name],
+                description=self.param_descriptions.get(name, name),
                 type=try_application_command_option_type(arg),
                 required=arg.default != inspect.Signature.empty,
             ))
@@ -1587,10 +1587,10 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
             command = ApplicationCommandOption(
                 name=self.name,
                 type=ApplicationCommandOptionType.subcommand_group,
-                description=self.help,
+                description=self.help or self.name,
             )
-        for command in self.commands:
-            command.add_option(command.to_application_command())
+        for c in self.commands:
+            command.add_option(c.to_application_command())
         return command
 
 # Decorators
