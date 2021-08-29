@@ -667,8 +667,6 @@ class Client:
     def status(self):
         """:class:`.Status`:
         The status being used upon logging on to Discord.
-
-        .. versionadded: 2.0
         """
         if self._connection._status in set(state.value for state in Status):
             return Status(self._connection._status)
