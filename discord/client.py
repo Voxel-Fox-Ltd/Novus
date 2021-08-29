@@ -62,6 +62,7 @@ from .ui.action_row import MessageComponents
 from .stage_instance import StageInstance
 from .threads import Thread
 from .sticker import GuildSticker, StandardSticker, StickerPack, _sticker_factory
+from .application_commands import ApplicationCommand
 
 if TYPE_CHECKING:
     from .abc import SnowflakeTime, PrivateChannel, GuildChannel, Snowflake
@@ -1547,3 +1548,36 @@ class Client:
 
         data = await state.http.start_private_message(user.id)
         return state.add_dm_channel(data)
+
+    async def register_application_commands(
+            self, commands: List[ApplicationCommand]) -> List[ApplicationCommand]:
+        """|coro|
+
+        Register the bot's commands as application commands. Providing ``None``
+        will remove all of the registerd commands. Leaving ``commands`` blank will work
+        only for instances of :class:`commands.Bot`, attempting to register all commands that
+        have their :attr:`commands.Command.add_slash_command` attribute set to ``True``.
+
+        Parameters
+        -----------
+        commands: List[:class:`ApplicationCommand`]    async def register_application_commands(
+            self, commands: Optional[List[ApplicationCommand]] = MISSING) -> List[ApplicationCommand]:
+            A list of commands that you want to register in Discord.
+
+        Returns
+        --------
+        List[:class:`ApplicationCommand`]
+            A list of added application commands.
+        """
+
+        # Work out our commands to be added
+        if commands is None:
+            commands = []
+
+        # Grab the app ID
+        application_id = self.application_id
+        if application_id is None:
+            application_info = await self.application_info()
+            application_id = application_info.id
+        data = self.http.bulk_upsert_global_commands(application_id, [c.to_json() for c in commands])
+        return [ApplicationCommand.from_data(c) for c in data]

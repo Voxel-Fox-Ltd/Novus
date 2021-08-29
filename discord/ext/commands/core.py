@@ -22,6 +22,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 from __future__ import annotations
+from discord.application_commands import ApplicationCommand, ApplicationCommandOption
 
 from typing import (
     Any,
@@ -49,10 +50,11 @@ import discord
 
 from .errors import *
 from .cooldowns import Cooldown, BucketType, CooldownMapping, MaxConcurrency, DynamicCooldownMapping
-from .converter import run_converters, get_converter, Greedy
+from .converter import run_converters, get_converter, Greedy, try_application_command_option_type
 from ._types import _BaseCommand
 from .cog import Cog
 from .context import Context, SlashContext
+from ...enums import ApplicationCommandOptionType
 
 
 if TYPE_CHECKING:
@@ -232,6 +234,12 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         If the command is invoked while it is disabled, then
         :exc:`.DisabledCommand` is raised to the :func:`.on_command_error`
         event. Defaults to ``True``.
+    add_slash_command: Optional[:class:`bool`]
+        Whether or not this command should be added as a slash command when
+        :func:`commands.Bot.register_application_commands()` is run.
+    param_descriptions: Optional[Dict[str, str]]
+        Descriptions for each of the parameters that should be added to the
+        application command description.
     parent: Optional[:class:`Group`]
         The parent group that this command belongs to. ``None`` if there
         isn't one.
@@ -261,7 +269,6 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
     require_var_positional: :class:`bool`
         If ``True`` and a variadic positional argument is specified, requires
         the user to specify at least one argument. Defaults to ``False``.
-
     ignore_extra: :class:`bool`
         If ``True``\, ignores extraneous strings passed to a command if all its
         requirements are met (e.g. ``?foo a b c`` when only expecting ``a``
@@ -309,6 +316,8 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
         self.callback = func
         self.enabled: bool = kwargs.get('enabled', True)
+        self.add_slash_command: bool = kwargs.get('add_slash_command', True)
+        self.param_descriptions: Dict[str, str] = kwargs.get('param_descriptions', dict())
 
         help_doc = kwargs.get('help')
         if help_doc is not None:
@@ -1164,6 +1173,35 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         finally:
             ctx.command = original
 
+    def to_application_command(self) -> ApplicationCommand:
+        """Convert the current command instance to an application command.
+
+        Returns
+        --------
+        :class:`ApplicationCommand`
+            An application command equivelant to the current command instance.
+        """
+
+        if self.parent is None:  # No parent
+            command = ApplicationCommand(
+                name=self.name,
+                description=self.help,
+            )
+        else:  # Parent is a group
+            command = ApplicationCommandOption(
+                name=self.name,
+                type=ApplicationCommandOptionType.subcommand,
+                description=self.description,
+            )
+        for name, arg in self.clean_params.items():
+            command.add_option(ApplicationCommandOption(
+                name=name,
+                description=self.param_descriptions[name],
+                type=try_application_command_option_type(arg),
+                required=arg.default != inspect.Signature.empty,
+            ))
+        return command
+
 class GroupMixin(Generic[CogT]):
     """A mixin that implements common functionality for classes that behave
     similar to :class:`.Group` and are allowed to register commands.
@@ -1530,6 +1568,30 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
             view.index = previous
             view.previous = previous
             await super().reinvoke(ctx, call_hooks=call_hooks)
+
+    def to_application_command(self) -> ApplicationCommand:
+        """Convert the current command instance to an application command.
+
+        Returns
+        --------
+        :class:`ApplicationCommand`
+            An application command equivelant to the current command instance.
+        """
+
+        if self.parent is None:  # No parent, this is the base
+            command = ApplicationCommand(
+                name=self.name,
+                description=self.help,
+            )
+        else:  # Parent is another group
+            command = ApplicationCommandOption(
+                name=self.name,
+                type=ApplicationCommandOptionType.subcommand_group,
+                description=self.help,
+            )
+        for command in self.commands:
+            command.add_option(command.to_application_command())
+        return command
 
 # Decorators
 

@@ -43,6 +43,7 @@ from .context import Context, SlashContext
 from . import errors
 from .help import HelpCommand, DefaultHelpCommand
 from .cog import Cog
+from ...application_commands import ApplicationCommand
 
 if TYPE_CHECKING:
     import importlib.machinery
@@ -1113,6 +1114,37 @@ class BotBase(GroupMixin):
 
     async def on_slash_command(self, interaction):
         await self.process_slash_commands(interaction)
+
+    async def register_application_commands(
+            self, commands: Optional[List[ApplicationCommand]] = MISSING) -> List[ApplicationCommand]:
+        """|coro|
+
+        Register the bot's commands as application commands. Providing ``None``
+        will remove all of the registerd commands. Leaving ``commands`` blank will work
+        only for instances of :class:`commands.Bot`, attempting to register all commands that
+        have their :attr:`commands.Command.add_slash_command` attribute set to ``True``.
+
+        Parameters
+        -----------
+        commands: Optional[List[:class:`ApplicationCommand`]]
+            A list of commands that you want to register in Discord.
+
+        Returns
+        --------
+        List[:class:`ApplicationCommand`]
+            A list of added application commands.
+        """
+
+        # Infer commands
+        if commands is MISSING:
+            commands = []
+            for command in self.commands:
+                if not command.add_slash_command or command.hidden or not commands.enabled:
+                    continue
+                commands.append(command.to_application_command())
+
+        # Upsert
+        return await super().register_application_commands(commands)
 
 
 class Bot(BotBase, discord.Client):

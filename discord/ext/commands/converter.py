@@ -42,9 +42,11 @@ from typing import (
     Union,
     runtime_checkable,
 )
+import enum
 
 import discord
 from .errors import *
+from ...enums import ApplicationCommandOptionType
 
 if TYPE_CHECKING:
     from .context import Context
@@ -1158,3 +1160,61 @@ async def run_converters(ctx: Context, converter, argument: str, param: inspect.
         converter = origin
 
     return await _actual_conversion(ctx, converter, argument, param)
+
+
+_command_type_mapper = {
+    discord.User: ApplicationCommandOptionType.user,
+    discord.Member: ApplicationCommandOptionType.user,
+    UserConverter: ApplicationCommandOptionType.user,
+    MemberConverter: ApplicationCommandOptionType.user,
+    discord.TextChannel: ApplicationCommandOptionType.channel,
+    TextChannelConverter: ApplicationCommandOptionType.channel,
+    discord.VoiceChannel: ApplicationCommandOptionType.channel,
+    VoiceChannelConverter: ApplicationCommandOptionType.channel,
+    discord.CategoryChannel: ApplicationCommandOptionType.channel,
+    CategoryChannelConverter: ApplicationCommandOptionType.channel,
+    discord.Role: ApplicationCommandOptionType.role,
+    RoleConverter: ApplicationCommandOptionType.role,
+    clean_content: ApplicationCommandOptionType.string,
+    discord.Message: ApplicationCommandOptionType.string,
+    discord.Emoji: ApplicationCommandOptionType.string,
+    discord.PartialEmoji: ApplicationCommandOptionType.string,
+    str: ApplicationCommandOptionType.string,
+    int: ApplicationCommandOptionType.integer,
+    float: ApplicationCommandOptionType.number,
+    bool: ApplicationCommandOptionType.boolean,
+    inspect._empty: ApplicationCommandOptionType.string,
+}
+
+
+def try_application_command_option_type(param: inspect.Parameter) -> ApplicationCommandOptionType:
+    """Try and convert an inspect parameter to one of the application
+    command option types.
+    """
+
+    arg_type = param.annotation
+
+    # See if it's one of our common types
+    if arg_type in _command_type_mapper:
+        return _command_type_mapper[arg_type]
+
+    # It isn't - let's see if it's a subclass
+    try:
+        arg_type.mro()  # This will raise an AttributeError if given a class instead of an instance
+        for i, o in _command_type_mapper.items():
+            if i in arg_type.mro()[1:]:
+                return o
+    except AttributeError:
+        for i, o in _command_type_mapper.items():
+            if isinstance(arg_type, i):
+                return o
+
+    # It isn't - let's see if it's an enum
+    if isinstance(arg_type, (enum.Enum, enum.IntEnum, enum.EnumMeta)):
+        # for i in arg_type:
+        #     choices.append(vbu.ApplicationCommandOptionChoice(i.name, i.name))
+        return ApplicationCommandOptionType.string
+
+    # It isn't - let's try and get an attr from the class
+        return getattr(arg_type, "SLASH_COMMAND_ARG_TYPE", ApplicationCommandOptionType.string)
+
