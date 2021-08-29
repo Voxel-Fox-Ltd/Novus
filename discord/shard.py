@@ -221,8 +221,6 @@ class ShardInfo:
     You can retrieve this object via :meth:`AutoShardedClient.get_shard`
     or :attr:`AutoShardedClient.shards`.
 
-    .. versionadded:: 1.4
-
     Attributes
     ------------
     id: :class:`int`
@@ -284,8 +282,6 @@ class ShardInfo:
 
         This can be useful to know when deciding whether you should query members
         using HTTP or via the gateway.
-
-        .. versionadded:: 1.6
         """
         return self._parent.ws.is_ratelimited()
 
@@ -540,7 +536,5 @@ class AutoShardedClient(Client):
 
         This implementation checks if any of the shards are rate limited.
         For more granular control, consider :meth:`ShardInfo.is_ws_ratelimited`.
-
-        .. versionadded:: 1.6
         """
         return any(shard.ws.is_ratelimited() for shard in self.__shards.values())

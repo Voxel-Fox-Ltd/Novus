@@ -521,8 +521,6 @@ class PartialWebhookChannel(Hashable):
 
     These are typically given for channel follower webhooks.
 
-    .. versionadded:: 2.0
-
     Attributes
     -----------
     id: :class:`int`
@@ -545,8 +543,6 @@ class PartialWebhookGuild(Hashable):
     """Represents a partial guild for webhooks.
 
     These are typically given for channel follower webhooks.
-
-    .. versionadded:: 2.0
 
     Attributes
     -----------
@@ -633,8 +629,6 @@ class WebhookMessage(Message):
 
     This inherits from :class:`discord.Message` with changes to
     :meth:`edit` and :meth:`delete` to work.
-
-    .. versionadded:: 1.6
     """
 
     _state: _WebhookState
@@ -653,8 +647,6 @@ class WebhookMessage(Message):
 
         Edits the message.
 
-        .. versionadded:: 1.6
-
         .. versionchanged:: 2.0
             The edit is no longer in-place, instead the newly edited message is returned.
 
@@ -669,21 +661,15 @@ class WebhookMessage(Message):
             This should not be mixed with the ``embeds`` parameter.
         file: :class:`File`
             The file to upload. This cannot be mixed with ``files`` parameter.
-
-            .. versionadded:: 2.0
         files: List[:class:`File`]
             A list of files to send with the content. This cannot be mixed with the
             ``file`` parameter.
-
-            .. versionadded:: 2.0
         allowed_mentions: :class:`AllowedMentions`
             Controls the mentions being processed in this message.
             See :meth:`.abc.Messageable.send` for more information.
         components: Optional[:class:`~discord.ui.MessageComponents`]
             The set of message components to update the message with. If ``None`` is passed then
             the components are removed.
-
-            .. versionadded:: 2.0
 
         Raises
         -------
@@ -799,14 +785,10 @@ class BaseWebhook(Hashable):
 
     def is_partial(self) -> bool:
         """:class:`bool`: Whether the webhook is a "partial" webhook.
-
-        .. versionadded:: 2.0"""
         return self.channel_id is None
 
     def is_authenticated(self) -> bool:
         """:class:`bool`: Whether the webhook is authenticated with a bot token.
-
-        .. versionadded:: 2.0
         """
         return self.auth_token is not None
 
@@ -897,8 +879,6 @@ class Webhook(BaseWebhook):
     type: :class:`WebhookType`
         The type of the webhook.
 
-        .. versionadded:: 1.3
-
     token: Optional[:class:`str`]
         The authentication token of the webhook. If this is ``None``
         then the webhook cannot be used to make requests.
@@ -915,13 +895,9 @@ class Webhook(BaseWebhook):
         The guild of the channel that this webhook is following.
         Only given if :attr:`type` is :attr:`WebhookType.channel_follower`.
 
-        .. versionadded:: 2.0
-
     source_channel: Optional[:class:`PartialWebhookChannel`]
         The channel that this webhook is following.
         Only given if :attr:`type` is :attr:`WebhookType.channel_follower`.
-
-        .. versionadded:: 2.0
     """
 
     __slots__: Tuple[str, ...] = ('session',)
@@ -952,13 +928,9 @@ class Webhook(BaseWebhook):
             The session to use to send requests with. Note
             that the library does not manage the session and
             will not close it.
-
-            .. versionadded:: 2.0
         bot_token: Optional[:class:`str`]
             The bot authentication token for authenticated requests
             involving the webhook.
-
-            .. versionadded:: 2.0
 
         Returns
         --------
@@ -986,13 +958,9 @@ class Webhook(BaseWebhook):
             The session to use to send requests with. Note
             that the library does not manage the session and
             will not close it.
-
-            .. versionadded:: 2.0
         bot_token: Optional[:class:`str`]
             The bot authentication token for authenticated requests
             involving the webhook.
-
-            .. versionadded:: 2.0
 
         Raises
         -------
@@ -1041,8 +1009,6 @@ class Webhook(BaseWebhook):
 
         This could be used to get a full webhook from a partial webhook.
 
-        .. versionadded:: 2.0
-
         .. note::
 
             When fetching with an unauthenticated webhook, i.e.
@@ -1089,13 +1055,9 @@ class Webhook(BaseWebhook):
         ------------
         reason: Optional[:class:`str`]
             The reason for deleting this webhook. Shows up on the audit log.
-
-            .. versionadded:: 1.4
         prefer_auth: :class:`bool`
             Whether to use the bot token over the webhook token
             if available. Defaults to ``True``.
-
-            .. versionadded:: 2.0
 
         Raises
         -------
@@ -1139,17 +1101,11 @@ class Webhook(BaseWebhook):
             A :term:`py:bytes-like object` representing the webhook's new default avatar.
         channel: Optional[:class:`abc.Snowflake`]
             The webhook's new channel. This requires an authenticated webhook.
-
-            .. versionadded:: 2.0
         reason: Optional[:class:`str`]
             The reason for editing this webhook. Shows up on the audit log.
-
-            .. versionadded:: 1.4
         prefer_auth: :class:`bool`
             Whether to use the bot token over the webhook token
             if available. Defaults to ``True``.
-
-            .. versionadded:: 2.0
 
         Raises
         -------
@@ -1292,8 +1248,6 @@ class Webhook(BaseWebhook):
         ephemeral: :class:`bool`
             Indicates if the message should only be visible to the user.
             This is only available to :attr:`WebhookType.application` webhooks.
-
-            .. versionadded:: 2.0
         file: :class:`File`
             The file to upload. This cannot be mixed with ``files`` parameter.
         files: List[:class:`File`]
@@ -1307,19 +1261,13 @@ class Webhook(BaseWebhook):
             be mixed with the ``embed`` parameter.
         allowed_mentions: :class:`AllowedMentions`
             Controls the mentions being processed in this message.
-
-            .. versionadded:: 1.4
         components: :class:`discord.ui.MessageComponents`
             The components to send with the message. You can only send components
             if this webhook is not partial and has state attached. A
             webhook has state attached if the webhook is managed by the
             library.
-
-            .. versionadded:: 2.0
         thread: :class:`~discord.abc.Snowflake`
             The thread to send this webhook to.
-
-            .. versionadded:: 2.0
 
         Raises
         --------
@@ -1403,8 +1351,6 @@ class Webhook(BaseWebhook):
 
         Retrieves a single :class:`~discord.WebhookMessage` owned by this webhook.
 
-        .. versionadded:: 2.0
-
         Parameters
         ------------
         id: :class:`int`
@@ -1458,8 +1404,6 @@ class Webhook(BaseWebhook):
         This is a lower level interface to :meth:`WebhookMessage.edit` in case
         you only have an ID.
 
-        .. versionadded:: 1.6
-
         .. versionchanged:: 2.0
             The edit is no longer in-place, instead the newly edited message is returned.
 
@@ -1476,13 +1420,9 @@ class Webhook(BaseWebhook):
             This should not be mixed with the ``embeds`` parameter.
         file: :class:`File`
             The file to upload. This cannot be mixed with ``files`` parameter.
-
-            .. versionadded:: 2.0
         files: List[:class:`File`]
             A list of files to send with the content. This cannot be mixed with the
             ``file`` parameter.
-
-            .. versionadded:: 2.0
         allowed_mentions: :class:`AllowedMentions`
             Controls the mentions being processed in this message.
             See :meth:`.abc.Messageable.send` for more information.
@@ -1490,8 +1430,6 @@ class Webhook(BaseWebhook):
             The updated components to update this message with. If ``None`` is passed then
             the components are removed. The webhook must have state attached, similar to
             :meth:`send`.
-
-            .. versionadded:: 2.0
 
         Raises
         -------
@@ -1552,8 +1490,6 @@ class Webhook(BaseWebhook):
 
         This is a lower level interface to :meth:`WebhookMessage.delete` in case
         you only have an ID.
-
-        .. versionadded:: 1.6
 
         Parameters
         ------------

@@ -605,8 +605,6 @@ This command can be invoked any of the following ways:
 FlagConverter
 ++++++++++++++
 
-.. versionadded:: 2.0
-
 A :class:`~ext.commands.FlagConverter` allows the user to specify user-friendly "flags" using :pep:`526` type annotations
 or a syntax more reminiscent of the :mod:`py:dataclasses` module.
 

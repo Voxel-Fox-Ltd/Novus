@@ -78,8 +78,6 @@ class Thread(Messageable, Hashable):
 
             Returns the thread's name.
 
-    .. versionadded:: 2.0
-
     Attributes
     -----------
     name: :class:`str`
@@ -707,8 +705,6 @@ class Thread(Messageable, Hashable):
         This is useful if you want to work with a message and only have its ID without
         doing an unnecessary API call.
 
-        .. versionadded:: 2.0
-
         Parameters
         ------------
         message_id: :class:`int`
@@ -751,8 +747,6 @@ class ThreadMember(Hashable):
         .. describe:: str(x)
 
             Returns the thread member's name.
-
-    .. versionadded:: 2.0
 
     Attributes
     -----------

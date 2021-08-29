@@ -115,8 +115,6 @@ class BaseActivity:
     Discord typically ignores certain combinations of activity depending on
     what is currently set. This behaviour may change in the future so there are
     no guarantees on whether Discord will actually let you set these types.
-
-    .. versionadded:: 1.3
     """
 
     __slots__ = ('_created_at',)
@@ -127,8 +125,6 @@ class BaseActivity:
     @property
     def created_at(self) -> Optional[datetime.datetime]:
         """Optional[:class:`datetime.datetime`]: When the user started doing this activity in UTC.
-
-        .. versionadded:: 1.3
         """
         if self._created_at is not None:
             return datetime.datetime.fromtimestamp(self._created_at / 1000, tz=datetime.timezone.utc)
@@ -191,8 +187,6 @@ class Activity(BaseActivity):
 
         - ``label``: A string representing the text shown on the button.
         - ``url``: A string representing the URL opened upon clicking the button.
-
-        .. versionadded:: 2.0
 
     emoji: Optional[:class:`PartialEmoji`]
         The emoji that belongs to this activity.
@@ -456,16 +450,12 @@ class Streaming(BaseActivity):
     platform: Optional[:class:`str`]
         Where the user is streaming from (ie. YouTube, Twitch).
 
-        .. versionadded:: 1.3
-
     name: Optional[:class:`str`]
         The stream's name.
     details: Optional[:class:`str`]
         An alias for :attr:`name`
     game: Optional[:class:`str`]
         The game being streamed.
-
-        .. versionadded:: 1.3
 
     url: :class:`str`
         The stream's URL.
@@ -582,8 +572,6 @@ class Spotify:
     @property
     def created_at(self) -> Optional[datetime.datetime]:
         """Optional[:class:`datetime.datetime`]: When the user started listening in UTC.
-
-        .. versionadded:: 1.3
         """
         if self._created_at is not None:
             return datetime.datetime.fromtimestamp(self._created_at / 1000, tz=datetime.timezone.utc)
@@ -681,8 +669,6 @@ class Spotify:
     @property
     def track_url(self) -> str:
         """:class:`str`: The track URL to listen on Spotify.
-
-        .. versionadded:: 2.0
         """
         return f'https://open.spotify.com/track/{self.track_id}'
 
@@ -727,8 +713,6 @@ class CustomActivity(BaseActivity):
         .. describe:: str(x)
 
             Returns the custom status text.
-
-    .. versionadded:: 1.3
 
     Attributes
     -----------

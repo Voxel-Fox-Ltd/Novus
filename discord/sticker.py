@@ -59,8 +59,6 @@ if TYPE_CHECKING:
 class StickerPack(Hashable):
     """Represents a sticker pack.
 
-    .. versionadded:: 2.0
-
     .. container:: operations
 
         .. describe:: str(x)
@@ -169,8 +167,6 @@ class _StickerTag(Hashable, AssetMixin):
 class StickerItem(_StickerTag):
     """Represents a sticker item.
 
-    .. versionadded:: 2.0
-
     .. container:: operations
 
         .. describe:: str(x)
@@ -235,8 +231,6 @@ class StickerItem(_StickerTag):
 class Sticker(_StickerTag):
     """Represents a sticker.
 
-    .. versionadded:: 1.6
-
     .. container:: operations
 
         .. describe:: str(x)
@@ -294,8 +288,6 @@ class Sticker(_StickerTag):
 
 class StandardSticker(Sticker):
     """Represents a sticker that is found in a standard sticker pack.
-
-    .. versionadded:: 2.0
 
     .. container:: operations
 
@@ -374,8 +366,6 @@ class StandardSticker(Sticker):
 class GuildSticker(Sticker):
     """Represents a sticker that belongs to a guild.
 
-    .. versionadded:: 2.0
-
     .. container:: operations
 
         .. describe:: str(x)
@@ -429,8 +419,6 @@ class GuildSticker(Sticker):
     def guild(self) -> Optional[Guild]:
         """Optional[:class:`Guild`]: The guild that this sticker is from.
         Could be ``None`` if the bot is not in the guild.
-
-        .. versionadded:: 2.0
         """
         return self._state._get_guild(self.guild_id)
 

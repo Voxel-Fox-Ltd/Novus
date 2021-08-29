@@ -192,8 +192,6 @@ class Permissions(BaseFlags):
     def membership(cls: Type[P]) -> P:
         """A factory method that creates a :class:`Permissions` with all
         "Membership" permissions from the official Discord UI set to ``True``.
-
-        .. versionadded:: 1.7
         """
         return cls(0b00001100000000000000000000000111)
 
@@ -222,8 +220,6 @@ class Permissions(BaseFlags):
     def stage(cls: Type[P]) -> P:
         """A factory method that creates a :class:`Permissions` with all
         "Stage Channel" permissions from the official Discord UI set to ``True``.
-
-        .. versionadded:: 1.7
         """
         return cls(1 << 32)
 
@@ -231,8 +227,6 @@ class Permissions(BaseFlags):
     def stage_moderator(cls: Type[P]) -> P:
         """A factory method that creates a :class:`Permissions` with all
         "Stage Moderator" permissions from the official Discord UI set to ``True``.
-
-        .. versionadded:: 1.7
         """
         return cls(0b100000001010000000000000000000000)
 
@@ -240,8 +234,6 @@ class Permissions(BaseFlags):
     def advanced(cls: Type[P]) -> P:
         """A factory method that creates a :class:`Permissions` with all
         "Advanced" permissions from the official Discord UI set to ``True``.
-
-        .. versionadded:: 1.7
         """
         return cls(1 << 3)
 
@@ -339,8 +331,6 @@ class Permissions(BaseFlags):
     @make_permission_alias('read_messages')
     def view_channel(self) -> int:
         """:class:`bool`: An alias for :attr:`read_messages`.
-
-        .. versionadded:: 1.3
         """
         return 1 << 10
 
@@ -392,16 +382,12 @@ class Permissions(BaseFlags):
     @make_permission_alias('external_emojis')
     def use_external_emojis(self) -> int:
         """:class:`bool`: An alias for :attr:`external_emojis`.
-
-        .. versionadded:: 1.3
         """
         return 1 << 18
 
     @flag_value
     def view_guild_insights(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can view the guild's insights.
-
-        .. versionadded:: 1.3
         """
         return 1 << 19
 
@@ -456,8 +442,6 @@ class Permissions(BaseFlags):
     @make_permission_alias('manage_roles')
     def manage_permissions(self) -> int:
         """:class:`bool`: An alias for :attr:`manage_roles`.
-
-        .. versionadded:: 1.3
         """
         return 1 << 28
 
@@ -474,80 +458,60 @@ class Permissions(BaseFlags):
     @make_permission_alias('manage_emojis')
     def manage_emojis_and_stickers(self) -> int:
         """:class:`bool`: An alias for :attr:`manage_emojis`.
-
-        .. versionadded:: 2.0
         """
         return 1 << 30
 
     @flag_value
     def use_slash_commands(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can use slash commands.
-
-        .. versionadded:: 1.7
         """
         return 1 << 31
 
     @flag_value
     def request_to_speak(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can request to speak in a stage channel.
-
-        .. versionadded:: 1.7
         """
         return 1 << 32
 
     @flag_value
     def manage_events(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can manage guild events.
-
-        .. versionadded:: 2.0
         """
         return 1 << 33
 
     @flag_value
     def manage_threads(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can manage threads.
-
-        .. versionadded:: 2.0
         """
         return 1 << 34
 
     @flag_value
     def create_public_threads(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can create public threads.
-
-        .. versionadded:: 2.0
         """
         return 1 << 35
 
     @flag_value
     def create_private_threads(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can create private threads.
-
-        .. versionadded:: 2.0
         """
         return 1 << 36
 
     @flag_value
     def external_stickers(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can use stickers from other guilds.
-
-        .. versionadded:: 2.0
         """
         return 1 << 37
 
     @make_permission_alias('external_stickers')
     def use_external_stickers(self) -> int:
         """:class:`bool`: An alias for :attr:`external_stickers`.
-
-        .. versionadded:: 2.0
         """
         return 1 << 37
 
     @flag_value
     def send_messages_in_threads(self) -> int:
         """:class:`bool`: Returns ``True`` if a user can send messages in threads.
-
-        .. versionadded:: 2.0
         """
         return 1 << 38
 

@@ -516,8 +516,6 @@ class GuildChannel:
         category it belongs to.
 
         If there is no category then this is ``False``.
-
-        .. versionadded:: 1.3
         """
         if self.category_id is None:
             return False
@@ -832,8 +830,6 @@ class GuildChannel:
         You must have the :attr:`~discord.Permissions.manage_channels` permission to
         do this.
 
-        .. versionadded:: 1.1
-
         Parameters
         ------------
         name: Optional[:class:`str`]
@@ -918,8 +914,6 @@ class GuildChannel:
 
             Voice channels will always be sorted below text channels.
             This is a Discord limitation.
-
-        .. versionadded:: 1.7
 
         Parameters
         ------------
@@ -1066,17 +1060,11 @@ class GuildChannel:
         target_type: Optional[:class:`.InviteTarget`]
             The type of target for the voice channel invite, if any.
 
-            .. versionadded:: 2.0
-
         target_user: Optional[:class:`User`]
             The user whose stream to display for this invite, required if `target_type` is `TargetType.stream`. The user must be streaming in the channel.
 
-            .. versionadded:: 2.0
-
         target_application_id:: Optional[:class:`int`]
             The id of the embedded application for the invite, required if `target_type` is `TargetType.embedded_application`.
-
-            .. versionadded:: 2.0
 
         Raises
         -------
@@ -1285,32 +1273,20 @@ class Messageable:
             If no object is passed at all then the defaults given by :attr:`~discord.Client.allowed_mentions`
             are used instead.
 
-            .. versionadded:: 1.4
-
         reference: Union[:class:`~discord.Message`, :class:`~discord.MessageReference`, :class:`~discord.PartialMessage`]
             A reference to the :class:`~discord.Message` to which you are replying, this can be created using
             :meth:`~discord.Message.to_reference` or passed directly as a :class:`~discord.Message`. You can control
             whether this mentions the author of the referenced message using the :attr:`~discord.AllowedMentions.replied_user`
             attribute of ``allowed_mentions`` or by setting ``mention_author``.
 
-            .. versionadded:: 1.6
-
         mention_author: Optional[:class:`bool`]
             If set, overrides the :attr:`~discord.AllowedMentions.replied_user` attribute of ``allowed_mentions``.
-
-            .. versionadded:: 1.6
         components: :class:`discord.ui.MessageComponents`
             The components that you want to attach to your message.
-
-            .. versionadded:: 2.0
         embeds: List[:class:`~discord.Embed`]
             A list of embeds to upload. Must be a maximum of 10.
-
-            .. versionadded:: 2.0
         stickers: Sequence[Union[:class:`~discord.GuildSticker`, :class:`~discord.StickerItem`]]
             A list of stickers to upload. Must be a maximum of 3.
-
-            .. versionadded:: 2.0
 
         Raises
         --------

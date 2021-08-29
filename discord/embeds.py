@@ -117,8 +117,6 @@ class Embed:
 
             Returns whether the embed has any data set.
 
-            .. versionadded:: 2.0
-
     Certain properties return an ``EmbedProxy``, a type
     that acts similar to a regular :class:`dict` except using dotted access,
     e.g. ``embed.author.icon_url``. If the attribute
@@ -372,8 +370,6 @@ class Embed:
 
         This function returns the class instance to allow for fluent-style
         chaining.
-
-        .. versionadded:: 2.0
         """
         try:
             del self._footer
@@ -533,8 +529,6 @@ class Embed:
 
         This function returns the class instance to allow for fluent-style
         chaining.
-
-        .. versionadded:: 1.4
         """
         try:
             del self._author
@@ -587,8 +581,6 @@ class Embed:
 
         This function returns the class instance to allow for fluent-style
         chaining.
-
-        .. versionadded:: 1.2
 
         Parameters
         -----------

@@ -149,8 +149,6 @@ class ObjectConverter(IDConverter[discord.Object]):
 
     The argument must follow the valid ID or mention formats (e.g. `<@80088516616269824>`).
 
-    .. versionadded:: 2.0
-
     The lookup strategy is as follows (in order):
 
     1. Lookup by ID.
@@ -319,8 +317,6 @@ class UserConverter(IDConverter[discord.User]):
 class PartialMessageConverter(Converter[discord.PartialMessage]):
     """Converts to a :class:`discord.PartialMessage`.
 
-    .. versionadded:: 1.7
-
     The creation strategy is as follows (in order):
 
     1. By "{channel ID}-{message ID}" (retrieved by shift-clicking on "Copy ID")
@@ -373,8 +369,6 @@ class PartialMessageConverter(Converter[discord.PartialMessage]):
 class MessageConverter(IDConverter[discord.Message]):
     """Converts to a :class:`discord.Message`.
 
-    .. versionadded:: 1.1
-
     The lookup strategy is as follows (in order):
 
     1. Lookup by "{channel ID}-{message ID}" (retrieved by shift-clicking on "Copy ID")
@@ -412,8 +406,6 @@ class GuildChannelConverter(IDConverter[discord.abc.GuildChannel]):
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name.
-
-    .. versionadded:: 2.0
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.abc.GuildChannel:
@@ -517,8 +509,6 @@ class VoiceChannelConverter(IDConverter[discord.VoiceChannel]):
 class StageChannelConverter(IDConverter[discord.StageChannel]):
     """Converts to a :class:`~discord.StageChannel`.
 
-    .. versionadded:: 1.7
-
     All lookups are via the local guild. If in a DM context, then the lookup
     is done by the global cache.
 
@@ -564,8 +554,6 @@ class StoreChannelConverter(IDConverter[discord.StoreChannel]):
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name.
-
-    .. versionadded:: 1.7
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.StoreChannel:
@@ -739,8 +727,6 @@ class GuildConverter(IDConverter[discord.Guild]):
 
     1. Lookup by ID.
     2. Lookup by name. (There is no disambiguation for Guilds with multiple matching names).
-
-    .. versionadded:: 1.7
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.Guild:
@@ -834,8 +820,6 @@ class GuildStickerConverter(IDConverter[discord.GuildSticker]):
 
     1. Lookup by ID.
     3. Lookup by name
-
-    .. versionadded:: 2.0
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.GuildSticker:
@@ -879,8 +863,6 @@ class clean_content(Converter[str]):
         Whether to also escape special markdown characters.
     remove_markdown: :class:`bool`
         Whether to also remove special markdown characters. This option is not supported with ``escape_markdown``
-
-        .. versionadded:: 1.7
     """
 
     def __init__(
@@ -1100,8 +1082,6 @@ async def run_converters(ctx: Context, converter, argument: str, param: inspect.
     Runs converters for a given converter, argument, and parameter.
 
     This function does the same work that the library does under the hood.
-
-    .. versionadded:: 2.0
 
     Parameters
     ------------

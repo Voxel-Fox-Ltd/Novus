@@ -289,12 +289,8 @@ def oauth_url(
         An optional valid redirect URI.
     scopes: Iterable[:class:`str`]
         An optional valid list of scopes. Defaults to ``('bot',)``.
-
-        .. versionadded:: 1.7
     disable_guild_select: :class:`bool`
         Whether to disallow the user from changing the guild dropdown.
-
-        .. versionadded:: 2.0
 
     Returns
     --------
@@ -557,8 +553,6 @@ async def sleep_until(when: datetime.datetime, result: Optional[T] = None) -> Op
 
     If the time supplied is in the past this function will yield instantly.
 
-    .. versionadded:: 1.3
-
     Parameters
     -----------
     when: :class:`datetime.datetime`
@@ -576,8 +570,6 @@ def utcnow() -> datetime.datetime:
 
     This should be preferred to :meth:`datetime.datetime.utcnow` since it is an aware
     datetime, compared to the naive datetime in the standard library.
-
-    .. versionadded:: 2.0
 
     Returns
     --------
@@ -671,8 +663,6 @@ def resolve_template(code: Union[Template, str]) -> str:
     """
     Resolves a template code from a :class:`~discord.Template`, URL or code.
 
-    .. versionadded:: 1.4
-
     Parameters
     -----------
     code: Union[:class:`~discord.Template`, :class:`str`]
@@ -708,8 +698,6 @@ _MARKDOWN_STOCK_REGEX = fr'(?P<markdown>[_\\~|\*`]|{_MARKDOWN_ESCAPE_COMMON})'
 
 def remove_markdown(text: str, *, ignore_links: bool = True) -> str:
     """A helper function that removes markdown characters.
-
-    .. versionadded:: 1.7
 
     .. note::
             This function is not markdown aware and may remove meaning from the original text. For example,
@@ -849,8 +837,6 @@ def as_chunks(iterator: AsyncIterator[T], max_size: int) -> AsyncIterator[List[T
 
 def as_chunks(iterator: _Iter[T], max_size: int) -> _Iter[List[T]]:
     """A helper function that collects an iterator into chunks of a given size.
-
-    .. versionadded:: 2.0
 
     Parameters
     ----------
@@ -999,8 +985,6 @@ def format_dt(dt: datetime.datetime, /, style: Optional[TimestampStyle] = None) 
 
     Note that the exact output depends on the user's locale setting in the client. The example output
     presented is using the ``en-GB`` locale.
-
-    .. versionadded:: 2.0
 
     Parameters
     -----------

@@ -144,29 +144,21 @@ class Client:
         The intents that you want to enable for the session. This is a way of
         disabling and enabling certain gateway events from triggering and being sent.
         If not given, defaults to a regularly constructed :class:`Intents` class.
-
-        .. versionadded:: 1.5
     member_cache_flags: :class:`MemberCacheFlags`
         Allows for finer control over how the library caches members.
         If not given, defaults to cache as much as possible with the
         currently selected intents.
-
-        .. versionadded:: 1.5
     chunk_guilds_at_startup: :class:`bool`
         Indicates if :func:`.on_ready` should be delayed to chunk all guilds
         at start-up if necessary. This operation is incredibly slow for large
         amounts of guilds. The default is ``True`` if :attr:`Intents.members`
         is ``True``.
-
-        .. versionadded:: 1.5
     status: Optional[:class:`.Status`]
         A status to start your presence with upon logging on to Discord.
     activity: Optional[:class:`.BaseActivity`]
         An activity to start your presence with upon logging on to Discord.
     allowed_mentions: Optional[:class:`AllowedMentions`]
         Control how the client handles mentions by default on every message sent.
-
-        .. versionadded:: 1.4
     heartbeat_timeout: :class:`float`
         The maximum numbers of seconds before timing out and restarting the
         WebSocket in the case of not receiving a HEARTBEAT_ACK. Useful if
@@ -175,24 +167,18 @@ class Client:
     guild_ready_timeout: :class:`float`
         The maximum number of seconds to wait for the GUILD_CREATE stream to end before
         preparing the member cache and firing READY. The default timeout is 2 seconds.
-
-        .. versionadded:: 1.4
     assume_unsync_clock: :class:`bool`
         Whether to assume the system clock is unsynced. This applies to the ratelimit handling
         code. If this is set to ``True``, the default, then the library uses the time to reset
         a rate limit bucket given by Discord. If this is ``False`` then your system clock is
         used to calculate how long to sleep for. If this is set to ``False`` it is recommended to
         sync your system clock to Google's NTP server.
-
-        .. versionadded:: 1.3
     enable_debug_events: :class:`bool`
         Whether to enable events that are useful only for debugging gateway related information.
 
         Right now this involves :func:`on_socket_raw_receive` and :func:`on_socket_raw_send`. If
         this is ``False`` then those events will not be dispatched (due to performance considerations).
         To enable these events, this must be set to ``True``. Defaults to ``False``.
-
-        .. versionadded:: 2.0
 
     Attributes
     -----------
@@ -266,8 +252,6 @@ class Client:
 
         This can be useful to know when deciding whether you should query members
         using HTTP or via the gateway.
-
-        .. versionadded:: 1.6
         """
         if self.ws:
             return self.ws.is_ratelimited()
@@ -291,16 +275,12 @@ class Client:
     @property
     def stickers(self) -> List[GuildSticker]:
         """List[:class:`.GuildSticker`]: The stickers that the connected client has.
-
-        .. versionadded:: 2.0
         """
         return self._connection.stickers
 
     @property
     def cached_messages(self) -> Sequence[Message]:
         """Sequence[:class:`.Message`]: Read-only list of messages the connected client has cached.
-
-        .. versionadded:: 1.1
         """
         return utils.SequenceProxy(self._connection._messages or [])
 
@@ -330,16 +310,12 @@ class Client:
         If this is not passed via ``__init__`` then this is retrieved
         through the gateway when an event contains the data. Usually
         after :func:`~discord.on_connect` is called.
-
-        .. versionadded:: 2.0
         """
         return self._connection.application_id
 
     @property
     def application_flags(self) -> ApplicationFlags:
         """:class:`~discord.ApplicationFlags`: The client's application flags.
-
-        .. versionadded:: 2.0
         """
         return self._connection.application_flags  # type: ignore
 
@@ -431,8 +407,6 @@ class Client:
         IDENTIFYing clients.
 
         The default implementation sleeps for 5 seconds.
-
-        .. versionadded:: 1.4
 
         Parameters
         ------------
@@ -712,8 +686,6 @@ class Client:
     @property
     def allowed_mentions(self) -> Optional[AllowedMentions]:
         """Optional[:class:`~discord.AllowedMentions`]: The allowed mention configuration.
-
-        .. versionadded:: 1.4
         """
         return self._connection.allowed_mentions
 
@@ -727,8 +699,6 @@ class Client:
     @property
     def intents(self) -> Intents:
         """:class:`~discord.Intents`: The intents configured for this connection.
-
-        .. versionadded:: 1.5
         """
         return self._connection.intents
 
@@ -760,8 +730,6 @@ class Client:
         This is useful if you have a channel_id but don't want to do an API call
         to send messages to it.
 
-        .. versionadded:: 2.0
-
         Parameters
         -----------
         id: :class:`int`
@@ -778,8 +746,6 @@ class Client:
 
     def get_stage_instance(self, id: int, /) -> Optional[StageInstance]:
         """Returns a stage instance with the given stage channel ID.
-
-        .. versionadded:: 2.0
 
         Parameters
         -----------
@@ -845,8 +811,6 @@ class Client:
 
     def get_sticker(self, id: int, /) -> Optional[GuildSticker]:
         """Returns a guild sticker with the given ID.
-
-        .. versionadded:: 2.0
 
         .. note::
 
@@ -1253,8 +1217,6 @@ class Client:
         code: :class:`str`
             The code for a template to create the guild with.
 
-            .. versionadded:: 1.4
-
         Raises
         ------
         :exc:`.HTTPException`
@@ -1285,8 +1247,6 @@ class Client:
         """|coro|
 
         Gets a :class:`.StageInstance` for a stage channel id.
-
-        .. versionadded:: 2.0
 
         Parameters
         -----------
@@ -1333,8 +1293,6 @@ class Client:
         with_expiration: :class:`bool`
             Whether to include the expiration date of the invite. This fills the
             :attr:`.Invite.expires_at` field.
-
-            .. versionadded:: 2.0
 
         Raises
         -------
@@ -1471,8 +1429,6 @@ class Client:
 
             This method is an API call. For general usage, consider :meth:`get_channel` instead.
 
-        .. versionadded:: 1.2
-
         Raises
         -------
         :exc:`.InvalidData`
@@ -1534,8 +1490,6 @@ class Client:
 
         Retrieves a :class:`.Sticker` with the specified ID.
 
-        .. versionadded:: 2.0
-
         Raises
         --------
         :exc:`.HTTPException`
@@ -1557,8 +1511,6 @@ class Client:
 
         Retrieves all available premium sticker packs.
 
-        .. versionadded:: 2.0
-
         Raises
         -------
         :exc:`.HTTPException`
@@ -1579,8 +1531,6 @@ class Client:
 
         This should be rarely called, as this is done transparently for most
         people.
-
-        .. versionadded:: 2.0
 
         Parameters
         -----------

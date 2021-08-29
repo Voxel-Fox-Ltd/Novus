@@ -57,8 +57,6 @@ class RoleTags:
     While this can be accessed, a useful interface is also provided in the
     :class:`Role` and :class:`Guild` classes as well.
 
-    .. versionadded:: 1.6
-
     Attributes
     ------------
     bot_id: Optional[:class:`int`]
@@ -255,29 +253,21 @@ class Role(Hashable):
 
     def is_bot_managed(self) -> bool:
         """:class:`bool`: Whether the role is associated with a bot.
-
-        .. versionadded:: 1.6
         """
         return self.tags is not None and self.tags.is_bot_managed()
 
     def is_premium_subscriber(self) -> bool:
         """:class:`bool`: Whether the role is the premium subscriber, AKA "boost", role for the guild.
-
-        .. versionadded:: 1.6
         """
         return self.tags is not None and self.tags.is_premium_subscriber()
 
     def is_integration(self) -> bool:
         """:class:`bool`: Whether the role is managed by an integration.
-
-        .. versionadded:: 1.6
         """
         return self.tags is not None and self.tags.is_integration()
 
     def is_assignable(self) -> bool:
         """:class:`bool`: Whether the role is able to be assigned or removed by the bot.
-
-        .. versionadded:: 2.0
         """
         me = self.guild.me
         return not self.is_default() and not self.managed and (me.top_role > self or me.id == self.guild.owner_id)

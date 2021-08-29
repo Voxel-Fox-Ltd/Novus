@@ -140,8 +140,6 @@ class Reaction:
 
         You need the :attr:`~Permissions.manage_messages` permission to use this.
 
-        .. versionadded:: 1.3
-
         Raises
         --------
         HTTPException

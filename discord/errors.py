@@ -171,8 +171,6 @@ class DiscordServerError(HTTPException):
     """Exception that's raised for when a 500 range status code occurs.
 
     Subclass of :exc:`HTTPException`.
-
-    .. versionadded:: 1.5
     """
 
     pass
@@ -263,8 +261,6 @@ class InteractionResponded(ClientException):
     :class:`InteractionResponse` when one has already been done before.
 
     An interaction can only respond once.
-
-    .. versionadded:: 2.0
 
     Attributes
     -----------

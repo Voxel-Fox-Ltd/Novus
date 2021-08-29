@@ -75,8 +75,6 @@ class Interaction:
     An interaction happens when a user does an action that needs to
     be notified. Current examples are slash commands and components.
 
-    .. versionadded:: 2.0
-
     Attributes
     -----------
     id: :class:`int`
@@ -387,8 +385,6 @@ class InteractionResponse:
     """Represents a Discord interaction response.
 
     This type can be accessed through :attr:`Interaction.response`.
-
-    .. versionadded:: 2.0
     """
 
     __slots__: Tuple[str, ...] = (
@@ -675,8 +671,6 @@ class InteractionMessage(Message):
 
     This inherits from :class:`discord.Message` with changes to
     :meth:`edit` and :meth:`delete` to work.
-
-    .. versionadded:: 2.0
     """
 
     __slots__ = ()

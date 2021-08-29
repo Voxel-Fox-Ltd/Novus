@@ -369,8 +369,6 @@ class SyncWebhookMessage(Message):
 
     This inherits from :class:`discord.Message` with changes to
     :meth:`edit` and :meth:`delete` to work.
-
-    .. versionadded:: 2.0
     """
 
     _state: _WebhookState
@@ -485,8 +483,6 @@ class SyncWebhook(BaseWebhook):
     type: :class:`WebhookType`
         The type of the webhook.
 
-        .. versionadded:: 1.3
-
     token: Optional[:class:`str`]
         The authentication token of the webhook. If this is ``None``
         then the webhook cannot be used to make requests.
@@ -503,13 +499,9 @@ class SyncWebhook(BaseWebhook):
         The guild of the channel that this webhook is following.
         Only given if :attr:`type` is :attr:`WebhookType.channel_follower`.
 
-        .. versionadded:: 2.0
-
     source_channel: Optional[:class:`PartialWebhookChannel`]
         The channel that this webhook is following.
         Only given if :attr:`type` is :attr:`WebhookType.channel_follower`.
-
-        .. versionadded:: 2.0
     """
 
     __slots__: Tuple[str, ...] = ('session',)
@@ -657,8 +649,6 @@ class SyncWebhook(BaseWebhook):
         ------------
         reason: Optional[:class:`str`]
             The reason for deleting this webhook. Shows up on the audit log.
-
-            .. versionadded:: 1.4
         prefer_auth: :class:`bool`
             Whether to use the bot token over the webhook token
             if available. Defaults to ``True``.
@@ -705,8 +695,6 @@ class SyncWebhook(BaseWebhook):
             The webhook's new channel. This requires an authenticated webhook.
         reason: Optional[:class:`str`]
             The reason for editing this webhook. Shows up on the audit log.
-
-            .. versionadded:: 1.4
         prefer_auth: :class:`bool`
             Whether to use the bot token over the webhook token
             if available. Defaults to ``True``.
@@ -854,12 +842,8 @@ class SyncWebhook(BaseWebhook):
             be mixed with the ``embed`` parameter.
         allowed_mentions: :class:`AllowedMentions`
             Controls the mentions being processed in this message.
-
-            .. versionadded:: 1.4
         thread: :class:`~discord.abc.Snowflake`
             The thread to send this message to.
-
-            .. versionadded:: 2.0
 
         Raises
         --------
@@ -922,8 +906,6 @@ class SyncWebhook(BaseWebhook):
     def fetch_message(self, id: int, /) -> SyncWebhookMessage:
         """Retrieves a single :class:`~discord.SyncWebhookMessage` owned by this webhook.
 
-        .. versionadded:: 2.0
-
         Parameters
         ------------
         id: :class:`int`
@@ -973,8 +955,6 @@ class SyncWebhook(BaseWebhook):
 
         This is a lower level interface to :meth:`WebhookMessage.edit` in case
         you only have an ID.
-
-        .. versionadded:: 1.6
 
         Parameters
         ------------
@@ -1040,8 +1020,6 @@ class SyncWebhook(BaseWebhook):
 
         This is a lower level interface to :meth:`WebhookMessage.delete` in case
         you only have an ID.
-
-        .. versionadded:: 1.6
 
         Parameters
         ------------

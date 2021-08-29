@@ -179,8 +179,6 @@ class Emoji(_EmojiTag, AssetMixin):
 
     def is_usable(self) -> bool:
         """:class:`bool`: Whether the bot can use this emoji.
-
-        .. versionadded:: 1.3
         """
         if not self.available:
             return False

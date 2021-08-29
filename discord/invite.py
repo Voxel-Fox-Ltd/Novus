@@ -286,24 +286,16 @@ class Invite(Hashable):
         The expiration date of the invite. If the value is ``None`` when received through
         `Client.fetch_invite` with `with_expiration` enabled, the invite will never expire.
 
-        .. versionadded:: 2.0
-
     channel: Union[:class:`abc.GuildChannel`, :class:`Object`, :class:`PartialInviteChannel`]
         The channel the invite is for.
     target_type: :class:`InviteTarget`
         The type of target for the voice channel invite.
 
-        .. versionadded:: 2.0
-
     target_user: Optional[:class:`User`]
         The user whose stream to display for this invite, if any.
 
-        .. versionadded:: 2.0
-
     target_application: Optional[:class:`PartialAppInfo`]
         The embedded application the invite targets, if any.
-
-        .. versionadded:: 2.0
     """
 
     __slots__ = (

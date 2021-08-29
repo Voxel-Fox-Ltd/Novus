@@ -167,16 +167,12 @@ class BaseUser(_UserTag):
         """:class:`Asset`: Returns the user's display avatar.
 
         For regular users this is just their default avatar or uploaded avatar.
-
-        .. versionadded:: 2.0
         """
         return self.avatar or self.default_avatar
 
     @property
     def banner(self) -> Optional[Asset]:
         """Optional[:class:`Asset`]: Returns the user's banner asset, if available.
-
-        .. versionadded:: 2.0
 
 
         .. note::
@@ -192,8 +188,6 @@ class BaseUser(_UserTag):
 
         There is an alias for this named :attr:`accent_color`.
 
-        .. versionadded:: 2.0
-
         .. note::
 
             This information is only available via :meth:`Client.fetch_user`.
@@ -207,8 +201,6 @@ class BaseUser(_UserTag):
         """Optional[:class:`Colour`]: Returns the user's accent color, if applicable.
 
         There is an alias for this named :attr:`accent_colour`.
-
-        .. versionadded:: 2.0
 
         .. note::
 
@@ -310,8 +302,6 @@ class ClientUser(BaseUser):
         Specifies if the user is a bot account.
     system: :class:`bool`
         Specifies if the user is a system user (i.e. represents Discord officially).
-
-        .. versionadded:: 1.3
 
     verified: :class:`bool`
         Specifies if the user's email is verified.
@@ -471,8 +461,6 @@ class User(BaseUser, discord.abc.Messageable):
         .. note::
 
             This will only return mutual guilds within the client's internal cache.
-
-        .. versionadded:: 1.7
         """
         return [guild for guild in self._state._guilds.values() if guild.get_member(self.id)]
 

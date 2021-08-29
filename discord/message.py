@@ -150,8 +150,6 @@ class Attachment(Hashable):
         minutes or not valid at all.
     content_type: Optional[:class:`str`]
         The attachment's `media type <https://en.wikipedia.org/wiki/Media_type>`_
-
-        .. versionadded:: 1.7
     """
 
     __slots__ = ('id', 'size', 'height', 'width', 'filename', 'url', 'proxy_url', '_http', 'content_type')
@@ -232,8 +230,6 @@ class Attachment(Hashable):
 
         Retrieves the content of this attachment as a :class:`bytes` object.
 
-        .. versionadded:: 1.1
-
         Parameters
         -----------
         use_cached: :class:`bool`
@@ -268,8 +264,6 @@ class Attachment(Hashable):
         Converts the attachment into a :class:`File` suitable for sending via
         :meth:`abc.Messageable.send`.
 
-        .. versionadded:: 1.3
-
         Parameters
         -----------
         use_cached: :class:`bool`
@@ -279,12 +273,8 @@ class Attachment(Hashable):
             after the message is deleted. Note that this can still fail to download
             deleted attachments if too much time has passed and it does not work
             on some types of attachments.
-
-            .. versionadded:: 1.4
         spoiler: :class:`bool`
             Whether the file is a spoiler.
-
-            .. versionadded:: 1.4
 
         Raises
         ------
@@ -328,8 +318,6 @@ class DeletedReferencedMessage:
 
     The purpose of this class is to separate referenced messages that could not be
     fetched and those that were previously fetched but have since been deleted.
-
-    .. versionadded:: 1.6
     """
 
     __slots__ = ('_parent',)
@@ -360,8 +348,6 @@ class DeletedReferencedMessage:
 class MessageReference:
     """Represents a reference to a :class:`~discord.Message`.
 
-    .. versionadded:: 1.5
-
     .. versionchanged:: 1.6
         This class can now be constructed by users.
 
@@ -377,8 +363,6 @@ class MessageReference:
         Whether replying to the referenced message should raise :class:`HTTPException`
         if the message no longer exists or Discord could not fetch the message.
 
-        .. versionadded:: 1.7
-
     resolved: Optional[Union[:class:`Message`, :class:`DeletedReferencedMessage`]]
         The message that this reference resolved to. If this is ``None``
         then the original message was not fetched either due to the Discord API
@@ -387,8 +371,6 @@ class MessageReference:
         this will be of type :class:`DeletedReferencedMessage`.
 
         Currently, this is mainly the replied to message when a user replies to a message.
-
-        .. versionadded:: 1.6
     """
 
     __slots__ = ('message_id', 'channel_id', 'guild_id', 'fail_if_not_exists', 'resolved', '_state')
@@ -416,8 +398,6 @@ class MessageReference:
     def from_message(cls: Type[MR], message: Message, *, fail_if_not_exists: bool = True) -> MR:
         """Creates a :class:`MessageReference` from an existing :class:`~discord.Message`.
 
-        .. versionadded:: 1.6
-
         Parameters
         ----------
         message: :class:`~discord.Message`
@@ -425,8 +405,6 @@ class MessageReference:
         fail_if_not_exists: :class:`bool`
             Whether replying to the referenced message should raise :class:`HTTPException`
             if the message no longer exists or Discord could not fetch the message.
-
-            .. versionadded:: 1.7
 
         Returns
         -------
@@ -450,8 +428,6 @@ class MessageReference:
     @property
     def jump_url(self) -> str:
         """:class:`str`: Returns a URL that allows the client to jump to the referenced message.
-
-        .. versionadded:: 1.7
         """
         guild_id = self.guild_id if self.guild_id is not None else '@me'
         return f'https://discord.com/channels/{guild_id}/{self.channel_id}/{self.message_id}'
@@ -531,8 +507,6 @@ class Message(Hashable):
         type :attr:`MessageType.pins_add`, crossposted messages created by a
         followed channel integration, or message replies.
 
-        .. versionadded:: 1.5
-
     mention_everyone: :class:`bool`
         Specifies if the message mentions everyone.
 
@@ -569,8 +543,6 @@ class Message(Hashable):
     flags: :class:`MessageFlags`
         Extra features of the message.
 
-        .. versionadded:: 1.3
-
     reactions : List[:class:`Reaction`]
         Reactions to a message. Reactions can be either custom emoji or standard unicode emoji.
     activity: Optional[:class:`dict`]
@@ -593,12 +565,8 @@ class Message(Hashable):
         - ``cover_image``: A string representing the embed's image asset ID.
     stickers: List[:class:`StickerItem`]
         A list of sticker items given to the message.
-
-        .. versionadded:: 1.6
     components: :class:`MessageComponents`
         The components attached to the message.
-
-        .. versionadded:: 2.0
     guild: Optional[:class:`Guild`]
         The guild that the message belongs to, if applicable.
     """
@@ -995,8 +963,6 @@ class Message(Hashable):
 
         A system message is a message that is constructed entirely by the Discord API
         in response to something.
-
-        .. versionadded:: 1.3
         """
         return self.type not in (
             MessageType.default,
@@ -1217,8 +1183,6 @@ class Message(Hashable):
         embeds: List[:class:`Embed`]
             The new embeds to replace the original with. Must be a maximum of 10.
             To remove all embeds ``[]`` should be passed.
-
-            .. versionadded:: 2.0
         attachments: List[:class:`Attachment`]
             A list of attachments to keep in the message. If ``[]`` is passed
             then all attachments are removed.
@@ -1238,8 +1202,6 @@ class Message(Hashable):
             to the object, otherwise it uses the attributes set in :attr:`~discord.Client.allowed_mentions`.
             If no object is passed at all then the defaults given by :attr:`~discord.Client.allowed_mentions`
             are used instead.
-
-            .. versionadded:: 1.4
         components: Optional[:class:`~discord.ui.MessageComponents`]
             The updated components to update this message with. If ``None`` is passed then
             the components are removed.
@@ -1340,8 +1302,6 @@ class Message(Hashable):
         reason: Optional[:class:`str`]
             The reason for pinning the message. Shows up on the audit log.
 
-            .. versionadded:: 1.4
-
         Raises
         -------
         Forbidden
@@ -1368,8 +1328,6 @@ class Message(Hashable):
         -----------
         reason: Optional[:class:`str`]
             The reason for unpinning the message. Shows up on the audit log.
-
-            .. versionadded:: 1.4
 
         Raises
         -------
@@ -1463,8 +1421,6 @@ class Message(Hashable):
 
         You need the :attr:`~Permissions.manage_messages` permission to use this.
 
-        .. versionadded:: 1.3
-
         Parameters
         -----------
         emoji: Union[:class:`Emoji`, :class:`Reaction`, :class:`PartialEmoji`, :class:`str`]
@@ -1511,8 +1467,6 @@ class Message(Hashable):
 
         The channel this message belongs in must be a :class:`TextChannel`.
 
-        .. versionadded:: 2.0
-
         Parameters
         -----------
         name: :class:`str`
@@ -1553,8 +1507,6 @@ class Message(Hashable):
         A shortcut method to :meth:`.abc.Messageable.send` to reply to the
         :class:`.Message`.
 
-        .. versionadded:: 1.6
-
         Raises
         --------
         ~discord.HTTPException
@@ -1576,15 +1528,11 @@ class Message(Hashable):
     def to_reference(self, *, fail_if_not_exists: bool = True) -> MessageReference:
         """Creates a :class:`~discord.MessageReference` from the current message.
 
-        .. versionadded:: 1.6
-
         Parameters
         ----------
         fail_if_not_exists: :class:`bool`
             Whether replying using the message reference should raise :class:`HTTPException`
             if the message no longer exists or Discord could not fetch the message.
-
-            .. versionadded:: 1.7
 
         Returns
         ---------
@@ -1618,8 +1566,6 @@ class PartialMessage(Hashable):
     - :meth:`DMChannel.get_partial_message`
 
     Note that this class is trimmed down and has no rich attributes.
-
-    .. versionadded:: 1.6
 
     .. container:: operations
 
@@ -1755,8 +1701,6 @@ class PartialMessage(Hashable):
         components: Optional[:class:`~discord.ui.MessageComponents`]
             The updated components to update this message with. If ``None`` is passed then
             the components are removed.
-
-            .. versionadded:: 2.0
 
         Raises
         -------

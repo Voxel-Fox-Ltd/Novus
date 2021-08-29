@@ -93,8 +93,6 @@ class Context(discord.abc.Messageable, Generic[BotT]):
     current_parameter: Optional[:class:`inspect.Parameter`]
         The parameter that is currently being inspected and converted.
         This is only of use for within converters.
-
-        .. versionadded:: 2.0
     prefix: Optional[:class:`str`]
         The prefix that was used to invoke the command.
     command: Optional[:class:`Command`]
@@ -107,8 +105,6 @@ class Context(discord.abc.Messageable, Generic[BotT]):
         finding out which aliases called the command.
 
         For example in commands ``?a b c test``, the invoked parents are ``['a', 'b', 'c']``.
-
-        .. versionadded:: 1.7
 
     invoked_subcommand: Optional[:class:`Command`]
         The subcommand that was invoked.
@@ -260,8 +256,6 @@ class Context(discord.abc.Messageable, Generic[BotT]):
     @property
     def clean_prefix(self) -> str:
         """:class:`str`: The cleaned up invoke prefix. i.e. mentions are ``@name`` instead of ``<@id>``.
-
-        .. versionadded:: 2.0
         """
         if self.prefix is None:
             return ''

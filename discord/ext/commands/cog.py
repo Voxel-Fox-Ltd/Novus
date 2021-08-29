@@ -85,8 +85,6 @@ class CogMeta(type):
     description: :class:`str`
         The cog description. By default, it is the cleaned docstring of the class.
 
-        .. versionadded:: 1.6
-
     command_attrs: :class:`dict`
         A list of attributes to apply to every command inside this cog. The dictionary
         is passed into the :class:`Command` options at ``__init__``.
@@ -319,8 +317,6 @@ class Cog(metaclass=CogMeta):
 
     def has_error_handler(self) -> bool:
         """:class:`bool`: Checks whether the cog has an error handler.
-
-        .. versionadded:: 1.7
         """
         return not hasattr(self.cog_command_error.__func__, '__cog_special_method__')
 

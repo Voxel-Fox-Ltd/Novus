@@ -55,8 +55,6 @@ if TYPE_CHECKING:
 class IntegrationAccount:
     """Represents an integration account.
 
-    .. versionadded:: 1.4
-
     Attributes
     -----------
     id: :class:`str`
@@ -77,8 +75,6 @@ class IntegrationAccount:
 
 class Integration:
     """Represents a guild integration.
-
-    .. versionadded:: 1.4
 
     Attributes
     -----------
@@ -140,8 +136,6 @@ class Integration:
         reason: :class:`str`
             The reason the integration was deleted. Shows up on the audit log.
 
-            .. versionadded:: 2.0
-
         Raises
         -------
         Forbidden
@@ -154,8 +148,6 @@ class Integration:
 
 class StreamIntegration(Integration):
     """Represents a stream integration for Twitch or YouTube.
-
-    .. versionadded:: 2.0
 
     Attributes
     ----------
@@ -288,8 +280,6 @@ class StreamIntegration(Integration):
 class IntegrationApplication:
     """Represents an application for a bot integration.
 
-    .. versionadded:: 2.0
-
     Attributes
     ----------
     id: :class:`int`
@@ -327,8 +317,6 @@ class IntegrationApplication:
 
 class BotIntegration(Integration):
     """Represents a bot integration on discord.
-
-    .. versionadded:: 2.0
 
     Attributes
     ----------
