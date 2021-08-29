@@ -55,7 +55,7 @@ packages = [
 ]
 
 setup(name='disfox',
-      author='Rapptz',
+      author='Kae Bartlett',
       url='https://github.com/Voxel-Fox-Ltd/disfox',
       project_urls={
         "Documentation": "https://disfox.readthedocs.io/en/latest/",
