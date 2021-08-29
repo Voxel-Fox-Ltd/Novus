@@ -229,7 +229,9 @@ class Interaction:
             'type': 3,
             'token': self.token,
         }
-        return Webhook.from_state(data=payload, state=self._state)
+        v = Webhook.from_state(data=payload, state=self._state)
+        v.supports_ephemeral = True
+        return v
 
     async def original_message(self) -> InteractionMessage:
         """|coro|

@@ -400,6 +400,8 @@ class Context(discord.abc.Messageable, Generic[BotT]):
 
 class SlashContext(Context):
 
+    supports_ephemeral: bool = True
+
     def __init__(self,
         *,
         interaction: Interaction,

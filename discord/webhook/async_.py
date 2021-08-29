@@ -749,11 +749,13 @@ class BaseWebhook(Hashable):
         'source_channel',
         'source_guild',
         '_state',
+        'supports_ephemeral',
     )
 
     def __init__(self, data: WebhookPayload, token: Optional[str] = None, state: Optional[ConnectionState] = None):
         self.auth_token: Optional[str] = token
         self._state: Union[ConnectionState, _WebhookState] = state or _WebhookState(self, parent=state)
+        self.supports_ephemeral: bool = False
         self._update(data)
 
     def _update(self, data: WebhookPayload):
@@ -1393,7 +1395,7 @@ class Webhook(BaseWebhook):
         embed: Optional[Embed] = MISSING,
         file: File = MISSING,
         files: List[File] = MISSING,
-        components: Optional[components] = MISSING,
+        components: Optional[MessageComponents] = MISSING,
         allowed_mentions: Optional[AllowedMentions] = None,
     ) -> WebhookMessage:
         """|coro|

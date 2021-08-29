@@ -1135,6 +1135,7 @@ class Messageable:
 
     __slots__ = ()
     _state: ConnectionState
+    supports_ephemeral: bool = False
 
     async def _get_channel(self) -> MessageableChannel:
         raise NotImplementedError
@@ -1272,13 +1273,11 @@ class Messageable:
             to the object, otherwise it uses the attributes set in :attr:`~discord.Client.allowed_mentions`.
             If no object is passed at all then the defaults given by :attr:`~discord.Client.allowed_mentions`
             are used instead.
-
         reference: Union[:class:`~discord.Message`, :class:`~discord.MessageReference`, :class:`~discord.PartialMessage`]
             A reference to the :class:`~discord.Message` to which you are replying, this can be created using
             :meth:`~discord.Message.to_reference` or passed directly as a :class:`~discord.Message`. You can control
             whether this mentions the author of the referenced message using the :attr:`~discord.AllowedMentions.replied_user`
             attribute of ``allowed_mentions`` or by setting ``mention_author``.
-
         mention_author: Optional[:class:`bool`]
             If set, overrides the :attr:`~discord.AllowedMentions.replied_user` attribute of ``allowed_mentions``.
         components: :class:`discord.ui.MessageComponents`
