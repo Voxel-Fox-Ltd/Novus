@@ -611,17 +611,18 @@ to handle it, which defaults to print a traceback and ignoring the exception.
     :param payload: The raw event payload data.
     :type payload: :class:`RawReactionClearEmojiEvent`
 
-.. function:: on_interaction(interaction)
+.. function:: on_slash_command(interaction)
 
-    Called when an interaction happened.
+    Called when a slash command is parsed.
 
-    This currently happens due to slash command invocations or components being used.
+    .. versionadded:: 2.0
 
-    .. warning::
+    :param interaction: The interaction data.
+    :type interaction: :class:`Interaction`
 
-        This is a low level function that is not generally meant to be used.
-        If you are working with components, consider using the callbacks associated
-        with the :class:`~discord.ui.View` instead as it provides a nicer user experience.
+.. function:: on_component_interaction(interaction)
+
+    Called when a component interaction is parsed
 
     .. versionadded:: 2.0
 
@@ -4118,20 +4119,28 @@ Bot UI Kit
 
 The library has helpers to help create component-based UIs.
 
-View
+BaseComponent
 ~~~~~~~
 
-.. attributetable:: discord.ui.View
+.. attributetable:: discord.ui.BaseComponent
 
-.. autoclass:: discord.ui.View
+.. autoclass:: discord.ui.BaseComponent
     :members:
 
-Item
+ActionRow
 ~~~~~~~
 
-.. attributetable:: discord.ui.Item
+.. attributetable:: discord.ui.ActionRow
 
-.. autoclass:: discord.ui.Item
+.. autoclass:: discord.ui.ActionRow
+    :members:
+
+MessageComponents
+~~~~~~~
+
+.. attributetable:: discord.ui.MessageComponents
+
+.. autoclass:: discord.ui.MessageComponents
     :members:
 
 Button
@@ -4143,18 +4152,23 @@ Button
     :members:
     :inherited-members:
 
-.. autofunction:: discord.ui.button
-
-Select
+SelectOption
 ~~~~~~~
 
-.. attributetable:: discord.ui.Select
+.. attributetable:: discord.ui.SelectOption
 
-.. autoclass:: discord.ui.Select
+.. autoclass:: discord.ui.SelectOption
     :members:
     :inherited-members:
 
-.. autofunction:: discord.ui.select
+SelectMenu
+~~~~~~~
+
+.. attributetable:: discord.ui.SelectMenu
+
+.. autoclass:: discord.ui.SelectMenu
+    :members:
+    :inherited-members:
 
 
 Exceptions
