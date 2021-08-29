@@ -3,13 +3,13 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to novus
+Welcome to Novus
 ===========================
 
 .. image:: /images/snake.svg
 .. image:: /images/snake_dark.svg
 
-novus is a modern, easy to use, feature-rich, and async ready API wrapper
+Novus is a modern, easy to use, feature-rich, and async ready API wrapper
 for Discord.
 
 **Features:**
