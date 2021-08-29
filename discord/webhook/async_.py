@@ -647,9 +647,6 @@ class WebhookMessage(Message):
 
         Edits the message.
 
-        .. versionchanged:: 2.0
-            The edit is no longer in-place, instead the newly edited message is returned.
-
         Parameters
         ------------
         content: Optional[:class:`str`]
@@ -869,9 +866,6 @@ class Webhook(BaseWebhook):
         .. describe:: hash(x)
 
             Returns the webhooks's hash.
-
-    .. versionchanged:: 1.4
-        Webhooks are now comparable and hashable.
 
     Attributes
     ------------
@@ -1404,9 +1398,6 @@ class Webhook(BaseWebhook):
 
         This is a lower level interface to :meth:`WebhookMessage.edit` in case
         you only have an ID.
-
-        .. versionchanged:: 2.0
-            The edit is no longer in-place, instead the newly edited message is returned.
 
         Parameters
         ------------

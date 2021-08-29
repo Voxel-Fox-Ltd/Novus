@@ -1330,15 +1330,6 @@ class Guild(Hashable):
         You must have the :attr:`~Permissions.manage_guild` permission
         to edit the guild.
 
-        .. versionchanged:: 1.4
-            The `rules_channel` and `public_updates_channel` keyword-only parameters were added.
-
-        .. versionchanged:: 2.0
-            The `discovery_splash` and `community` keyword-only parameters were added.
-
-        .. versionchanged:: 2.0
-            The newly updated guild is returned.
-
         Parameters
         ----------
         name: :class:`str`
@@ -1793,9 +1784,6 @@ class Guild(Hashable):
         see the :meth:`estimate_pruned_members` function.
 
         To prune members that have specific roles see the ``roles`` parameter.
-
-        .. versionchanged:: 1.4
-            The ``roles`` keyword-only parameter was added.
 
         Parameters
         -----------
@@ -2368,9 +2356,6 @@ class Guild(Hashable):
 
         You must have the :attr:`~Permissions.manage_roles` permission to
         do this.
-
-        .. versionchanged:: 1.6
-            Can now pass ``int`` to ``colour`` keyword-only parameter.
 
         Parameters
         -----------

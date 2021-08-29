@@ -551,9 +551,6 @@ class Intents(BaseFlags):
     @flag_value
     def emojis(self):
         """:class:`bool`: Alias of :attr:`.emojis_and_stickers`.
-
-        .. versionchanged:: 2.0
-            Changed to an alias.
         """
         return 1 << 3
 

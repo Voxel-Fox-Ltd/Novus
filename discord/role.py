@@ -351,12 +351,6 @@ class Role(Hashable):
 
         All fields are optional.
 
-        .. versionchanged:: 1.4
-            Can now pass ``int`` to ``colour`` keyword-only parameter.
-
-        .. versionchanged:: 2.0
-            Edits are no longer in-place, the newly edited role is returned instead.
-
         Parameters
         -----------
         name: :class:`str`

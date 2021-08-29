@@ -56,10 +56,6 @@ class Permissions(BaseFlags):
     bits using the properties as if they were regular bools. This allows
     you to edit permissions.
 
-    .. versionchanged:: 1.3
-        You can now use keyword arguments to initialize :class:`Permissions`
-        similar to :meth:`update`.
-
     .. container:: operations
 
         .. describe:: x == y
@@ -164,14 +160,6 @@ class Permissions(BaseFlags):
         - :attr:`kick_members`
         - :attr:`ban_members`
         - :attr:`administrator`
-
-        .. versionchanged:: 1.7
-           Added :attr:`stream`, :attr:`priority_speaker` and :attr:`use_slash_commands` permissions.
-
-        .. versionchanged:: 2.0
-           Added :attr:`create_public_threads`, :attr:`create_private_threads`, :attr:`manage_threads`,
-           :attr:`use_external_stickers`, :attr:`send_messages_in_threads` and
-           :attr:`request_to_speak` permissions.
         """
         return cls(0b111110110110011111101111111111101010001)
 
@@ -179,12 +167,6 @@ class Permissions(BaseFlags):
     def general(cls: Type[P]) -> P:
         """A factory method that creates a :class:`Permissions` with all
         "General" permissions from the official Discord UI set to ``True``.
-
-        .. versionchanged:: 1.7
-           Permission :attr:`read_messages` is now included in the general permissions, but
-           permissions :attr:`administrator`, :attr:`create_instant_invite`, :attr:`kick_members`,
-           :attr:`ban_members`, :attr:`change_nickname` and :attr:`manage_nicknames` are
-           no longer part of the general permissions.
         """
         return cls(0b01110000000010000000010010110000)
 
@@ -199,14 +181,6 @@ class Permissions(BaseFlags):
     def text(cls: Type[P]) -> P:
         """A factory method that creates a :class:`Permissions` with all
         "Text" permissions from the official Discord UI set to ``True``.
-
-        .. versionchanged:: 1.7
-           Permission :attr:`read_messages` is no longer part of the text permissions.
-           Added :attr:`use_slash_commands` permission.
-
-        .. versionchanged:: 2.0
-           Added :attr:`create_public_threads`, :attr:`create_private_threads`, :attr:`manage_threads`,
-           :attr:`send_messages_in_threads` and :attr:`use_external_stickers` permissions.
         """
         return cls(0b111110010000000000001111111100001000000)
 

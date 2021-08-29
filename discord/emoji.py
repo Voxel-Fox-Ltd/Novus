@@ -218,9 +218,6 @@ class Emoji(_EmojiTag, AssetMixin):
         You must have :attr:`~Permissions.manage_emojis` permission to
         do this.
 
-        .. versionchanged:: 2.0
-            The newly updated emoji is returned.
-
         Parameters
         -----------
         name: :class:`str`

@@ -1127,9 +1127,6 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         inside the :attr:`~Command.checks` attribute. This also checks whether the
         command is disabled.
 
-        .. versionchanged:: 1.3
-            Checks whether the command is disabled or not
-
         Parameters
         -----------
         ctx: :class:`.Context`
@@ -1238,9 +1235,6 @@ class GroupMixin(Generic[CogT]):
         This is usually not called, instead the :meth:`~.GroupMixin.command` or
         :meth:`~.GroupMixin.group` shortcut decorators are used instead.
 
-        .. versionchanged:: 1.4
-             Raise :exc:`.CommandRegistrationError` instead of generic :exc:`.ClientException`
-
         Parameters
         -----------
         command: :class:`Command`
@@ -1309,9 +1303,6 @@ class GroupMixin(Generic[CogT]):
 
     def walk_commands(self) -> Generator[Command[CogT, Any, Any], None, None]:
         """An iterator that recursively walks through all commands and subcommands.
-
-        .. versionchanged:: 1.4
-            Duplicates due to aliases are no longer returned
 
         Yields
         ------
@@ -1726,9 +1717,6 @@ def group(
 
     This is similar to the :func:`.command` decorator but the ``cls``
     parameter is set to :class:`Group` by default.
-
-    .. versionchanged:: 1.1
-        The ``cls`` parameter can now be passed.
     """
     if cls is MISSING:
         cls = Group  # type: ignore
@@ -1766,9 +1754,6 @@ def check(predicate: Check) -> Callable[[T], T]:
 
         The function returned by ``predicate`` is **always** a coroutine,
         even if the original function was not a coroutine.
-
-    .. versionchanged:: 1.3
-        The ``predicate`` attribute was added.
 
     Examples
     ---------
@@ -1908,11 +1893,6 @@ def has_role(item: Union[int, str]) -> Callable[[T], T]:
     is missing a role, or :exc:`.NoPrivateMessage` if it is used in a private message.
     Both inherit from :exc:`.CheckFailure`.
 
-    .. versionchanged:: 1.1
-
-        Raise :exc:`.MissingRole` or :exc:`.NoPrivateMessage`
-        instead of generic :exc:`.CheckFailure`
-
     Parameters
     -----------
     item: Union[:class:`int`, :class:`str`]
@@ -1944,11 +1924,6 @@ def has_any_role(*items: Union[int, str]) -> Callable[[T], T]:
     This check raises one of two special exceptions, :exc:`.MissingAnyRole` if the user
     is missing all roles, or :exc:`.NoPrivateMessage` if it is used in a private message.
     Both inherit from :exc:`.CheckFailure`.
-
-    .. versionchanged:: 1.1
-
-        Raise :exc:`.MissingAnyRole` or :exc:`.NoPrivateMessage`
-        instead of generic :exc:`.CheckFailure`
 
     Parameters
     -----------
@@ -1984,11 +1959,6 @@ def bot_has_role(item: int) -> Callable[[T], T]:
     This check raises one of two special exceptions, :exc:`.BotMissingRole` if the bot
     is missing the role, or :exc:`.NoPrivateMessage` if it is used in a private message.
     Both inherit from :exc:`.CheckFailure`.
-
-    .. versionchanged:: 1.1
-
-        Raise :exc:`.BotMissingRole` or :exc:`.NoPrivateMessage`
-        instead of generic :exc:`.CheckFailure`
     """
 
     def predicate(ctx):
@@ -2012,11 +1982,6 @@ def bot_has_any_role(*items: int) -> Callable[[T], T]:
     This check raises one of two special exceptions, :exc:`.BotMissingAnyRole` if the bot
     is missing all roles, or :exc:`.NoPrivateMessage` if it is used in a private message.
     Both inherit from :exc:`.CheckFailure`.
-
-    .. versionchanged:: 1.1
-
-        Raise :exc:`.BotMissingAnyRole` or :exc:`.NoPrivateMessage`
-        instead of generic checkfailure
     """
     def predicate(ctx):
         if ctx.guild is None:
@@ -2209,11 +2174,6 @@ def is_nsfw() -> Callable[[T], T]:
 
     This check raises a special exception, :exc:`.NSFWChannelRequired`
     that is derived from :exc:`.CheckFailure`.
-
-    .. versionchanged:: 1.1
-
-        Raise :exc:`.NSFWChannelRequired` instead of generic :exc:`.CheckFailure`.
-        DM channels will also now pass this check.
     """
     def pred(ctx: Context) -> bool:
         ch = ctx.channel
@@ -2244,9 +2204,6 @@ def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], 
         The amount of seconds to wait for a cooldown when it's been triggered.
     type: Union[:class:`.BucketType`, Callable[[:class:`.Message`], Any]]
         The type of cooldown to have. If callable, should return a key for the mapping.
-
-        .. versionchanged:: 1.7
-            Callables are now supported for custom bucket types.
     """
 
     def decorator(func: Union[Command, CoroFunc]) -> Union[Command, CoroFunc]:
@@ -2393,7 +2350,7 @@ def defer(*, ephemeral: bool = False):
     ephemeral: Optional[:class:`bool`]
         Whether or not the defer should be ephemeral.
     """
-    
+
     async def predicate(ctx):
         await ctx.defer(ephemeral=ephemeral)
         return True

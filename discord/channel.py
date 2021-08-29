@@ -287,15 +287,6 @@ class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
         You must have the :attr:`~Permissions.manage_channels` permission to
         use this.
 
-        .. versionchanged:: 1.3
-            The ``overwrites`` keyword-only parameter was added.
-
-        .. versionchanged:: 1.4
-            The ``type`` keyword-only parameter was added.
-
-        .. versionchanged:: 2.0
-            Edits are no longer in-place, the newly edited channel is returned instead.
-
         Parameters
         ----------
         name: :class:`str`
@@ -546,9 +537,6 @@ class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
         Creates a webhook for this channel.
 
         Requires :attr:`~.Permissions.manage_webhooks` permissions.
-
-        .. versionchanged:: 1.1
-            Added the ``reason`` keyword-only parameter.
 
         Parameters
         -------------
@@ -957,12 +945,6 @@ class VoiceChannel(VocalGuildChannel):
         You must have the :attr:`~Permissions.manage_channels` permission to
         use this.
 
-        .. versionchanged:: 1.3
-            The ``overwrites`` keyword-only parameter was added.
-
-        .. versionchanged:: 2.0
-            Edits are no longer in-place, the newly edited channel is returned instead.
-
         Parameters
         ----------
         name: :class:`str`
@@ -1216,12 +1198,6 @@ class StageChannel(VocalGuildChannel):
         You must have the :attr:`~Permissions.manage_channels` permission to
         use this.
 
-        .. versionchanged:: 2.0
-            The ``topic`` parameter must now be set via :attr:`create_instance`.
-
-        .. versionchanged:: 2.0
-            Edits are no longer in-place, the newly edited channel is returned instead.
-
         Parameters
         ----------
         name: :class:`str`
@@ -1367,12 +1343,6 @@ class CategoryChannel(discord.abc.GuildChannel, Hashable):
 
         You must have the :attr:`~Permissions.manage_channels` permission to
         use this.
-
-        .. versionchanged:: 1.3
-            The ``overwrites`` keyword-only parameter was added.
-
-        .. versionchanged:: 2.0
-            Edits are no longer in-place, the newly edited channel is returned instead.
 
         Parameters
         ----------
@@ -1607,9 +1577,6 @@ class StoreChannel(discord.abc.GuildChannel, Hashable):
 
         You must have the :attr:`~Permissions.manage_channels` permission to
         use this.
-
-        .. versionchanged:: 2.0
-            Edits are no longer in-place, the newly edited channel is returned instead.
 
         Parameters
         ----------

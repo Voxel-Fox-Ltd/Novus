@@ -210,9 +210,6 @@ class Template:
         You must have the :attr:`~Permissions.manage_guild` permission in the
         source guild to do this.
 
-        .. versionchanged:: 2.0
-            The template is no longer edited in-place, instead it is returned.
-
         Raises
         -------
         HTTPException
@@ -243,9 +240,6 @@ class Template:
 
         You must have the :attr:`~Permissions.manage_guild` permission in the
         source guild to do this.
-
-        .. versionchanged:: 2.0
-            The template is no longer edited in-place, instead it is returned.
 
         Parameters
         ------------

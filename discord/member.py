@@ -653,12 +653,6 @@ class Member(discord.abc.Messageable, _UserTag):
 
         All parameters are optional.
 
-        .. versionchanged:: 1.1
-            Can now pass ``None`` to ``voice_channel`` to kick a member from voice.
-
-        .. versionchanged:: 2.0
-            The newly member is now optionally returned, if applicable.
-
         Parameters
         -----------
         nick: Optional[:class:`str`]
@@ -774,9 +768,6 @@ class Member(discord.abc.Messageable, _UserTag):
         use this.
 
         This raises the same exceptions as :meth:`edit`.
-
-        .. versionchanged:: 1.1
-            Can now pass ``None`` to kick a member from voice.
 
         Parameters
         -----------

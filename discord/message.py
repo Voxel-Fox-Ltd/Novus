@@ -126,9 +126,6 @@ class Attachment(Hashable):
 
             Returns the hash of the attachment.
 
-    .. versionchanged:: 1.7
-        Attachment can now be casted to :class:`str` and is hashable.
-
     Attributes
     ------------
     id: :class:`int`
@@ -347,9 +344,6 @@ class DeletedReferencedMessage:
 
 class MessageReference:
     """Represents a reference to a :class:`~discord.Message`.
-
-    .. versionchanged:: 1.6
-        This class can now be constructed by users.
 
     Attributes
     -----------
@@ -1093,9 +1087,6 @@ class Message(Hashable):
         delete other people's messages, you need the :attr:`~Permissions.manage_messages`
         permission.
 
-        .. versionchanged:: 1.1
-            Added the new ``delay`` keyword-only parameter.
-
         Parameters
         -----------
         delay: Optional[:class:`float`]
@@ -1168,9 +1159,6 @@ class Message(Hashable):
         Edits the message.
 
         The content must be able to be transformed into a string via ``str(content)``.
-
-        .. versionchanged:: 1.3
-            The ``suppress`` keyword-only parameter was added.
 
         Parameters
         -----------
@@ -1670,9 +1658,6 @@ class PartialMessage(Hashable):
         Edits the message.
 
         The content must be able to be transformed into a string via ``str(content)``.
-
-        .. versionchanged:: 1.7
-            :class:`discord.Message` is returned instead of ``None`` if an edit took place.
 
         Parameters
         -----------

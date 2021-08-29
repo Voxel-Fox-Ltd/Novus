@@ -181,13 +181,6 @@ class MemberConverter(IDConverter[discord.Member]):
     3. Lookup by name#discrim
     4. Lookup by name
     5. Lookup by nickname
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.MemberNotFound` instead of generic :exc:`.BadArgument`
-
-    .. versionchanged:: 1.5.1
-        This converter now lazily fetches members from the gateway and HTTP APIs,
-        optionally caching the result if :attr:`.MemberCacheFlags.joined` is enabled.
     """
 
     async def query_member_named(self, guild, argument):
@@ -266,13 +259,6 @@ class UserConverter(IDConverter[discord.User]):
     2. Lookup by mention.
     3. Lookup by name#discrim
     4. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.UserNotFound` instead of generic :exc:`.BadArgument`
-
-    .. versionchanged:: 1.6
-        This converter now lazily fetches users from the HTTP APIs if an ID is passed
-        and it's not available in cache.
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.User:
@@ -376,9 +362,6 @@ class MessageConverter(IDConverter[discord.Message]):
     1. Lookup by "{channel ID}-{message ID}" (retrieved by shift-clicking on "Copy ID")
     2. Lookup by message ID (the message **must** be in the context channel)
     3. Lookup by message URL
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.ChannelNotFound`, :exc:`.MessageNotFound` or :exc:`.ChannelNotReadable` instead of generic :exc:`.BadArgument`
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.Message:
@@ -479,9 +462,6 @@ class TextChannelConverter(IDConverter[discord.TextChannel]):
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.TextChannel:
@@ -499,9 +479,6 @@ class VoiceChannelConverter(IDConverter[discord.VoiceChannel]):
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.VoiceChannel:
@@ -536,9 +513,6 @@ class CategoryChannelConverter(IDConverter[discord.CategoryChannel]):
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.ChannelNotFound` instead of generic :exc:`.BadArgument`
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.CategoryChannel:
@@ -581,9 +555,6 @@ class ThreadConverter(IDConverter[discord.Thread]):
 class ColourConverter(Converter[discord.Colour]):
     """Converts to a :class:`~discord.Colour`.
 
-    .. versionchanged:: 1.5
-        Add an alias named ColorConverter
-
     The following formats are accepted:
 
     - ``0x<hex>``
@@ -596,12 +567,6 @@ class ColourConverter(Converter[discord.Colour]):
 
     Like CSS, ``<number>`` can be either 0-255 or 0-100% and ``<hex>`` can be
     either a 6 digit hex number or a 3 digit hex shortcut (e.g. #fff).
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.BadColourArgument` instead of generic :exc:`.BadArgument`
-
-    .. versionchanged:: 1.7
-        Added support for ``rgb`` function and 3-digit hex shortcuts
     """
 
     RGB_REGEX = re.compile(r'rgb\s*\((?P<r>[0-9]{1,3}%?)\s*,\s*(?P<g>[0-9]{1,3}%?)\s*,\s*(?P<b>[0-9]{1,3}%?)\s*\)')
@@ -675,9 +640,6 @@ class RoleConverter(IDConverter[discord.Role]):
     1. Lookup by ID.
     2. Lookup by mention.
     3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.RoleNotFound` instead of generic :exc:`.BadArgument`
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.Role:
@@ -707,9 +669,6 @@ class InviteConverter(Converter[discord.Invite]):
     """Converts to a :class:`~discord.Invite`.
 
     This is done via an HTTP request using :meth:`.Bot.fetch_invite`.
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.BadInviteArgument` instead of generic :exc:`.BadArgument`
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.Invite:
@@ -756,9 +715,6 @@ class EmojiConverter(IDConverter[discord.Emoji]):
     1. Lookup by ID.
     2. Lookup by extracting ID from the emoji.
     3. Lookup by name
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.EmojiNotFound` instead of generic :exc:`.BadArgument`
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.Emoji:
@@ -790,9 +746,6 @@ class PartialEmojiConverter(Converter[discord.PartialEmoji]):
     """Converts to a :class:`~discord.PartialEmoji`.
 
     This is done by extracting the animated flag, name and ID from the emoji.
-
-    .. versionchanged:: 1.5
-         Raise :exc:`.PartialEmojiConversionFailure` instead of generic :exc:`.BadArgument`
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.PartialEmoji:

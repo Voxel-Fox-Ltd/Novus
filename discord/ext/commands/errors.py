@@ -838,9 +838,6 @@ class ExtensionNotFound(ExtensionError):
 
     This inherits from :exc:`ExtensionError`
 
-    .. versionchanged:: 1.3
-        Made the ``original`` attribute always None.
-
     Attributes
     -----------
     name: :class:`str`

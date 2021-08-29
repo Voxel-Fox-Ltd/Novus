@@ -122,9 +122,6 @@ class Client:
     max_messages: Optional[:class:`int`]
         The maximum number of messages to store in the internal message cache.
         This defaults to ``1000``. Passing in ``None`` disables the message cache.
-
-        .. versionchanged:: 1.3
-            Allow disabling the message cache and change the default size to ``1000``.
     loop: Optional[:class:`asyncio.AbstractEventLoop`]
         The :class:`asyncio.AbstractEventLoop` to use for asynchronous operations.
         Defaults to ``None``, in which case the default event loop is used via
@@ -1025,9 +1022,6 @@ class Client:
 
             game = discord.Game("with the API")
             await client.change_presence(status=discord.Status.idle, activity=game)
-
-        .. versionchanged:: 2.0
-            Removed the ``afk`` keyword-only parameter.
 
         Parameters
         ----------

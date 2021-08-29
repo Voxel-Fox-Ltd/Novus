@@ -473,9 +473,6 @@ class SyncWebhook(BaseWebhook):
 
             Returns the webhooks's hash.
 
-    .. versionchanged:: 1.4
-        Webhooks are now comparable and hashable.
-
     Attributes
     ------------
     id: :class:`int`

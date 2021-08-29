@@ -350,9 +350,6 @@ class ClientUser(BaseUser):
 
             The only image formats supported for uploading is JPEG and PNG.
 
-        .. versionchanged:: 2.0
-            The edit is no longer in-place, instead the newly edited client user is returned.
-
         Parameters
         -----------
         username: :class:`str`

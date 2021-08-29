@@ -327,10 +327,6 @@ class BotBase(GroupMixin):
         If an :attr:`owner_id` is not set, it is fetched automatically
         through the use of :meth:`~.Bot.application_info`.
 
-        .. versionchanged:: 1.3
-            The function also checks if the application is team-owned if
-            :attr:`owner_ids` is not set.
-
         Parameters
         -----------
         user: :class:`.abc.User`
@@ -517,11 +513,6 @@ class BotBase(GroupMixin):
         """Adds a "cog" to the bot.
 
         A cog is a class that has its own event listeners and commands.
-
-        .. versionchanged:: 2.0
-
-            :exc:`.ClientException` is raised when a cog with the same name
-            is already loaded.
 
         Parameters
         -----------

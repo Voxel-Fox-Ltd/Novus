@@ -285,8 +285,6 @@ class HelpCommand:
         and verified. If ``True``, always calls :attr:`.Command.checks`.
         If ``None``, only calls :attr:`.Command.checks` in a guild setting.
         If ``False``, never calls :attr:`.Command.checks`. Defaults to ``True``.
-
-        .. versionchanged:: 1.7
     command_attrs: :class:`dict`
         A dictionary of options to pass in for the construction of the help command.
         This allows you to change the command behaviour without actually changing
