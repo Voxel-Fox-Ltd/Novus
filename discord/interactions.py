@@ -113,7 +113,6 @@ class Interaction:
         'type',
         'guild_id',
         'channel_id',
-        'message_id',
         'data',
         'component',
         'values',
@@ -145,7 +144,6 @@ class Interaction:
         self.version: int = data['version']
         self.channel_id: Optional[int] = utils._get_as_snowflake(data, 'channel_id')
         self.guild_id: Optional[int] = utils._get_as_snowflake(data, 'guild_id')
-        self.message_id: Optional[int] = utils._get_as_snowflake(data['message'], 'id')
         self.application_id: int = int(data['application_id'])
 
         self.message: Optional[Message]

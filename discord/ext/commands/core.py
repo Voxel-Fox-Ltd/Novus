@@ -52,7 +52,7 @@ from .cooldowns import Cooldown, BucketType, CooldownMapping, MaxConcurrency, Dy
 from .converter import run_converters, get_converter, Greedy
 from ._types import _BaseCommand
 from .cog import Cog
-from .context import Context
+from .context import Context, SlashContext
 
 
 if TYPE_CHECKING:
@@ -269,8 +269,8 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         which calls converters. If ``False`` then cooldown processing is done
         first and then the converters are called second. Defaults to ``False``.
     extras: :class:`dict`
-        A dict of user provided extras to attach to the Command. 
-        
+        A dict of user provided extras to attach to the Command.
+
         .. note::
             This object may be copied by the library.
 
@@ -344,7 +344,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             cooldown = func.__commands_cooldown__
         except AttributeError:
             cooldown = kwargs.get('cooldown')
-        
+
         if cooldown is None:
             buckets = CooldownMapping(cooldown, BucketType.default)
         elif isinstance(cooldown, CooldownMapping):
@@ -801,7 +801,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 if retry_after:
                     raise CommandOnCooldown(bucket, retry_after, self._buckets.type)  # type: ignore
 
-    async def prepare(self, ctx: Context) -> None:
+    async def _prepare_text(self, ctx: Context) -> None:
         ctx.command = self
 
         if not await self.can_run(ctx):
@@ -824,6 +824,57 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             if self._max_concurrency is not None:
                 await self._max_concurrency.release(ctx)  # type: ignore
             raise
+
+    async def _prepare_slash(self, ctx: Context) -> None:
+        ctx.command = self
+
+        if not await self.can_run(ctx):
+            raise CheckFailure(f'The check functions for command {self.qualified_name} failed.')
+
+        if self._max_concurrency is not None:
+            # For this application, context can be duck-typed as a Message
+            await self._max_concurrency.acquire(ctx)  # type: ignore
+
+        try:
+            if self.cooldown_after_parsing:
+                await self._parse_slash_arguments(ctx)
+                self._prepare_cooldowns(ctx)
+            else:
+                self._prepare_cooldowns(ctx)
+                await self._parse_slash_arguments(ctx)
+
+            await self.call_before_hooks(ctx)
+        except:
+            if self._max_concurrency is not None:
+                await self._max_concurrency.release(ctx)  # type: ignore
+            raise
+
+    async def _parse_slash_arguments(self, ctx: SlashContext):
+        """
+        Parse the arguments for a given context.
+        """
+
+        # Convert our given values
+        ctx.args = [ctx] if self.cog is None else [self.cog, ctx]
+        ctx.kwargs = {}
+        for name, value in ctx.given_values.items():
+            if name is None:
+                for name, sig in self.clean_params.items():
+                    break  # Just get the first param - deliberately shadow "name"
+            else:
+                sig = self.clean_params[name]
+            converter = self._get_converter(sig)
+            v = await self.do_conversion(ctx, converter, value, sig)  # Could raise; that's fine
+            if sig.kind in [inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD]:
+                ctx.args.append(v)
+            else:
+                ctx.kwargs[name] = v
+
+    async def prepare(self, ctx: Context) -> None:
+        if isinstance(ctx, SlashContext):
+            return await self._prepare_slash(ctx)
+        else:
+            return await self._prepare_text(ctx)
 
     def is_on_cooldown(self, ctx: Context) -> bool:
         """Checks whether the command is currently on cooldown.

@@ -39,7 +39,7 @@ import discord
 
 from .core import GroupMixin
 from .view import StringView
-from .context import Context
+from .context import Context, SlashContext
 from . import errors
 from .help import HelpCommand, DefaultHelpCommand
 from .cog import Cog
@@ -48,6 +48,7 @@ if TYPE_CHECKING:
     import importlib.machinery
 
     from discord.message import Message
+    from discord.interactions import Interaction
     from ._types import (
         Check,
         CoroFunc,
@@ -976,6 +977,68 @@ class BotBase(GroupMixin):
         ctx.command = self.all_commands.get(invoker)
         return ctx
 
+    async def get_slash_context(self, interaction: Interaction, *, cls: Type[CXT] = SlashContext) -> CXT:
+        r"""|coro|
+
+        Returns the invocation context from the message.
+
+        This is a more low-level counter-part for :meth:`.process_slash_commands`
+        to allow users more fine grained control over the processing.
+
+        The returned context is not guaranteed to be a valid invocation
+        context, :attr:`.Context.valid` must be checked to make sure it is.
+        If the context is not valid then it is not a valid candidate to be
+        invoked under :meth:`~.Bot.invoke`.
+
+        Parameters
+        -----------
+        interaction: :class:`discord.Interaction`
+            The interaction to get the invocation context from.
+        cls
+            The factory class that will be used to create the context.
+            By default, this is :class:`.SlashContext`. Should a custom
+            class be provided, it must be similar enough to :class:`.SlashContext`\'s
+            interface.
+
+        Returns
+        --------
+        :class:`.Context`
+            The invocation context. The type of this can change via the
+            ``cls`` parameter.
+        """
+
+        ctx = cls(bot=self, interaction=interaction)
+
+        # Try and create the command name
+        data = interaction.data
+        command_name = data['name']
+        options = list()
+        while True:
+            if "options" not in data:
+                break
+            if data['options'][0]['type'] in [1, 2]:
+                data = data['options'][0]
+                command_name += f" {data['name']}"
+            else:
+                options = data['options']
+                break
+
+        # Put our options in a dict
+        given_values = {}
+        for i in options:
+            value = str(i['value'])
+            given_values[i['name']] = value.strip()
+
+        # If we have a target_id, then the interaction is a context menu
+        if 'target_id' in data:
+            given_values[None] = data['target_id']
+
+        ctx.invoked_with = command_name
+        ctx.prefix = "/"
+        ctx.command = self.get_command(command_name)
+        ctx.given_values = given_values
+        return ctx
+
     async def invoke(self, ctx: Context) -> None:
         """|coro|
 
@@ -1030,8 +1093,35 @@ class BotBase(GroupMixin):
         ctx = await self.get_context(message)
         await self.invoke(ctx)
 
+    async def process_slash_commands(self, interaction: Interaction) -> None:
+        """|coro|
+
+        This function processes the commands that have been registered
+        to the bot and other groups. Without this coroutine, none of the
+        slash commands will be triggered.
+
+        By default, this coroutine is called inside the :func:`.on_slash_command`
+        event. If you choose to override the :func:`.on_slash_command` event, then
+        you should invoke this coroutine as well.
+
+        This is built using other low level tools, and is equivalent to a
+        call to :meth:`~.Bot.get_slash_context` followed by a call to :meth:`~.Bot.invoke`.
+
+        Parameters
+        -----------
+        interaction: :class:`discord.Interaction`
+            The message to process commands for.
+        """
+
+        ctx = await self.get_slash_context(interaction)
+        await self.invoke(ctx)
+
     async def on_message(self, message):
         await self.process_commands(message)
+
+    async def on_slash_command(self, interaction):
+        await self.process_slash_commands(interaction)
+
 
 class Bot(BotBase, discord.Client):
     """Represents a discord bot.

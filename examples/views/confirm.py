@@ -11,6 +11,7 @@ class Bot(commands.Bot):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('------')
 
+
 bot = Bot()
 
 
@@ -37,7 +38,7 @@ async def ask(ctx: commands.Context):
         return True
 
     # Wait for the user to resopnd
-    interaction = await bot.wait_for("interaction", check=check)
+    interaction = await bot.wait_for("component_interaction", check=check)
 
     # Now the user has responded, disable the buttons on the message
     components.disable_components()

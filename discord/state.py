@@ -684,6 +684,10 @@ class ConnectionState:
 
     def parse_interaction_create(self, data) -> None:
         interaction = Interaction(data=data, state=self)
+        if interaction.component:
+            self.dispatch('component_interaction', interaction)
+        else:
+            self.dispatch('slash_command', interaction)
         self.dispatch('interaction', interaction)
 
     def parse_presence_update(self, data) -> None:

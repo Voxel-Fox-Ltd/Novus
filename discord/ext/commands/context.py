@@ -32,6 +32,7 @@ import discord.abc
 import discord.utils
 
 from discord.message import Message
+from discord.interactions import Interaction
 
 if TYPE_CHECKING:
     from typing_extensions import ParamSpec
@@ -398,3 +399,49 @@ class Context(discord.abc.Messageable, Generic[BotT]):
     @discord.utils.copy_doc(Message.reply)
     async def reply(self, content: Optional[str] = None, **kwargs: Any) -> Message:
         return await self.message.reply(content, **kwargs)
+
+
+class SlashContext(Context):
+
+    def __init__(self,
+        *,
+        interaction: Interaction,
+        bot: BotT,
+        args: List[Any] = MISSING,
+        kwargs: Dict[str, Any] = MISSING,
+        prefix: Optional[str] = None,
+        command: Optional[Command] = None,
+        invoked_with: Optional[str] = None,
+        invoked_parents: List[str] = MISSING,
+        invoked_subcommand: Optional[Command] = None,
+        subcommand_passed: Optional[str] = None,
+        command_failed: bool = False,
+        current_parameter: Optional[inspect.Parameter] = None,
+    ):
+        self.interaction: Interaction = interaction
+        self.bot: BotT = bot
+        self.args: List[Any] = args or []
+        self.kwargs: Dict[str, Any] = kwargs or {}
+        self.prefix: Optional[str] = prefix
+        self.command: Optional[Command] = command
+        self.invoked_with: Optional[str] = invoked_with
+        self.invoked_parents: List[str] = invoked_parents or []
+        self.invoked_subcommand: Optional[Command] = invoked_subcommand
+        self.subcommand_passed: Optional[str] = subcommand_passed
+        self.command_failed: bool = command_failed
+        self.current_parameter: Optional[inspect.Parameter] = current_parameter
+        self._state: ConnectionState = bot._connection
+
+    @property
+    def author(self):
+        return self.interaction.user
+
+    @property
+    def message(self):
+        return self.interaction.message
+
+    async def send(self, *args, **kwargs):
+        if not self.interaction.response.is_done():
+            await self.interaction.response.defer()
+            return await self.send(*args, **kwargs)
+        return await self.interaction.followup.send(*args, **kwargs)
