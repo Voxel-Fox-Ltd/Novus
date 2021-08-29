@@ -1,18 +1,16 @@
-import discord
+import asyncio
 
+import discord
 from discord.ext import commands
 
 
-class Bot(commands.Bot):
-    def __init__(self):
-        super().__init__(command_prefix=commands.when_mentioned_or('$'))
-
-    async def on_ready(self):
-        print(f'Logged in as {self.user} (ID: {self.user.id})')
-        print('------')
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'))
 
 
-bot = Bot()
+@bot.event
+async def on_ready(self):
+    print(f'Logged in as {self.user} (ID: {self.user.id})')
+    print('------')
 
 
 @bot.command()
@@ -51,4 +49,12 @@ async def ask(ctx: commands.Context):
         await interaction.followup.send("You clicked no :<")
 
 
-bot.run('token')
+async def main():
+    await bot.login('TOKEN')  # Validate our token
+    await bot.register_application_commands()  # Upsert our commands
+    await bot.connect()  # Make a websocket connection
+    bot.loop.run_forever()  # Run forever
+
+
+loop = bot.loop
+loop.run_until_complete(main())
