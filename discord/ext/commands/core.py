@@ -112,6 +112,11 @@ if TYPE_CHECKING:
 else:
     P = TypeVar('P')
 
+slash_permission_ignores = [
+    "send_messages",
+    "embed_links",
+]  # permissions that don't matter to slash command checks
+
 def unwrap_function(function: Callable[..., Any]) -> Callable[..., Any]:
     partial = functools.partial
     while True:
@@ -2045,6 +2050,8 @@ def bot_has_permissions(**perms: bool) -> Callable[[T], T]:
         permissions = ctx.channel.permissions_for(me)  # type: ignore
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+        if isinstance(ctx, SlashContext):
+            missing = [i for i in missing if i not in slash_permission_ignores]
 
         if not missing:
             return True
@@ -2098,6 +2105,8 @@ def bot_has_guild_permissions(**perms: bool) -> Callable[[T], T]:
 
         permissions = ctx.me.guild_permissions  # type: ignore
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+        if isinstance(ctx, SlashContext):
+            missing = [i for i in missing if i not in slash_permission_ignores]
 
         if not missing:
             return True
