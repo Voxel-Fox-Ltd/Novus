@@ -440,6 +440,14 @@ class SlashContext(Context):
     def message(self):
         return self.interaction.message
 
+    @property
+    def channel(self):
+        return self.interaction.channel
+
+    @property
+    def guild(self):
+        return self.interaction.guild
+
     async def send(self, *args, **kwargs):
         if not self.interaction.response.is_done():
             await self.interaction.response.defer(ephemeral=kwargs.get("ephemeral", False))
