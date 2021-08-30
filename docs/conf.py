@@ -80,7 +80,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'novus'
-copyright = '2015-present, Rapptz'
+# copyright = '2015-present, Rapptz'
+copyright = '2021-present, Kae Bartlett'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
