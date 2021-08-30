@@ -272,6 +272,7 @@ def oauth_url(
     redirect_uri: str = MISSING,
     scopes: Iterable[str] = MISSING,
     disable_guild_select: bool = False,
+    response_type: Optional[str] = "code",
 ) -> str:
     """A helper function that returns the OAuth2 URL for inviting the bot
     into guilds.
@@ -291,12 +292,15 @@ def oauth_url(
         An optional valid list of scopes. Defaults to ``('bot',)``.
     disable_guild_select: :class:`bool`
         Whether to disallow the user from changing the guild dropdown.
+    response_type: Optional[:class:`str`]
+        The response type to use in the URL.
 
     Returns
     --------
     :class:`str`
         The OAuth2 URL for inviting the bot into guilds.
     """
+
     url = f'https://discord.com/oauth2/authorize?client_id={client_id}'
     url += '&scope=' + '+'.join(scopes or ('bot',))
     if permissions is not MISSING:
@@ -305,10 +309,11 @@ def oauth_url(
         url += f'&guild_id={guild.id}'
     if redirect_uri is not MISSING:
         from urllib.parse import urlencode
-
-        url += '&response_type=code&' + urlencode({'redirect_uri': redirect_uri})
+        url += '&' + urlencode({'redirect_uri': redirect_uri})
     if disable_guild_select:
         url += '&disable_guild_select=true'
+    if response_type:
+        url += f'&response_type={response_type}'
     return url
 
 
