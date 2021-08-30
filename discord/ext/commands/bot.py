@@ -68,6 +68,7 @@ MISSING: Any = discord.utils.MISSING
 T = TypeVar('T')
 CFT = TypeVar('CFT', bound='CoroFunc')
 CXT = TypeVar('CXT', bound='Context')
+SCXT = TypeVar('CXT', bound='SlashContext')
 
 def when_mentioned(bot: Union[Bot, AutoShardedBot], msg: Message) -> List[str]:
     """A callable that implements a command prefix equivalent to being mentioned.
@@ -962,7 +963,7 @@ class BotBase(GroupMixin):
         ctx.command = self.all_commands.get(invoker)
         return ctx
 
-    async def get_slash_context(self, interaction: Interaction, *, cls: Type[CXT] = SlashContext) -> CXT:
+    async def get_slash_context(self, interaction: Interaction, *, cls: Type[SCXT] = SlashContext) -> SCXT:
         r"""|coro|
 
         Returns the invocation context from the message.
@@ -995,10 +996,10 @@ class BotBase(GroupMixin):
         ctx = cls(bot=self, interaction=interaction)
 
         # Try and create the command name
-        data = interaction.data
-        command_name = data['name']
+        data = interaction.data or dict()
+        command_name = data.get('name')
         options = list()
-        while True:
+        while command_name:
             if "options" not in data:
                 break
             if data['options'][0]['type'] in [1, 2]:
@@ -1020,7 +1021,8 @@ class BotBase(GroupMixin):
 
         ctx.invoked_with = command_name
         ctx.prefix = "/"
-        ctx.command = self.get_command(command_name)
+        if command_name:
+            ctx.command = self.get_command(command_name)
         ctx.given_values = given_values
         return ctx
 
