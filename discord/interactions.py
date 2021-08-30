@@ -602,6 +602,7 @@ class InteractionResponse:
         embeds: List[Embed] = MISSING,
         attachments: List[Attachment] = MISSING,
         components: Optional[MessageComponents] = MISSING,
+        allowed_mentions: Optional[AllowedMentions] = MISSING,
     ) -> None:
         """|coro|
 
@@ -670,6 +671,16 @@ class InteractionResponse:
                 payload['components'] = []
             else:
                 payload['components'] = components.to_dict()
+
+        if allowed_mentions is not MISSING:
+            parent_state = self._parent._state
+            if allowed_mentions:
+                if parent_state.allowed_mentions is not None:
+                    payload['allowed_mentions'] = parent_state.allowed_mentions.merge(allowed_mentions).to_dict()
+                else:
+                    payload['allowed_mentions'] = allowed_mentions.to_dict()
+            elif parent_state.allowed_mentions is not None:
+                payload['allowed_mentions'] = parent_state.allowed_mentions.to_dict()
 
         adapter = async_context.get()
         await adapter.create_interaction_response(
