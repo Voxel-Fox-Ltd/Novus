@@ -441,10 +441,10 @@ class SlashContext(Context):
 
     async def send(self, *args, **kwargs):
         if not self.interaction.response.is_done():
-            await self.interaction.response.defer()
+            await self.interaction.response.defer(ephemeral=kwargs.get("ephemeral", False))
             return await self.send(*args, **kwargs)
         return await self.interaction.followup.send(*args, **kwargs)
 
     async def defer(self, *, ephemeral: bool = False) -> None:
         if not self.interaction.response.is_done():
-            await self.interaction.response.defer()
+            await self.interaction.response.defer(ephemeral=ephemeral)
