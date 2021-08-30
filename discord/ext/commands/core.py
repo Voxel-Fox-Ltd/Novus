@@ -795,7 +795,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
     def _prepare_cooldowns(self, ctx: Context) -> None:
         if self._buckets.valid:
-            dt = ctx.message.edited_at or ctx.message.created_at
+            dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.id)
             current = dt.replace(tzinfo=datetime.timezone.utc).timestamp()
             bucket = self._buckets.get_bucket(ctx.message, current)
             if bucket is not None:
@@ -895,7 +895,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             return False
 
         bucket = self._buckets.get_bucket(ctx.message)
-        dt = ctx.message.edited_at or ctx.message.created_at
+        dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.id)
         current = dt.replace(tzinfo=datetime.timezone.utc).timestamp()
         return bucket.get_tokens(current) == 0
 
@@ -927,7 +927,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         """
         if self._buckets.valid:
             bucket = self._buckets.get_bucket(ctx.message)
-            dt = ctx.message.edited_at or ctx.message.created_at
+            dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.id)
             current = dt.replace(tzinfo=datetime.timezone.utc).timestamp()
             return bucket.get_retry_after(current)
 
