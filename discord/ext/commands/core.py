@@ -865,8 +865,8 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                     break  # Just get the first param - deliberately shadow "name"
             else:
                 sig = self.clean_params[name]
-            converter = self._get_converter(sig)
-            v = await self.do_conversion(ctx, converter, value, sig)  # Could raise; that's fine
+            converter = get_converter(sig)
+            v = await run_converters(ctx, converter, value, sig)  # Could raise; that's fine
             if sig.kind in [inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD]:
                 ctx.args.append(v)
             else:

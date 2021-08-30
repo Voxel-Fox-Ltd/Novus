@@ -431,6 +431,7 @@ class SlashContext(Context):
         self.command_failed: bool = command_failed
         self.current_parameter: Optional[inspect.Parameter] = current_parameter
         self._state: ConnectionState = bot._connection
+        self.given_values = {}
 
     @property
     def author(self):
