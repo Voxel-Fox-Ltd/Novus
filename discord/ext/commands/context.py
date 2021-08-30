@@ -52,6 +52,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'Context',
+    'SlashContext'
 )
 
 MISSING: Any = discord.utils.MISSING
