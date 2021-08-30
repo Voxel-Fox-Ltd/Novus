@@ -75,7 +75,7 @@ class MessageComponents(ComponentHolder):
     @classmethod
     def from_dict(cls, data: MessageComponentsPayload):
         new_components = []
-        for i in data['components']:
+        for i in data:
             v = _component_factory(i)
             new_components.append(v)
         return cls(*new_components)

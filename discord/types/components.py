@@ -74,10 +74,7 @@ class SelectMenu(_SelectMenuOptional):
     options: List[SelectOption]
 
 
-class MessageComponents(TypedDict):
-    components: List[Component]
-
-
 InteractionComponent = Union[Button, SelectMenu]
 LayoutComponent = Union[ActionRow]
 Component = Union[InteractionComponent, LayoutComponent]
+MessageComponents = List[Component]
