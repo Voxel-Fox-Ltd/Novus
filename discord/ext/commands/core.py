@@ -797,7 +797,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         if self._buckets.valid:
             dt = (ctx.message.edited_at or ctx.message.created_at) if ctx.message else discord.utils.snowflake_time(ctx.interaction.id)
             current = dt.replace(tzinfo=datetime.timezone.utc).timestamp()
-            bucket = self._buckets.get_bucket(ctx.message, current)
+            bucket = self._buckets.get_bucket(ctx.message or ctx, current)
             if bucket is not None:
                 retry_after = bucket.update_rate_limit(current)
                 if retry_after:
