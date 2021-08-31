@@ -53,7 +53,7 @@ Bugs Fixed
 v0.0.1
 --------
 
-The new and changed features described in this section refer to changes from Rapptz's original Discord.py repo.
+The new and changed features described in this section refer to changes from Rapptz's original Discord.py repo. You can see :ref:`a whole list of changes <dpy_novus_change>` here, but this section will go over the main ones.
 
 Breaking Changes
 ~~~~~~~~~~~~~~~~~~
@@ -89,3 +89,5 @@ Original
 --------
 
 Everything at this point and before is forked directly from `Rapptz's Discord.py library <https://github.com/Rapptz/discord.py>`_. The changelogs from before that point (and thus before the existance of this library) have been removed.
+
+
