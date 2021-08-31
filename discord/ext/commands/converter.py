@@ -1172,10 +1172,8 @@ def try_application_command_option_type(param: inspect.Parameter) -> Application
 
     # It isn't - let's see if it's an enum
     if isinstance(arg_type, (enum.Enum, enum.IntEnum, enum.EnumMeta)):
-        # for i in arg_type:
-        #     choices.append(vbu.ApplicationCommandOptionChoice(i.name, i.name))
         return ApplicationCommandOptionType.string
 
     # It isn't - let's try and get an attr from the class
-        return getattr(arg_type, "SLASH_COMMAND_ARG_TYPE", ApplicationCommandOptionType.string)
+    return getattr(arg_type, "SLASH_COMMAND_ARG_TYPE", ApplicationCommandOptionType.string)
 
