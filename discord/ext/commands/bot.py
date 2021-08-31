@@ -55,6 +55,7 @@ if TYPE_CHECKING:
         CoroFunc,
     )
     from discord.guild import Guild
+    from .core import Command, ContextMenuCommand, Group
 
 __all__ = (
     'when_mentioned',
@@ -1110,7 +1111,8 @@ class BotBase(GroupMixin):
         await self.process_slash_commands(interaction)
 
     async def register_application_commands(
-            self, commands: Optional[List[ApplicationCommand]] = MISSING, *, guild: Optional[Guild]) -> List[ApplicationCommand]:
+            self, commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]] = MISSING,
+            *, guild: Optional[Guild]) -> List[ApplicationCommand]:
         """|coro|
 
         Register the bot's commands as application commands. Providing ``None``
@@ -1120,7 +1122,7 @@ class BotBase(GroupMixin):
 
         Parameters
         -----------
-        commands: Optional[List[:class:`ApplicationCommand`]]
+        commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]]
             A list of commands that you want to register in Discord.
         guild: Optional[:class:`Guild`]
             The guild that the commands should be registered to.
@@ -1132,15 +1134,24 @@ class BotBase(GroupMixin):
         """
 
         # Infer commands
+        new_commands: List[ApplicationCommand] = []
         if commands is MISSING:
-            commands = []
+            new_commands = []
             for command in self.commands:
                 if not command.add_slash_command or command.hidden or not command.enabled:
                     continue
-                commands.append(command.to_application_command())
+                new_commands.append(command.to_application_command())
+
+        # Convert commands
+        elif commands:
+            for command in commands:
+                if isinstance(command, ApplicationCommand):
+                    new_commands.append(command)
+                else:
+                    new_commands.append(command.to_application_command())
 
         # Upsert
-        return await super().register_application_commands(commands, guild=guild)
+        return await super().register_application_commands(new_commands, guild=guild)
 
 
 class Bot(BotBase, discord.Client):
