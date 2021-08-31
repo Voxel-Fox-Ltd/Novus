@@ -31,11 +31,12 @@ import asyncio
 
 from . import utils
 from .enums import try_enum, InteractionType, InteractionResponseType
-from .errors import InteractionResponded, HTTPException, ClientException
-from .channel import PartialMessageable, ChannelType
+from .errors import InteractionResponded, HTTPException, ClientException, InvalidData
+from .channel import PartialMessageable, ChannelType, _threaded_channel_factory
 
 from .user import User
 from .member import Member
+from .role import Role
 from .message import Message, Attachment
 from .object import Object
 from .permissions import Permissions
@@ -45,6 +46,7 @@ __all__ = (
     'Interaction',
     'InteractionMessage',
     'InteractionResponse',
+    'InteractionResolved',
 )
 
 if TYPE_CHECKING:
@@ -67,6 +69,53 @@ if TYPE_CHECKING:
     ]
 
 MISSING: Any = utils.MISSING
+
+
+class InteractionResolved:
+
+    def __init__(self, *, interaction, data: dict, state: ConnectionState):
+        self.users: List[Union[User, Member]] = []
+        self.members: List[Member] = []
+        self.roles: List[Role] = []
+        self.channels: List[InteractionChannel] = []
+        self.messages: List[Message] = []
+        self._interaction: Interaction = interaction
+        self._state = state
+        self._from_data(data)
+
+    def _from_data(self, data: dict):
+
+        # Parse user data
+        user_data = data.get("users", dict())
+        member_data = data.get("members", dict())
+        for uid, d in member_data.items():
+            d.update({"user": user_data.pop(uid)})
+        if self._interaction.guild:
+            self.members.extend(Member(data=d, state=self._state, guild=self._interaction.guild) for _, d in member_data.items())
+        self.users.extend(User(data=d, state=self._state) for _, d in user_data.items())
+        self.users.extend(self.members)
+
+        # Parse role data
+        if self._interaction.guild:
+            for rid, d in data.get("roles", dict()).items():
+                self.roles.append(Role(guild=self._interaction.guild, state=self._state, data=d))
+
+        # Parse channel data
+        for cid, d in data.get("channels", dict()).items():
+            factory, ch_type = _threaded_channel_factory(d['type'])
+            if factory is None:
+                raise InvalidData('Unknown channel type {type} for channel ID {id}.'.format_map(d))
+            if ch_type in (ChannelType.group, ChannelType.private):
+                channel = factory(me=self.user, data=data, state=self._connection) # type: ignore
+            else:
+                guild_id = int(data['guild_id']) # type: ignore
+                guild = self._interaction.guild
+                channel = factory(guild=guild, state=self._connection, data=data) # type: ignore
+            self.channels.append(channel)
+
+        # Parse messages
+        for mid, d in data.get("messages", dict()).items():
+            self.messages.append(Message(state=self._state, channel=self._interaction.channel, data=d))
 
 
 class Interaction:
@@ -105,6 +154,8 @@ class Interaction:
         for 15 minutes.
     data: :class:`dict`
         The raw interaction data.
+    resolved: :class:`InteractionResolved`
+        The resolved interaction data.
     """
 
     __slots__: Tuple[str, ...] = (
@@ -120,6 +171,7 @@ class Interaction:
         'user',
         'token',
         'version',
+        'resolved',
         '_permissions',
         '_state',
         '_session',
@@ -182,6 +234,9 @@ class Interaction:
                 self.user = User(state=self._state, data=data['user'])
             except KeyError:
                 pass
+
+        # Parse the resolved data
+        self.resolved = InteractionResolved(interaction=self, data=(self.data or {}).copy().get("resolved", dict()), state=self._state)
 
     @property
     def guild(self) -> Optional[Guild]:

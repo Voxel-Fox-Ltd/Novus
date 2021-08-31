@@ -28,7 +28,7 @@ from typing import Optional, TYPE_CHECKING, Dict, TypedDict, Union, List, Litera
 from .snowflake import Snowflake
 from .components import Component, ComponentType
 from .embed import Embed
-from .channel import ChannelType
+from .channel import ChannelType, Channel
 from .member import Member
 from .role import Role
 from .user import User
@@ -178,6 +178,14 @@ class ComponentInteractionData(_ComponentInteractionDataOptional):
 InteractionData = Union[ApplicationCommandInteractionData, ComponentInteractionData]
 
 
+class InteractionResolved(TypedDict):
+    users: List[Union[User, Member]]
+    members: List[Member]
+    roles: List[Role]
+    channels: List[Channel]
+    messages: List[Message]
+
+
 class _InteractionOptional(TypedDict, total=False):
     data: InteractionData
     guild_id: Snowflake
@@ -193,6 +201,7 @@ class Interaction(_InteractionOptional):
     type: InteractionType
     token: str
     version: int
+    resolved: InteractionResolved
 
 
 class InteractionApplicationCommandCallbackData(TypedDict, total=False):
@@ -220,9 +229,6 @@ class MessageInteraction(TypedDict):
     type: InteractionType
     name: str
     user: User
-
-
-
 
 
 class _EditApplicationCommandOptional(TypedDict, total=False):

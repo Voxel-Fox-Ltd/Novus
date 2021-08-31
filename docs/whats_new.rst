@@ -20,6 +20,12 @@ Changed Features
 ~~~~~~~~~~~~~~~~~~
 
 * Removed Danny's ``on_socket_event_type`` to be replaced with :func:`on_socket_event`.
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Add :class:`InteractionResolved` class, as a new attribute in :class:`Interaction`.
+
 .. _vp0_0_2:
 
 v0.0.2

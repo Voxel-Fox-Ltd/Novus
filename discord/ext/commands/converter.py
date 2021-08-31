@@ -45,6 +45,7 @@ from typing import (
 import enum
 
 import discord
+from .context import SlashContext
 from .errors import *
 from ...enums import ApplicationCommandOptionType
 
@@ -229,7 +230,8 @@ class MemberConverter(IDConverter[discord.Member]):
         else:
             user_id = int(match.group(1))
             if guild:
-                result = guild.get_member(user_id) or _utils_get(ctx.message.mentions, id=user_id)
+                mentions = ctx.interaction.resolved.users if isinstance(ctx, SlashContext) else ctx.message.mentions
+                result = guild.get_member(user_id) or _utils_get(mentions, id=user_id)
             else:
                 result = _get_from_guilds(bot, 'get_member', user_id)
 
@@ -268,7 +270,8 @@ class UserConverter(IDConverter[discord.User]):
 
         if match is not None:
             user_id = int(match.group(1))
-            result = ctx.bot.get_user(user_id) or _utils_get(ctx.message.mentions, id=user_id)
+            mentions = ctx.interaction.resolved.users if isinstance(ctx, SlashContext) else ctx.message.mentions
+            result = ctx.bot.get_user(user_id) or _utils_get(mentions, id=user_id)
             if result is None:
                 try:
                     result = await ctx.bot.fetch_user(user_id)
@@ -365,6 +368,8 @@ class MessageConverter(IDConverter[discord.Message]):
     """
 
     async def convert(self, ctx: Context, argument: str) -> discord.Message:
+        if isinstance(ctx, SlashContext):
+            return ctx.interaction.resolved.messages[0]
         guild_id, message_id, channel_id = PartialMessageConverter._get_id_matches(ctx, argument)
         message = ctx.bot._connection._get_message(message_id)
         if message:
@@ -407,7 +412,10 @@ class GuildChannelConverter(IDConverter[discord.abc.GuildChannel]):
         if match is None:
             # not a mention
             if guild:
-                iterable: Iterable[CT] = getattr(guild, attribute)
+                if isinstance(ctx, SlashContext):
+                    iterable: Iterable[CT] = ctx.interaction.resolved.channels
+                else:
+                    iterable: Iterable[CT] = getattr(guild, attribute)
                 result: Optional[CT] = discord.utils.get(iterable, name=argument)
             else:
 
