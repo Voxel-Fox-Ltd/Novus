@@ -435,7 +435,7 @@ class DiscordWebSocket:
         _log.debug('For Shard ID %s: WebSocket Event: %s', self.shard_id, msg)
         event = msg.get('t')
         if event:
-            self._dispatch('socket_event_type', event)
+            self._dispatch('socket_event', event, msg.get('d', dict()))
 
         op = msg.get('op')
         data = msg.get('d')

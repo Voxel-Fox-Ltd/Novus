@@ -291,15 +291,14 @@ to handle it, which defaults to print a traceback and ignoring the exception.
     :param kwargs: The keyword arguments for the event that raised the
         exception.
 
-.. function:: on_socket_event_type(event_type)
+.. function:: on_socket_event(event_type, data)
 
     Called whenever a websocket event is received from the WebSocket.
 
-    This is mainly useful for logging how many events you are receiving
-    from the Discord gateway.
-
     :param event_type: The event type from Discord that is received, e.g. ``'READY'``.
     :type event_type: :class:`str`
+    :param event_type: The data that was received with the event.
+    :type data: :class:`dict`
 
 .. function:: on_socket_raw_receive(msg)
 
@@ -3341,6 +3340,13 @@ Interaction
 
 .. autoclass:: Interaction()
     :members:
+
+InteractionResolved
+~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: InteractionResolved
+
+.. autoclass:: InteractionResolved()
 
 InteractionResponse
 ~~~~~~~~~~~~~~~~~~~~

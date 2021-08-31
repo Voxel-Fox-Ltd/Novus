@@ -11,6 +11,15 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_3:
+
+v0.0.3
+--------
+
+Changed Features
+~~~~~~~~~~~~~~~~~~
+
+* Removed Danny's ``on_socket_event_type`` to be replaced with :func:`on_socket_event`.
 .. _vp0_0_2:
 
 v0.0.2
