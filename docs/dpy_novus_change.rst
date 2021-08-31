@@ -130,7 +130,7 @@ Main
 * ``discord.WidgetMember.avatar_url`` (use :attr:`discord.WidgetMember.avatar` and :attr:`discord.Asset.url`)
 * ``discord.WidgetMember.avatar_url_as`` (use :attr:`discord.WidgetMember.avatar`)
 * ``discord.WidgetMember.default_avatar_url`` (use :attr:`discord.WidgetMember.default_avatar` and :attr:`discord.Asset.url`)
-* ``discord.WidgetMember.is_avatar_animated``(use :attr:`discord.WidgetMember.avatar` and :attr:`discord.Asset.animated`)
+* ``discord.WidgetMember.is_avatar_animated`` (use :attr:`discord.WidgetMember.avatar` and :attr:`discord.Asset.animated`)
 * ``discord.WidgetMember.permissions_in`` (use :func:`discord.TextChannel.permissions_for`)
 * ``discord.Sticker.image``
 * ``discord.Sticker.tags``
