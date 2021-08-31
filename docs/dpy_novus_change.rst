@@ -12,86 +12,85 @@ Main
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * ``discord.Client.request_offline_members``
-* ``discord.Client.logout``
+* ``discord.Client.logout`` (use :func:`discord.Client.close`)
 * ``discord.Client.fetch_user_profile``
 * ``discord.AutoShardedClient.request_offline_members``
-* ``discord.AppInfo.icon_url``
-* ``discord.AppInfo.icon_url_as``
-* ``discord.AppInfo.cover_image_url``
-* ``discord.AppInfo.cover_image_url_as``
-* ``discord.Team.icon_url``
-* ``discord.Team.icon_url_as``
-* ``discord.VoiceClient.on_voice_state_update``
-* ``discord.VoiceClient.on_voice_server_update``
-* ``discord.VoiceClient.connect``
-* ``discord.on_private_channel_delete``
-* ``discord.on_relationship_add``
-* ``discord.on_relationship_update``
-* ``discord.Profile``
-* ``discord.HypeSquadHouse``
-* ``discord.VerificationLevel.table_flip``
-* ``discord.VerificationLevel.extreme``
-* ``discord.VerificationLevel.double_table_flip``
-* ``discord.VerificationLevel.very_high``
-* ``discord.RelationshipType``
-* ``discord.UserContentFilter``
-* ``discord.FriendFlags``
-* ``discord.PremiumType``
-* ``discord.Theme``
-* ``discord.StickerType.png``
-* ``discord.StickerType.apng``
-* ``discord.StickerType.lottie``
-* ``discord.Webhook.avatar_url``
-* ``discord.Webhook.avatar_url_as``
-* ``discord.Webhook.execute``
-* ``discord.WebhookAdapter``
-* ``discord.AsyncWebhookAdapter``
-* ``discord.RequestsWebhookAdapter``
-* ``discord.abc.Snowflake.created_at``
-* ``discord.ClientUser.email``
-* ``discord.ClientUser.premium``
-* ``discord.ClientUser.premium_type``
-* ``discord.ClientUser.get_relationship``
-* ``discord.ClientUser.relationships``
-* ``discord.ClientUser.friends``
-* ``discord.ClientUser.blocked``
-* ``discord.ClientUser.create_group``
-* ``discord.ClientUser.edit_settings``
-* ``discord.ClientUser.avatar_url``
-* ``discord.ClientUser.avatar_url_as``
-* ``discord.ClientUser.default_avatar_url``
-* ``discord.ClientUser.is_avatar_animated``
-* ``discord.ClientUser.permissions_in``
-* ``discord.Relationship``
-* ``discord.User.relationship``
-* ``discord.User.mutual_friends``
-* ``discord.User.is_friend``
-* ``discord.User.is_blocked``
-* ``discord.User.block``
-* ``discord.User.unblock``
-* ``discord.User.remove_friend``
-* ``discord.User.send_friend_request``
-* ``discord.User.profile``
-* ``discord.User.avatar_url``
-* ``discord.User.avatar_url_as``
-* ``discord.User.default_avatar_url``
-* ``discord.User.is_avatar_animated``
-* ``discord.User.permissions_in``
-* ``discord.Message.call``
-* ``discord.Message.ack``
-* ``discord.Reaction.custom_emoji``
-* ``discord.CallMessage``
-* ``discord.GroupCall``
-* ``discord.Guild.icon_url``
-* ``discord.Guild.is_icon_animated``
-* ``discord.Guild.icon_url_as``
-* ``discord.Guild.banner_url``
-* ``discord.Guild.banner_url_as``
-* ``discord.Guild.splash_url``
-* ``discord.Guild.splash_url_as``
-* ``discord.Guild.discovery_splash_url``
-* ``discord.Guild.discovery_splash_url_as``
-* ``discord.Guild.ack``
+* ``discord.AppInfo.icon_url`` (use :attr:`discord.AppInfo.icon` and :attr:`discord.Asset.url`)
+* ``discord.AppInfo.icon_url_as`` (use :attr:`discord.AppInfo.icon`)
+* ``discord.AppInfo.cover_image_url`` (use :attr:`discord.AppInfo.cover_image` and :attr:`discord.Asset.url`)
+* ``discord.AppInfo.cover_image_url_as`` (use :attr:`discord.AppInfo.cover_image`)
+* ``discord.Team.icon_url`` (use :attr:`discord.Team.icon` and :attr:`discord.Asset.url`)
+* ``discord.Team.icon_url_as`` (use :attr:`discord.Team.icon`)
+* ``discord.VoiceClient.on_voice_state_update`` (use :func:`discord.VoiceProtocol.on_voice_state_update`)
+* ``discord.VoiceClient.on_voice_server_update`` (use :func:`discord.VoiceProtocol.on_voice_server_update`)
+* ``discord.VoiceClient.connect`` (use :func:`discord.VoiceProtocol.connect`)
+* ``discord.on_private_channel_delete`` (removed with selfbot code)
+* ``discord.on_relationship_add`` (removed with selfbot code)
+* ``discord.on_relationship_update`` (removed with selfbot code)
+* ``discord.Profile`` (removed with selfbot code)
+* ``discord.HypeSquadHouse`` (removed with selfbot code)
+* ``discord.VerificationLevel.table_flip`` (aliases removed)
+* ``discord.VerificationLevel.extreme`` (aliases removed)
+* ``discord.VerificationLevel.double_table_flip`` (aliases removed)
+* ``discord.VerificationLevel.very_high`` (aliases removed)
+* ``discord.RelationshipType`` (removed with selfbot code)
+* ``discord.UserContentFilter`` (removed with selfbot code)
+* ``discord.FriendFlags`` (removed with selfbot code)
+* ``discord.PremiumType`` (removed with selfbot code)
+* ``discord.Theme`` (removed with selfbot code)
+* ``discord.StickerType.png`` (use :attr:`discord.StickerFormatType.png`)
+* ``discord.StickerType.apng`` (use :attr:`discord.StickerFormatType.apng`)
+* ``discord.StickerType.lottie`` (use :attr:`discord.StickerFormatType.lottie`)
+* ``discord.Webhook.avatar_url`` (use :attr:`discord.Webhook.avatar` and :attr:`discord.Asset.url`)
+* ``discord.Webhook.avatar_url_as`` (use :attr:`discord.Webhook.avatar`)
+* ``discord.Webhook.execute`` (no direct alternative - see :class:`discord.Webhook`)
+* ``discord.WebhookAdapter`` (no direct alternative - see :class:`discord.Webhook`)
+* ``discord.AsyncWebhookAdapter`` (no direct alternative - see :class:`discord.Webhook`)
+* ``discord.RequestsWebhookAdapter`` (no direct alternative - see :class:`discord.SyncWebhook`)
+* ``discord.ClientUser.email`` (removed with selfbot code)
+* ``discord.ClientUser.premium`` (removed with selfbot code)
+* ``discord.ClientUser.premium_type`` (removed with selfbot code)
+* ``discord.ClientUser.get_relationship`` (removed with selfbot code)
+* ``discord.ClientUser.relationships`` (removed with selfbot code)
+* ``discord.ClientUser.friends`` (removed with selfbot code)
+* ``discord.ClientUser.blocked`` (removed with selfbot code)
+* ``discord.ClientUser.create_group`` (removed with selfbot code)
+* ``discord.ClientUser.edit_settings`` (removed with selfbot code)
+* ``discord.ClientUser.avatar_url`` (use :attr:`discord.ClientUser.avatar` and :attr:`discord.Asset.url`)
+* ``discord.ClientUser.avatar_url_as`` (use :attr:`discord.ClientUser.avatar`)
+* ``discord.ClientUser.default_avatar_url`` (use :attr:`discord.ClientUser.default_avatar` and :attr:`discord.Asset.url`)
+* ``discord.ClientUser.is_avatar_animated`` (use :attr:`discord.ClientUser.avatar` and :attr:`discord.Asset.animated`)
+* ``discord.ClientUser.permissions_in`` (removed with selfbot code)
+* ``discord.Relationship`` (removed with selfbot code)
+* ``discord.User.relationship`` (removed with selfbot code)
+* ``discord.User.mutual_friends`` (removed with selfbot code)
+* ``discord.User.is_friend`` (removed with selfbot code)
+* ``discord.User.is_blocked`` (removed with selfbot code)
+* ``discord.User.block`` (removed with selfbot code)
+* ``discord.User.unblock`` (removed with selfbot code)
+* ``discord.User.remove_friend`` (removed with selfbot code)
+* ``discord.User.send_friend_request`` (removed with selfbot code)
+* ``discord.User.profile`` (removed with selfbot code)
+* ``discord.User.avatar_url`` (use :attr:`discord.User.avatar` and :attr:`discord.Asset.url`)
+* ``discord.User.avatar_url_as`` (use :attr:`discord.User.avatar` and :attr:`discord.Asset.url`)
+* ``discord.User.default_avatar_url`` (use :attr:`discord.User.default_avatar` and :attr:`discord.Asset.url`)
+* ``discord.User.is_avatar_animated`` (use :attr:`discord.User.avatar` and :attr:`discord.Asset.animated`)
+* ``discord.User.permissions_in`` (use :func:`discord.TextChannel.permissions_for`)
+* ``discord.Message.call`` (removed with selfbot code)
+* ``discord.Message.ack`` (removed with selfbot code)
+* ``discord.Reaction.custom_emoji`` (use :code:`isinstance(reaction.emoji, discord.Emoji)`)
+* ``discord.CallMessage`` (removed with selfbot code)
+* ``discord.GroupCall`` (removed with selfbot code)
+* ``discord.Guild.icon_url`` (use :attr:`discord.Guild.icon` and :attr:`discord.Asset.url`)
+* ``discord.Guild.is_icon_animated`` (use :attr:`discord.Guild.icon` and :attr:`discord.Asset.animated`)
+* ``discord.Guild.icon_url_as`` (use :attr:`discord.Guild.icon`)
+* ``discord.Guild.banner_url`` (use :attr:`discord.Guild.banner` :attr:`discord.Asset.url`)
+* ``discord.Guild.banner_url_as`` (use :attr:`discord.Guild.banner`)
+* ``discord.Guild.splash_url`` (use :attr:`discord.Guild.splash` :attr:`discord.Asset.url`)
+* ``discord.Guild.splash_url_as`` (use :attr:`discord.Guild.splash`)
+* ``discord.Guild.discovery_splash_url`` (use :attr:`discord.Guild.discovery_splash` and :attr:`discord.Asset.url`)
+* ``discord.Guild.discovery_splash_url_as`` (use :attr:`discord.Guild.discovery_splash`)
+* ``discord.Guild.ack`` (removed with selfbot code)
 * ``discord.Integration.syncing``
 * ``discord.Integration.role``
 * ``discord.Integration.enable_emoticons``
@@ -100,39 +99,39 @@ Main
 * ``discord.Integration.synced_at``
 * ``discord.Integration.edit``
 * ``discord.Integration.sync``
-* ``discord.Member.permissions_in``
-* ``discord.Member.avatar_url``
-* ``discord.Member.avatar_url_as``
-* ``discord.Member.block``
-* ``discord.Member.default_avatar_url``
-* ``discord.Member.is_avatar_animated``
-* ``discord.Member.is_blocked``
-* ``discord.Member.is_friend``
-* ``discord.Member.mutual_friends``
-* ``discord.Member.profile``
-* ``discord.Member.relationship``
-* ``discord.Member.remove_friend``
-* ``discord.Member.send_friend_request``
-* ``discord.Member.unblock``
+* ``discord.Member.permissions_in`` (use :func:`discord.TextChannel.permissions_for`)
+* ``discord.Member.avatar_url`` (use :attr:`discord.Member.avatar` and :attr:`discord.Asset.url`)
+* ``discord.Member.avatar_url_as`` (use :attr:`discord.Member.avatar`)
+* ``discord.Member.block`` (removed with selfbot code)
+* ``discord.Member.default_avatar_url`` (use :attr:`discord.Member.default_avatar` and :attr:`discord.Asset.url`)
+* ``discord.Member.is_avatar_animated`` (use :attr:`discord.Member.avatar` and :attr:`discord.Asset.animated`)
+* ``discord.Member.is_blocked`` (removed with selfbot code)
+* ``discord.Member.is_friend`` (removed with selfbot code)
+* ``discord.Member.mutual_friends`` (removed with selfbot code)
+* ``discord.Member.profile`` (removed with selfbot code)
+* ``discord.Member.relationship`` (removed with selfbot code)
+* ``discord.Member.remove_friend`` (removed with selfbot code)
+* ``discord.Member.send_friend_request`` (removed with selfbot code)
+* ``discord.Member.unblock`` (removed with selfbot code)
 * ``discord.Emoji.url_as``
 * ``discord.PartialEmoji.url_as``
-* ``discord.GroupChannel.icon_url``
-* ``discord.GroupChannel.icon_url_as``
-* ``discord.GroupChannel.add_recipients``
-* ``discord.GroupChannel.remove_recipients``
-* ``discord.GroupChannel.edit``
-* ``discord.PartialInviteGuild.icon_url``
-* ``discord.PartialInviteGuild.is_icon_animated``
-* ``discord.PartialInviteGuild.icon_url_as``
-* ``discord.PartialInviteGuild.banner_url``
-* ``discord.PartialInviteGuild.banner_url_as``
-* ``discord.PartialInviteGuild.splash_url``
-* ``discord.PartialInviteGuild.splash_url_as``
-* ``discord.WidgetMember.avatar_url``
-* ``discord.WidgetMember.avatar_url_as``
-* ``discord.WidgetMember.default_avatar_url``
-* ``discord.WidgetMember.is_avatar_animated``
-* ``discord.WidgetMember.permissions_in``
+* ``discord.GroupChannel.icon_url`` (removed with selfbot code)
+* ``discord.GroupChannel.icon_url_as`` (removed with selfbot code)
+* ``discord.GroupChannel.add_recipients`` (removed with selfbot code)
+* ``discord.GroupChannel.remove_recipients`` (removed with selfbot code)
+* ``discord.GroupChannel.edit`` (removed with selfbot code)
+* ``discord.PartialInviteGuild.icon_url`` (use :attr:`discord.PartialInviteGuild.icon` and :attr:`discord.Asset.url`)
+* ``discord.PartialInviteGuild.is_icon_animated`` (use :attr:`discord.PartialInviteGuild.icon` and :attr:`discord.Asset.animated`)
+* ``discord.PartialInviteGuild.icon_url_as`` (use :attr:`discord.PartialInviteGuild.icon`)
+* ``discord.PartialInviteGuild.banner_url`` (use :attr:`discord.PartialInviteGuild.banner` and :attr:`discord.Asset.url`)
+* ``discord.PartialInviteGuild.banner_url_as`` (use :attr:`discord.PartialInviteGuild.banner`)
+* ``discord.PartialInviteGuild.splash_url`` (use :attr:`discord.PartialInviteGuild.splash` and :attr:`discord.Asset.url`)
+* ``discord.PartialInviteGuild.splash_url_as`` (use :attr:`discord.PartialInviteGuild.splash`)
+* ``discord.WidgetMember.avatar_url`` (use :attr:`discord.WidgetMember.avatar` and :attr:`discord.Asset.url`)
+* ``discord.WidgetMember.avatar_url_as`` (use :attr:`discord.WidgetMember.avatar`)
+* ``discord.WidgetMember.default_avatar_url`` (use :attr:`discord.WidgetMember.default_avatar` and :attr:`discord.Asset.url`)
+* ``discord.WidgetMember.is_avatar_animated``(use :attr:`discord.WidgetMember.avatar` and :attr:`discord.Asset.animated`)
+* ``discord.WidgetMember.permissions_in`` (use :func:`discord.TextChannel.permissions_for`)
 * ``discord.Sticker.image``
 * ``discord.Sticker.tags``
 * ``discord.Sticker.preview_image``
