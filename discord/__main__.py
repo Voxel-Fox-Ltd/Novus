@@ -283,7 +283,7 @@ def add_newcog_args(subparser):
     parser.add_argument('--full', help='add all special methods as well', action='store_true')
 
 def parse_args():
-    parser = argparse.ArgumentParser(prog='discord', description='Tools for helping with novus')
+    parser = argparse.ArgumentParser(prog='discord', description='Tools for helping with Novus')
     parser.add_argument('-v', '--version', action='store_true', help='shows the library version')
     parser.set_defaults(func=core)
 

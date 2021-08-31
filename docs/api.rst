@@ -3,7 +3,7 @@
 API Reference
 ===============
 
-The following section outlines the API of novus.
+The following section outlines the API of Novus.
 
 .. note::
 
@@ -11,7 +11,7 @@ The following section outlines the API of novus.
     in an output independent way.  If the logging module is not configured,
     these logs will not be output anywhere.  See :ref:`logging_setup` for
     more information on how to set up and use the logging module with
-    novus.
+    Novus.
 
 Version Related Info
 ---------------------
@@ -3088,7 +3088,7 @@ AuditLogDiff
 Webhook Support
 ------------------
 
-novus offers support for creating, editing, and executing webhooks through the :class:`Webhook` class.
+Novus offers support for creating, editing, and executing webhooks through the :class:`Webhook` class.
 
 Webhook
 ~~~~~~~~~

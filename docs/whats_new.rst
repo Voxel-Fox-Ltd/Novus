@@ -11,6 +11,27 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_2:
+
+v0.0.2
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Add :func:`defer decorator<commands.defer>` for slash commands.
+* Add :func:`InteractionResonse.defer_update`.
+* Add ``allowed_mentions`` to :func:`InteractionReponse.edit_message`.
+* Add ``response_type`` kwarg to :func:`utils.oauth_url`.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~
+
+* Fix action rows not being parsed correctly.
+* Fixed ``ephemeral`` kwarg in :func:`commands.SlashContext.send` and :func:`commands.SlashContext.defer`.
+* Fix slash commands not working with cooldowns.
+
+
 .. _vp0_0_1:
 
 v0.0.1

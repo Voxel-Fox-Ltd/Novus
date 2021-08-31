@@ -7,13 +7,13 @@
 Introduction
 ==============
 
-This is the documentation for novus, a library for Python to aid
+This is the documentation for Novus, a library for Python to aid
 in creating applications that utilise the Discord API.
 
 Prerequisites
 ---------------
 
-novus works with Python 3.8 or higher. Support for earlier versions of Python
+Novus works with Python 3.8 or higher. Support for earlier versions of Python
 is not provided. Python 2.7 or lower is not supported. Python 3.7 or lower is not supported.
 
 
@@ -91,7 +91,7 @@ Congratulations. You now have a virtual environment all set up.
 Basic Concepts
 ---------------
 
-novus revolves around the concept of :ref:`events <discord-api-events>`.
+Novus revolves around the concept of :ref:`events <discord-api-events>`.
 An event is something you listen to and then respond to. For example, when a message
 happens, you will receive an event about it that you can respond to.
 

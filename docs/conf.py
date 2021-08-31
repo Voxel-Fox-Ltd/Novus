@@ -1,5 +1,5 @@
 #
-# novus documentation build configuration file, created by
+# Novus documentation build configuration file, created by
 # sphinx-quickstart on Fri Aug 21 05:43:30 2015.
 #
 # This file is execfile()d with the current directory set to its
@@ -49,7 +49,7 @@ autodoc_typehints = 'none'
 # napoleon_attr_annotations = False
 
 extlinks = {
-    'issue': ('https://github.com/Voxel-Fox-Ltd/novus/issues/%s', 'GH-'),
+    'issue': ('https://github.com/Voxel-Fox-Ltd/Novus/issues/%s', 'GH-'),
 }
 
 # Links used for cross-referencing stuff in other documentation
@@ -79,7 +79,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'novus'
+project = 'Novus'
 # copyright = '2015-present, Rapptz'
 copyright = '2021-present, Kae Bartlett'
 
@@ -166,9 +166,9 @@ html_context = {
 
 resource_links = {
   'discord': 'https://discord.gg/vfl',
-  'issues': 'https://github.com/Voxel-Fox-Ltd/novus/issues',
-  'discussions': 'https://github.com/Voxel-Fox-Ltd/novus/discussions',
-  'examples': f'https://github.com/Voxel-Fox-Ltd/novus/tree/{branch}/examples',
+  'issues': 'https://github.com/Voxel-Fox-Ltd/Novus/issues',
+  'discussions': 'https://github.com/Voxel-Fox-Ltd/Novus/discussions',
+  'examples': f'https://github.com/Voxel-Fox-Ltd/Novus/tree/{branch}/examples',
 }
 
 # Theme options are theme-specific and customize the look and feel of a theme
@@ -291,7 +291,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'novus.tex', 'novus Documentation',
+  ('index', 'novus.tex', 'Novus Documentation',
    'Voxel-Fox-Ltd', 'manual'),
 ]
 
@@ -321,7 +321,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'novus', 'novus Documentation',
+    ('index', 'Novus', 'Novus Documentation',
      ['Voxel-Fox-Ltd'], 1)
 ]
 
@@ -335,8 +335,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'novus', 'novus Documentation',
-   'Voxel-Fox-Ltd', 'novus', 'One line description of project.',
+  ('index', 'Novus', 'Novus Documentation',
+   'Voxel-Fox-Ltd', 'Novus', 'One line description of project.',
    'Miscellaneous'),
 ]
 
@@ -355,5 +355,5 @@ texinfo_documents = [
 def setup(app):
   if app.config.language == 'ja':
     app.config.intersphinx_mapping['py'] = ('https://docs.python.org/ja/3', None)
-    app.config.html_context['discord_invite'] = 'https://discord.gg/nXzj3dg'
-    app.config.resource_links['discord'] = 'https://discord.gg/nXzj3dg'
+    app.config.html_context['discord_invite'] = 'https://discord.gg/vfl'
+    app.config.resource_links['discord'] = 'https://discord.gg/vfl'

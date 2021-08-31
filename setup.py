@@ -59,7 +59,7 @@ setup(name='novus',
       url='https://github.com/Voxel-Fox-Ltd/Novus',
       project_urls={
         "Documentation": "https://novus.readthedocs.io/en/latest/",
-        "Issue tracker": "https://github.com/Voxel-Fox-Ltd/novus/issues",
+        "Issue tracker": "https://github.com/Voxel-Fox-Ltd/Novus/issues",
       },
       version=version,
       packages=packages,
