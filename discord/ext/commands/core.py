@@ -54,7 +54,7 @@ from .converter import run_converters, get_converter, Greedy, try_application_co
 from ._types import _BaseCommand
 from .cog import Cog
 from .context import Context, SlashContext
-from ...enums import ApplicationCommandOptionType
+from ...enums import ApplicationCommandOptionType, ApplicationCommandType
 
 
 if TYPE_CHECKING:
@@ -73,9 +73,11 @@ if TYPE_CHECKING:
 
 __all__ = (
     'Command',
+    'ContextMenuCommand',
     'Group',
     'GroupMixin',
     'command',
+    'context_command',
     'group',
     'has_role',
     'has_permissions',
@@ -119,6 +121,7 @@ slash_permission_ignores = [
     "send_messages",
     "embed_links",
 ]  # permissions that don't matter to slash command checks
+
 
 def unwrap_function(function: Callable[..., Any]) -> Callable[..., Any]:
     partial = functools.partial
@@ -168,6 +171,7 @@ def wrap_callback(coro):
         return ret
     return wrapped
 
+
 def hooked_wrapped_callback(command, ctx, coro):
     @functools.wraps(coro)
     async def wrapped(*args, **kwargs):
@@ -209,6 +213,7 @@ class _CaseInsensitiveDict(dict):
 
     def __setitem__(self, k, v):
         super().__setitem__(k.casefold(), v)
+
 
 class Command(_BaseCommand, Generic[CogT, P, T]):
     r"""A class that implements the protocol for a bot text command.
@@ -285,6 +290,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         .. note::
             This object may be copied by the library.
     """
+
     __original_kwargs__: Dict[str, Any]
 
     def __new__(cls: Type[CommandT], *args: Any, **kwargs: Any) -> CommandT:
@@ -827,7 +833,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 await self._max_concurrency.release(ctx)  # type: ignore
             raise
 
-    async def _prepare_slash(self, ctx: Context) -> None:
+    async def _prepare_slash(self, ctx: SlashContext) -> None:
         ctx.command = self
 
         if not await self.can_run(ctx):
@@ -1184,6 +1190,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             command = ApplicationCommand(
                 name=self.name,
                 description=self.help,
+                type=ApplicationCommandType.chat_input,
             )
         else:  # Parent is a group
             command = ApplicationCommandOption(
@@ -1199,6 +1206,74 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 required=arg.default != inspect.Signature.empty,
             ))
         return command
+
+
+class ContextMenuCommand(Command):
+    """The base command class for context menu commands.
+
+    .. versionadded:: 0.0.3
+    """
+
+    @property
+    def callback(self) -> Union[
+            Callable[Concatenate[CogT, Context, P], Coro[T]],
+            Callable[Concatenate[Context, P], Coro[T]],
+        ]:
+        return self._callback
+
+    @callback.setter
+    def callback(self, function: Union[
+            Callable[Concatenate[CogT, Context, P], Coro[T]],
+            Callable[Concatenate[Context, P], Coro[T]],
+        ]) -> None:
+        self._callback = function
+        unwrap = unwrap_function(function)
+        self.module = unwrap.__module__
+
+        try:
+            globalns = unwrap.__globals__
+        except AttributeError:
+            globalns = {}
+
+        self.params = get_signature_parameters(function, globalns)
+
+        # Some checks to make sure the context command is valid,
+        # as well as to interpret its typing
+        if len(self.params) not in [1, 3]:
+            raise ValueError("Context menu commands can have exactly one parameter.")
+        has_cog = len(self.params) == 3
+        for index, (_, type_) in enumerate(self.params.items()):
+            if has_cog and index < 2:
+                continue
+            if not (annotation := type_.annotation):
+                raise ValueError("Missing annotation for interpolated context menu command.")
+            if discord.Message in annotation.mro():
+                self.application_command_type = ApplicationCommandType.message
+            elif discord.user._UserTag in annotation.mro():
+                self.application_command_type = ApplicationCommandType.user
+            else:
+                raise TypeError("Invalid annotation for interpolated context menu command.")
+
+    async def invoke(self, ctx: SlashContext) -> None:
+        if not isinstance(ctx, SlashContext):
+            return
+        return await super().invoke(ctx)
+
+    def to_application_command(self) -> ApplicationCommand:
+        """Convert the current command instance to an application command.
+
+        Returns
+        -------
+        :class:`ApplicationCommand`
+            An application command equivelant to the current command instance.
+        """
+
+        command = ApplicationCommand(
+            name=self.name,
+            type=self.application_command_type,
+        )
+        return command
+
 
 class GroupMixin(Generic[CogT]):
     """A mixin that implements common functionality for classes that behave
@@ -1451,6 +1526,7 @@ class GroupMixin(Generic[CogT]):
 
         return decorator
 
+
 class Group(GroupMixin[CogT], Command[CogT, P, T]):
     """A class that implements a grouping protocol for commands to be
     executed as subcommands.
@@ -1561,7 +1637,7 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
             view.previous = previous
             await super().reinvoke(ctx, call_hooks=call_hooks)
 
-    def to_application_command(self) -> ApplicationCommand:
+    def to_application_command(self) -> Union[ApplicationCommand, ApplicationCommandOption]:
         """Convert the current command instance to an application command.
 
         Returns
@@ -1582,8 +1658,11 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
                 description=self.help or self.name,
             )
         for c in self.commands:
-            command.add_option(c.to_application_command())
+            a = c.to_application_command()
+            assert isinstance(a, ApplicationCommandOption)
+            command.add_option(a)
         return command
+
 
 # Decorators
 
@@ -1602,6 +1681,7 @@ def command(
 , Command[CogT, P, T]]:
     ...
 
+
 @overload
 def command(
     name: str = ...,
@@ -1616,6 +1696,7 @@ def command(
     ]
 , CommandT]:
     ...
+
 
 def command(
     name: str = MISSING,
@@ -1671,6 +1752,98 @@ def command(
 
     return decorator
 
+
+@overload
+def context_command(
+    name: str = ...,
+    cls: Type[Command[CogT, P, T]] = ...,
+    **attrs: Any,
+) -> Callable[
+    [
+        Union[
+            Callable[Concatenate[CogT, ContextT, P], Coro[T]],
+            Callable[Concatenate[ContextT, P], Coro[T]],
+        ]
+    ]
+, Command[CogT, P, T]]:
+    ...
+
+
+@overload
+def context_command(
+    name: str = ...,
+    cls: Type[CommandT] = ...,
+    **attrs: Any,
+) -> Callable[
+    [
+        Union[
+            Callable[Concatenate[CogT, ContextT, P], Coro[Any]],
+            Callable[Concatenate[ContextT, P], Coro[Any]],
+        ]
+    ]
+, CommandT]:
+    ...
+
+
+def context_command(
+    name: str = MISSING,
+    cls: Type[CommandT] = MISSING,
+    **attrs: Any
+) -> Callable[
+    [
+        Union[
+            Callable[Concatenate[ContextT, P], Coro[Any]],
+            Callable[Concatenate[CogT, ContextT, P], Coro[T]],
+        ]
+    ]
+, Union[Command[CogT, P, T], CommandT]]:
+    """A decorator that transforms a function into a :class:`.ContextMenuCommand`.
+
+    By default the ``help`` attribute is received automatically from the
+    docstring of the function and is cleaned up with the use of
+    ``inspect.cleandoc``. If the docstring is ``bytes``, then it is decoded
+    into :class:`str` using utf-8 encoding.
+
+    All checks added using the :func:`.check` & co. decorators are added into
+    the function. There is no way to supply your own checks through this
+    decorator.
+
+    The application type of the context command is determined automatically by the
+    type hinting on its parameters.
+
+    .. versionadded:: 0.0.3
+
+    Parameters
+    -----------
+    name: :class:`str`
+        The name to create the command with. By default this uses the
+        function name unchanged.
+    cls
+        The class to construct with. By default this is :class:`.ContextMenuCommand`.
+        You usually do not change this.
+    attrs
+        Keyword arguments to pass into the construction of the class denoted
+        by ``cls``.
+
+    Raises
+    -------
+    TypeError
+        If the function is not a coroutine or is already a command.
+    """
+    if cls is MISSING:
+        cls = ContextMenuCommand  # type: ignore
+
+    def decorator(func: Union[
+            Callable[Concatenate[ContextT, P], Coro[Any]],
+            Callable[Concatenate[CogT, ContextT, P], Coro[Any]],
+        ]) -> CommandT:
+        if isinstance(func, Command):
+            raise TypeError('Callback is already a command.')
+        return cls(func, name=name, type=type, **attrs)
+
+    return decorator
+
+
 @overload
 def group(
     name: str = ...,
@@ -1686,6 +1859,7 @@ def group(
 , Group[CogT, P, T]]:
     ...
 
+
 @overload
 def group(
     name: str = ...,
@@ -1700,6 +1874,7 @@ def group(
     ]
 , GroupT]:
     ...
+
 
 def group(
     name: str = MISSING,
@@ -1721,6 +1896,7 @@ def group(
     if cls is MISSING:
         cls = Group  # type: ignore
     return command(name=name, cls=cls, **attrs)  # type: ignore
+
 
 def check(predicate: Check) -> Callable[[T], T]:
     r"""A decorator that adds a check to the :class:`.Command` or its
@@ -1811,6 +1987,7 @@ def check(predicate: Check) -> Callable[[T], T]:
 
     return decorator  # type: ignore
 
+
 def check_any(*checks: Check) -> Callable[[T], T]:
     r"""A :func:`check` that is added that checks if any of the checks passed
     will pass, i.e. using logical OR.
@@ -1877,6 +2054,7 @@ def check_any(*checks: Check) -> Callable[[T], T]:
 
     return check(predicate)
 
+
 def has_role(item: Union[int, str]) -> Callable[[T], T]:
     """A :func:`.check` that is added that checks if the member invoking the
     command has the role specified via the name or ID specified.
@@ -1913,6 +2091,7 @@ def has_role(item: Union[int, str]) -> Callable[[T], T]:
         return True
 
     return check(predicate)
+
 
 def has_any_role(*items: Union[int, str]) -> Callable[[T], T]:
     r"""A :func:`.check` that is added that checks if the member invoking the
@@ -1952,6 +2131,7 @@ def has_any_role(*items: Union[int, str]) -> Callable[[T], T]:
 
     return check(predicate)
 
+
 def bot_has_role(item: int) -> Callable[[T], T]:
     """Similar to :func:`.has_role` except checks if the bot itself has the
     role.
@@ -1975,6 +2155,7 @@ def bot_has_role(item: int) -> Callable[[T], T]:
         return True
     return check(predicate)
 
+
 def bot_has_any_role(*items: int) -> Callable[[T], T]:
     """Similar to :func:`.has_any_role` except checks if the bot itself has
     any of the roles listed.
@@ -1993,6 +2174,7 @@ def bot_has_any_role(*items: int) -> Callable[[T], T]:
             return True
         raise BotMissingAnyRole(list(items))
     return check(predicate)
+
 
 def has_permissions(**perms: bool) -> Callable[[T], T]:
     """A :func:`.check` that is added that checks if the member has all of
@@ -2041,6 +2223,7 @@ def has_permissions(**perms: bool) -> Callable[[T], T]:
 
     return check(predicate)
 
+
 def bot_has_permissions(**perms: bool) -> Callable[[T], T]:
     """Similar to :func:`.has_permissions` except checks if the bot itself has
     the permissions listed.
@@ -2069,6 +2252,7 @@ def bot_has_permissions(**perms: bool) -> Callable[[T], T]:
 
     return check(predicate)
 
+
 def has_guild_permissions(**perms: bool) -> Callable[[T], T]:
     """Similar to :func:`.has_permissions`, but operates on guild wide
     permissions instead of the current channel permissions.
@@ -2095,6 +2279,7 @@ def has_guild_permissions(**perms: bool) -> Callable[[T], T]:
 
     return check(predicate)
 
+
 def bot_has_guild_permissions(**perms: bool) -> Callable[[T], T]:
     """Similar to :func:`.has_guild_permissions`, but checks the bot
     members guild permissions.
@@ -2120,6 +2305,7 @@ def bot_has_guild_permissions(**perms: bool) -> Callable[[T], T]:
 
     return check(predicate)
 
+
 def dm_only() -> Callable[[T], T]:
     """A :func:`.check` that indicates this command must only be used in a
     DM context. Only private messages are allowed when
@@ -2136,6 +2322,7 @@ def dm_only() -> Callable[[T], T]:
 
     return check(predicate)
 
+
 def guild_only() -> Callable[[T], T]:
     """A :func:`.check` that indicates this command must only be used in a
     guild context only. Basically, no private messages are allowed when
@@ -2151,6 +2338,7 @@ def guild_only() -> Callable[[T], T]:
         return True
 
     return check(predicate)
+
 
 def is_owner() -> Callable[[T], T]:
     """A :func:`.check` that checks if the person invoking this command is the
@@ -2169,6 +2357,7 @@ def is_owner() -> Callable[[T], T]:
 
     return check(predicate)
 
+
 def is_nsfw() -> Callable[[T], T]:
     """A :func:`.check` that checks if the channel is a NSFW channel.
 
@@ -2181,6 +2370,7 @@ def is_nsfw() -> Callable[[T], T]:
             return True
         raise NSFWChannelRequired(ch)  # type: ignore
     return check(pred)
+
 
 def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], Any]] = BucketType.default) -> Callable[[T], T]:
     """A decorator that adds a cooldown to a :class:`.Command`
@@ -2213,6 +2403,7 @@ def cooldown(rate: int, per: float, type: Union[BucketType, Callable[[Message], 
             func.__commands_cooldown__ = CooldownMapping(Cooldown(rate, per), type)
         return func
     return decorator  # type: ignore
+
 
 def dynamic_cooldown(cooldown: Union[BucketType, Callable[[Message], Any]], type: BucketType = BucketType.default) -> Callable[[T], T]:
     """A decorator that adds a dynamic cooldown to a :class:`.Command`
@@ -2252,6 +2443,7 @@ def dynamic_cooldown(cooldown: Union[BucketType, Callable[[Message], Any]], type
         return func
     return decorator  # type: ignore
 
+
 def max_concurrency(number: int, per: BucketType = BucketType.default, *, wait: bool = False) -> Callable[[T], T]:
     """A decorator that adds a maximum concurrency to a :class:`.Command` or its subclasses.
 
@@ -2282,6 +2474,7 @@ def max_concurrency(number: int, per: BucketType = BucketType.default, *, wait: 
             func.__commands_max_concurrency__ = value
         return func
     return decorator  # type: ignore
+
 
 def before_invoke(coro) -> Callable[[T], T]:
     """A decorator that registers a coroutine as a pre-invoke hook.
@@ -2326,6 +2519,7 @@ def before_invoke(coro) -> Callable[[T], T]:
             func.__before_invoke__ = coro
         return func
     return decorator  # type: ignore
+
 
 def after_invoke(coro) -> Callable[[T], T]:
     """A decorator that registers a coroutine as a post-invoke hook.

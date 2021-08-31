@@ -114,6 +114,9 @@ Decorators
 .. autofunction:: discord.ext.commands.group
     :decorator:
 
+.. autofunction:: discord.ext.commands.context_command
+    :decorator:
+
 Command
 ~~~~~~~~~
 

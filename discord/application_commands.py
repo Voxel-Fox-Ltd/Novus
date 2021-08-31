@@ -146,11 +146,11 @@ class ApplicationCommand(object):
         """
 
         self.name: str = name
-        self.description: str = description
+        self.description: Optional[str] = description
         self.type: ApplicationCommandType = type
         self.options: List[ApplicationCommandOption] = list()
-        self.id: int = None
-        self.application_id: int = None
+        self.id: Optional[int] = None
+        self.application_id: Optional[int] = None
 
     def __repr__(self):
         return f"ApplcationCommand<name={self.name}, type={self.type.name}>"

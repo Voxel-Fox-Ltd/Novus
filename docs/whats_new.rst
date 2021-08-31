@@ -25,6 +25,7 @@ New Features
 ~~~~~~~~~~~~~~~~~~
 
 * Add :class:`InteractionResolved` class, as a new attribute in :class:`Interaction`.
+* Added :func:`commands.context_command` decorator.
 
 .. _vp0_0_2:
 
