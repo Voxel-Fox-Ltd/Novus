@@ -31,25 +31,28 @@ import pkg_resources
 import aiohttp
 import platform
 
+
 def show_version():
     entries = []
 
     entries.append('- Python v{0.major}.{0.minor}.{0.micro}-{0.releaselevel}'.format(sys.version_info))
     version_info = discord.version_info
-    entries.append('- novus v{0.major}.{0.minor}.{0.micro}-{0.releaselevel}'.format(version_info))
+    entries.append('- Novus v{0.major}.{0.minor}.{0.micro}-{0.releaselevel}'.format(version_info))
     if version_info.releaselevel != 'final':
         pkg = pkg_resources.get_distribution('novus')
         if pkg:
-            entries.append(f'    - novus pkg_resources: v{pkg.version}')
+            entries.append(f'    - Novus pkg_resources: v{pkg.version}')
 
     entries.append(f'- aiohttp v{aiohttp.__version__}')
     uname = platform.uname()
     entries.append('- system info: {0.system} {0.release} {0.version}'.format(uname))
     print('\n'.join(entries))
 
+
 def core(parser, args):
     if args.version:
         show_version()
+
 
 _bot_template = """#!/usr/bin/env python3
 
@@ -76,6 +79,7 @@ bot = Bot()
 
 bot.run(config.token)
 """
+
 
 _gitignore_template = """# Byte-compiled / optimized / DLL files
 __pycache__/
@@ -107,17 +111,29 @@ var/
 config.py
 """
 
-_cog_template = '''from discord.ext import commands
+
+VBU_INSTALLED: bool = False
+try:
+    import voxelbotutils
+    VBU_INSTALLED = True
+except ImportError:
+    pass
+
+
+_cog_template = '''from discord.ext import {commands_ext}
 import discord
 
-class {name}(commands.Cog{attrs}):
-    """The description for {name} goes here."""
+class {name}({commands_ext}.Cog{attrs}):
+    """
+    The description for {name} goes here.
+    """
 
-    def __init__(self, bot):
+    def __init__(self, bot: {commands_ext}.Bot):
         self.bot = bot
 {extra}
-def setup(bot):
-    bot.add_cog({name}(bot))
+def setup(bot: {commands_ext}.Bot):
+    x = {name}(bot)
+    bot.add_cog(x)
 '''
 
 _cog_extras = '''
@@ -169,8 +185,8 @@ _base_table = {
 
 # NUL (0) and 1-31 are disallowed
 _base_table.update((chr(i), None) for i in range(32))
-
 _translation_table = str.maketrans(_base_table)
+
 
 def to_path(parser, name, *, replace_spaces=False):
     if isinstance(name, Path):
@@ -186,6 +202,7 @@ def to_path(parser, name, *, replace_spaces=False):
     if replace_spaces:
         name = name.replace(' ', '-')
     return Path(name)
+
 
 def newbot(parser, args):
     new_directory = to_path(parser, args.directory) / to_path(parser, args.name)
@@ -228,6 +245,7 @@ def newbot(parser, args):
 
     print('successfully made bot at', new_directory)
 
+
 def newcog(parser, args):
     cog_dir = to_path(parser, args.directory)
     try:
@@ -255,11 +273,12 @@ def newcog(parser, args):
                 attrs += f', name="{args.display_name}"'
             if args.hide_commands:
                 attrs += ', command_attrs=dict(hidden=True)'
-            fp.write(_cog_template.format(name=name, extra=extra, attrs=attrs))
+            fp.write(_cog_template.format(name=name, extra=extra, attrs=attrs, commands_ext="vbu" if VBU_INSTALLED else "commands"))
     except OSError as exc:
         parser.error(f'could not create cog file ({exc})')
     else:
         print('successfully made cog at', directory)
+
 
 def add_newbot_args(subparser):
     parser = subparser.add_parser('newbot', help='creates a command bot project quickly')
@@ -270,6 +289,7 @@ def add_newbot_args(subparser):
     parser.add_argument('--prefix', help='the bot prefix (default: $)', default='$', metavar='<prefix>')
     parser.add_argument('--sharded', help='whether to use AutoShardedBot', action='store_true')
     parser.add_argument('--no-git', help='do not create a .gitignore file', action='store_true', dest='no_git')
+
 
 def add_newcog_args(subparser):
     parser = subparser.add_parser('newcog', help='creates a new cog template quickly')
@@ -282,6 +302,7 @@ def add_newcog_args(subparser):
     parser.add_argument('--hide-commands', help='whether to hide all commands in the cog', action='store_true')
     parser.add_argument('--full', help='add all special methods as well', action='store_true')
 
+
 def parse_args():
     parser = argparse.ArgumentParser(prog='discord', description='Tools for helping with Novus')
     parser.add_argument('-v', '--version', action='store_true', help='shows the library version')
@@ -292,9 +313,11 @@ def parse_args():
     add_newcog_args(subparser)
     return parser, parser.parse_args()
 
+
 def main():
     parser, args = parse_args()
     args.func(parser, args)
+
 
 if __name__ == '__main__':
     main()
