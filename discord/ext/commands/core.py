@@ -1203,7 +1203,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 name=name,
                 description=self.param_descriptions.get(name, name),
                 type=try_application_command_option_type(arg),
-                required=arg.default != inspect.Signature.empty,
+                required=arg.default == inspect.Signature.empty,
             ))
         return command
 
