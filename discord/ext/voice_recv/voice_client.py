@@ -1,22 +1,22 @@
-# -*- coding: utf-8 -*-
-
 import discord
+from discord.gateway import DiscordVoiceWebSocket
 import threading
 
 from .gateway import hook
 from .reader import AudioReader, AudioSink
 
+
 class VoiceRecvClient(discord.VoiceClient):
+
     def __init__(self, client, channel):
         super().__init__(client, channel)
-
         self._connecting = threading.Condition()
         self._reader = None
         self._ssrc_to_id = {}
         self._id_to_ssrc = {}
 
     async def connect_websocket(self):
-        ws = await discord.gateway.DiscordVoiceWebSocket.from_client(self, hook=hook)
+        ws = await DiscordVoiceWebSocket.from_client(self, hook=hook)
         self._connected.clear()
         while ws.secret_key is None:
             await ws.poll_event()
@@ -51,7 +51,6 @@ class VoiceRecvClient(discord.VoiceClient):
     #     await super().on_voice_server_update(data)
     #     ...
 
-
     def cleanup(self):
         super().cleanup()
         self.stop()
@@ -76,35 +75,39 @@ class VoiceRecvClient(discord.VoiceClient):
         """Receives audio into a :class:`AudioSink`. TODO: wording"""
 
         if not self.is_connected():
-            raise ClientException('Not connected to voice.')
+            raise discord.ClientException('Not connected to voice.')
 
         if not isinstance(sink, AudioSink):
             raise TypeError('sink must be an AudioSink not {0.__class__.__name__}'.format(sink))
 
         if self.is_listening():
-            raise ClientException('Already receiving audio.')
+            raise discord.ClientException('Already receiving audio.')
 
         self._reader = AudioReader(sink, self)
         self._reader.start()
 
     def is_listening(self):
         """Indicates if we're currently receiving audio."""
+
         return self._reader is not None and self._reader.is_listening()
 
     def stop_listening(self):
         """Stops receiving audio."""
+
         if self._reader:
             self._reader.stop()
             self._reader = None
 
     def stop_playing(self):
         """Stops playing audio."""
+
         if self._player:
             self._player.stop()
             self._player = None
 
     def stop(self):
         """Stops playing and receiving audio."""
+
         self.stop_playing()
         self.stop_listening()
 

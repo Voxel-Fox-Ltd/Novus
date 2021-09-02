@@ -1,12 +1,10 @@
-# -*- coding: utf-8 -*-
-
 # May not even be needed if i dont use the dict subclasses
-
-
 from collections import defaultdict
+
 
 class Bidict(dict):
     """A bi-directional dict"""
+
     _None = object()
 
     def __init__(self, *args, **kwargs):
@@ -84,7 +82,9 @@ class Bidict(dict):
     # https://docs.python.org/3/library/exceptions.html#NotImplementedError, Note 1
     fromkeys = None
 
+
 class Defaultdict(defaultdict):
+
     def __missing__(self, key):
         if self.default_factory is None:
             raise KeyError((key,))

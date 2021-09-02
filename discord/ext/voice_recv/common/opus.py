@@ -1,12 +1,19 @@
-# -*- coding: utf-8 -*-
-
+import typing
 import threading
+import time
+import traceback
+import logging
 
 from .rtp import *
 
 from discord.opus import Decoder
 
+
+log = logging.getLogger(__name__)
+
+
 class BufferedDecoder(threading.Thread):
+
     DELAY = Decoder.FRAME_LENGTH / 1000.0
 
     def __init__(self, ssrc, output_func, *, buffer=200):
@@ -16,29 +23,30 @@ class BufferedDecoder(threading.Thread):
             raise ValueError("buffer size of %s is invalid; cannot be lower than 40" % buffer)
 
         self.ssrc = ssrc
-        self.output_func = output_func
+        self.output_func: typing.Callable = output_func
 
         self._decoder = Decoder()
-        self._buffer = []
-        self._last_seq = 0
-        self._last_ts = 0
-        self._loops = 0
+        self._buffer: typing.List[bytes] = []
+        self._last_seq: int = 0
+        self._last_ts: int = 0  # last timestamp
+        self._loops: int = 0  # the number of loops run
 
         # Optional diagnostic state stuff
-        self._overflow_mult = self._overflow_base = 2.0
-        self._overflow_incr = 0.5
+        self._overflow_base: float = 2.0
+        self._overflow_mult: float = self._overflow_base
+        self._overflow_incr: float = 0.5
 
         # minimum (lower bound) size of the jitter buffer (n * 20ms per packet)
-        self.buffer_size = buffer // self._decoder.FRAME_LENGTH
+        self.buffer_size: int = buffer // self._decoder.FRAME_LENGTH
 
-        self._finalizing = False
-        self._end_thread = threading.Event()
-        self._end_main_loop = threading.Event()
-        self._primed = threading.Event()
-        self._lock = threading.RLock()
+        self._finalizing: bool = False
+        self._end_thread: threading.Event = threading.Event()
+        self._end_main_loop: threading.Event = threading.Event()
+        self._primed: threading.Event = threading.Event()
+        self._lock: threading.RLock = threading.RLock()
 
         # TODO: Add RTCP queue
-        self._rtcp_buffer = []
+        self._rtcp_buffer: typing.List[bytes] = []
 
         self.start()
 
@@ -49,14 +57,16 @@ class BufferedDecoder(threading.Thread):
             return
 
     def feed_rtcp(self, packet):
-        ... # TODO: rotating buffer of Nones or something
-        #           or I can store (last_seq + buffer_size, packet)
+        ...
+        # TODO: rotating buffer of Nones or something
+        # or I can store (last_seq + buffer_size, packet)
         # print(f"[router:feed] Got rtcp packet {packet}")
         # print(f"[router:feed] Other timestamps: {[p.timestamp for p in self._buffer]}")
         # print(f"[router:feed] Other timestamps: {self._buffer}")
 
-    def truncate(self, *, size=None):
-        """Discards old data to shrink buffer back down to ``size`` (default: buffer_size).
+    def truncate(self, *, size: int = None):
+        """
+        Discards old data to shrink buffer back down to ``size`` (default: buffer_size).
         TODO: doc
         """
 
@@ -263,6 +273,7 @@ class BufferedDecoder(threading.Thread):
 
 
 class BasePacketDecoder:
+
     DELAY = Decoder.FRAME_LENGTH / 1000.0
 
     def feed_rtp(self, packet):
@@ -273,6 +284,7 @@ class BasePacketDecoder:
         raise NotImplementedError
     def reset(self):
         raise NotImplementedError
+
 
 class BufferedPacketDecoder(BasePacketDecoder):
     """Buffers and decodes packets from a single ssrc"""
@@ -598,7 +610,6 @@ class BufferedDecoder2(threading.Thread):
         except Exception as e:
             log.exception("Error in decoder %s", self.name)
             traceback.print_exc()
-
 
 
 # basically, separate everything

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 The MIT License (MIT)
 
@@ -30,6 +28,7 @@ import logging
 from math import ceil
 from collections import namedtuple
 
+
 log = logging.getLogger(__name__)
 
 __all__ = ['RTPPacket', 'RTCPPacket', 'SilencePacket', 'ExtensionID']
@@ -57,8 +56,10 @@ def decode(data):
     assert data[0] >> 6 == 2 # check version bits
     return _rtcp_map.get(data[1], RTPPacket)(data)
 
+
 def is_rtcp(data):
     return 200 <= data[1] <= 204
+
 
 def _parse_low(x):
     return x / 2.0 ** x.bit_length()
@@ -82,6 +83,7 @@ class _PacketCmpMixin:
             raise TypeError("packet ssrc mismatch (%s, %s)" % (self.ssrc, other.ssrc))
         return self.timestamp == other.timestamp
 
+
 class SilencePacket(_PacketCmpMixin):
     __slots__ = ('ssrc', 'timestamp')
     decrypted_data = b'\xF8\xFF\xFE'
@@ -92,6 +94,7 @@ class SilencePacket(_PacketCmpMixin):
 
     def __repr__(self):
         return '<SilencePacket timestamp={0.timestamp}, ssrc={0.ssrc}>'.format(self)
+
 
 class FECPacket(_PacketCmpMixin):
     __slots__ = ('ssrc', 'timestamp', 'sequence')
@@ -105,7 +108,9 @@ class FECPacket(_PacketCmpMixin):
     def __repr__(self):
         return '<FECPacket timestamp={0.timestamp}, sequence={0.sequence}, ssrc={0.ssrc}>'.format(self)
 
+
 # Consider adding silence attribute to differentiate (to skip isinstance)
+
 
 class RTPPacket(_PacketCmpMixin):
     __slots__ = ('version', 'padding', 'extended', 'cc', 'marker', 'payload',
@@ -196,8 +201,10 @@ class RTPPacket(_PacketCmpMixin):
                'ssrc={0.ssrc}, size={1}, x={0.extended}' \
                '>'.format(self, len(self.data))
 
+
 # http://www.rfcreader.com/#rfc3550_line855
 class RTCPPacket(_PacketCmpMixin):
+
     __slots__ = ('version', 'padding', 'length')
     _header = struct.Struct('>BBH')
     _ssrc_fmt = struct.Struct('>I')
@@ -219,9 +226,11 @@ class RTCPPacket(_PacketCmpMixin):
         _, ptype, _ = cls._header.unpack_from(data)
         return _rtcp_map[ptype](data)
 
+
 # TODO?: consider moving repeated code to a ReportPacket type
 # http://www.rfcreader.com/#rfc3550_line1614
 class SenderReportPacket(RTCPPacket):
+
     __slots__ = ('report_count', 'ssrc', 'info', 'reports', 'extension')
     _info_fmt = struct.Struct('>5I')
     _report_fmt = struct.Struct('>IB3x4I')
@@ -256,8 +265,10 @@ class SenderReportPacket(RTCPPacket):
         clost = self._24bit_int_fmt.unpack_from(data, offset)[0] & 0xFFFFFF
         return self._report(ssrc, flost, clost, seq, jit, lsr, dlsr)
 
+
 # http://www.rfcreader.com/#rfc3550_line1879
 class ReceiverReportPacket(RTCPPacket):
+
     __slots__ = ('report_count', 'ssrc', 'reports', 'extension')
     _report_fmt = struct.Struct('>IB3x4I')
     _24bit_int_fmt = struct.Struct('>4xI')
@@ -284,11 +295,14 @@ class ReceiverReportPacket(RTCPPacket):
         clost = self._24bit_int_fmt.unpack_from(data, offset)[0] & 0xFFFFFF
         return self._report(ssrc, flost, clost, seq, jit, lsr, dlsr)
 
+
 # UNFORTUNATELY it seems discord only uses the above ~~two packet types~~ packet type.
 # Good thing I knew that when I made the rest of these. Haha yes.
 
+
 # http://www.rfcreader.com/#rfc3550_line2024
 class SDESPacket(RTCPPacket):
+
     __slots__ = ('source_count', 'chunks', '_pos')
     _item_header = struct.Struct('>BB')
     _chunk = namedtuple("SDESChunk", 'ssrc items')
@@ -340,8 +354,10 @@ class SDESPacket(RTCPPacket):
     def _get_chunk_size(self, chunk):
         return 4 + max(4, sum(i.size for i in chunk.items)) # + padding?
 
+
 # http://www.rfcreader.com/#rfc3550_line2311
 class BYEPacket(RTCPPacket):
+
     __slots__ = ('source_count', 'ssrcs', 'reason')
     type = 203
 
@@ -356,8 +372,10 @@ class BYEPacket(RTCPPacket):
             reason = struct.unpack_from('%ss' % extra_len, data, body_length + 1)
             self.reason = reason.decode()
 
+
 # http://www.rfcreader.com/#rfc3550_line2353
 class APPPacket(RTCPPacket):
+
     __slots__ = ('subtype', 'ssrc', 'name', 'data')
     _packet_info = struct.Struct('>I4s')
     type = 204
@@ -367,6 +385,7 @@ class APPPacket(RTCPPacket):
         self.ssrc, name = self._packet_info.unpack_from(data, 4)
         self.name = name.decode('ascii')
         self.data = data[12:] # should be a multiple of 32 bits but idc
+
 
 _rtcp_map = {
     200: SenderReportPacket,

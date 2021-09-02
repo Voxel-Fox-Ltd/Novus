@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 The MIT License (MIT)
 
@@ -38,13 +36,14 @@ from .common import rtp
 from .common.utils import Defaultdict
 from .common.rtp import SilencePacket
 from .common.opus import Decoder, BufferedDecoder
-from discord.errors import DiscordException
+from discord.errors import DiscordException, ClientException
 
 try:
     import nacl.secret
     from nacl.exceptions import CryptoError
 except ImportError:
     pass
+
 
 log = logging.getLogger(__name__)
 
@@ -60,6 +59,7 @@ __all__ = [
     # 'SinkExit',
 ]
 
+
 class SinkExit(DiscordException):
     """A signal type exception (like ``GeneratorExit``) to raise in a Sink's write() method to stop it.
 
@@ -74,9 +74,12 @@ class SinkExit(DiscordException):
     """
 
     def __init__(self, *, drain=True, flush=False):
-        self.kwargs = kwargs
+        self.drain = drain
+        self.flush = flush
+
 
 class AudioSink:
+
     def __del__(self):
         self.cleanup()
 
@@ -93,7 +96,9 @@ class AudioSink:
     # def pack_data(data, user=None, packet=None):
     #     return VoiceData(data, user, packet) # is this even necessary?
 
+
 class WaveSink(AudioSink):
+
     def __init__(self, destination):
         self._file = wave.open(destination, 'wb')
         self._file.setnchannels(Decoder.CHANNELS)
@@ -112,13 +117,14 @@ class WaveSink(AudioSink):
 
 
 class BasicSink(AudioSink):
+
     def __init__(self, event, *, rtcp_event=lambda _: None):
         self.on_voice_packet = event
         self.on_voice_rtcp_packet = rtcp_event
 
 
-
 class PCMVolumeTransformerFilter(AudioSink):
+
     def __init__(self, destination, volume=1.0):
         if not isinstance(destination, AudioSink):
             raise TypeError('expected AudioSink not {0.__class__.__name__}.'.format(destination))
@@ -142,13 +148,16 @@ class PCMVolumeTransformerFilter(AudioSink):
         data = audioop.mul(data.data, 2, min(self._volume, 2.0))
         self.destination.write(data)
 
+
 # I need some sort of filter sink with a predicate or something
 # Which means I need to sort out the write() signature issue
 # Also need something to indicate a sink is "done", probably
 # something like raising an exception and handling that in the write loop
 # Maybe should rename some of these to Filter instead of Sink
 
+
 class ConditionalFilter(AudioSink):
+
     def __init__(self, destination, predicate):
         self.destination = destination
         self.predicate = predicate
@@ -157,7 +166,9 @@ class ConditionalFilter(AudioSink):
         if self.predicate(data):
             self.destination.write(data)
 
+
 class TimedFilter(ConditionalFilter):
+
     def __init__(self, destination, duration, *, start_on_init=False):
         super().__init__(destination, self._predicate)
         self.duration = duration
@@ -178,7 +189,9 @@ class TimedFilter(ConditionalFilter):
     def get_time(self):
         return time.time()
 
+
 class UserFilter(ConditionalFilter):
+
     def __init__(self, destination, user):
         super().__init__(destination, self._predicate)
         self.user = user
@@ -186,8 +199,10 @@ class UserFilter(ConditionalFilter):
     def _predicate(self, data):
         return data.user == self.user
 
+
 # rename 'data' to 'payload'? or 'opus'? something else?
 class VoiceData:
+
     __slots__ = ('data', 'user', 'packet')
 
     def __init__(self, data, user, packet):
@@ -195,7 +210,9 @@ class VoiceData:
         self.user = user
         self.packet = packet
 
+
 class _ReaderBase(threading.Thread):
+
     def __init__(self, client, **kwargs):
         daemon = kwargs.pop('daemon', True)
         super().__init__(daemon=daemon, **kwargs)
@@ -266,6 +283,7 @@ class _ReaderBase(threading.Thread):
 
 
 class OpusEventAudioReader(_ReaderBase):
+
     def __init__(self, sink, client, *, after=None):
         if after is not None and not callable(after):
             raise TypeError('Expected a callable for the "after" parameter.')
