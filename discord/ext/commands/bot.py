@@ -1112,7 +1112,7 @@ class BotBase(GroupMixin):
 
     async def register_application_commands(
             self, commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]] = MISSING,
-            *, guild: Optional[Guild]) -> List[ApplicationCommand]:
+            *, guild: Optional[Guild] = None) -> List[ApplicationCommand]:
         """|coro|
 
         Register the bot's commands as application commands. Providing ``None``

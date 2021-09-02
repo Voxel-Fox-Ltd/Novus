@@ -1196,7 +1196,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             command = ApplicationCommandOption(
                 name=self.name,
                 type=ApplicationCommandOptionType.subcommand,
-                description=self.description,
+                description=self.help,
             )
         for name, arg in self.clean_params.items():
             command.add_option(ApplicationCommandOption(
