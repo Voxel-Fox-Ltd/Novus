@@ -336,12 +336,33 @@ Is there an event for audit log entries being created?
 Since Discord does not dispatch this information in the gateway, the library cannot provide this information.
 This is currently a Discord limitation.
 
+.. _send_components:
+
+How do I send buttons?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can send buttons and select menus by using :class:`ui.MessageComponents`, and then wait for the :func:`on_component_interaction` event (optionally paired with :func:`wait_for`).
+
+Example: ::
+
+    components = discord.ui.MessageComponents(
+        discord.ui.ActionRow(
+            discord.ui.Button(label="Clickable button!", custom_id="OWO")
+        )
+    )
+    sent_message = await channel.send("This message has a button :D", components=components)
+    check = lambda i: i.message.id == sent_message.id
+    interaction = await client.wait_for("component_interaction", check=check)
+    await interaction.response.send_message("The button was clicked!")
+
+You can have up to 5 buttons or one select menu per action row, and up to 5 action rows per message.
+
 Commands Extension
 -------------------
 
 Questions regarding ``discord.ext.commands`` belong here.
 
-Why does ``on_message`` make my commands stop working?
+Why does ``on_message`` make my message commands stop working?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Overriding the default provided ``on_message`` forbids any extra commands from running. To fix this, add a
@@ -410,3 +431,10 @@ Example: ::
         await ctx.send(f'Pushing to {remote} {branch}')
 
 This could then be used as ``?git push origin master``.
+
+.. _slash_command_faq:
+
+How do I use slash commands?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the :func:`commands.Bot.register_application_commands` method to register all of your loaded commands to Discord, optionally specifying a guild. Adding a global command can take up to an hour to show up in your Discord client, but guild-level commands show up immediately. Slash commands will be handled automatically by the usual command handler.
