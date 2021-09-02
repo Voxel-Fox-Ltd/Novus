@@ -258,6 +258,8 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         :exc:`.CommandError` should be used. Note that if the checks fail then
         :exc:`.CheckFailure` exception is raised to the :func:`.on_command_error`
         event.
+    description: :class:`str`
+        The message prefixed into the default help command.
     hidden: :class:`bool`
         If ``True``\, the default help command does not show this in the
         help output.
@@ -343,6 +345,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         if not isinstance(self.aliases, (list, tuple)):
             raise TypeError("Aliases of a command must be a list or a tuple of strings.")
 
+        self.description: str = inspect.cleandoc(kwargs.get('description', ''))
         self.hidden: bool = kwargs.get('hidden', False)
 
         try:
