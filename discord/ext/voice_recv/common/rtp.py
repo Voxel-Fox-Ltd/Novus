@@ -1,7 +1,7 @@
 """
 The MIT License (MIT)
 
-Copyright (c) 2015-present Rapptz
+Copyright (c) 2015-2021 Rapptz, 2021-present Kae Bartlett
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -39,24 +39,6 @@ class ExtensionID:
     speaking_state = 9
 
 
-def decode(data):
-    """Creates an :class:`RTPPacket` or an :class:`RTCPPacket`.
-
-    Parameters
-    -----------
-    data : bytes
-        The raw packet data.
-    """
-
-    # While technically unreliable, discord RTP packets (should)
-    # always be distinguishable from RTCP packets.  RTCP packets
-    # should always have 200-204 as their second byte, while RTP
-    # packet are (probably) always 73 (or at least not 200-204).
-
-    assert data[0] >> 6 == 2 # check version bits
-    return _rtcp_map.get(data[1], RTPPacket)(data)
-
-
 def is_rtcp(data):
     return 200 <= data[1] <= 204
 
@@ -66,6 +48,7 @@ def _parse_low(x):
 
 
 class _PacketCmpMixin:
+
     __slots__ = ()
 
     def __lt__(self, other):
@@ -85,8 +68,9 @@ class _PacketCmpMixin:
 
 
 class SilencePacket(_PacketCmpMixin):
+
     __slots__ = ('ssrc', 'timestamp')
-    decrypted_data = b'\xF8\xFF\xFE'
+    decrypted_data: bytes = b'\xF8\xFF\xFE'
 
     def __init__(self, ssrc, timestamp):
         self.ssrc = ssrc
@@ -97,8 +81,9 @@ class SilencePacket(_PacketCmpMixin):
 
 
 class FECPacket(_PacketCmpMixin):
+
     __slots__ = ('ssrc', 'timestamp', 'sequence')
-    decrypted_data = b''
+    decrypted_data: bytes = b''
 
     def __init__(self, ssrc, timestamp, sequence):
         self.ssrc = ssrc
@@ -113,6 +98,7 @@ class FECPacket(_PacketCmpMixin):
 
 
 class RTPPacket(_PacketCmpMixin):
+
     __slots__ = ('version', 'padding', 'extended', 'cc', 'marker', 'payload',
                  'sequence', 'timestamp', 'ssrc', 'csrcs', 'header', 'data',
                  'decrypted_data', 'extension', 'extension_data')
@@ -137,9 +123,9 @@ class RTPPacket(_PacketCmpMixin):
         self.extension = None
         self.extension_data = {}
 
-        self.header = data[:12]
-        self.data = data[12:]
-        self.decrypted_data = None
+        self.header: bytes = data[:12]
+        self.data: bytes = data[12:]
+        self.decrypted_data: typing.Optional[bytes] = None
 
         if self.cc:
             fmt = '>%sI' % self.cc
@@ -385,6 +371,24 @@ class APPPacket(RTCPPacket):
         self.ssrc, name = self._packet_info.unpack_from(data, 4)
         self.name = name.decode('ascii')
         self.data = data[12:] # should be a multiple of 32 bits but idc
+
+
+def decode(data) -> RTPPacket:
+    """Creates an :class:`RTPPacket` or an :class:`RTCPPacket`.
+
+    Parameters
+    -----------
+    data : bytes
+        The raw packet data.
+    """
+
+    # While technically unreliable, discord RTP packets (should)
+    # always be distinguishable from RTCP packets.  RTCP packets
+    # should always have 200-204 as their second byte, while RTP
+    # packet are (probably) always 73 (or at least not 200-204).
+
+    assert data[0] >> 6 == 2 # check version bits
+    return _rtcp_map.get(data[1], RTPPacket)(data)
 
 
 _rtcp_map = {

@@ -1,5 +1,6 @@
-from discord.gateway import DiscordVoiceWebSocket
 import asyncio
+
+from discord.gateway import DiscordVoiceWebSocket
 
 
 async def hook(self: DiscordVoiceWebSocket, msg: dict):
@@ -17,9 +18,9 @@ async def hook(self: DiscordVoiceWebSocket, msg: dict):
         if vc.guild:
             user = vc.guild.get_member(user_id)
         else:
-            user = vc._state.get_user(user_id)
+            user = vc._connection.get_user(user_id)
 
-        vc._state.dispatch('speaking_update', user, data['speaking'])
+        vc._connection.dispatch('speaking_update', user, data['speaking'])
 
     elif op == self.CLIENT_CONNECT:
         self._connection._add_ssrc(int(data['user_id']), data['audio_ssrc'])
@@ -28,7 +29,7 @@ async def hook(self: DiscordVoiceWebSocket, msg: dict):
         self._connection._remove_ssrc(user_id=int(data['user_id']))
 
 
-async def _do_hacks(self):
+async def _do_hacks(self: DiscordVoiceWebSocket):
     # Everything below this is a hack because discord keeps breaking things
 
     # hack #1
@@ -65,9 +66,9 @@ async def _do_hacks(self):
 #         if vc.guild:
 #             user = vc.guild.get_member(user_id)
 #         else:
-#             user = vc._state.get_user(user_id)
+#             user = vc._connection.get_user(user_id)
 
-#         vc._state.dispatch('speaking_update', user, SpeakingState(data['speaking']))
+#         vc._connection.dispatch('speaking_update', user, SpeakingState(data['speaking']))
 
 #     elif op == self.CLIENT_CONNECT:
 #         self._connection._add_ssrc(int(data['user_id']), data['audio_ssrc'])

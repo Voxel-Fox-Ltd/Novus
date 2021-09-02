@@ -3,6 +3,7 @@ import threading
 import time
 import traceback
 import logging
+import bisect
 
 from .rtp import *
 
@@ -278,10 +279,13 @@ class BasePacketDecoder:
 
     def feed_rtp(self, packet):
         raise NotImplementedError
+
     def feed_rtcp(self, packet):
         raise NotImplementedError
+
     def truncate(self, *, size=None):
         raise NotImplementedError
+
     def reset(self):
         raise NotImplementedError
 
@@ -598,7 +602,7 @@ class BufferedDecoder2(threading.Thread):
             remaining = next_time - time.perf_counter()
 
             if remaining >= 0:
-                insort(self.queue, (next_time, decoder))
+                bisect.insort(self.queue, (next_time, decoder))
                 time.sleep(max(0.002, remaining/2)) # sleep accuracy tm
                 continue
 

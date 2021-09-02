@@ -1,5 +1,5 @@
 # from .gateway_monkeypatch import patch as _patch_gw
-from .voice_client import VoiceRecvClient
+from .voice_client import VoiceReceiveClient
 from .reader import *
 from .common import *
 

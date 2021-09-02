@@ -1,7 +1,7 @@
 """
 The MIT License (MIT)
 
-Copyright (c) 2015-present Rapptz
+Copyright (c) 2015-2021 Rapptz, 2021-present Kae Bartlett
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -31,12 +31,15 @@ import audioop
 import logging
 import threading
 import traceback
+import typing
+
+import discord
 
 from .common import rtp
 from .common.utils import Defaultdict
-from .common.rtp import SilencePacket
+from .common.rtp import SilencePacket, RTPPacket
 from .common.opus import Decoder, BufferedDecoder
-from discord.errors import DiscordException, ClientException
+from ...errors import DiscordException, ClientException
 
 try:
     import nacl.secret
@@ -47,7 +50,7 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
-__all__ = [
+__all__ = (
     'AudioSink',
     'BasicSink',
     'AudioReader',
@@ -57,7 +60,11 @@ __all__ = [
     # 'TimedFilter',
     # 'UserFilter',
     # 'SinkExit',
-]
+)
+
+
+if typing.TYPE_CHECKING:
+    from .voice_client import VoiceReceiveClient
 
 
 class SinkExit(DiscordException):
@@ -73,39 +80,49 @@ class SinkExit(DiscordException):
         ...
     """
 
-    def __init__(self, *, drain=True, flush=False):
-        self.drain = drain
-        self.flush = flush
+    def __init__(self, *, drain: bool = True, flush: bool = False):
+        self.drain: bool = drain
+        self.flush: bool = flush
+
+
+# rename 'data' to 'payload'? or 'opus'? something else?
+class VoiceData:
+
+    __slots__ = ('data', 'user', 'packet')
+
+    def __init__(self, data: bytes, user: discord.User, packet):
+        self.data: bytes = data
+        self.user: discord.User = user
+        self.packet = packet
 
 
 class AudioSink:
+    """
+    A base class for handling bytes received.
+    """
 
     def __del__(self):
         self.cleanup()
 
-    def write(self, data):
-        raise NotImplementedError
+    def write(self, data: VoiceData) -> None:
+        raise NotImplementedError()
 
-    def wants_opus(self):
+    def wants_opus(self) -> bool:
         return False
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         pass
-
-    # @staticmethod
-    # def pack_data(data, user=None, packet=None):
-    #     return VoiceData(data, user, packet) # is this even necessary?
 
 
 class WaveSink(AudioSink):
 
-    def __init__(self, destination):
-        self._file = wave.open(destination, 'wb')
+    def __init__(self, destination: str):
+        self._file: wave.Wave_write = wave.open(destination, 'wb')
         self._file.setnchannels(Decoder.CHANNELS)
-        self._file.setsampwidth(Decoder.SAMPLE_SIZE//Decoder.CHANNELS)
+        self._file.setsampwidth(Decoder.SAMPLE_SIZE // Decoder.CHANNELS)
         self._file.setframerate(Decoder.SAMPLING_RATE)
 
-    def write(self, data):
+    def write(self, data: VoiceData):
         self._file.writeframes(data.data)
 
     def cleanup(self):
@@ -115,38 +132,11 @@ class WaveSink(AudioSink):
             pass
 
 
-
 class BasicSink(AudioSink):
 
     def __init__(self, event, *, rtcp_event=lambda _: None):
         self.on_voice_packet = event
         self.on_voice_rtcp_packet = rtcp_event
-
-
-class PCMVolumeTransformerFilter(AudioSink):
-
-    def __init__(self, destination, volume=1.0):
-        if not isinstance(destination, AudioSink):
-            raise TypeError('expected AudioSink not {0.__class__.__name__}.'.format(destination))
-
-        if destination.wants_opus():
-            raise ClientException('AudioSink must not request Opus encoding.')
-
-        self.destination = destination
-        self.volume = volume
-
-    @property
-    def volume(self):
-        """Retrieves or sets the volume as a floating point percentage (e.g. 1.0 for 100%)."""
-        return self._volume
-
-    @volume.setter
-    def volume(self, value):
-        self._volume = max(value, 0.0)
-
-    def write(self, data):
-        data = audioop.mul(data.data, 2, min(self._volume, 2.0))
-        self.destination.write(data)
 
 
 # I need some sort of filter sink with a predicate or something
@@ -156,7 +146,37 @@ class PCMVolumeTransformerFilter(AudioSink):
 # Maybe should rename some of these to Filter instead of Sink
 
 
-class ConditionalFilter(AudioSink):
+class AudioFilter(AudioSink):
+    pass
+
+
+class PCMVolumeTransformerFilter(AudioFilter):
+
+    def __init__(self, destination, volume: float = 1.0):
+        if not isinstance(destination, AudioSink):
+            raise TypeError('expected AudioSink or AudioFilter not {0.__class__.__name__}.'.format(destination))
+        if destination.wants_opus():
+            raise ClientException('AudioSink must not request Opus encoding.')
+        self.destination: AudioSink = destination
+        setattr(self, "volume", volume)
+
+    @property
+    def volume(self) -> float:
+        """Retrieves or sets the volume as a floating point percentage (e.g. 1.0 for 100%)."""
+
+        return self._volume
+
+    @volume.setter
+    def volume(self, value: float):
+        self._volume = max(value, 0.0)
+
+    def write(self, data: VoiceData):
+        changed_bytes = audioop.mul(data.data, 2, min(self._volume, 2.0))
+        new_data = VoiceData(changed_bytes, data.user, data.packet)
+        self.destination.write(new_data)
+
+
+class ConditionalFilter(AudioFilter):
 
     def __init__(self, destination, predicate):
         self.destination = destination
@@ -200,47 +220,34 @@ class UserFilter(ConditionalFilter):
         return data.user == self.user
 
 
-# rename 'data' to 'payload'? or 'opus'? something else?
-class VoiceData:
-
-    __slots__ = ('data', 'user', 'packet')
-
-    def __init__(self, data, user, packet):
-        self.data = data
-        self.user = user
-        self.packet = packet
-
-
 class _ReaderBase(threading.Thread):
 
-    def __init__(self, client, **kwargs):
+    def __init__(self, client: VoiceReceiveClient, **kwargs):
         daemon = kwargs.pop('daemon', True)
         super().__init__(daemon=daemon, **kwargs)
 
-        self.client = client
+        self.client: VoiceReceiveClient = client
         self.box = nacl.secret.SecretBox(bytes(client.secret_key))
-        self.decrypt_rtp = getattr(self, '_decrypt_rtp_' + client.mode)
-        self.decrypt_rtcp = getattr(self, '_decrypt_rtcp_' + client.mode)
+        self.decrypt_rtp: typing.Callable[[RTPPacket], bytes] = getattr(self, '_decrypt_rtp_' + client.mode)
+        self.decrypt_rtcp: typing.Callable[[bytes], bytes] = getattr(self, '_decrypt_rtcp_' + client.mode)
 
-    def _decrypt_rtp_xsalsa20_poly1305(self, packet):
+    def _decrypt_rtp_xsalsa20_poly1305(self, packet: RTPPacket) -> bytes:
         nonce = bytearray(24)
         nonce[:12] = packet.header
-        result = self.box.decrypt(bytes(packet.data), bytes(nonce))
+        result: bytes = self.box.decrypt(bytes(packet.data), bytes(nonce))
 
         if packet.extended:
             offset = packet.update_ext_headers(result)
             result = result[offset:]
-
         return result
 
-    def _decrypt_rtcp_xsalsa20_poly1305(self, data):
+    def _decrypt_rtcp_xsalsa20_poly1305(self, data: bytes) -> bytes:
         nonce = bytearray(24)
         nonce[:8] = data[:8]
         result = self.box.decrypt(data[8:], bytes(nonce))
-
         return data[:8] + result
 
-    def _decrypt_rtp_xsalsa20_poly1305_suffix(self, packet):
+    def _decrypt_rtp_xsalsa20_poly1305_suffix(self, packet: RTPPacket) -> bytes:
         nonce = packet.data[-24:]
         voice_data = packet.data[:-24]
         result = self.box.decrypt(bytes(voice_data), bytes(nonce))
@@ -248,17 +255,15 @@ class _ReaderBase(threading.Thread):
         if packet.extended:
             offset = packet.update_ext_headers(result)
             result = result[offset:]
-
         return result
 
-    def _decrypt_rtcp_xsalsa20_poly1305_suffix(self, data):
+    def _decrypt_rtcp_xsalsa20_poly1305_suffix(self, data: bytes) -> bytes:
         nonce = data[-24:]
         header = data[:8]
         result = self.box.decrypt(data[8:-24], nonce)
-
         return header + result
 
-    def _decrypt_rtp_xsalsa20_poly1305_lite(self, packet):
+    def _decrypt_rtp_xsalsa20_poly1305_lite(self, packet: RTPPacket) -> bytes:
         nonce = bytearray(24)
         nonce[:4] = packet.data[-4:]
         voice_data = packet.data[:-4]
@@ -267,15 +272,13 @@ class _ReaderBase(threading.Thread):
         if packet.extended:
             offset = packet.update_ext_headers(result)
             result = result[offset:]
-
         return result
 
-    def _decrypt_rtcp_xsalsa20_poly1305_lite(self, data):
+    def _decrypt_rtcp_xsalsa20_poly1305_lite(self, data: bytes) -> bytes:
         nonce = bytearray(24)
         nonce[:4] = data[-4:]
         header = data[:8]
         result = self.box.decrypt(data[8:-4], bytes(nonce))
-
         return header + result
 
     def run(self):
@@ -283,6 +286,9 @@ class _ReaderBase(threading.Thread):
 
 
 class OpusEventAudioReader(_ReaderBase):
+    """
+    An audio reader for handling receiving voice packet data.
+    """
 
     def __init__(self, sink, client, *, after=None):
         if after is not None and not callable(after):
@@ -290,118 +296,153 @@ class OpusEventAudioReader(_ReaderBase):
 
         super().__init__(client)
 
-        self.sink = sink
-        self.client = client
-        self.after = after
+        self.sink: AudioSink = sink
+        self.client: VoiceReceiveClient = client
+        self.after: typing.Optional[typing.Callable[[typing.Optional[Exception]], None]] = after
 
-        self._current_error = None
-        self._end = threading.Event()
+        self._current_error: typing.Optional[Exception] = None
+        self._end: threading.Event = threading.Event()
         self._noop = lambda *_: None
 
     @property
-    def connected(self):
+    def connected(self) -> threading.Event:
+        """
+        Returns
+        --------
+        :class:`threading.Event`
+            The connected event.
+        """
+
         return self.client._connected
 
-    def dispatch(self, event, *args):
-        event = getattr(self.sink, 'on_'+event, self._noop)
-        event(*args)
+    def dispatch(self, event: str, *args):
+        """
+        Dispatch an event.
+        """
 
-    def _get_user(self, packet):
+        runnable: typing.Callable[..., None] = getattr(self.sink, 'on_' + event, self._noop)
+        runnable(*args)
+
+    def _get_user(self, packet: RTPPacket) -> typing.Optional[typing.Union[discord.User, discord.Member]]:
+        """
+        Get the user object associated with an RTPPacket.
+        """
+
         _, user_id = self.client._get_ssrc_mapping(ssrc=packet.ssrc)
-        # may need to change this for calls or something
-        return self.client.guild.get_member(user_id)
+        if self.client.guild and user_id:
+            return self.client.guild.get_member(user_id)
+        return None
 
     def _do_run(self):
+
+        # Run until we're told to end
         while not self._end.is_set():
+
+            # Wait until we're connected
             if not self.connected.is_set():
                 self.connected.wait()
 
-            ready, _, err = select.select([self.client.socket], [],
-                                          [self.client.socket], 0.01)
+            # Wait for the socket to be readable
+            ready, _, err = select.select(
+                [self.client.socket], [], [self.client.socket], 0.01,
+            )
             if not ready:
                 if err:
-                    print("Socket error")
+                    log.error("Socket error")
                 continue
 
+            # Read from the socket
             try:
-                raw_data = self.client.socket.recv(4096)
+                raw_data: bytes = self.client.socket.recv(2 ** 12)
             except socket.error as e:
-                t0 = time.time()
 
-                if e.errno == 10038: # ENOTSOCK
+                # We're connecting to a socket that isn't a socket? Wild.
+                if e.errno == 10038:  # ENOTSOCK
                     continue
 
-                log.exception("Socket error in reader thread ")
-                print(f"Socket error in reader thread: {e} {t0}")
+                log.error("Socket error in reader thread", exc_info=e)
 
+                # We timed out - let's reconnect
                 with self.client._connecting:
                     timed_out = self.client._connecting.wait(20)
 
+                # Make sure our connect didn't time out and continue
                 if not timed_out:
                     raise
                 elif self.client.is_connected():
-                    print(f"Reconnected in {time.time()-t0:.4f}s")
                     continue
                 else:
                     raise
 
+            # Parse our data packet
+            packet: typing.Optional[RTPPacket] = None
             try:
-                packet = None
+
+                # Make sure the data isn't RTCP
                 if not rtp.is_rtcp(raw_data):
                     packet = rtp.decode(raw_data)
                     packet.decrypted_data = self.decrypt_rtp(packet)
+
+                # If it is, decode and dispatch that elseshere
                 else:
                     packet = rtp.decode(self.decrypt_rtcp(raw_data))
-                    if not isinstance(packet, rtp.ReceiverReportPacket):
-                        print('Received unusual rtcp packet')
-                        print('*'*78)
-                        print(packet)
-                        print('*'*78)
-
-                        # TODO: Fabricate and send SenderReports and see what happens
-
+                    # if not isinstance(packet, rtp.ReceiverReportPacket):
+                    #     pass
                     self.dispatch('voice_rtcp_packet', packet)
                     continue
-
             except CryptoError:
                 log.exception("CryptoError decoding packet %s", packet)
                 continue
-
             except:
-                log.exception("Error unpacking packet")
-                traceback.print_exc()
+                log.exception("Error unpacking packet", exc_info=True)
 
-            else:
-                if packet.ssrc not in self.client._ssrc_to_id:
-                    log.debug("Received packet for unknown ssrc %s", packet.ssrc)
+            # Dispatch our packet data
+            if packet is None:
+                continue
+            if packet.ssrc not in self.client._ssrc_to_id:
+                log.debug("Received packet for unknown ssrc %s", packet.ssrc)
+            self.dispatch('voice_packet', self._get_user(packet), packet)
 
-                self.dispatch('voice_packet', self._get_user(packet), packet)
+    def is_listening(self) -> bool:
+        """
+        Returns
+        --------
+        :class:`bool`
+            Whether or not hte listener is currently listening.
+        """
 
-    def is_listening(self):
         return not self._end.is_set()
 
     def stop(self):
+        """
+        Stop reading on the voice socket.
+        """
+
         self._end.set()
 
     def run(self):
+        """
+        Run the listener loop.
+        """
+
         try:
             self._do_run()
         except socket.error as exc:
             self._current_error = exc
             self.stop()
         except Exception as exc:
-            traceback.print_exc()
+            log.error("Hit error running thread", exc_info=exc)
             self._current_error = exc
             self.stop()
         finally:
             self._call_after()
 
     def _call_after(self):
-         if self.after is not None:
+        if self.after is not None:
             try:
                 self.after(self._current_error)
             except Exception:
-                log.exception('Calling the after function failed.')
+                log.exception('Calling the after function failed.', exc_info=True)
 
 
 #class AudioReader(_ReaderBase):
