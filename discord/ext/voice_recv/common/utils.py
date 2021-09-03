@@ -83,7 +83,7 @@ class Bidict(dict):
     fromkeys = None
 
 
-class Defaultdict(defaultdict):
+class DefaultDict(defaultdict):
 
     def __missing__(self, key):
         if self.default_factory is None:

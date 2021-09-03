@@ -30,15 +30,14 @@ import socket
 import audioop
 import logging
 import threading
-import traceback
 import typing
 
 import discord
 
 from .common import rtp
-from .common.utils import Defaultdict
+from .common.utils import DefaultDict
 from .common.rtp import SilencePacket, RTPPacket
-from .common.opus import Decoder, BufferedDecoder
+from .common.opus import Decoder
 from ...errors import DiscordException, ClientException
 
 try:
@@ -47,6 +46,9 @@ try:
 except ImportError:
     pass
 
+if typing.TYPE_CHECKING:
+    from .voice_client import VoiceReceiveClient
+
 
 log = logging.getLogger(__name__)
 
@@ -54,17 +56,7 @@ __all__ = (
     'AudioSink',
     'BasicSink',
     'AudioReader',
-    # 'WaveSink',
-    # 'PCMVolumeTransformerFilter',
-    # 'ConditionalFilter',
-    # 'TimedFilter',
-    # 'UserFilter',
-    # 'SinkExit',
 )
-
-
-if typing.TYPE_CHECKING:
-    from .voice_client import VoiceReceiveClient
 
 
 class SinkExit(DiscordException):
@@ -85,8 +77,7 @@ class SinkExit(DiscordException):
         self.flush: bool = flush
 
 
-# rename 'data' to 'payload'? or 'opus'? something else?
-class VoiceData:
+class VoicePayload:
 
     __slots__ = ('data', 'user', 'packet')
 
@@ -104,7 +95,7 @@ class AudioSink:
     def __del__(self):
         self.cleanup()
 
-    def write(self, data: VoiceData) -> None:
+    def write(self, data: VoicePayload) -> None:
         raise NotImplementedError()
 
     def wants_opus(self) -> bool:
@@ -122,10 +113,10 @@ class WaveSink(AudioSink):
         self._file.setsampwidth(Decoder.SAMPLE_SIZE // Decoder.CHANNELS)
         self._file.setframerate(Decoder.SAMPLING_RATE)
 
-    def write(self, data: VoiceData):
+    def write(self, data: VoicePayload) -> None:
         self._file.writeframes(data.data)
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         try:
             self._file.close()
         except:
@@ -162,7 +153,9 @@ class PCMVolumeTransformerFilter(AudioFilter):
 
     @property
     def volume(self) -> float:
-        """Retrieves or sets the volume as a floating point percentage (e.g. 1.0 for 100%)."""
+        """
+        Retrieves or sets the volume as a floating point percentage (e.g. 1.0 for 100%).
+        """
 
         return self._volume
 
@@ -170,28 +163,29 @@ class PCMVolumeTransformerFilter(AudioFilter):
     def volume(self, value: float):
         self._volume = max(value, 0.0)
 
-    def write(self, data: VoiceData):
+    def write(self, data: VoicePayload):
         changed_bytes = audioop.mul(data.data, 2, min(self._volume, 2.0))
-        new_data = VoiceData(changed_bytes, data.user, data.packet)
+        new_data = VoicePayload(changed_bytes, data.user, data.packet)
         self.destination.write(new_data)
 
 
 class ConditionalFilter(AudioFilter):
 
-    def __init__(self, destination, predicate):
-        self.destination = destination
-        self.predicate = predicate
+    def __init__(self, destination: AudioSink, predicate: typing.Callable[[VoicePayload], bool]):
+        self.destination: AudioSink = destination
+        self.predicate: typing.Callable[[VoicePayload], bool] = predicate
 
-    def write(self, data):
+    def write(self, data: VoicePayload) -> None:
         if self.predicate(data):
             self.destination.write(data)
 
 
 class TimedFilter(ConditionalFilter):
 
-    def __init__(self, destination, duration, *, start_on_init=False):
+    def __init__(self, destination: AudioSink, duration: float, *, start_on_init: bool = False):
         super().__init__(destination, self._predicate)
-        self.duration = duration
+        self.duration: float = duration
+        self.start_time: typing.Optional[float]
         if start_on_init:
             self.start_time = self.get_time()
         else:
@@ -203,10 +197,10 @@ class TimedFilter(ConditionalFilter):
         super().write(data)
         self.write = super().write
 
-    def _predicate(self, data):
-        return self.start_time and self.get_time() - self.start_time < self.duration
+    def _predicate(self, data: VoicePayload) -> bool:
+        return self.start_time is not None and self.get_time() - self.start_time < self.duration
 
-    def get_time(self):
+    def get_time(self) -> float:
         return time.time()
 
 
@@ -216,7 +210,7 @@ class UserFilter(ConditionalFilter):
         super().__init__(destination, self._predicate)
         self.user = user
 
-    def _predicate(self, data):
+    def _predicate(self, data: VoicePayload) -> bool:
         return data.user == self.user
 
 
@@ -285,24 +279,38 @@ class _ReaderBase(threading.Thread):
         raise NotImplementedError
 
 
-class OpusEventAudioReader(_ReaderBase):
+class AudioReader(_ReaderBase):
     """
     An audio reader for handling receiving voice packet data.
     """
 
-    def __init__(self, sink, client, *, after=None):
+    def __init__(
+            self, client: VoiceReceiveClient, *,
+            after: typing.Optional[typing.Callable[[typing.Optional[Exception]], None]] = None):
         if after is not None and not callable(after):
             raise TypeError('Expected a callable for the "after" parameter.')
 
         super().__init__(client)
 
-        self.sink: AudioSink = sink
+        self.sinks: typing.List[AudioSink] = list()
         self.client: VoiceReceiveClient = client
         self.after: typing.Optional[typing.Callable[[typing.Optional[Exception]], None]] = after
 
         self._current_error: typing.Optional[Exception] = None
         self._end: threading.Event = threading.Event()
         self._noop = lambda *_: None
+
+    def add_sink(self, sink: AudioSink) -> None:
+        """
+        Add a sink to the reader's sink list.
+
+        Parameters
+        ----------
+        :class:`AudioSink`
+            The sink that you want to add.
+        """
+
+        self.sinks.append(sink)
 
     @property
     def connected(self) -> threading.Event:
@@ -320,8 +328,10 @@ class OpusEventAudioReader(_ReaderBase):
         Dispatch an event.
         """
 
-        runnable: typing.Callable[..., None] = getattr(self.sink, 'on_' + event, self._noop)
-        runnable(*args)
+        runnable: typing.Callable[..., None]
+        for sink in self.sinks:
+            runnable = getattr(sink, f"on_{event}", self._noop)
+            runnable(*args)
 
     def _get_user(self, packet: RTPPacket) -> typing.Optional[typing.Union[discord.User, discord.Member]]:
         """
@@ -445,172 +455,10 @@ class OpusEventAudioReader(_ReaderBase):
                 log.exception('Calling the after function failed.', exc_info=True)
 
 
-#class AudioReader(_ReaderBase):
-#    def __init__(self, sink, client, *, after=None):
-#        if after is not None and not callable(after):
-#            raise TypeError('Expected a callable for the "after" parameter.')
-#
-#        super().__init__()
-#
-#        self.sink = sink
-#        self.client = client
-#        self.after = after
-#
-#        self._current_error = None
-#        self._end = threading.Event()
-#        self._decoder_lock = threading.Lock()
-#
-#        self.decoder = BufferedDecoder(self)
-#        self.decoder.start()
-#
-#        # TODO: inject sink functions(?)
-#
-#    @property
-#    def connected(self):
-#        return self.client._connected
-#
-#    def _reset_decoders(self, *ssrcs):
-#        self.decoder.reset(*ssrcs)
-#
-#    def _stop_decoders(self, **kwargs):
-#        self.decoder.stop(**kwargs)
-#
-#    def _ssrc_removed(self, ssrc):
-#        # An user has disconnected but there still may be
-#        # packets from them left in the buffer to read
-#        # For now we're just going to kill the decoder and see how that works out
-#        # I *think* this is the correct way to do this
-#        # Depending on how many leftovers I end up with I may reconsider
-#
-#        self.decoder.drop_ssrc(ssrc) # flush=True?
-#
-#    def _get_user(self, packet):
-#        _, user_id = self.client._get_ssrc_mapping(ssrc=packet.ssrc)
-#        # may need to change this for calls or something
-#        return self.client.guild.get_member(user_id)
-#
-#    def _write_to_sink(self, pcm, opus, packet):
-#        try:
-#            data = opus if self.sink.wants_opus() else pcm
-#            user = self._get_user(packet)
-#            self.sink.write(VoiceData(data, user, packet))
-#            # TODO: remove weird error handling in favor of injected functions
-#        except SinkExit as e:
-#            log.info("Shutting down reader thread %s", self)
-#            self.stop()
-#            self._stop_decoders(**e.kwargs)
-#        except:
-#            traceback.print_exc()
-#            # insert optional error handling here
-#
-#    def _set_sink(self, sink):
-#        with self._decoder_lock:
-#            self.sink = sink
-#        # if i were to fire a sink change mini-event it would be here
-#
-#    def _do_run(self):
-#        while not self._end.is_set():
-#            if not self.connected.is_set():
-#                self.connected.wait()
-#
-#            ready, _, err = select.select([self.client.socket], [],
-#                                          [self.client.socket], 0.01)
-#            if not ready:
-#                if err:
-#                    print("Socket error")
-#                continue
-#
-#            try:
-#                raw_data = self.client.socket.recv(4096)
-#            except socket.error as e:
-#                t0 = time.time()
-#
-#                if e.errno == 10038: # ENOTSOCK
-#                    continue
-#
-#                log.exception("Socket error in reader thread ")
-#                print(f"Socket error in reader thread: {e} {t0}")
-#
-#                with self.client._connecting:
-#                    timed_out = self.client._connecting.wait(20)
-#
-#                if not timed_out:
-#                    raise
-#                elif self.client.is_connected():
-#                    print(f"Reconnected in {time.time()-t0:.4f}s")
-#                    continue
-#                else:
-#                    raise
-#
-#            try:
-#                packet = None
-#                if not rtp.is_rtcp(raw_data):
-#                    packet = rtp.decode(raw_data)
-#                    packet.decrypted_data = self.decrypt_rtp(packet)
-#                else:
-#                    packet = rtp.decode(self.decrypt_rtcp(raw_data))
-#                    if not isinstance(packet, rtp.ReceiverReportPacket):
-#                        print(packet)
-#
-#                        # TODO: Fabricate and send SenderReports and see what happens
-#
-#                    self.decoder.feed_rtcp(packet)
-#                    continue
-#
-#            except CryptoError:
-#                log.exception("CryptoError decoding packet %s", packet)
-#                continue
-#
-#            except:
-#                log.exception("Error unpacking packet")
-#                traceback.print_exc()
-#
-#            else:
-#                if packet.ssrc not in self.client._ssrcs:
-#                    log.debug("Received packet for unknown ssrc %s", packet.ssrc)
-#
-#                self.decoder.feed_rtp(packet)
-#
-#    def is_listening(self):
-#        return not self._end.is_set()
-#
-#    def stop(self):
-#        self._end.set()
-#
-#    def run(self):
-#        try:
-#            self._do_run()
-#        except socket.error as exc:
-#            self._current_error = exc
-#            self.stop()
-#        except Exception as exc:
-#            traceback.print_exc()
-#            self._current_error = exc
-#            self.stop()
-#        finally:
-#            self._stop_decoders()
-#            try:
-#                self.sink.cleanup()
-#            except:
-#                log.exception("Error during sink cleanup")
-#                # Testing only
-#                traceback.print_exc()
-#
-#            self._call_after()
-#
-#    def _call_after(self):
-#         if self.after is not None:
-#            try:
-#                self.after(self._current_error)
-#            except Exception:
-#                log.exception('Calling the after function failed.')
-
-
-AudioReader = OpusEventAudioReader
-
-
 class SimpleJitterBuffer:
-    """Push item in, returns as many contiguous items as possible"""
+    """
+    Push item in, returns as many contiguous items as possible.
+    """
 
     def __init__(self, maxsize=10, *, prefill=0):
         if maxsize < 1:

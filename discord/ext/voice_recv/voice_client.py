@@ -7,7 +7,6 @@ from discord.gateway import DiscordVoiceWebSocket
 from .gateway import hook
 from .reader import AudioReader, AudioSink
 
-
 if typing.TYPE_CHECKING:
     from ...types.voice import (
         GuildVoiceState as GuildVoiceStatePayload,
@@ -28,32 +27,24 @@ class VoiceReceiveClient(discord.VoiceClient):
 
         channel_id = discord.utils._get_as_snowflake(data, 'channel_id')
         user_id = discord.utils._get_as_snowflake(data, 'user_id')
-        assert user_id
+        assert user_id  # it WILL be defined
 
         # Someone moved channels
         if channel_id and channel_id != self.channel.id and self._reader:
 
             # It was us
             if self._state.user.id == user_id:
-                # self._reader._reset_decoders()
                 self.stop_listening()
 
-            # TODO: figure out how to check if either old/new channel
-            #       is ours so we don't go around resetting decoders
-            #       for irrelevant channel moving
-
-            else:
-                # someone else moved channels
-                # print(f"ws: Attempting to reset decoder for {user_id}")
-                ssrc, _ = self._get_ssrc_mapping(user_id=user_id)
-                self._reader._reset_decoders(ssrc)
+            # It was someone else
+            # else:
+            #     ssrc, _ = self._get_ssrc_mapping(user_id=user_id)
+            #     for reader in self._readers:
+            #         reader._reset_decoders(ssrc)
 
     def cleanup(self):
         super().cleanup()
         self.stop()
-
-    # TODO: copy over new functions
-    # add/remove/get ssrc
 
     def _add_ssrc(self, user_id: int, ssrc: str) -> None:
         self._ssrc_to_id[ssrc] = user_id
@@ -64,7 +55,9 @@ class VoiceReceiveClient(discord.VoiceClient):
         if ssrc:
             self._ssrc_to_id.pop(ssrc, None)
 
-    def _get_ssrc_mapping(self, *, ssrc: str = None, user_id: int = None) -> typing.Tuple[typing.Optional[str], typing.Optional[int]]:
+    def _get_ssrc_mapping(
+            self, *, ssrc: str = None,
+            user_id: int = None) -> typing.Tuple[typing.Optional[str], typing.Optional[int]]:
         if ssrc is None and user_id is None:
             raise ValueError("You need to set either one of user_id and ssrc")
         if ssrc is not None and user_id is not None:
@@ -77,24 +70,40 @@ class VoiceReceiveClient(discord.VoiceClient):
         else:
             return None, None
 
-    def listen(self, sink: AudioSink) -> None:
+    def add_sink(self, sink: AudioSink) -> None:
+        """Add a sink to the current audio reader instance.
+
+        Parameters
+        ----------
+        :class:`AudioSink`
+            The sink that you want to add.
+        """
+
+        if not isinstance(sink, AudioSink):
+            raise TypeError('sink must be an AudioSink not {0.__class__.__name__}'.format(sink))
+        if self._reader is None:
+            self._reader = AudioReader(self)
+        self._reader.add_sink(sink)
+
+    def listen(self) -> None:
         """
         Receives audio into a :class:`AudioSink`.
         """
 
         if not self.is_connected():
             raise discord.ClientException('Not connected to voice.')
-        if not isinstance(sink, AudioSink):
-            raise TypeError('sink must be an AudioSink not {0.__class__.__name__}'.format(sink))
+        if self._reader is None or not self._reader.sinks:
+            raise discord.ClientException("No audio sinks are currently set.")
         if self.is_listening():
             raise discord.ClientException('Already receiving audio.')
 
-        self._reader = AudioReader(sink, self)
-        self._reader.start()
+        if self._reader is None:
+            self._reader = AudioReader(self)
+        self._reader.run()
 
     def is_listening(self) -> bool:
         """
-        Indicates if we're currently receiving audio.
+        Indicates if any of the readers are currently listening to any audio.
         """
 
         return self._reader is not None and self._reader.is_listening()
@@ -124,15 +133,3 @@ class VoiceReceiveClient(discord.VoiceClient):
 
         self.stop_playing()
         self.stop_listening()
-
-    @property
-    def sink(self) -> typing.Optional[AudioSink]:
-        return self._reader.sink if self._reader else None
-
-    @sink.setter
-    def sink(self, value):
-        if not isinstance(value, AudioSink):
-            raise TypeError('expected AudioSink not {0.__class__.__name__}.'.format(value))
-        if self._reader is None:
-            raise ValueError('Not receiving anything.')
-        self._reader._set_sink(value)

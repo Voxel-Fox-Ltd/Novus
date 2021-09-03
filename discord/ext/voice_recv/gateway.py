@@ -1,25 +1,31 @@
 import asyncio
+import typing
 
 from discord.gateway import DiscordVoiceWebSocket
 
+if typing.TYPE_CHECKING:
+    from .voice_client import VoiceReceiveClient
 
-async def hook(self: DiscordVoiceWebSocket, msg: dict):
+
+async def hook(self: DiscordVoiceWebSocket, msg: dict) -> None:
+    """
+    A hook to handle the events from the voice websocket.
+    """
+
     op = msg['op']
-    data = msg.get('d')
+    data = msg['d']
 
     if op == self.SESSION_DESCRIPTION:
         await _do_hacks(self)
 
     elif op == self.SPEAKING:
         user_id = int(data['user_id'])
-        vc = self._connection
+        vc: VoiceReceiveClient = self._connection
         vc._add_ssrc(user_id, data['ssrc'])
-
         if vc.guild:
             user = vc.guild.get_member(user_id)
         else:
             user = vc._connection.get_user(user_id)
-
         vc._connection.dispatch('speaking_update', user, data['speaking'])
 
     elif op == self.CLIENT_CONNECT:
