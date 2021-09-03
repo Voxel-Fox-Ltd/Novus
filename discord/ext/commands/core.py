@@ -1190,13 +1190,13 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             command = ApplicationCommand(
                 name=self.name,
                 type=ApplicationCommandType.chat_input,
-                description=self.brief or self.name,
+                description=self.short_doc or self.name,
             )
         else:  # Parent is a group
             command = ApplicationCommandOption(
                 name=self.name,
                 type=ApplicationCommandOptionType.subcommand,
-                description=self.brief or self.name,
+                description=self.short_doc or self.name,
             )
         for name, arg in self.clean_params.items():
             command.add_option(ApplicationCommandOption(
@@ -1649,13 +1649,13 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
         if self.parent is None:  # No parent, this is the base
             command = ApplicationCommand(
                 name=self.name,
-                description=self.brief or self.name,
+                description=self.short_doc or self.name,
             )
         else:  # Parent is another group
             command = ApplicationCommandOption(
                 name=self.name,
                 type=ApplicationCommandOptionType.subcommand_group,
-                description=self.brief or self.name,
+                description=self.short_doc or self.name,
             )
         for c in self.commands:
             a = c.to_application_command()
