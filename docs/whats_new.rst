@@ -53,7 +53,7 @@ Bugs Fixed
 v0.0.1
 --------
 
-The new and changed features described in this section refer to changes from Rapptz's original Discord.py repo. You can see :ref:`a whole list of changes <dpy_novus_change>` here, but this section will go over the main ones.
+The new and changed features described in this section refer to changes from Rapptz's original Discord.py repo. You can see :ref:`a whole list of changes <migrating_2_0>` here, but this section will go over the main ones.
 
 Breaking Changes
 ~~~~~~~~~~~~~~~~~~

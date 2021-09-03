@@ -363,7 +363,7 @@ Commands Extension
 Questions regarding ``discord.ext.commands`` belong here.
 
 Why does ``on_message`` make my message commands stop working?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Overriding the default provided ``on_message`` forbids any extra commands from running. To fix this, add a
 ``bot.process_commands(message)`` line at the end of your ``on_message``. For example: ::

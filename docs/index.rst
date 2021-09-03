@@ -29,6 +29,8 @@ Is this your first time using the library? This is the place to get started!
 - **Working with Discord:** :doc:`discord` | :doc:`intents`
 - **Examples:** Many examples are available in the :resource:`repository <examples>`.
 
+If you're coming here from Rapptz's Discord.py, you can see :ref:`the migration page <migrating_2_0>`.
+
 Getting help
 --------------
 
