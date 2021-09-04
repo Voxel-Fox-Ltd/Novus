@@ -3652,6 +3652,40 @@ GuildSticker
 .. autoclass:: GuildSticker()
     :members:
 
+ApplicationCommand
+~~~~~~~~~~~~~
+
+.. attributetable:: ApplicationCommand
+
+.. autoclass:: ApplicationCommand()
+    :members:
+
+ApplicationCommandOption
+~~~~~~~~~~~~~
+
+.. attributetable:: ApplicationCommandOption
+
+.. autoclass:: ApplicationCommandOption()
+    :members:
+
+ApplicationCommandOptionChoice
+~~~~~~~~~~~~~
+
+.. attributetable:: ApplicationCommandOptionChoice
+
+.. autoclass:: ApplicationCommandOptionChoice()
+    :members:
+
+ApplicationCommandType
+~~~~~~~~~~~~~
+
+.. attributetable:: ApplicationCommandType
+
+ApplicationCommandOptionType
+~~~~~~~~~~~~~
+
+.. attributetable:: ApplicationCommandOptionType
+
 RawMessageDeleteEvent
 ~~~~~~~~~~~~~~~~~~~~~~~
 

@@ -10,6 +10,12 @@ from .enums import (
 
 ApplicationCommandOptionChoiceValue = Union[str, int]
 
+__all__ = (
+    "ApplicationCommandOptionChoice",
+    "ApplicationCommandOption",
+    "ApplicationCommand",
+)
+
 
 class ApplicationCommandOptionChoice(object):
     """
@@ -62,7 +68,7 @@ class ApplicationCommandOption(object):
 
     def __init__(
             self, name: str, type: ApplicationCommandOptionType, description: str,
-            default: Optional[str] = None, required: Optional[bool] = True):
+            default: Optional[str] = None, required: bool = True):
         """
         Args:
             name (str): The name of this option.
@@ -75,7 +81,7 @@ class ApplicationCommandOption(object):
         self.name: str = name
         self.type: ApplicationCommandOptionType = type
         self.description: str = description
-        self.default: Any = default
+        self.default: Optional[str] = default
         self.required: bool = required
         self.choices: List[ApplicationCommandOptionChoice] = list()
         self.options: List['ApplicationCommandOption'] = list()
@@ -97,9 +103,11 @@ class ApplicationCommandOption(object):
     @classmethod
     def from_data(cls, data: dict):
         base_option = cls(
-            data['name'], ApplicationCommandOptionType(data['type']),
-            data['description'],
-            data.get('required', False),
+            name=data['name'],
+            type=ApplicationCommandOptionType(data['type']),
+            description=data['description'],
+            default=data.get('default', False),
+            required=data.get('required', False),
         )
         for choice in data.get('choices', list()):
             base_option.add_choice(ApplicationCommandOptionChoice.from_data(choice))
