@@ -598,7 +598,7 @@ class ApplicationCommandOptionType(Enum):
     string = 3  # If the option is a string.
     integer = 4  # If the option is an integer.
     boolean = 5  # If the option is a boolean.
-    user = 6  # If the option is a user.
+    user = 6  # If the option is a user or member.
     channel = 7  # If the option is a channel.
     role = 8  # If the option is a role.
     mentionable = 9  # Any mentionable user or role.

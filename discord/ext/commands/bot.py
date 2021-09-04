@@ -1131,6 +1131,14 @@ class BotBase(GroupMixin):
         --------
         List[:class:`ApplicationCommand`]
             A list of added application commands.
+
+        Raises
+        -------
+        :exception:`discord.Forbidden`
+            You don't have the ``applications.commands`` scope in the guild you're trying to
+            add commands to.
+        :exception:`discord.HTTPException`
+            Upserting the application commands failed.
         """
 
         # Infer commands

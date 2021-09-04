@@ -1144,7 +1144,7 @@ _command_type_mapper = {
     int: ApplicationCommandOptionType.integer,
     float: ApplicationCommandOptionType.number,
     bool: ApplicationCommandOptionType.boolean,
-    inspect._empty: ApplicationCommandOptionType.string,
+    inspect.Parameter.empty: ApplicationCommandOptionType.string,
 }
 
 
@@ -1175,5 +1175,5 @@ def try_application_command_option_type(param: inspect.Parameter) -> Application
         return ApplicationCommandOptionType.string
 
     # It isn't - let's try and get an attr from the class
-    return getattr(arg_type, "SLASH_COMMAND_ARG_TYPE", ApplicationCommandOptionType.string)
+    return getattr(arg_type, "__application_option_type__", ApplicationCommandOptionType.string)
 
