@@ -552,9 +552,9 @@ class HelpCommand:
             key = lambda c: c.name
 
         if self.show_hidden:
-            iterator = filter(lambda c: not (c.hidden or isinstance(c, ContextMenuCommand)), commands)
-        else:
             iterator = filter(lambda c: not isinstance(c, ContextMenuCommand), commands)
+        else:
+            iterator = filter(lambda c: not (c.hidden or isinstance(c, ContextMenuCommand)), commands)
 
         if self.verify_checks is False:
             # if we do not need to verify the checks then we can just
