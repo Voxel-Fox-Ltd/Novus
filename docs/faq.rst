@@ -432,9 +432,16 @@ Example: ::
 
 This could then be used as ``?git push origin master``.
 
-.. _slash_command_faq:
+.. _application_command_faq:
 
 How do I use slash commands?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can use the :func:`commands.Bot.register_application_commands` method to register all of your loaded commands to Discord, optionally specifying a guild. Adding a global command can take up to an hour to show up in your Discord client, but guild-level commands show up immediately. Slash commands will be handled automatically by the usual command handler.
+You can use the :func:`commands.Bot.register_application_commands` method to register all of your loaded commands to Discord. Adding a global command can take up to an hour to show up in your Discord client, but guild-level commands show up immediately.
+
+Slash commands will be handled automatically by the usual command handler, so you don't need to do anything special to get them running.
+
+How do I use context menu commands?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Context menus are determined by using the:func:`commands.context_command` decorator and writing your command as you would normally, type hinting the type of context command that you'd like to add.
