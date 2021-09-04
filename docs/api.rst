@@ -2438,6 +2438,62 @@ of :class:`enum.Enum`.
 
         The guild may contain NSFW content.
 
+.. class:: ApplicationCommandType
+
+    .. attribute:: chat_input
+
+        The command is triggered via chat input, ie a slash command.
+
+    .. attribute:: user
+
+        The command is triggered via the user context menu.
+
+    .. attribute:: message
+
+        The command is triggered via the message context menu.
+
+.. class:: ApplicationCommandOptionType
+
+    .. attribute:: subcommand
+
+        The option is a subcommand.
+
+    .. attribute:: subcommand_group
+
+        The option is a subcommand that contains more commands, not implementing a functionality itself.
+
+    .. attribute:: string
+
+        The option is a string.
+
+    .. attribute:: integer
+
+        The option is an integer.
+
+    .. attribute:: boolean
+
+        The option is a boolean - either true or false.
+
+    .. attribute:: user
+
+        The option is a user or member.
+
+    .. attribute:: channel
+
+        The option is a channel, of any type.
+
+    .. attribute:: role
+
+        The option is a role.
+
+    .. attribute:: mentionable
+
+        The option is any channel, user, or role.
+
+    .. attribute:: number
+
+        The option is any number, including decimals.
+
 Async Iterator
 ----------------
 
@@ -3653,7 +3709,7 @@ GuildSticker
     :members:
 
 ApplicationCommand
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. attributetable:: ApplicationCommand
 
@@ -3661,7 +3717,7 @@ ApplicationCommand
     :members:
 
 ApplicationCommandOption
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. attributetable:: ApplicationCommandOption
 
@@ -3669,22 +3725,12 @@ ApplicationCommandOption
     :members:
 
 ApplicationCommandOptionChoice
-~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. attributetable:: ApplicationCommandOptionChoice
 
 .. autoclass:: ApplicationCommandOptionChoice()
     :members:
-
-ApplicationCommandType
-~~~~~~~~~~~~~
-
-.. attributetable:: ApplicationCommandType
-
-ApplicationCommandOptionType
-~~~~~~~~~~~~~
-
-.. attributetable:: ApplicationCommandOptionType
 
 RawMessageDeleteEvent
 ~~~~~~~~~~~~~~~~~~~~~~~

@@ -354,6 +354,29 @@ This can get tedious, so an inline advanced converter is possible through a :fun
         else:
             await ctx.send("Hm you're not so new.")
 
+Slash Command Converters
++++++++++++++++++++++++++++
+
+When using custom converters live above, it can sometimes be difficult to get those to convert cleanly to slash commands. As such,
+if you add a ``__application_option_type__`` attribute to your class as an instance of :class:`ApplicationCommandOptionType`,
+you can define what it converts to when being parsed for a slash command:
+
+.. code-block:: python3
+    :emphasize-lines: 3
+
+    class JoinDistance:
+
+        __application_option_type__ = discord.ApplicationCommandOptionType.user
+
+        def __init__(self, joined, created):
+            self.joined = joined
+            self.created = created
+
+        @classmethod
+        async def convert(cls, ctx, argument):
+            member = await commands.MemberConverter().convert(ctx, argument)
+            return cls(member.joined_at, member.created_at)
+
 Discord Converters
 ++++++++++++++++++++
 
@@ -374,25 +397,25 @@ or just a regular username. The default set of converters have been written to b
 
 A lot of discord models work out of the gate as a parameter:
 
-- :class:`Object` (since v2.0)
+- :class:`Object`
 - :class:`Member`
 - :class:`User`
-- :class:`Message` (since v1.1)
-- :class:`PartialMessage` (since v1.7)
-- :class:`abc.GuildChannel` (since 2.0)
+- :class:`Message`
+- :class:`PartialMessage`
+- :class:`abc.GuildChannel`
 - :class:`TextChannel`
 - :class:`VoiceChannel`
-- :class:`StageChannel` (since v1.7)
-- :class:`StoreChannel` (since v1.7)
+- :class:`StageChannel`
+- :class:`StoreChannel`
 - :class:`CategoryChannel`
 - :class:`Invite`
-- :class:`Guild` (since v1.7)
+- :class:`Guild`
 - :class:`Role`
 - :class:`Game`
 - :class:`Colour`
 - :class:`Emoji`
 - :class:`PartialEmoji`
-- :class:`Thread` (since v2.0)
+- :class:`Thread`
 
 Having any of these set as the converter will intelligently convert the argument to the appropriate target type you
 specify.
