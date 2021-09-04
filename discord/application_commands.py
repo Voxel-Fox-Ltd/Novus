@@ -50,19 +50,19 @@ class ApplicationCommandOption(object):
 
     Parameters
     -----------
-    name: :class:`str`:
+    name: :class:`str`
         The name of this option.
-    type: :class:`ApplicationCommandOptionType`:
+    type: :class:`ApplicationCommandOptionType`
         The type of this command option.
-    description: :class:`str`:
+    description: :class:`str`
         The description given to this argument.
-    default: :class:`Any`:
+    default: :class:`Any`
         The default value given to the command option.
-    required: Optional[:class:`bool`]:
+    required: Optional[:class:`bool`]
         Whether or not this option is required for the command to run.
-    choices: List[:class:`ApplicationCommandOptionChoice`]):
+    choices: List[:class:`ApplicationCommandOptionChoice`])
         A list of choices that this command can take.
-    options: List[:class:`ApplicationCommandOption`]):
+    options: List[:class:`ApplicationCommandOption`])
         A list of options that go into the application command.
     """
 
