@@ -32,7 +32,7 @@ from typing import Optional, TYPE_CHECKING
 
 import discord.utils
 
-from .core import Group, Command
+from .core import Group, Command, ContextMenuCommand
 from .errors import CommandError
 
 if TYPE_CHECKING:
@@ -551,7 +551,10 @@ class HelpCommand:
         if sort and key is None:
             key = lambda c: c.name
 
-        iterator = commands if self.show_hidden else filter(lambda c: not c.hidden, commands)
+        if self.show_hidden:
+            iterator = filter(lambda c: not (c.hidden or isinstance(c, ContextMenuCommand)), commands)
+        else:
+            iterator = filter(lambda c: not isinstance(c, ContextMenuCommand), commands)
 
         if self.verify_checks is False:
             # if we do not need to verify the checks then we can just
