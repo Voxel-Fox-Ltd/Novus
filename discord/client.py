@@ -1547,17 +1547,14 @@ class Client:
             self, commands: List[ApplicationCommand], *, guild: Optional[Guild] = None) -> List[ApplicationCommand]:
         """|coro|
 
-        Register the bot's commands as application commands. Providing ``None``
-        will remove all of the registerd commands. Leaving ``commands`` blank will work
-        only for instances of :class:`commands.Bot`, attempting to register all commands that
-        have their :attr:`commands.Command.add_slash_command` attribute set to ``True``.
+        Register the bot's commands as application and slash commands. Providing ``None`` or an empty list
+        will remove all of the registered commands.
 
         Parameters
         -----------
-        commands: List[:class:`ApplicationCommand`]    async def register_application_commands(
-            self, commands: Optional[List[ApplicationCommand]] = MISSING) -> List[ApplicationCommand]:
+        commands: List[:class:`ApplicationCommand`]
             A list of commands that you want to register in Discord.
-        guild: Optional[:class:`Guild`]
+        guild: Optional[:class:`discord.Guild`]
             The guild that the commands should be registered to.
 
         Returns

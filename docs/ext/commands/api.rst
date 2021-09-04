@@ -136,6 +136,11 @@ Command
     .. automethod:: Command.error()
         :decorator:
 
+ContextMenuCommand
+~~~~~~~~~~~~~~~~~~~
+
+A simple subclass of :class:`discord.ext.commands.Command` for context menu interactions. Implements very little for itself.
+
 Group
 ~~~~~~
 

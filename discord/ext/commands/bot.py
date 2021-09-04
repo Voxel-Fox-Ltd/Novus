@@ -1115,15 +1115,16 @@ class BotBase(GroupMixin):
             *, guild: Optional[Guild] = None) -> List[ApplicationCommand]:
         """|coro|
 
-        Register the bot's commands as application commands. Providing ``None``
+        Register the bot's commands as application and slash commands. Providing ``None`` or an empty list
         will remove all of the registerd commands. Leaving ``commands`` blank will work
-        only for instances of :class:`commands.Bot`, attempting to register all commands that
-        have their :attr:`commands.Command.add_slash_command` attribute set to ``True``.
+        only for instances of :class:`Bot`, attempting to register all commands that
+        have their :attr:`Command.add_slash_command` attribute set to ``True``.
 
         Parameters
         -----------
         commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]]
-            A list of commands that you want to register in Discord.
+            A list of commands that you want to register in Discord. If left blank, the bot will
+            automatically register all of the commands in :attr:`commands.Bot.commands`.
         guild: Optional[:class:`Guild`]
             The guild that the commands should be registered to.
 
