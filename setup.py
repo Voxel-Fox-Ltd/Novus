@@ -52,6 +52,7 @@ packages = [
     'discord.webhook',
     'discord.ext.commands',
     'discord.ext.tasks',
+    'discord.ext.voice_recv',
 ]
 
 setup(name='novus',
