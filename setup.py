@@ -53,6 +53,7 @@ packages = [
     'discord.ext.commands',
     'discord.ext.tasks',
     'discord.ext.voice_recv',
+    'discord.ext.voice_recv.common',
 ]
 
 setup(name='novus',
