@@ -16,16 +16,27 @@ in specific versions.
 v0.0.3
 --------
 
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~
+
+* Fix indentation on getting application command arg type.
+* Fix application command ``required`` property not being set properly.
+* Add import for application commands to ``discord`` top-level package.
+* Filter context menu commands out of the default help menu implementation.
+
 Changed Features
 ~~~~~~~~~~~~~~~~~~
 
 * Removed Danny's ``on_socket_event_type`` to be replaced with :func:`on_socket_event`.
+* The ``newcog`` cmd argument will now use VoxelBotUtils if it's installed.
+* A list of :class:`commands.Command` objects are now allowed to be passed into :func:`commands.Bot.register_application_commands`.
 
 New Features
 ~~~~~~~~~~~~~~~~~~
 
 * Add :class:`InteractionResolved` class, as a new attribute in :class:`Interaction`.
 * Added :func:`commands.context_command` decorator.
+* Added :func:`utils.naive_dt`.
 
 .. _vp0_0_2:
 
@@ -35,7 +46,7 @@ v0.0.2
 New Features
 ~~~~~~~~~~~~~~~~~~
 
-* Add :func:`defer decorator<commands.defer>` for slash commands.
+* Add :func:`defer decorator<commands.defer>` for application commands.
 * Add :func:`InteractionResonse.defer_update`.
 * Add ``allowed_mentions`` to :func:`InteractionReponse.edit_message`.
 * Add ``response_type`` kwarg to :func:`utils.oauth_url`.
