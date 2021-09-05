@@ -31,6 +31,12 @@ Is this your first time using the library? This is the place to get started!
 
 If you're coming here from Rapptz's Discord.py, you can see :ref:`the migration page <migrating_2_0>`.
 
+Common queries
+---------------
+
+* :ref:`Using slash commands <send_components>`
+* :ref:`Using components <application_command_faq>`
+
 Getting help
 --------------
 

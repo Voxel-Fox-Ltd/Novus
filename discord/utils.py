@@ -79,6 +79,7 @@ __all__ = (
     'get',
     'sleep_until',
     'utcnow',
+    'naive_dt',
     'remove_markdown',
     'escape_markdown',
     'escape_mentions',
@@ -576,12 +577,37 @@ def utcnow() -> datetime.datetime:
     This should be preferred to :meth:`datetime.datetime.utcnow` since it is an aware
     datetime, compared to the naive datetime in the standard library.
 
+    Identical to running ``datetime.datetime.now(datetime.timezone.utc)``.
+
     Returns
     --------
     :class:`datetime.datetime`
         The current aware datetime in UTC.
     """
     return datetime.datetime.now(datetime.timezone.utc)
+
+
+def naive_dt(dt: datetime.datetime) -> datetime.datetime:
+    """A helper function to make an aware timezone naive. The given datetime wil be converted
+    first to UTC before returning a naive object.
+
+    Identical to running ``dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)``.
+
+    Returns
+    --------
+    :class:`datetime.datetime`
+        The naive datetime object.
+
+    Exceptions
+    -----------
+    :exception:`ValueError`
+        The given datetime's timezone was not UTC.
+    """
+
+    if dt.tzinfo is None:
+        return dt
+    new_time = dt.astimezone(datetime.timezone.utc)
+    return new_time.replace(tzinfo=None)
 
 
 def valid_icon_size(size: int) -> bool:

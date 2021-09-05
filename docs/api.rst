@@ -1074,6 +1074,8 @@ Utility Functions
 
 .. autofunction:: discord.utils.utcnow
 
+.. autofunction:: discord.utils.naive_dt
+
 .. autofunction:: discord.utils.format_dt
 
 .. autofunction:: discord.utils.as_chunks
