@@ -1,5 +1,6 @@
-# May not even be needed if i dont use the dict subclasses
-from collections import defaultdict
+from __future__ import annotations
+
+from collections import defaultdict  # May not even be needed if i dont use the dict subclasses
 
 
 class Bidict(dict):
