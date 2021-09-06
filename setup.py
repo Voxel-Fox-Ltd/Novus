@@ -50,6 +50,9 @@ extras_require = {
     ],
     'speed': [
         'orjson>=3.5.4',
+        'aiodns>=1.1',
+        'Brotli',
+        'cchardet',
     ],
 }
 
