@@ -417,6 +417,15 @@ class Embed:
 
         return self
 
+    def remove_image(self: E) -> E:
+        """Remove the image from the embed.
+
+        This function returns the class instance to allow for fluent-style
+        chaining.
+        """
+
+        return self.set_image(url=EmptyEmbed)
+
     @property
     def thumbnail(self) -> _EmbedMediaProxy:
         """Returns an ``EmbedProxy`` denoting the thumbnail contents.
@@ -455,6 +464,15 @@ class Embed:
             }
 
         return self
+
+    def remove_thumbnail(self: E) -> E:
+        """Remove the thumbnail from the embed.
+
+        This function returns the class instance to allow for fluent-style
+        chaining.
+        """
+
+        return self.set_thumbnail(url=EmptyEmbed)
 
     @property
     def video(self) -> _EmbedVideoProxy:
