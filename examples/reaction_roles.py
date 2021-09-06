@@ -2,6 +2,7 @@
 
 import discord
 
+
 class MyClient(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -78,8 +79,10 @@ class MyClient(discord.Client):
             # If we want to do something in case of errors we'd do it here.
             pass
 
+
 intents = discord.Intents.default()
 intents.members = True
+
 
 client = MyClient(intents=intents)
 client.run('token')

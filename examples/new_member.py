@@ -2,6 +2,7 @@
 
 import discord
 
+
 class MyClient(discord.Client):
     async def on_ready(self):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -16,6 +17,7 @@ class MyClient(discord.Client):
 
 intents = discord.Intents.default()
 intents.members = True
+
 
 client = MyClient(intents=intents)
 client.run('token')

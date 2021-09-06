@@ -5,6 +5,7 @@ from discord.ext import commands
 
 
 class MyContext(commands.Context):
+
     async def tick(self, value):
         # reacts to the message with an emoji
         # depending on whether value is True or False
@@ -22,6 +23,7 @@ class MyContext(commands.Context):
 
 
 class MyBot(commands.Bot):
+
     async def get_context(self, message, *, cls=MyContext):
         # when you override this method, you pass your new Context
         # subclass to the super() method, which tells the bot to
@@ -30,6 +32,7 @@ class MyBot(commands.Bot):
         
 
 bot = MyBot(command_prefix='!')
+
 
 @bot.command()
 async def guess(ctx, number: int):
@@ -41,6 +44,7 @@ async def guess(ctx, number: int):
     # green check mark if the guess was correct,
     # or a red cross mark if it wasn't
     await ctx.tick(number == value)
+
 
 # IMPORTANT: You shouldn't hard code your token
 # these are very important, and leaking them can 

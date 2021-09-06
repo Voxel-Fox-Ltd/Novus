@@ -3,7 +3,9 @@ import typing
 import discord
 from discord.ext import commands
 
+
 bot = commands.Bot(command_prefix=commands.when_mentioned, description="Nothing to see here!")
+
 
 # the `hidden` keyword argument hides it from the help command. 
 @bot.group(hidden=True)
@@ -11,6 +13,7 @@ async def secret(ctx: commands.Context):
     """What is this "secret" you speak of?"""
     if ctx.invoked_subcommand is None:
         await ctx.send('Shh!', delete_after=5)
+
 
 def create_overwrites(ctx, *objects):
     """This is just a helper function that creates the overwrites for the 
@@ -40,6 +43,7 @@ def create_overwrites(ctx, *objects):
 
     return overwrites
 
+
 # since these commands rely on guild related features,
 # it is best to lock it to be guild-only.
 @secret.command()
@@ -58,6 +62,7 @@ async def text(ctx: commands.Context, name: str, *objects: typing.Union[discord.
         reason='Very secret business.',
     )
 
+
 @secret.command()
 @commands.guild_only()
 async def voice(ctx: commands.Context, name: str, *objects: typing.Union[discord.Role, discord.Member]):
@@ -72,6 +77,7 @@ async def voice(ctx: commands.Context, name: str, *objects: typing.Union[discord
         overwrites=overwrites,
         reason='Very secret business.'
     )
+
 
 @secret.command()
 @commands.guild_only()

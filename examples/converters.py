@@ -5,8 +5,10 @@ import typing
 import discord
 from discord.ext import commands
 
+
 intents = discord.Intents.default()
 intents.members = True
+
 
 bot = commands.Bot('!', intents=intents)
 
@@ -31,6 +33,7 @@ async def userinfo(ctx: commands.Context, user: discord.User):
     avatar = user.avatar.url
     await ctx.send(f'User found: {user_id} -- {username}\n{avatar}')
 
+
 @userinfo.error
 async def userinfo_error(ctx: commands.Context, error: commands.CommandError):
     # if the conversion above fails for any reason, it will raise `commands.BadArgument`
@@ -38,8 +41,10 @@ async def userinfo_error(ctx: commands.Context, error: commands.CommandError):
     if isinstance(error, commands.BadArgument):
         return await ctx.send('Couldn\'t find that user.')
 
+
 # Custom Converter here
 class ChannelOrMemberConverter(commands.Converter):
+
     async def convert(self, ctx: commands.Context, argument: str):
         # In this example we have made a custom converter.
         # This checks if an input is convertible to a
@@ -73,7 +78,6 @@ class ChannelOrMemberConverter(commands.Converter):
         raise commands.BadArgument(f'No Member or TextChannel could be converted from "{argument}"')
 
 
-
 @bot.command()
 async def notify(ctx: commands.Context, target: ChannelOrMemberConverter):
     # This command signature utilises the custom converter written above
@@ -82,6 +86,7 @@ async def notify(ctx: commands.Context, target: ChannelOrMemberConverter):
     # the conversion will go through the process defined there.
 
     await target.send(f'Hello, {target.name}!')
+
 
 @bot.command()
 async def ignore(ctx: commands.Context, target: typing.Union[discord.Member, discord.TextChannel]):
@@ -99,6 +104,7 @@ async def ignore(ctx: commands.Context, target: typing.Union[discord.Member, dis
     elif isinstance(target, discord.TextChannel): # this could be an `else` but for completeness' sake.
         await ctx.send(f'Channel found: {target.mention}, adding it to the ignore list.')
 
+
 # Built-in type converters.
 @bot.command()
 async def multiply(ctx: commands.Context, number: int, maybe: bool):
@@ -109,5 +115,6 @@ async def multiply(ctx: commands.Context, number: int, maybe: bool):
     if maybe is True:
         return await ctx.send(number * 2)
     await ctx.send(number * 5)
+
 
 bot.run('token')
