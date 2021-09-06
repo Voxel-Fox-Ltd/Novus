@@ -2488,7 +2488,7 @@ class Guild(Hashable):
         You must have the :attr:`~Permissions.manage_guild` permission to use
         this as well.
 
-        .. versionadded:: 2.0
+        .. versionadded:: 0.0.3
 
         Raises
         -------
@@ -2530,7 +2530,7 @@ class Guild(Hashable):
         You must have the :attr:`~Permissions.manage_guild` permission to use
         this as well.
 
-        .. versionadded:: 2.0
+        .. versionadded:: 0.0.3
 
         Returns
         --------

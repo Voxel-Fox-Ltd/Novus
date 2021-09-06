@@ -593,6 +593,8 @@ def naive_dt(dt: datetime.datetime) -> datetime.datetime:
 
     Identical to running ``dt.astimezone(datetime.timezone.utc).replace(tzinfo=None)``.
 
+    .. versionadded:: 0.0.3
+
     Returns
     --------
     :class:`datetime.datetime`

@@ -422,6 +422,8 @@ class Embed:
 
         This function returns the class instance to allow for fluent-style
         chaining.
+
+        .. versionadded:: 0.0.3
         """
 
         return self.set_image(url=EmptyEmbed)
@@ -470,6 +472,8 @@ class Embed:
 
         This function returns the class instance to allow for fluent-style
         chaining.
+
+        .. versionadded:: 0.0.3
         """
 
         return self.set_thumbnail(url=EmptyEmbed)

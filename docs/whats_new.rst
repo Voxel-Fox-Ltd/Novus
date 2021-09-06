@@ -38,6 +38,7 @@ New Features
 * Added :func:`commands.context_command` decorator.
 * Added :func:`utils.naive_dt`.
 * Add :func:`Embed.remove_image` and :func:`Embed.remove_thumbnail`.
+* Add :class:`WelcomeScreen`.
 
 .. _vp0_0_2:
 

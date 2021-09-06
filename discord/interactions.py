@@ -72,6 +72,24 @@ MISSING: Any = utils.MISSING
 
 
 class InteractionResolved:
+    """
+    A set of resolved data from an interaction.
+
+    .. versionadded:: 0.0.3
+
+    Attributes
+    ------------
+    users: List[Union[:class:`User`, :class:`Member`]]
+        The users who were mentioned in the interaction.
+    members: List[:class:`Member`]
+        The members who were mentioned in the interaction.
+    roles: List[:class:`Role`]
+        The roles that were mentioned in the interaction.
+    channels: List[Union[:class:`VoiceChannel`, :class:`StageChannel`, :class:`TextChannel`, :class:`CategoryChannel`, :class:`StoreChannel`, :class:`Thread`]]
+        The channels that were mentioned in the interaction.
+    message: List[:class:`Message`]
+        The messages that were mentioned in the interaction.
+    """
 
     def __init__(self, *, interaction, data: dict, state: ConnectionState):
         self.users: List[Union[User, Member]] = []

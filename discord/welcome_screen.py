@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 class WelcomeChannel:
     """Represents a :class:`WelcomeScreen` welcome channel.
 
-    .. versionadded:: 2.0
+    .. versionadded:: 0.0.3
 
     Attributes
     -----------
@@ -108,7 +108,7 @@ class WelcomeChannel:
 class WelcomeScreen:
     """Represents a :class:`Guild` welcome screen.
 
-    .. versionadded:: 2.0
+    .. versionadded:: 0.0.3
 
     Attributes
     -----------
