@@ -37,6 +37,7 @@ New Features
 * Add :class:`InteractionResolved` class, as a new attribute in :class:`Interaction`.
 * Added :func:`commands.context_command` decorator.
 * Added :func:`utils.naive_dt`.
+* Add :func:`Embed.remove_image` and :func:`Embed.remove_thumbnail`.
 
 .. _vp0_0_2:
 
