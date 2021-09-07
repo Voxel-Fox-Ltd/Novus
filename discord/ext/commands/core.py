@@ -1658,6 +1658,8 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
                 description=self.short_doc or self.name,
             )
         for c in self.commands:
+            if not c.add_slash_command:
+                continue
             a = c.to_application_command()
             assert isinstance(a, ApplicationCommandOption)
             command.add_option(a)
