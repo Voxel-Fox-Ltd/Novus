@@ -29,7 +29,7 @@ Changed Features
 
 * Removed Danny's ``on_socket_event_type`` to be replaced with :func:`on_socket_event`.
 * The ``newcog`` cmd argument will now use VoxelBotUtils if it's installed.
-* A list of :class:`commands.Command` objects are now allowed to be passed into :func:`commands.Bot.register_application_commands`.
+* A list of :class:`commands.Command` objects are now allowed to be passed into :func:`ext.commands.Bot.register_application_commands`.
 
 New Features
 ~~~~~~~~~~~~~~~~~~
@@ -39,6 +39,7 @@ New Features
 * Added :func:`utils.naive_dt`.
 * Add :func:`Embed.remove_image` and :func:`Embed.remove_thumbnail`.
 * Add :class:`WelcomeScreen`.
+* Add :func:`ext.commands.get_interaction_route_table`.
 
 .. _vp0_0_2:
 

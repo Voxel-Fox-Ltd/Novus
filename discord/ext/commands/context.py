@@ -25,11 +25,13 @@ from __future__ import annotations
 
 import inspect
 import re
+import asyncio
 
 from typing import Any, Dict, Generic, List, Optional, TYPE_CHECKING, TypeVar, Union
 
 import discord.abc
 import discord.utils
+import discord.context_managers
 
 from discord.message import Message
 from discord.interactions import Interaction
@@ -66,6 +68,14 @@ if TYPE_CHECKING:
     P = ParamSpec('P')
 else:
     P = TypeVar('P')
+
+
+class _NoRequestTyping(discord.context_managers.Typing):
+
+    async def do_typing(self) -> None:
+        await self.messageable.trigger_typing()
+        while True:
+            await asyncio.sleep(5)
 
 
 class Context(discord.abc.Messageable, Generic[BotT]):
@@ -458,3 +468,9 @@ class SlashContext(Context):
     async def defer(self, *, ephemeral: bool = False) -> None:
         if not self.interaction.response.is_done():
             await self.interaction.response.defer(ephemeral=ephemeral)
+
+    async def trigger_typing(self) -> None:
+        return await self.defer()
+
+    def typing(self) -> discord.context_managers.Typing:
+        return _NoRequestTyping(self)

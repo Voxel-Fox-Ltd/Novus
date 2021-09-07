@@ -363,6 +363,11 @@ Context
     .. automethod:: discord.ext.commands.Context.typing
         :async-with:
 
+HTTP Interactions
+------------------
+
+.. autofunction:: discord.ext.commands.get_interaction_route_table
+
 .. _ext_commands_api_converters:
 
 Converters
@@ -618,7 +623,6 @@ Exceptions
 
 .. autoexception:: discord.ext.commands.CommandRegistrationError
     :members:
-
 
 Exception Hierarchy
 ~~~~~~~~~~~~~~~~~~~~~
