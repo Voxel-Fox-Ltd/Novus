@@ -1389,7 +1389,7 @@ class GroupMixin(Generic[CogT]):
             if isinstance(command, GroupMixin):
                 yield from command.walk_commands()
 
-    def get_command(self, name: str) -> Optional[Command[CogT, Any, Any]]:
+    def get_command(self, name: str, *, ignore_spaces: bool = False) -> Optional[Command[CogT, Any, Any]]:
         """Get a :class:`.Command` from the internal list
         of commands.
 
@@ -1403,6 +1403,10 @@ class GroupMixin(Generic[CogT]):
         -----------
         name: :class:`str`
             The name of the command to get.
+        ignore_spaces: Optional[:class:`bool`]
+            Whether to ignore spaces when looking for the command by its name.
+
+            .. versionadded:: 0.0.4
 
         Returns
         --------
@@ -1411,7 +1415,7 @@ class GroupMixin(Generic[CogT]):
         """
 
         # fast path, no space in name.
-        if ' ' not in name:
+        if ' ' not in name or ignore_spaces:
             return self.all_commands.get(name)
 
         names = name.split()
