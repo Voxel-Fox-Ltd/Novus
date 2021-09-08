@@ -1023,7 +1023,10 @@ class BotBase(GroupMixin):
         ctx.invoked_with = command_name
         ctx.prefix = "/"
         if command_name:
-            ctx.command = self.get_command(command_name)
+            command = self.get_command(command_name)
+            if command is None:
+                command = self.get_command(command_name, ignore_spaces=True)
+            ctx.command = command
         ctx.given_values = given_values
         return ctx
 
