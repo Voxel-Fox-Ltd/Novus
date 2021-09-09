@@ -106,7 +106,7 @@ class Button(DisableableComponent):
         return v
 
     @classmethod
-    def from_dict(cls, data: ButtonPayload) -> 'Button':
+    def from_dict(cls, data: ButtonPayload) -> Button:
         """
         Construct an instance of a button from an API response.
 
@@ -131,4 +131,32 @@ class Button(DisableableComponent):
             url=data.get("url"),
             emoji=emoji,
             disabled=data.get("disabled", False),
+        )
+
+    @classmethod
+    def confirm(cls, **kwargs) -> Button:
+        """
+        Give you a button instance with the text "Confirm", custom ID "CONFIRM", and
+        a style of success.
+        """
+
+        return cls(
+            label=kwargs.pop("label", "Confirm"),
+            custom_id=kwargs.pop("custom_id", "CONFIRM"),
+            style=kwargs.pop("style", ButtonStyle.success),
+            **kwargs,
+        )
+
+    @classmethod
+    def cancel(cls, **kwargs) -> Button:
+        """
+        Give you a button instance with the text "Cancel", custom ID "CANCEL", and
+        a style of danger.
+        """
+
+        return cls(
+            label=kwargs.pop("label", "Cancel"),
+            custom_id=kwargs.pop("custom_id", "CANCEL"),
+            style=kwargs.pop("style", ButtonStyle.danger),
+            **kwargs,
         )
