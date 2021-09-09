@@ -106,7 +106,7 @@ class ApplicationCommandOption(object):
             name=data['name'],
             type=ApplicationCommandOptionType(data['type']),
             description=data['description'],
-            default=data.get('default', False),
+            default=data.get('default', None),
             required=data.get('required', False),
         )
         for choice in data.get('choices', list()):
@@ -136,27 +136,37 @@ class ApplicationCommand(object):
     """
     An instance of an application command.
 
-    Attributes:
-        name (str): The name of this command.
-        description (str): The description for this command.
-        options (List[ApplicationCommandOption]): A list of the options added to this command.
-        id (int): The ID of this application command.
-        application_id (int): The application ID that this command is attached to.
+    Attributes
+    -----------
+    name: :class:`str`
+        The name of this command.
+    description: :class:`str`
+        The description for this command.
+    options: List[:class:`ApplicationCommandOption`]
+        A list of the options added to this command.
+    id: :class:`int`
+        The ID of this application command.
+    application_id: :class:`int`
+        The application ID that this command is attached to.
+
+    Parameters
+    -----------
+    name: :class:`str`
+        The name of this command.
+    description: :class:`str`
+        The description for this command.
+    options: List[:class:`ApplicationCommandOption`]
+        A list of the options added to this command.
     """
 
     def __init__(
             self, name: str, description: str = None,
-            type: ApplicationCommandType = ApplicationCommandType.chat_input):
-        """
-        Args:
-            name (str): The name of this command.
-            description (str): The description for this command.
-        """
-
+            type: ApplicationCommandType = ApplicationCommandType.chat_input,
+            options: List[ApplicationCommandOption] = None):
         self.name: str = name
         self.description: Optional[str] = description
         self.type: ApplicationCommandType = type
-        self.options: List[ApplicationCommandOption] = list()
+        self.options: List[ApplicationCommandOption] = options or list()
         self.id: Optional[int] = None
         self.application_id: Optional[int] = None
 
