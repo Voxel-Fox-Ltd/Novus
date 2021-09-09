@@ -6,8 +6,8 @@ bot = commands.Bot(command_prefix=commands.when_mentioned_or('$'))
 
 
 @bot.event
-async def on_ready(self):
-    print(f'Logged in as {self.user} (ID: {self.user.id})')
+async def on_ready():
+    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
 
 
@@ -50,8 +50,7 @@ async def ask(ctx: commands.Context):
 async def main():
     await bot.login('TOKEN')  # Validate our token
     await bot.register_application_commands()  # Upsert our commands
-    await bot.connect()  # Make a websocket connection
-    bot.loop.run_forever()  # Run forever
+    await bot.connect()  # Run a websocket connection
 
 
 loop = bot.loop
