@@ -22,6 +22,8 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
+import typing
+
 from .models import ComponentHolder
 from .button import Button, ButtonStyle
 from ..enums import ComponentType
@@ -30,6 +32,7 @@ from ..types.components import (
     MessageComponents as MessageComponentsPayload,
     ActionRow as ActionRowPayload,
 )
+from ..utils import MISSING
 
 
 class ActionRow(ComponentHolder):
@@ -123,4 +126,49 @@ class MessageComponents(ComponentHolder):
         while buttons:
             v.add_component(ActionRow(*buttons[:5]))
             buttons = buttons[5:]
+        return v
+
+    @classmethod
+    def add_number_buttons(
+            cls, numbers: typing.List[int] = MISSING, *,
+            add_negative: bool = False):
+        """
+        Creates a message components object with a list of number buttons added.
+
+        Each number is added as its own button. Numbers provided as a list will be added as
+        primary, where numbers added as negatives (if ``add_negative`` is set to ``True``)
+        will be added as secondary buttons.
+
+        A confirm button will not be automatically added.
+
+        Parameters
+        -----------
+        numbers: typing.List[:class:`int`]
+            The numbers that you want to add. If not provided, then 1, 5, 10, 50, and 100 are used.
+            A list of more than five values must not be given.
+            These will be added as buttons with the custom ID ``NUMBER VALUE``, where ``VALUE``
+            is the value shown on the button.
+        add_negative: :class:`bool`
+            Whether or not the negative versions of your numbers should be added as buttons.
+            Defaults to ``False``.
+        """
+
+        if numbers is MISSING:
+            numbers = [1, 5, 10, 50, 100]
+
+        v = cls()
+        if add_negative:
+            v.add_component(ActionRow(*[
+                Button(label=f"{i:+d}", custom_id=f"NUMBER {i}", style=ButtonStyle.primary)
+                for i in numbers
+            ]))
+            v.add_component(ActionRow(*[
+                Button(label=f"{-i:+d}", custom_id=f"NUMBER {-i}", style=ButtonStyle.secondary)
+                for i in numbers
+            ]))
+        else:
+            v.add_component(ActionRow(*[
+                Button(label=str(i), custom_id=f"NUMBER {i}", style=ButtonStyle.primary)
+                for i in numbers
+            ]))
         return v
