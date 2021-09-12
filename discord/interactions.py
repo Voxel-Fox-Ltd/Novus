@@ -200,6 +200,7 @@ class Interaction:
         '_cs_response',
         '_cs_followup',
         '_cs_channel',
+        '_cs_command_name',
     )
 
     def __init__(self, *, data: InteractionPayload, state: ConnectionState):
@@ -258,6 +259,26 @@ class Interaction:
 
         # Parse the resolved data
         self.resolved = InteractionResolved(interaction=self, data=(self.data or {}).copy().get("resolved", dict()), state=self._state)
+
+    @utils.cached_slot_property('_cs_command_name')
+    def command_name(self) -> Optional[str]:
+        """Optional[:class:`str`]: The name of the invoked command. Only valid for slash command interactions."""
+
+        if self.data is None:
+            return
+        if self.type != InteractionType.application_command:
+            return
+        data = self.data.copy()
+        command_name = data.get('name')
+        while command_name:
+            if "options" not in data:
+                break
+            if data['options'][0]['type'] in [1, 2]:
+                data = data['options'][0]
+                command_name += f" {data['name']}"
+            else:
+                break
+        return command_name
 
     @property
     def guild(self) -> Optional[Guild]:
