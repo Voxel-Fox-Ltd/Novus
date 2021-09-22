@@ -349,14 +349,10 @@ class AsyncWebhookAdapter:
         *,
         session: aiohttp.ClientSession,
         type: int,
-        data: Optional[Dict[str, Any]] = None,
+        payload: Optional[Dict[str, Any]] = None,
+        multipart = None,
+        files = None,
     ) -> Response[None]:
-        payload: Dict[str, Any] = {
-            'type': type,
-        }
-
-        if data is not None:
-            payload['data'] = data
 
         route = Route(
             'POST',
@@ -364,8 +360,7 @@ class AsyncWebhookAdapter:
             webhook_id=interaction_id,
             webhook_token=token,
         )
-
-        return self.request(route, session=session, payload=payload)
+        return self.request(route, session=session, payload=payload, files=files, multipart=multipart)
 
     def get_original_interaction_response(
         self,
@@ -436,6 +431,7 @@ def handle_message_parameters(
     components: Optional[MessageComponents] = MISSING,
     allowed_mentions: Optional[AllowedMentions] = MISSING,
     previous_allowed_mentions: Optional[AllowedMentions] = None,
+    type: int = None,
 ) -> ExecuteWebhookParameters:
     if files is not MISSING and file is not MISSING:
         raise TypeError('Cannot mix file and files keyword arguments.')
@@ -485,6 +481,12 @@ def handle_message_parameters(
     multipart = []
     if file is not MISSING:
         files = [file]
+
+    if type is not None:
+        payload = {
+            "type": type,
+            "data": payload,
+        }
 
     if files:
         multipart.append({'name': 'payload_json', 'value': utils._to_json(payload)})

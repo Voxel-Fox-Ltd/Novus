@@ -26,6 +26,7 @@ DEALINGS IN THE SOFTWARE.
 """
 
 from __future__ import annotations
+
 from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 import asyncio
 import json
@@ -36,7 +37,6 @@ from . import utils
 from .enums import try_enum, InteractionType, InteractionResponseType
 from .errors import InteractionResponded, HTTPException, ClientException, InvalidData
 from .channel import PartialMessageable, ChannelType, _threaded_channel_factory
-
 from .user import User
 from .member import Member
 from .role import Role
@@ -603,6 +603,8 @@ class InteractionResponse:
         *,
         embed: Embed = MISSING,
         embeds: List[Embed] = MISSING,
+        file: File = MISSING,
+        files: List[File] = MISSING,
         components: MessageComponents = MISSING,
         tts: bool = False,
         ephemeral: bool = False,
@@ -622,6 +624,11 @@ class InteractionResponse:
         embed: :class:`Embed`
             The rich embed for the content to send. This cannot be mixed with
             ``embeds`` parameter.
+        file: :class:`File`
+            The file to upload. This cannot be mixed with ``files`` parameter.
+        files: List[:class:`File`]
+            A list of files to send with the content. This cannot be mixed with the
+            ``file`` parameter.
         tts: :class:`bool`
             Indicates if the message should be sent using text-to-speech.
         components: :class:`discord.ui.MessageComponents`
@@ -645,40 +652,20 @@ class InteractionResponse:
         if self._responded:
             raise InteractionResponded(self._parent)
 
-        payload: Dict[str, Any] = {
-            'tts': tts,
-        }
-
-        if embed is not MISSING and embeds is not MISSING:
-            raise TypeError('cannot mix embed and embeds keyword arguments')
-
-        if embed is not MISSING:
-            embeds = [embed]
-
-        if embeds:
-            if len(embeds) > 10:
-                raise ValueError('embeds cannot exceed maximum of 10 elements')
-            payload['embeds'] = [e.to_dict() for e in embeds]
-
-        if content is not None:
-            payload['content'] = str(content)
-
-        if ephemeral:
-            payload['flags'] = 64
-
-        if components is not MISSING:
-            payload['components'] = components.to_dict()
-
         parent = self._parent
-        parent_state = parent._state
-
-        if allowed_mentions is not None:
-            if parent_state.allowed_mentions is not None:
-                allowed_mentions = parent_state.allowed_mentions.merge(allowed_mentions).to_dict()
-            else:
-                allowed_mentions = allowed_mentions.to_dict()
-        else:
-            allowed_mentions = parent_state.allowed_mentions and parent_state.allowed_mentions.to_dict()
+        params = handle_message_parameters(
+            content=content,
+            tts=tts,
+            file=file,
+            files=files,
+            embed=embed,
+            embeds=embeds,
+            ephemeral=ephemeral,
+            components=components,
+            allowed_mentions=allowed_mentions,
+            previous_allowed_mentions=parent._state.allowed_mentions,
+            type=InteractionResponseType.channel_message.value,
+        )
 
         adapter = async_context.get()
         await adapter.create_interaction_response(
@@ -686,7 +673,9 @@ class InteractionResponse:
             parent.token,
             session=parent._session,
             type=InteractionResponseType.channel_message.value,
-            data=payload,
+            payload=params.payload,
+            multipart=params.multipart,
+            files=params.files,
         )
 
         self._responded = True

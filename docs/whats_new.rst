@@ -11,6 +11,17 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_4:
+
+v0.0.4
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Add :attr:`ApplicationCommandOption.channel_types`.
+* Add ``files`` parameter to :func:`InteractionResponse.send`.
+
 .. _vp0_0_3:
 
 v0.0.3
