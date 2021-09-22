@@ -57,6 +57,7 @@ if TYPE_CHECKING:
         Interaction as InteractionPayload,
         InteractionData,
     )
+    from .application_commands import ApplicationCommandOptionChoice
     from .guild import Guild
     from .state import ConnectionState
     from .file import File
@@ -596,6 +597,48 @@ class InteractionResponse:
                 parent.id, parent.token, session=parent._session, type=InteractionResponseType.pong.value
             )
             self._responded = True
+
+    async def send_autocomplete(
+        self,
+        options: List[ApplicationCommandOptionChoice] = None,
+    ) -> None:
+        """|coro|
+
+        Responds to this interaction by sending a message.
+
+        Parameters
+        -----------
+        options: typing.List[:class:`ApplicationCommandOptionChoice`]
+            The options that you want to
+
+        Raises
+        -------
+        HTTPException
+            Sending the message failed.
+        ValueError
+            The length of ``options`` was invalid.
+        InteractionResponded
+            This interaction has already been responded to before.
+        """
+        if self._responded:
+            raise InteractionResponded(self._parent)
+
+        parent = self._parent
+        payload = {
+            "type": InteractionResponseType.autocomplete.value,
+            "options": [i.to_json() for i in options or list()],
+        }
+
+        adapter = async_context.get()
+        await adapter.create_interaction_response(
+            parent.id,
+            parent.token,
+            session=parent._session,
+            type=InteractionResponseType.autocomplete.value,
+            payload=payload,
+        )
+
+        self._responded = True
 
     async def send_message(
         self,

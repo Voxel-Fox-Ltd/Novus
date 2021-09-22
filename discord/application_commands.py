@@ -30,9 +30,9 @@ class ApplicationCommandOptionChoice(object):
         The value given to this option.
     """
 
-    def __init__(self, name: str, value: ApplicationCommandOptionChoiceValue):
+    def __init__(self, name: str, value: ApplicationCommandOptionChoiceValue = None):
         self.name: str = name
-        self.value: Any = value
+        self.value: Any = value if value is not None else name
 
     @classmethod
     def from_data(cls, data: dict):
