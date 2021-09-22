@@ -1115,7 +1115,7 @@ class BotBase(GroupMixin):
 
     async def register_application_commands(
             self, commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]] = MISSING,
-            *, guild: Optional[Guild] = None) -> List[ApplicationCommand]:
+            *, guild: Optional[discord.abc.Snowflake] = None) -> List[ApplicationCommand]:
         """|coro|
 
         Register the bot's commands as application and slash commands. Providing ``None`` or an empty list
@@ -1128,7 +1128,7 @@ class BotBase(GroupMixin):
         commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]]
             A list of commands that you want to register in Discord. If left blank, the bot will
             automatically register all of the commands in :attr:`commands.Bot.commands`.
-        guild: Optional[:class:`Guild`]
+        guild: Optional[:class:`~discord.abc.Snowflake`]
             The guild that the commands should be registered to.
 
         Returns

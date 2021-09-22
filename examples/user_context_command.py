@@ -8,8 +8,8 @@ client = discord.Client()
 # Make the application commands that should be added
 commands = [
     discord.ApplicationCommand(
-        name="ping",
-        description="Sends a pong response."
+        name="Get user avatar",
+        type=discord.ApplicationCommandType.user,
     ),
 ]
 
@@ -27,8 +27,9 @@ async def on_slash_command(interaction: discord.Interaction):
     """Send a response if the command is ping."""
 
     command_name = interaction.command_name
-    if command_name == "ping":
-        await interaction.response.send_message("Pong")
+    if command_name == "Get user avatar":
+        user = interaction.resolved.users[0]
+        await interaction.response.send_message(str(user.display_avatar.with_size(1024)))
 
 
 async def main():

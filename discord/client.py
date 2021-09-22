@@ -1544,7 +1544,7 @@ class Client:
         return state.add_dm_channel(data)
 
     async def register_application_commands(
-            self, commands: List[ApplicationCommand], *, guild: Optional[Guild] = None) -> List[ApplicationCommand]:
+            self, commands: List[ApplicationCommand], *, guild: Optional[Snowflake] = None) -> List[ApplicationCommand]:
         """|coro|
 
         Register the bot's commands as application and slash commands. Providing ``None`` or an empty list
@@ -1554,7 +1554,7 @@ class Client:
         -----------
         commands: List[:class:`ApplicationCommand`]
             A list of commands that you want to register in Discord.
-        guild: Optional[:class:`discord.Guild`]
+        guild: Optional[:class:`~discord.abc.Snowflake`]
             The guild that the commands should be registered to.
 
         Returns
