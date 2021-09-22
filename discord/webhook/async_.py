@@ -344,11 +344,10 @@ class AsyncWebhookAdapter:
 
     def create_interaction_response(
         self,
-        interaction_id: int,
+        interaction_id: Snowflake,
         token: str,
         *,
         session: aiohttp.ClientSession,
-        type: int,
         payload: Optional[Dict[str, Any]] = None,
         multipart = None,
         files = None,

@@ -1730,23 +1730,19 @@ class HTTPClient:
         interaction_id: Snowflake,
         token: str,
         *,
-        type: InteractionResponseType,
-        data: Optional[interactions.InteractionApplicationCommandCallbackData] = None,
+        session: aiohttp.ClientSession,
+        payload: Optional[Dict[str, Any]] = None,
+        multipart = None,
+        files = None,
     ) -> Response[None]:
-        r = Route(
+
+        route = Route(
             'POST',
-            '/interactions/{interaction_id}/{interaction_token}/callback',
-            interaction_id=interaction_id,
-            interaction_token=token,
+            '/interactions/{webhook_id}/{webhook_token}/callback',
+            webhook_id=interaction_id,
+            webhook_token=token,
         )
-        payload: Dict[str, Any] = {
-            'type': type,
-        }
-
-        if data is not None:
-            payload['data'] = data
-
-        return self.request(r, json=payload)
+        return self.request(route, session=session, payload=payload, files=files, multipart=multipart)
 
     def get_original_interaction_response(
         self,
