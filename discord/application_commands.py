@@ -6,6 +6,7 @@ from .enums import (
     ApplicationCommandOptionType,
     ApplicationCommandType,
 )
+from .channel import _channel_factory
 
 
 ApplicationCommandOptionChoiceValue = Union[str, int]
@@ -64,18 +65,28 @@ class ApplicationCommandOption(object):
         A list of choices that this command can take.
     options: List[:class:`ApplicationCommandOption`]
         A list of options that go into the application command.
+    channel_types: :class:`list`
+        A list of channel types that the option accepts.
+
+        .. versionadded:: 0.0.4
     """
 
     def __init__(
             self, name: str, type: ApplicationCommandOptionType, description: str,
             default: Optional[str] = None, required: bool = True):
         """
-        Args:
-            name (str): The name of this option.
-            type (ApplicationCommandOptionType): The type of this command option.
-            description (str): The description given to this argument.
-            default (Any): The default value given to the command option.
-            required (bool): Whether or not this option is required for the command to run.
+        Parameters
+        -----------
+        name: :class:`str`
+            The name of this option.
+        type: :class:`ApplicationCommandOptionType`
+            The type of this command option.
+        description: :class:`str`
+            The description given to this argument.
+        default: :class:`str`
+            The default value given to the command option.
+        required: :class:`bool`
+            Whether or not this option is required for the command to run.
         """
 
         self.name: str = name
@@ -85,6 +96,7 @@ class ApplicationCommandOption(object):
         self.required: bool = required
         self.choices: List[ApplicationCommandOptionChoice] = list()
         self.options: List['ApplicationCommandOption'] = list()
+        self.channel_types: list = list()
 
     def add_choice(self, choice: ApplicationCommandOptionChoice) -> None:
         """
@@ -123,12 +135,21 @@ class ApplicationCommandOption(object):
             "default": self.default,
             "required": self.required,
             "choices": [i.to_json() for i in self.choices],
-            "options": [i.to_json() for i in self.options],
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
             payload.pop("required")
             payload.pop("default")
             payload.pop("choices")
+            payload.pop("channel_types")
+        else:
+            counter = 0
+            channel_types = []
+            while len(channel_types) != len(self.channel_types) and counter < 50:
+                t, _ = _channel_factory(counter)
+                if t in self.channel_types:
+                    channel_types.append(counter)
+                counter += 1
+            payload["channel_types"] = channel_types
         return payload
 
 

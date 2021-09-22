@@ -1199,12 +1199,18 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 description=self.short_doc or self.name,
             )
         for name, arg in self.clean_params.items():
-            command.add_option(ApplicationCommandOption(
+            option = ApplicationCommandOption(
                 name=name,
                 description=self.param_descriptions.get(name, name),
                 type=try_application_command_option_type(arg),
                 required=arg.default == inspect.Signature.empty,
-            ))
+            )
+            if option.type == ApplicationCommandOptionType.channel:
+                channel_types = [arg.annotation]
+                if getattr(arg.annotation, "__origin__", None) is Union:
+                    channel_types = arg.annotation.__args__
+                option.channel_types = channel_types
+            command.add_option(option)
         return command
 
 
