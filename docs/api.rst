@@ -606,7 +606,16 @@ to handle it, which defaults to print a traceback and ignoring the exception.
 
 .. function:: on_component_interaction(interaction)
 
-    Called when a component interaction is parsed
+    Called when a component interaction is parsed.
+
+    :param interaction: The interaction data.
+    :type interaction: :class:`Interaction`
+
+.. function:: on_autocomplete_interaction(interaction)
+
+    Called when an autocomplete interaction is parsed and sent to the bot.
+
+    .. versionadded:: 0.0.4
 
     :param interaction: The interaction data.
     :type interaction: :class:`Interaction`

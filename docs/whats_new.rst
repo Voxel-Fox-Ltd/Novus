@@ -21,6 +21,10 @@ New Features
 
 * Add :attr:`ApplicationCommandOption.channel_types`.
 * Add ``files`` parameter to :func:`InteractionResponse.send`.
+* Add support for autocomplete.
+    * Add :attr:`ApplicationCommandOption.autocomplete`.
+    * Add :attr:`Interaction.options`.
+    * Add :func:`on_autocomplete_interaction` and :func:`commands.Bot.on_autocomplete` events.
 
 .. _vp0_0_3:
 

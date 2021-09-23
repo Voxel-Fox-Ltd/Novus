@@ -179,6 +179,11 @@ class Interaction:
         The raw interaction data.
     resolved: :class:`InteractionResolved`
         The resolved interaction data.
+    options: Optional[List[:class:`dict`]]
+        When the interaction is an autocomplete type, ``options`` will be a list of
+        user-filled items.
+
+        .. versionadded:: 0.0.4
     """
 
     __slots__: Tuple[str, ...] = (
@@ -203,6 +208,7 @@ class Interaction:
         '_cs_followup',
         '_cs_channel',
         '_cs_command_name',
+        'options',
     )
 
     def __init__(self, *, data: InteractionPayload, state: ConnectionState):
@@ -239,6 +245,11 @@ class Interaction:
             self.values = data['data']['values']
         except KeyError:
             self.values = None
+
+        try:
+            self.options = data['options']
+        except KeyError:
+            self.options = None
 
         self.user: Optional[Union[User, Member]] = None
         self._permissions: int = 0

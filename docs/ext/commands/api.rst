@@ -100,6 +100,18 @@ are custom to the command extension module.
     :param ctx: The invocation context.
     :type ctx: :class:`.Context`
 
+.. function:: discord.ext.commands.on_autocomplete(ctx, interaction)
+
+    An event called when a command receives an autocomplete interaction. This is called
+    *in addition to* the :func:`on_autocomplete_interaction` event.
+
+    .. versionadded:: 0.0.4
+
+    :param ctx: The invocation context.
+    :type ctx: :class:`.Context`
+    :param interaction: The interaction data, the same as in ``Context.interaction``.
+    :type interaction: :class:`Interaction`
+
 .. _ext_commands_api_command:
 
 Commands
