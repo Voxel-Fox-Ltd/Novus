@@ -69,11 +69,16 @@ class ApplicationCommandOption(object):
         A list of channel types that the option accepts.
 
         .. versionadded:: 0.0.4
+    autocomplete: :class:`bool`
+        Whether or not the user typing this option should send autocomplete
+        interaction payloads.
+
+        .. versionadded:: 0.0.4
     """
 
     def __init__(
             self, name: str, type: ApplicationCommandOptionType, description: str,
-            default: Optional[str] = None, required: bool = True):
+            default: Optional[str] = None, required: bool = True, autocomplete: bool = False):
         """
         Parameters
         -----------
@@ -87,6 +92,11 @@ class ApplicationCommandOption(object):
             The default value given to the command option.
         required: :class:`bool`
             Whether or not this option is required for the command to run.
+        autocomplete: :class:`bool`
+            Whether or not the user typing this option should send autocomplete
+            interaction payloads.
+
+            .. versionadded:: 0.0.4
         """
 
         self.name: str = name
@@ -97,6 +107,7 @@ class ApplicationCommandOption(object):
         self.choices: List[ApplicationCommandOptionChoice] = list()
         self.options: List['ApplicationCommandOption'] = list()
         self.channel_types: list = list()
+        self.autocomplete: bool = autocomplete
 
     def add_choice(self, choice: ApplicationCommandOptionChoice) -> None:
         """
@@ -120,11 +131,15 @@ class ApplicationCommandOption(object):
             description=data['description'],
             default=data.get('default', None),
             required=data.get('required', False),
+            autocomplete=data.get('autocomplete', False),
         )
         for choice in data.get('choices', list()):
             base_option.add_choice(ApplicationCommandOptionChoice.from_data(choice))
         for option in data.get('options', list()):
             base_option.add_option(cls.from_data(option))
+        for channel_type in data.get('channel_types', list()):
+            channel, _ = _channel_factory(channel_type)
+            base_option.channel_types.append(channel)
         return base_option
 
     def to_json(self) -> dict:
@@ -134,6 +149,7 @@ class ApplicationCommandOption(object):
             "description": self.description,
             "default": self.default,
             "required": self.required,
+            "autocomplete": self.autocomplete,
             "choices": [i.to_json() for i in self.choices],
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
@@ -141,6 +157,7 @@ class ApplicationCommandOption(object):
             payload.pop("default")
             payload.pop("choices")
             payload.pop("channel_types")
+            payload.pop("autocomplete")
         else:
             counter = 0
             channel_types = []

@@ -31,6 +31,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, Union
 import asyncio
 import json
 
+import aiohttp
 from aiohttp import web
 
 from . import utils
@@ -534,10 +535,20 @@ class InteractionResponse:
         if ephemeral:
             data = {'flags': 64}
 
+        if data:
+            data = {
+                "type": defer_type,
+                "data": data,
+            }
+        else:
+            data = {
+                "type": defer_type,
+            }
+
         if defer_type:
             adapter = async_context.get()
             await adapter.create_interaction_response(
-                parent.id, parent.token, session=parent._session, type=defer_type, data=data
+                parent.id, parent.token, session=parent._session, payload=data
             )
             self._responded = True
 
@@ -566,10 +577,14 @@ class InteractionResponse:
         parent = self._parent
         defer_type = InteractionResponseType.deferred_message_update.value
 
+        data = {
+            "type": InteractionResponseType.deferred_channel_message.value,
+        }
+
         if defer_type:
             adapter = async_context.get()
             await adapter.create_interaction_response(
-                parent.id, parent.token, session=parent._session, type=defer_type, data=data
+                parent.id, parent.token, session=parent._session, payload=data
             )
             self._responded = True
 
@@ -590,11 +605,15 @@ class InteractionResponse:
         if self._responded:
             raise InteractionResponded(self._parent)
 
+        data = {
+            "type": InteractionResponseType.pong.value,
+        }
+
         parent = self._parent
         if parent.type is InteractionType.ping:
             adapter = async_context.get()
             await adapter.create_interaction_response(
-                parent.id, parent.token, session=parent._session, type=InteractionResponseType.pong.value
+                parent.id, parent.token, session=parent._session, payload=data,
             )
             self._responded = True
 
@@ -626,7 +645,9 @@ class InteractionResponse:
         parent = self._parent
         payload = {
             "type": InteractionResponseType.autocomplete.value,
-            "options": [i.to_json() for i in options or list()],
+            "data": {
+                "choices": [i.to_json() for i in options or list()],
+            },
         }
 
         adapter = async_context.get()
@@ -634,7 +655,6 @@ class InteractionResponse:
             parent.id,
             parent.token,
             session=parent._session,
-            type=InteractionResponseType.autocomplete.value,
             payload=payload,
         )
 
@@ -715,7 +735,6 @@ class InteractionResponse:
             parent.id,
             parent.token,
             session=parent._session,
-            type=InteractionResponseType.channel_message.value,
             payload=params.payload,
             multipart=params.multipart,
             files=params.files,
@@ -811,13 +830,17 @@ class InteractionResponse:
             elif parent_state.allowed_mentions is not None:
                 payload['allowed_mentions'] = parent_state.allowed_mentions.to_dict()
 
+        payload = {
+            "type": InteractionResponseType.message_update.value,
+            "data": payload,
+        }
+
         adapter = async_context.get()
         await adapter.create_interaction_response(
             parent.id,
             parent.token,
             session=parent._session,
-            type=InteractionResponseType.message_update.value,
-            data=payload,
+            payload=payload,
         )
 
         self._responded = True
@@ -944,6 +967,8 @@ class HTTPInteractionResponse(InteractionResponse):
         *,
         embed: Embed = MISSING,
         embeds: List[Embed] = MISSING,
+        file: File = MISSING,
+        files: List[File] = MISSING,
         components: MessageComponents = MISSING,
         tts: bool = False,
         ephemeral: bool = False,
@@ -963,6 +988,11 @@ class HTTPInteractionResponse(InteractionResponse):
         embed: :class:`Embed`
             The rich embed for the content to send. This cannot be mixed with
             ``embeds`` parameter.
+        file: :class:`File`
+            The file to upload. This cannot be mixed with ``files`` parameter.
+        files: List[:class:`File`]
+            A list of files to send with the content. This cannot be mixed with the
+            ``file`` parameter.
         tts: :class:`bool`
             Indicates if the message should be sent using text-to-speech.
         components: :class:`discord.ui.MessageComponents`
@@ -986,48 +1016,82 @@ class HTTPInteractionResponse(InteractionResponse):
         if self._responded:
             raise InteractionResponded(self._parent)
 
-        payload: Dict[str, Any] = {
-            'tts': tts,
-        }
+        params = handle_message_parameters(
+            content=content,
+            tts=tts,
+            file=file,
+            files=files,
+            embed=embed,
+            embeds=embeds,
+            ephemeral=ephemeral,
+            components=components,
+            allowed_mentions=allowed_mentions,
+            previous_allowed_mentions=parent._state.allowed_mentions,
+            type=InteractionResponseType.channel_message.value,
+        )
 
-        if embed is not MISSING and embeds is not MISSING:
-            raise TypeError('cannot mix embed and embeds keyword arguments')
+        payload = params.payload
+        multipart = params.multipart
+        files = params.files
 
-        if embed is not MISSING:
-            embeds = [embed]
+        headers = {}
+        to_send = None
+        if payload is not None:
+            headers['Content-Type'] = 'application/json'
+            to_send = utils._to_json(payload).encode()
 
-        if embeds:
-            if len(embeds) > 10:
-                raise ValueError('embeds cannot exceed maximum of 10 elements')
-            payload['embeds'] = [e.to_dict() for e in embeds]
+        for file in files:
+            file.reset(seek=0)
 
-        if content is not None:
-            payload['content'] = str(content)
+        if multipart:
+            form_data = aiohttp.FormData()
+            for p in multipart:
+                form_data.add_field(**p)
+            to_send = form_data()
 
-        if ephemeral:
-            payload['flags'] = 64
+        self._aiohttp_response.headers.update(headers)
+        await self._aiohttp_response.prepare(self._aiohttp_request)
+        await self._aiohttp_response.write(to_send)
+        await self._aiohttp_response.write_eof()
 
-        if components is not MISSING:
-            payload['components'] = components.to_dict()
+        self._responded = True
+
+    async def send_autocomplete(
+        self,
+        options: List[ApplicationCommandOptionChoice] = None,
+    ) -> None:
+        """|coro|
+
+        Responds to this interaction by sending a message.
+
+        Parameters
+        -----------
+        options: typing.List[:class:`ApplicationCommandOptionChoice`]
+            The options that you want to
+
+        Raises
+        -------
+        HTTPException
+            Sending the message failed.
+        ValueError
+            The length of ``options`` was invalid.
+        InteractionResponded
+            This interaction has already been responded to before.
+        """
+        if self._responded:
+            raise InteractionResponded(self._parent)
 
         parent = self._parent
-        parent_state = parent._state
-
-        if allowed_mentions is not None:
-            if parent_state.allowed_mentions is not None:
-                allowed_mentions = parent_state.allowed_mentions.merge(allowed_mentions).to_dict()
-            else:
-                allowed_mentions = allowed_mentions.to_dict()
-        else:
-            allowed_mentions = parent_state.allowed_mentions and parent_state.allowed_mentions.to_dict()
-
-        data = {
-            "type": InteractionResponseType.channel_message.value,
-            "data": payload,
+        payload = {
+            "type": InteractionResponseType.autocomplete.value,
+            "data": {
+                "choices": [i.to_json() for i in options or list()],
+            },
         }
+
         self._aiohttp_response.headers["Content-Type"] = "application/json"
         await self._aiohttp_response.prepare(self._aiohttp_request)
-        await self._aiohttp_response.write(json.dumps(data).encode())
+        await self._aiohttp_response.write(json.dumps(payload).encode())
         await self._aiohttp_response.write_eof()
 
         self._responded = True

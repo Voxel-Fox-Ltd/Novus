@@ -127,6 +127,8 @@ def get_interaction_route_table(bot: BotBase, application_public_key: str, *, pa
         # Respond
         if interaction.type == InteractionType.ping:
             await interaction.response.pong()
+        elif interaction.type == InteractionType.autocomplete:
+            bot.dispatch('autocomplete_interaction', interaction)
         elif interaction.component:
             bot.dispatch('component_interaction', interaction)
         else:

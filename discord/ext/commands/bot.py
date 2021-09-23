@@ -1113,6 +1113,12 @@ class BotBase(GroupMixin):
     async def on_slash_command(self, interaction):
         await self.process_slash_commands(interaction)
 
+    async def on_autocomplete_interaction(self, interaction: Interaction):
+        ctx = await self.get_slash_context(interaction)
+        if ctx.command is None:
+            return
+        await ctx.command.dispatch_autocomplete(ctx, interaction)
+
     async def register_application_commands(
             self, commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]] = MISSING,
             *, guild: Optional[discord.abc.Snowflake] = None) -> List[ApplicationCommand]:

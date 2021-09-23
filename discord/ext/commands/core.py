@@ -68,6 +68,7 @@ if TYPE_CHECKING:
         Check,
         Hook,
         Error,
+        Autocomplete,
     )
 
 
@@ -111,6 +112,7 @@ ContextT = TypeVar('ContextT', bound='Context')
 GroupT = TypeVar('GroupT', bound='Group')
 HookT = TypeVar('HookT', bound='Hook')
 ErrorT = TypeVar('ErrorT', bound='Error')
+AutocompleteT = TypeVar('AutocompleteT', bound='Autocomplete')
 
 if TYPE_CHECKING:
     P = ParamSpec('P')
@@ -246,6 +248,10 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
     param_descriptions: Optional[Dict[str, str]]
         Descriptions for each of the parameters that should be added to the
         application command description.
+    autocomplete_params: Optional[List[str]]
+        The names of the parameters that should have autocomplete enabled.
+
+        .. versionadded:: 0.0.4
     parent: Optional[:class:`Group`]
         The parent group that this command belongs to. ``None`` if there
         isn't one.
@@ -325,6 +331,8 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         self.enabled: bool = kwargs.get('enabled', True)
         self.add_slash_command: bool = kwargs.get('add_slash_command', True)
         self.param_descriptions: Dict[str, str] = kwargs.get('param_descriptions', dict())
+
+        self.autocomplete_params: List[str] = kwargs.get('autocomplete_params', list())
 
         help_doc = kwargs.get('help')
         if help_doc is not None:
@@ -494,6 +502,10 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             other.on_error = self.on_error
         except AttributeError:
             pass
+        try:
+            other.on_autocomplete = self.on_autocomplete
+        except AttributeError:
+            pass
         return other
 
     def copy(self: CommandT) -> CommandT:
@@ -538,6 +550,22 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                     await wrapped(ctx, error)
         finally:
             ctx.bot.dispatch('command_error', ctx, error)
+
+    async def dispatch_autocomplete(self, ctx: Context, interaction) -> None:
+        cog = self.cog
+        try:
+            coro = self.on_autocomplete
+        except AttributeError:
+            pass
+        else:
+            try:
+                injected = wrap_callback(coro)
+                if cog is not None:
+                    await injected(cog, ctx, interaction)
+                else:
+                    await injected(ctx, interaction)
+            except Exception:
+                pass
 
     async def transform(self, ctx: Context, param: inspect.Parameter) -> Any:
         required = param.default is param.empty
@@ -996,6 +1024,31 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         """
         return hasattr(self, 'on_error')
 
+    def autocomplete(self, coro: AutocompleteT) -> AutocompleteT:
+        """A decorator that registers a coroutine as an autocomplete handler.
+
+        Parameters
+        -----------
+        coro: :ref:`coroutine <coroutine>`
+            The coroutine to register as the autocomplete handler.
+
+        Raises
+        -------
+        TypeError
+            The coroutine passed is not actually a coroutine.
+        """
+
+        if not asyncio.iscoroutinefunction(coro):
+            raise TypeError('The autocomplete handler must be a coroutine.')
+
+        self.on_autocomplete: Autocomplete = coro
+        return coro
+
+    def has_autocomplete_handler(self) -> bool:
+        """:class:`bool`: Checks whether the command has an autocomplete handler registered.
+        """
+        return hasattr(self, 'on_autocomplete')
+
     def before_invoke(self, coro: HookT) -> HookT:
         """A decorator that registers a coroutine as a pre-invoke hook.
 
@@ -1204,6 +1257,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 description=self.param_descriptions.get(name, name),
                 type=try_application_command_option_type(arg),
                 required=arg.default == inspect.Signature.empty,
+                autocomplete=name in self.autocomplete_params,
             )
             if option.type == ApplicationCommandOptionType.channel:
                 channel_types = [arg.annotation]

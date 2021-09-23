@@ -47,7 +47,7 @@ from .channel import _channel_factory
 from .raw_models import *
 from .member import Member
 from .role import Role
-from .enums import ChannelType, try_enum, Status
+from .enums import ChannelType, try_enum, Status, InteractionType
 from . import utils
 from .flags import ApplicationFlags, Intents, MemberCacheFlags
 from .object import Object
@@ -686,6 +686,8 @@ class ConnectionState:
         interaction = Interaction(data=data, state=self)
         if interaction.component:
             self.dispatch('component_interaction', interaction)
+        elif interaction.type == InteractionType.autocomplete:
+            self.dispatch('autocomplete_interaction', interaction)
         else:
             self.dispatch('slash_command', interaction)
         self.dispatch('interaction', interaction)
