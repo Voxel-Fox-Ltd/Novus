@@ -857,6 +857,15 @@ class InteractionResponse:
         self._responded = True
 
 
+class _MultipartWriter(object):
+
+    def __init__(self):
+        self.buffer = bytearray()
+
+    async def write(self, data):
+        self.buffer.extend(data)
+
+
 class HTTPInteractionResponse(InteractionResponse):
     """Represents a Discord interaction response.
 
@@ -1037,7 +1046,7 @@ class HTTPInteractionResponse(InteractionResponse):
             ephemeral=ephemeral,
             components=components,
             allowed_mentions=allowed_mentions,
-            previous_allowed_mentions=parent._state.allowed_mentions,
+            previous_allowed_mentions=self._parent._state.allowed_mentions,
             type=InteractionResponseType.channel_message.value,
         )
 
@@ -1051,14 +1060,20 @@ class HTTPInteractionResponse(InteractionResponse):
             headers['Content-Type'] = 'application/json'
             to_send = utils._to_json(payload).encode()
 
-        for file in files:
+        for file in files or list():
             file.reset(seek=0)
 
         if multipart:
             form_data = aiohttp.FormData()
             for p in multipart:
                 form_data.add_field(**p)
-            to_send = form_data()
+            writer = _MultipartWriter()
+            payload = form_data()
+            await payload.write(writer)
+            to_send = writer.buffer
+            headers = payload.headers
+
+        assert to_send
 
         self._aiohttp_response.headers.update(headers)
         await self._aiohttp_response.prepare(self._aiohttp_request)
