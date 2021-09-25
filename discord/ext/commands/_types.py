@@ -27,7 +27,7 @@ from typing import Any, Callable, Coroutine, TYPE_CHECKING, TypeVar, Union
 
 
 if TYPE_CHECKING:
-    from .context import Context
+    from .context import Context, SlashContext
     from .cog import Cog
     from .errors import CommandError
     from ...interactions import Interaction
@@ -38,10 +38,11 @@ Coro = Coroutine[Any, Any, T]
 MaybeCoro = Union[T, Coro[T]]
 CoroFunc = Callable[..., Coro[Any]]
 
-Check = Union[Callable[["Cog", "Context[Any]"], MaybeCoro[bool]], Callable[["Context[Any]"], MaybeCoro[bool]]]
-Hook = Union[Callable[["Cog", "Context[Any]"], Coro[Any]], Callable[["Context[Any]"], Coro[Any]]]
-Error = Union[Callable[["Cog", "Context[Any]", "CommandError"], Coro[Any]], Callable[["Context[Any]", "CommandError"], Coro[Any]]]
-Autocomplete = Union[Callable[["Cog", "Context[Any]", "Interaction"], Coro[Any]], Callable[["Context[Any]", "Interaction"], Coro[Any]]]
+AnyContext = Union["Context[Any]", "SlashContext"]
+Check = Union[Callable[["Cog", AnyContext], MaybeCoro[bool]], Callable[[AnyContext], MaybeCoro[bool]]]
+Hook = Union[Callable[["Cog", AnyContext], Coro[Any]], Callable[[AnyContext], Coro[Any]]]
+Error = Union[Callable[["Cog", AnyContext, "CommandError"], Coro[Any]], Callable[[AnyContext, "CommandError"], Coro[Any]]]
+Autocomplete = Union[Callable[["Cog", "SlashContext", "Interaction"], Coro[Any]], Callable[["SlashContext", "Interaction"], Coro[Any]]]
 
 
 # This is merely a tag type to avoid circular import issues.
