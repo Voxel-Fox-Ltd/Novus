@@ -588,14 +588,11 @@ class InteractionResponse:
         parent = self._parent
         defer_type = InteractionResponseType.deferred_message_update.value
 
-        data = {
-            "type": InteractionResponseType.deferred_channel_message.value,
-        }
-
         if defer_type:
+            payload = {"type": defer_type}
             adapter = async_context.get()
             await adapter.create_interaction_response(
-                parent.id, parent.token, session=parent._session, payload=data
+                parent.id, parent.token, session=parent._session, payload=payload
             )
             self._responded = True
 
