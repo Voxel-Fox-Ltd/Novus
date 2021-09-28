@@ -151,6 +151,7 @@ class ApplicationCommandOption(object):
             "required": self.required,
             "autocomplete": self.autocomplete,
             "choices": [i.to_json() for i in self.choices],
+            "options": [i.to_json() for i in self.options],
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
             payload.pop("required", None)
