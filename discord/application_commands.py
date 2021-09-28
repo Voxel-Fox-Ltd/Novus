@@ -153,11 +153,11 @@ class ApplicationCommandOption(object):
             "choices": [i.to_json() for i in self.choices],
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
-            payload.pop("required")
-            payload.pop("default")
-            payload.pop("choices")
-            payload.pop("channel_types")
-            payload.pop("autocomplete")
+            payload.pop("required", None)
+            payload.pop("default", None)
+            payload.pop("choices", None)
+            payload.pop("channel_types", None)
+            payload.pop("autocomplete", None)
         else:
             counter = 0
             channel_types = []
