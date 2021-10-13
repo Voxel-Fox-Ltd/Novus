@@ -349,6 +349,9 @@ Checks
 .. autofunction:: discord.ext.commands.defer(*, ephemeral=False)
     :decorator:
 
+.. autofunction:: discord.ext.commands.is_slash_command(,)
+    :decorator:
+
 .. _ext_commands_api_context:
 
 Cooldown
@@ -634,6 +637,9 @@ Exceptions
     :members:
 
 .. autoexception:: discord.ext.commands.CommandRegistrationError
+    :members:
+
+.. autoexception:: discord.ext.commands.IsNotSlashCommand
     :members:
 
 Exception Hierarchy

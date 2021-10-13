@@ -98,6 +98,7 @@ __all__ = (
     'MissingFlagArgument',
     'TooManyFlags',
     'MissingRequiredFlag',
+    'IsNotSlashCommand',
 )
 
 class CommandError(DiscordException):
@@ -936,3 +937,11 @@ class MissingFlagArgument(FlagError):
     def __init__(self, flag: Flag) -> None:
         self.flag: Flag = flag
         super().__init__(f'Flag {flag.name!r} does not have an argument')
+
+
+class IsNotSlashCommand(CheckFailure):
+    """
+    The generic error for the bot failing the :func:`utils.checks.is_slash_command` check.
+
+    .. versionadded:: 0.0.4
+    """

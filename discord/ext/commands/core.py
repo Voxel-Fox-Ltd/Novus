@@ -2615,3 +2615,21 @@ def defer(*, ephemeral: bool = False):
         await ctx.defer(ephemeral=ephemeral)
         return True
     return check(predicate)
+
+
+def is_slash_command():
+    """
+    The check for whether or not the command was invoved from an application command
+    (as defined by `ctx` being an instance of :class:`discord.ext.commands.SlashContext`).
+
+    .. versionadded:: 0.0.4
+
+    Raises:
+        `IsNotSlashCommand`: If the command isn't being used in a slash command.
+    """
+
+    async def predicate(ctx: Union[Context, SlashContext]):
+        if isinstance(ctx, SlashContext):
+            return True
+        raise IsNotSlashCommand()
+    return check(predicate)
