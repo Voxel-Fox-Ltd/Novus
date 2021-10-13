@@ -96,49 +96,74 @@ class InteractionResolved:
         The messages that were mentioned in the interaction.
     """
 
+    __slots__ = (
+        "_interaction",
+        "_state",
+        "_cs_users",
+        "_cs_members",
+        "_cs_roles",
+        "_cs_channels",
+        "_cs_messages",
+        "_data",
+    )
+
     def __init__(self, *, interaction, data: dict, state: ConnectionState):
-        self.users: List[Union[User, Member]] = []
-        self.members: List[Member] = []
-        self.roles: List[Role] = []
-        self.channels: List[InteractionChannel] = []
-        self.messages: List[Message] = []
         self._interaction: Interaction = interaction
         self._state = state
-        self._from_data(data)
+        self._data = data
 
-    def _from_data(self, data: dict):
-
-        # Parse user data
-        user_data = data.get("users", dict())
-        member_data = data.get("members", dict())
+    @utils.cached_slot_property("_cs_users")
+    def users(self) -> List[Union[User, Member]]:
+        users = []
+        user_data = self._data.get("users", dict())
+        member_data = self._data.get("members", dict())
         for uid, d in member_data.items():
             d.update({"user": user_data.pop(uid)})
-        if self._interaction.guild:
-            self.members.extend(Member(data=d, state=self._state, guild=self._interaction.guild) for _, d in member_data.items())
-        self.users.extend(User(data=d, state=self._state) for _, d in user_data.items())
-        self.users.extend(self.members)
+        users.extend(User(data=d, state=self._state) for _, d in user_data.items())
+        return users
 
-        # Parse role data
-        if self._interaction.guild:
-            for rid, d in data.get("roles", dict()).items():
-                self.roles.append(Role(guild=self._interaction.guild, state=self._state, data=d))
+    @utils.cached_slot_property("_cs_members")
+    def members(self) -> List[Member]:
+        members = []
+        if not self._interaction.guild:
+            return []
+        user_data = self._data.get("users", dict())
+        member_data = self._data.get("members", dict())
+        for uid, d in member_data.items():
+            d.update({"user": user_data.pop(uid)})
+        members.extend(Member(data=d, state=self._state, guild=self._interaction.guild) for _, d in member_data.items())
+        return members
 
-        # Parse channel data
-        for cid, d in data.get("channels", dict()).items():
+    @utils.cached_slot_property("_cs_roles")
+    def roles(self) -> List[Role]:
+        roles = []
+        if self._interaction.guild:
+            for rid, d in self._data.get("roles", dict()).items():
+                roles.append(Role(guild=self._interaction.guild, state=self._state, data=d))
+        return roles
+
+    @utils.cached_slot_property("_cs_channels")
+    def channels(self) -> List[InteractionChannel]:
+        channels = []
+        for cid, d in self._data.get("channels", dict()).items():
             factory, ch_type = _threaded_channel_factory(d['type'])
             if factory is None:
                 raise InvalidData('Unknown channel type {type} for channel ID {id}.'.format_map(d))
             if ch_type in (ChannelType.group, ChannelType.private):
-                channel = factory(me=self.user, data=data, state=self._connection) # type: ignore
+                channel = factory(me=self.user, data=d, state=self._connection) # type: ignore
             else:
-                guild_id = int(data['guild_id']) # type: ignore
+                guild_id = int(self._data['guild_id']) # type: ignore
                 guild = self._interaction.guild
-                channel = factory(guild=guild, state=self._connection, data=data) # type: ignore
+                channel = factory(guild=guild, state=self._connection, data=d) # type: ignore
             self.channels.append(channel)
+        return channels
 
-        # Parse messages
-        for mid, d in data.get("messages", dict()).items():
+    @utils.cached_slot_property("_cs_messages")
+    def messages(self) -> List[Message]:
+        messages = []
+        for _, d in self._data.get("messages", dict()).items():
             self.messages.append(Message(state=self._state, channel=self._interaction.channel, data=d))
+        return messages
 
 
 class Interaction:
@@ -199,7 +224,7 @@ class Interaction:
         'user',
         'token',
         'version',
-        'resolved',
+        '_cs_resolved',
         '_permissions',
         '_state',
         '_session',
@@ -270,8 +295,9 @@ class Interaction:
             except KeyError:
                 pass
 
-        # Parse the resolved data
-        self.resolved = InteractionResolved(interaction=self, data=(self.data or {}).copy().get("resolved", dict()), state=self._state)
+    @utils.cached_slot_property('_cs_resolved')
+    def resolved(self) -> InteractionResolved:
+        return InteractionResolved(interaction=self, data=(self.data or {}).copy().get("resolved", dict()), state=self._state)
 
     @utils.cached_slot_property('_cs_command_name')
     def command_name(self) -> Optional[str]:
