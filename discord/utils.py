@@ -273,7 +273,7 @@ def oauth_url(
     redirect_uri: str = MISSING,
     scopes: Iterable[str] = MISSING,
     disable_guild_select: bool = False,
-    response_type: Optional[str] = "code",
+    response_type: Optional[str] = "",
 ) -> str:
     """A helper function that returns the OAuth2 URL for inviting the bot
     into guilds.
