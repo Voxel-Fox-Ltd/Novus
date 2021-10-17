@@ -25,6 +25,12 @@ New Features
     * Add :attr:`ApplicationCommandOption.autocomplete`.
     * Add :attr:`Interaction.options`.
     * Add :func:`on_autocomplete_interaction` and :func:`commands.Bot.on_autocomplete` events.
+* Add ``ignore_spaces`` kwarg to ``Bot.get_command``.
+* Add :func:`MessageComponents.add_number_buttons`.
+* Add :func:`Button.confirm` and :func:`Button.cancel`.
+* Add ``options`` kwarg to `ApplicationCommand`.
+* Add :attr:`Interaction.command_name`.
+* Add :attr:`ApplicationCommandOption.channel_types`.
 
 .. _vp0_0_3:
 
