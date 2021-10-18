@@ -155,14 +155,14 @@ class InteractionResolved:
                 guild_id = int(self._data['guild_id']) # type: ignore
                 guild = self._interaction.guild
                 channel = factory(guild=guild, state=self._connection, data=d) # type: ignore
-            self.channels.append(channel)
+            channels.append(channel)
         return channels
 
     @utils.cached_slot_property("_cs_messages")
     def messages(self) -> List[Message]:
         messages = []
         for _, d in self._data.get("messages", dict()).items():
-            self.messages.append(Message(state=self._state, channel=self._interaction.channel, data=d))
+            messages.append(Message(state=self._state, channel=self._interaction.channel, data=d))
         return messages
 
 
