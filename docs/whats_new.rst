@@ -31,6 +31,21 @@ New Features
 * Add ``options`` kwarg to `ApplicationCommand`.
 * Add :attr:`Interaction.command_name`.
 * Add :attr:`ApplicationCommandOption.channel_types`.
+* Add ``@is_slash_command`` check.
+
+Changed Features
+~~~~~~~~~~~~~~~~~~~
+
+* Change default response type to nothing.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~
+
+* Fix adding slash commands which we say not to add.
+* Fix component deferring.
+* Fix popping non-existent keys.
+* Re-add options to ApplicationCommandOption export.
+* Fix reccursion error in interactionresolved.
 
 .. _vp0_0_3:
 
