@@ -31,10 +31,6 @@ from .models import DisableableComponent
 from ..enums import ButtonStyle, ComponentType
 from ..partial_emoji import PartialEmoji, _EmojiTag
 
-__all__ = (
-    'Button',
-)
-
 if TYPE_CHECKING:
     from ..emoji import Emoji
     from ..types.components import (
