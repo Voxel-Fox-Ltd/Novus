@@ -659,6 +659,8 @@ class InteractionResponse:
 
         Responds to this interaction by sending a message.
 
+        .. versionadded:: 0.0.4
+
         Parameters
         -----------
         options: typing.List[:class:`ApplicationCommandOptionChoice`]

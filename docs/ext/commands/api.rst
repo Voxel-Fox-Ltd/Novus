@@ -148,6 +148,11 @@ Command
     .. automethod:: Command.error()
         :decorator:
 
+    .. automethod:: Command.autocomplete()
+        :decorator:
+
+        .. seealso:: This uses the same arguments as :func:`on_autocomplete`.
+
 ContextMenuCommand
 ~~~~~~~~~~~~~~~~~~~
 

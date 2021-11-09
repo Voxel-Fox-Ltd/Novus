@@ -100,6 +100,7 @@ __all__ = (
     'has_guild_permissions',
     'bot_has_guild_permissions',
     'defer',
+    'is_slash_command',
 )
 
 MISSING: Any = discord.utils.MISSING

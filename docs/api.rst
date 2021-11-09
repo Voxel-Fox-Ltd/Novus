@@ -1046,6 +1046,13 @@ to handle it, which defaults to print a traceback and ignoring the exception.
     :param invite: The invite that was deleted.
     :type invite: :class:`Invite`
 
+.. function:: on_autocomplete_interaction(interaction)
+
+    Called when Discord gives you an autocomplete :class:`Interaction`.
+
+    :param interaction: The interaction that was given back to you.
+    :type interaction: :class:`Interaction`
+
 .. function:: on_group_join(channel, user)
               on_group_remove(channel, user)
 
