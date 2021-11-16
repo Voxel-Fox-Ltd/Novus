@@ -1902,7 +1902,7 @@ class HTTPClient:
         params: Dict[str, Any] = {}
         if with_user_count:
             params['with_user_count'] = 'true'
-        return self.bot.http.request(r, params=params)
+        return self.request(r, params=params)
 
     def create_scheduled_events(
         self, guild_id: Snowflake, payload: Dict[str, Any]) -> Response[None]: # No class yet, Response[None] for now
