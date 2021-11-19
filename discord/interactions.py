@@ -664,7 +664,7 @@ class InteractionResponse:
         Parameters
         -----------
         options: typing.List[:class:`ApplicationCommandOptionChoice`]
-            The options that you want to
+            The options that you want to send back to Discord.
 
         Raises
         -------
@@ -1118,7 +1118,7 @@ class HTTPInteractionResponse(InteractionResponse):
         Parameters
         -----------
         options: typing.List[:class:`ApplicationCommandOptionChoice`]
-            The options that you want to
+            The options that you want to send back to Discord.
 
         Raises
         -------
