@@ -252,12 +252,14 @@ class Interaction:
         self.guild_id: Optional[int] = utils._get_as_snowflake(data, 'guild_id')
         self.application_id: int = int(data['application_id'])
 
+        # Parse the message object
         self.message: Optional[Message]
         try:
             self.message = Message(state=self._state, channel=self.channel, data=data['message'])  # type: ignore
         except KeyError:
             self.message = None
 
+        # Parse the component
         try:
             if self.message:
                 self.component = self.message.components.get_component(data['data']['custom_id'])
@@ -266,16 +268,19 @@ class Interaction:
         except KeyError:
             self.component = None
 
+        # Parse the given values from the component
         try:
             self.values = data['data']['values']
         except KeyError:
             self.values = None
 
+        # Parse the returned options
         try:
-            self.options = data['options']
+            self.options = data['data']['options']
         except KeyError:
             self.options = None
 
+        # Parse the user and their permissions
         self.user: Optional[Union[User, Member]] = None
         self._permissions: int = 0
 
