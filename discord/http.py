@@ -1924,7 +1924,7 @@ class HTTPClient:
             guild_id=guild_id, scheduled_event_id=scheduled_event_id
         )
         return self.request(r, json=payload)
-    
+
     def delete_scheduled_event(
         self, guild_id: Snowflake, scheduled_event_id: Snowflake
     ) -> Response[None]:
