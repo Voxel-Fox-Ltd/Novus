@@ -1931,7 +1931,7 @@ class HTTPClient:
         r = Route('DELETE', '/guilds/{guild_id}/scheduled-events/{scheduled_event_id}',
             guild_id=guild_id, scheduled_event_id=scheduled_event_id
         )
-        return self.request(r, json=payload)
+        return self.request(r)
 
     def get_scheduled_event_users(
         self, guild_id: Snowflake, scheduled_event_id: Snowflake,
