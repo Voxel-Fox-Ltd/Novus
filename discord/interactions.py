@@ -704,7 +704,7 @@ class InteractionResponse:
 
     async def send_modal(
         self,
-        components: Modal,
+        modal: Modal,
     ) -> None:
         """|coro|
 
@@ -714,8 +714,8 @@ class InteractionResponse:
 
         Parameters
         -----------
-        components: Modal
-            The components that you want to send to the user.
+        modal: Modal
+            The modal that you want to send to the user.
 
         Raises
         -------
@@ -730,7 +730,7 @@ class InteractionResponse:
         parent = self._parent
         payload = {
             "type": InteractionResponseType.modal.value,
-            "data": components.to_dict(),
+            "data": modal.to_dict(),
         }
 
         adapter = async_context.get()
@@ -1196,7 +1196,7 @@ class HTTPInteractionResponse(InteractionResponse):
 
     async def send_modal(
         self,
-        components: Modal,
+        modal: Modal,
     ) -> None:
         """|coro|
 
@@ -1206,8 +1206,8 @@ class HTTPInteractionResponse(InteractionResponse):
 
         Parameters
         -----------
-        components: Modal
-            The components that you want to send to the user.
+        modal: Modal
+            The modal that you want to send to the user.
 
         Raises
         -------
@@ -1222,7 +1222,7 @@ class HTTPInteractionResponse(InteractionResponse):
         parent = self._parent
         payload = {
             "type": InteractionResponseType.modal.value,
-            "data": components.to_dict(),
+            "data": modal.to_dict(),
         }
 
         self._aiohttp_response.headers["Content-Type"] = "application/json"
