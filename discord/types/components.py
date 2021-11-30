@@ -85,7 +85,7 @@ class InputText(TypedDict):
     max_length: Optional[int]
 
 
-class ModalComponents(TypedDict):
+class Modal(TypedDict):
     title: str
     custom_id: str
     components: List[Component]

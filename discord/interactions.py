@@ -66,7 +66,7 @@ if TYPE_CHECKING:
     from .mentions import AllowedMentions
     from aiohttp import ClientSession
     from .embeds import Embed
-    from .ui.action_row import MessageComponents, ModalComponents
+    from .ui.action_row import MessageComponents, Modal
     from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, PartialMessageable
     from .threads import Thread
 
@@ -704,7 +704,7 @@ class InteractionResponse:
 
     async def send_modal(
         self,
-        components: ModalComponents,
+        components: Modal,
     ) -> None:
         """|coro|
 
@@ -714,7 +714,7 @@ class InteractionResponse:
 
         Parameters
         -----------
-        components: ModalComponents
+        components: Modal
             The components that you want to send to the user.
 
         Raises
@@ -1196,7 +1196,7 @@ class HTTPInteractionResponse(InteractionResponse):
 
     async def send_modal(
         self,
-        components: ModalComponents,
+        components: Modal,
     ) -> None:
         """|coro|
 
@@ -1206,7 +1206,7 @@ class HTTPInteractionResponse(InteractionResponse):
 
         Parameters
         -----------
-        components: ModalComponents
+        components: Modal
             The components that you want to send to the user.
 
         Raises
