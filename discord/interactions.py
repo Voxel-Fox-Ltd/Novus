@@ -261,7 +261,7 @@ class Interaction:
         except KeyError:
             self.message = None
             
-        # Data is important now
+        # The data that the interaction gave back to us - not optional, but documented as optional
         self.data: Optional[InteractionData] = payload.get('data')
 
         # Parse the component that triggered the interaction - this does NOT apply to modals
