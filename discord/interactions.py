@@ -246,7 +246,6 @@ class Interaction:
     def _from_data(self, data: InteractionPayload):
         self.id: Snowflake = int(data['id'])
         self.type: InteractionType = try_enum(InteractionType, data['type'])
-        self.data: Optional[InteractionData] = data.get('data')
         self.token: str = data['token']
         self.version: int = data['version']
         self.channel_id: Optional[int] = utils._get_as_snowflake(data, 'channel_id')
@@ -259,26 +258,29 @@ class Interaction:
             self.message = Message(state=self._state, channel=self.channel, data=data['message'])  # type: ignore
         except KeyError:
             self.message = None
+            
+        # Data is important now
+        self.data: Optional[InteractionData] = data.get('data')
 
         # Parse the component
         try:
             if self.message:
-                self.component = self.message.components.get_component(data['data']['custom_id'])  # type: ignore
+                self.component = self.message.components.get_component(self.data['custom_id'])  # type: ignore
             else:
                 self.component = None
-        except KeyError:
+        except (KeyError, AttributeError):
             self.component = None
 
         # Parse the given values from the component
         try:
-            self.values = data['values']  # type: ignore
-        except KeyError:
+            self.values = self.data['values']  # type: ignore
+        except (KeyError, AttributeError):
             self.values = None
 
         # Parse the returned options
         try:
-            self.options = data['options']  # type: ignore
-        except KeyError:
+            self.options = self.data['options']  # type: ignore
+        except (KeyError, AttributeError):
             self.options = None
 
         # Parse the user and their permissions
