@@ -221,6 +221,7 @@ class Interaction:
         'component',
         'values',
         'application_id',
+        'target_id',
         'message',
         'user',
         'token',
@@ -243,26 +244,27 @@ class Interaction:
         self._original_message: Optional[InteractionMessage] = None
         self._from_data(data)
 
-    def _from_data(self, data: InteractionPayload):
-        self.id: Snowflake = int(data['id'])
-        self.type: InteractionType = try_enum(InteractionType, data['type'])
-        self.token: str = data['token']
-        self.version: int = data['version']
-        self.channel_id: Optional[int] = utils._get_as_snowflake(data, 'channel_id')
-        self.guild_id: Optional[int] = utils._get_as_snowflake(data, 'guild_id')
-        self.application_id: int = int(data['application_id'])
+    def _from_data(self, payload: InteractionPayload):
+        self.id: Snowflake = int(payload['id'])
+        self.type: InteractionType = try_enum(InteractionType, payload['type'])
+        self.token: str = payload['token']
+        self.version: int = payload['version']
+        self.channel_id: Optional[int] = utils._get_as_snowflake(payload, 'channel_id')
+        self.guild_id: Optional[int] = utils._get_as_snowflake(payload, 'guild_id')
+        self.application_id: int = int(payload['application_id'])
+        self.target_id = payload.get("target_id")
 
         # Parse the message object
         self.message: Optional[Message]
         try:
-            self.message = Message(state=self._state, channel=self.channel, data=data['message'])  # type: ignore
+            self.message = Message(state=self._state, channel=self.channel, data=payload['message'])  # type: ignore
         except KeyError:
             self.message = None
             
         # Data is important now
-        self.data: Optional[InteractionData] = data.get('data')
+        self.data: Optional[InteractionData] = payload.get('data')
 
-        # Parse the component
+        # Parse the component that triggered the interaction - this does NOT apply to modals
         try:
             if self.message:
                 self.component = self.message.components.get_component(self.data['custom_id'])  # type: ignore
@@ -271,13 +273,13 @@ class Interaction:
         except (KeyError, AttributeError):
             self.component = None
 
-        # Parse the given values from the component
+        # Parse the given values from the component - this is only used by select components
         try:
             self.values = self.data['values']  # type: ignore
         except (KeyError, AttributeError):
             self.values = None
 
-        # Parse the returned options
+        # Parse the returned options from the user - this is used by all application commands (including autocorrect)
         try:
             self.options = self.data['options']  # type: ignore
         except (KeyError, AttributeError):
@@ -291,7 +293,7 @@ class Interaction:
         if self.guild_id:
             guild = self.guild or Object(id=self.guild_id)
             try:
-                member = data['member']  # type: ignore
+                member = payload['member']  # type: ignore
             except KeyError:
                 pass
             else:
@@ -299,7 +301,7 @@ class Interaction:
                 self._permissions = int(member.get('permissions', 0))
         else:
             try:
-                self.user = User(state=self._state, data=data['user'])
+                self.user = User(state=self._state, data=payload['user'])
             except KeyError:
                 pass
 
