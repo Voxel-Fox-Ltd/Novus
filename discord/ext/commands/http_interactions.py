@@ -127,12 +127,14 @@ def get_interaction_route_table(bot: BotBase, application_public_key: str, *, pa
         # Respond
         if interaction.type == InteractionType.ping:
             await interaction.response.pong()
+        elif interaction.type == InteractionType.application_command:
+            bot.dispatch('slash_command', interaction)
         elif interaction.type == InteractionType.autocomplete:
             bot.dispatch('autocomplete_interaction', interaction)
-        elif interaction.component:
+        elif interaction.type == InteractionType.component:
             bot.dispatch('component_interaction', interaction)
-        else:
-            bot.dispatch('slash_command', interaction)
+        elif interaction.type == InteractionType.modal_submit:
+            bot.dispatch('modal_submit', interaction)
         bot.dispatch("interaction", interaction)
 
         # Sleep for a couple seconds, just so we don't try and return without

@@ -684,13 +684,15 @@ class ConnectionState:
 
     def parse_interaction_create(self, data) -> None:
         interaction = Interaction(data=data, state=self)
-        if interaction.type == InteractionType.component:
-            self.dispatch('component_interaction', interaction)
+        if interaction.type == InteractionType.application_command:
+            self.dispatch('slash_command', interaction)
         elif interaction.type == InteractionType.autocomplete:
             self.dispatch('autocomplete_interaction', interaction)
-        elif interaction.type == InteractionType.application_command:
-            self.dispatch('slash_command', interaction)
-        self.dispatch('interaction', interaction)
+        elif interaction.type == InteractionType.component:
+            self.dispatch('component_interaction', interaction)
+        elif interaction.type == InteractionType.modal_submit:
+            self.dispatch('modal_submit', interaction)
+        self.dispatch("interaction", interaction)
 
     def parse_presence_update(self, data) -> None:
         guild_id = utils._get_as_snowflake(data, 'guild_id')

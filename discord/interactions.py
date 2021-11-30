@@ -58,6 +58,7 @@ if TYPE_CHECKING:
         Interaction as InteractionPayload,
         InteractionData,
     )
+    from .types.snowflake import Snowflake
     from .application_commands import ApplicationCommandOptionChoice
     from .guild import Guild
     from .state import ConnectionState
@@ -65,7 +66,7 @@ if TYPE_CHECKING:
     from .mentions import AllowedMentions
     from aiohttp import ClientSession
     from .embeds import Embed
-    from .ui.action_row import MessageComponents
+    from .ui.action_row import MessageComponents, ModalComponents
     from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, PartialMessageable
     from .threads import Thread
 
@@ -243,7 +244,7 @@ class Interaction:
         self._from_data(data)
 
     def _from_data(self, data: InteractionPayload):
-        self.id: int = int(data['id'])
+        self.id: Snowflake = int(data['id'])
         self.type: InteractionType = try_enum(InteractionType, data['type'])
         self.data: Optional[InteractionData] = data.get('data')
         self.token: str = data['token']
@@ -262,7 +263,7 @@ class Interaction:
         # Parse the component
         try:
             if self.message:
-                self.component = self.message.components.get_component(data['data']['custom_id'])
+                self.component = self.message.components.get_component(data['data']['custom_id'])  # type: ignore
             else:
                 self.component = None
         except KeyError:
@@ -270,13 +271,13 @@ class Interaction:
 
         # Parse the given values from the component
         try:
-            self.values = data['data']['values']
+            self.values = data['data']['values']  # type: ignore
         except KeyError:
             self.values = None
 
         # Parse the returned options
         try:
-            self.options = data['data']['options']
+            self.options = data['data']['options']  # type: ignore
         except KeyError:
             self.options = None
 
@@ -689,6 +690,47 @@ class InteractionResponse:
             "data": {
                 "choices": [i.to_json() for i in options or list()],
             },
+        }
+
+        adapter = async_context.get()
+        await adapter.create_interaction_response(
+            parent.id,
+            parent.token,
+            session=parent._session,
+            payload=payload,
+        )
+
+        self._responded = True
+
+    async def send_modal(
+        self,
+        components: ModalComponents,
+    ) -> None:
+        """|coro|
+
+        Reponds to the interaction by sending a modal back to the user.
+
+        .. versionadded:: 0.0.5
+
+        Parameters
+        -----------
+        components: ModalComponents
+            The components that you want to send to the user.
+
+        Raises
+        -------
+        HTTPException
+            Sending the message failed.
+        InteractionResponded
+            This interaction has already been responded to before.
+        """
+        if self._responded:
+            raise InteractionResponded(self._parent)
+
+        parent = self._parent
+        payload = {
+            "type": InteractionResponseType.modal.value,
+            "data": components.to_dict(),
         }
 
         adapter = async_context.get()
@@ -1143,6 +1185,44 @@ class HTTPInteractionResponse(InteractionResponse):
             "data": {
                 "choices": [i.to_json() for i in options or list()],
             },
+        }
+
+        self._aiohttp_response.headers["Content-Type"] = "application/json"
+        await self._aiohttp_response.prepare(self._aiohttp_request)
+        await self._aiohttp_response.write(json.dumps(payload).encode())
+        await self._aiohttp_response.write_eof()
+
+        self._responded = True
+
+    async def send_modal(
+        self,
+        components: ModalComponents,
+    ) -> None:
+        """|coro|
+
+        Reponds to the interaction by sending a modal back to the user.
+
+        .. versionadded:: 0.0.5
+
+        Parameters
+        -----------
+        components: ModalComponents
+            The components that you want to send to the user.
+
+        Raises
+        -------
+        HTTPException
+            Sending the message failed.
+        InteractionResponded
+            This interaction has already been responded to before.
+        """
+        if self._responded:
+            raise InteractionResponded(self._parent)
+
+        parent = self._parent
+        payload = {
+            "type": InteractionResponseType.modal.value,
+            "data": components.to_dict(),
         }
 
         self._aiohttp_response.headers["Content-Type"] = "application/json"

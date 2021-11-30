@@ -58,6 +58,7 @@ __all__ = (
     'NSFWLevel',
     'ApplicationCommandOptionType',
     'ApplicationCommandType',
+    'TextStyle',
 )
 
 
@@ -532,6 +533,7 @@ class InteractionType(Enum):
     application_command = 2
     component = 3
     autocomplete = 4
+    modal_submit = 5
 
 
 class InteractionResponseType(Enum):
@@ -543,6 +545,7 @@ class InteractionResponseType(Enum):
     deferred_message_update = 6  # for components
     message_update = 7  # for components
     autocomplete = 8  # for autocomplete responses
+    modal = 9  # for modal responses
 
 
 class VideoQualityMode(Enum):
@@ -557,6 +560,7 @@ class ComponentType(Enum):
     action_row = 1
     button = 2
     select_menu = 3
+    input_text = 4
 
     def __int__(self):
         return self.value
@@ -580,6 +584,16 @@ class ButtonStyle(Enum):
     def __int__(self):
         return self.value
 
+
+class TextStyle(Enum):
+    short = 1
+    paragraph = 2
+
+    # Alias
+    long = 2
+
+    def __int__(self):
+        return self.value
 
 class StagePrivacyLevel(Enum):
     public = 1

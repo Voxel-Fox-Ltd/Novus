@@ -25,11 +25,11 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
-from typing import List, Literal, TypedDict, Union
+from typing import List, Literal, TypedDict, Union, Optional
 from .emoji import PartialEmoji
 
-ComponentType = Literal[1, 2, 3]
-ButtonStyle = Literal[1, 2, 3, 4, 5]
+ComponentType = int
+ButtonStyle = int
 
 
 class ActionRow(TypedDict):
@@ -74,7 +74,24 @@ class SelectMenu(_SelectMenuOptional):
     options: List[SelectOption]
 
 
+class InputText(TypedDict):
+    type: Literal[4]
+    style: Literal[1, 2]
+    custom_id: str
+    label: str
+    placeholder: Optional[str]
+    options: List[SelectOption]
+    min_length: Optional[int]
+    max_length: Optional[int]
+
+
+class ModalComponents(TypedDict):
+    title: str
+    custom_id: str
+    components: List[Component]
+
+
 InteractionComponent = Union[Button, SelectMenu]
-LayoutComponent = Union[ActionRow]
+LayoutComponent = ActionRow
 Component = Union[InteractionComponent, LayoutComponent]
 MessageComponents = List[Component]

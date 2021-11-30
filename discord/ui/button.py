@@ -25,7 +25,7 @@ DEALINGS IN THE SOFTWARE.
 from __future__ import annotations
 
 import uuid
-from typing import Optional, TYPE_CHECKING, TypeVar, Union
+from typing import Optional, TYPE_CHECKING, Union
 
 from .models import DisableableComponent
 from ..enums import ButtonStyle, ComponentType
@@ -62,11 +62,11 @@ class Button(DisableableComponent):
 
     def __init__(
             self, *, label: Optional[str] = None, custom_id: Optional[str] = None,
-            style: Optional[ButtonStyle] = ButtonStyle.secondary,
+            style: Optional[ButtonStyle] = None,
             emoji: Optional[Union[str, Emoji, PartialEmoji]] = None, url: Optional[str] = None,
             disabled: Optional[bool] = False):
         self.label = label
-        self.style = style
+        self.style = style or ButtonStyle.secondary
         self.custom_id = custom_id or str(uuid.uuid1())
         if emoji is not None:
             if isinstance(emoji, str):

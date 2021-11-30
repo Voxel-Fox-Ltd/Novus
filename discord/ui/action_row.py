@@ -22,7 +22,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
+from __future__ import annotations
+
 import typing
+import uuid
 
 from .models import ComponentHolder
 from .button import Button, ButtonStyle
@@ -31,8 +34,12 @@ from ..components import _component_factory
 from ..types.components import (
     MessageComponents as MessageComponentsPayload,
     ActionRow as ActionRowPayload,
+    ModalComponents as ModalComponentsPayload,
 )
 from ..utils import MISSING
+
+if typing.TYPE_CHECKING:
+    from .models import BaseComponent
 
 
 class ActionRow(ComponentHolder):
@@ -172,3 +179,31 @@ class MessageComponents(ComponentHolder):
                 for i in numbers
             ]))
         return v
+
+
+class ModalComponents(ComponentHolder):
+    """
+    The component holder class for modal responses.
+
+    .. versionadded:: 0.0.5
+    """
+
+    def __init__(self, *, title: str, custom_id: str = None, components: typing.List[BaseComponent] = None):
+        self.title = title
+        self.custom_id = custom_id or str(uuid.uuid1())
+        self.components = components or []
+
+    def to_dict(self) -> ModalComponentsPayload:
+        return {
+            "title": self.title,
+            "custom_id": self.custom_id,
+            "components": [i.to_dict() for i in self.components],
+        }  # type: ignore
+
+    @classmethod
+    def from_dict(cls, data: ModalComponentsPayload):
+        new_components = []
+        for i in data['components']:
+            v = _component_factory(i)
+            new_components.append(v)
+        return cls(title=data['title'], custom_id=data['custom_id'], components=new_components)
