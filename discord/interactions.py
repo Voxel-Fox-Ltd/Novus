@@ -271,13 +271,13 @@ class Interaction:
 
         # Parse the given values from the component
         try:
-            self.values = data['data']['values']  # type: ignore
+            self.values = data['values']  # type: ignore
         except KeyError:
             self.values = None
 
         # Parse the returned options
         try:
-            self.options = data['data']['options']  # type: ignore
+            self.options = data['options']  # type: ignore
         except KeyError:
             self.options = None
 
