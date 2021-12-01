@@ -66,6 +66,8 @@ class SelectOption(BaseComponent):
                 self.emoji = PartialEmoji.from_str(emoji)
             elif isinstance(emoji, _EmojiTag):
                 self.emoji = emoji._to_partial()
+            elif isinstance(emoji, dict):
+                self.emoji = PartialEmoji(**emoji)
             else:
                 raise TypeError(f'expected emoji to be str, Emoji, or PartialEmoji not {emoji.__class__}')
         else:

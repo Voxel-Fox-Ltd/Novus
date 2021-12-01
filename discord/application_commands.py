@@ -1,12 +1,17 @@
-from typing import Any, Union, Optional, List
+from __future__ import annotations
 
-from .message import Message
-from .role import Role
+from typing import TYPE_CHECKING, Any, Union, Optional, List
+
 from .enums import (
     ApplicationCommandOptionType,
     ApplicationCommandType,
 )
 from .channel import _channel_factory
+
+if TYPE_CHECKING:
+    from .types.interactions import (
+        ApplicationCommandInteractionDataOption as ApplicationCommandInteractionDataOptionPayload,
+    )
 
 
 ApplicationCommandOptionChoiceValue = Union[str, int]
@@ -15,7 +20,49 @@ __all__ = (
     "ApplicationCommandOptionChoice",
     "ApplicationCommandOption",
     "ApplicationCommand",
+    "ApplicationCommandInteractionDataOption",
 )
+
+
+class ApplicationCommandInteractionDataOption(object):
+    """
+    A response from the API containing data from the user for a given interaction.
+
+    .. versionadded:: 0.0.5
+
+    Attributes
+    -------------
+    name: str
+        The name of the parameter.
+    type: ApplicationCommandOptionType
+        The application command option type.
+    value: Optional[str]
+        The value passed into the command form the user.
+    options: Optional[List[ApplicationCommandInteractionDataOption]]
+        Present if this is a group or subcommand.
+    focused: Optional[bool]
+        True if this option is the currently focused option for autocomplete.
+    """
+
+    __slots__ = (
+        "name",
+        "type",
+        "value",
+        "options",
+        "focused",
+    )
+
+    def __init__(self, payload: ApplicationCommandInteractionDataOptionPayload):
+        self.from_data(payload)
+
+    def from_data(self, payload: ApplicationCommandInteractionDataOptionPayload):
+        self.name: str = payload["name"]
+        self.type: ApplicationCommandOptionType = ApplicationCommandOptionType(payload["type"])
+        self.value: Optional[str] = payload.get("value")
+        self.options: Optional[List[ApplicationCommandInteractionDataOption]] = [
+            ApplicationCommandInteractionDataOption(i) for i in payload.get("options", [])
+        ] or None
+        self.focused: Optional[bool] = payload.get("focused")
 
 
 class ApplicationCommandOptionChoice(object):
@@ -105,7 +152,7 @@ class ApplicationCommandOption(object):
         self.default: Optional[str] = default
         self.required: bool = required
         self.choices: List[ApplicationCommandOptionChoice] = list()
-        self.options: List['ApplicationCommandOption'] = list()
+        self.options: List[ApplicationCommandOption] = list()
         self.channel_types: list = list()
         self.autocomplete: bool = autocomplete
 
@@ -116,7 +163,7 @@ class ApplicationCommandOption(object):
 
         self.choices.append(choice)
 
-    def add_option(self, option: 'ApplicationCommandOption') -> None:
+    def add_option(self, option: ApplicationCommandOption) -> None:
         """
         Add an option to this instance.
         """

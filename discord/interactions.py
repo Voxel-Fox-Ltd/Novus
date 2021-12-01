@@ -35,6 +35,7 @@ import aiohttp
 from aiohttp import web
 
 from . import utils
+from .application_commands import ApplicationCommandInteractionDataOption
 from .enums import try_enum, InteractionType, InteractionResponseType
 from .errors import InteractionResponded, HTTPException, ClientException, InvalidData
 from .channel import PartialMessageable, ChannelType, _threaded_channel_factory
@@ -45,6 +46,7 @@ from .message import Message, Attachment
 from .object import Object
 from .permissions import Permissions
 from .webhook.async_ import async_context, Webhook, handle_message_parameters
+from .ui.select_menu import SelectOption
 
 __all__ = (
     'Interaction',
@@ -66,7 +68,8 @@ if TYPE_CHECKING:
     from .mentions import AllowedMentions
     from aiohttp import ClientSession
     from .embeds import Embed
-    from .ui.action_row import MessageComponents, Modal
+    from .ui.action_row import MessageComponents
+    from .ui.modal import Modal
     from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, PartialMessageable
     from .threads import Thread
 
@@ -193,23 +196,31 @@ class Interaction:
         The component that was interacted with to spawn this interaction.
         This may be `None` if the interaction was created from a slash
         command.
-    values: Optional[List[:class:`str`]]
+    values: Optional[List[:class:`ui.SelectOption`]]
         The values that were passed back from the interaction. If this interaction
         did not give back any values then this will ne `None`. This is different from
         the values being an empty list - that would be the user did not
         provide any values for a valid component.
+
+        .. versionchanged:: 0.0.5
+            This is now a list of :class:`ui.SelectOption`s.
     token: :class:`str`
         The token to continue the interaction. These are valid
         for 15 minutes.
     data: :class:`dict`
-        The raw interaction data.
+        The raw interaction's data attribute.
     resolved: :class:`InteractionResolved`
         The resolved interaction data.
-    options: Optional[List[:class:`dict`]]
-        When the interaction is an autocomplete type, ``options`` will be a list of
-        user-filled items.
+    options: Optional[List[:class:`ApplicationCommandInteractionDataOption`]]
+        A list of options passed in from the interaction. For commands, this will be the options of
+        the command; for autocompletes this will be a list of the options (as filled by the user) for the
+        command.
 
         .. versionadded:: 0.0.4
+
+        .. versionchanged:: 0.0.5
+            Now is a list of :class:`ApplicationCommandInteractionDataOption` objects instead of a
+            raw dictionary.
     """
 
     __slots__: Tuple[str, ...] = (
@@ -240,7 +251,7 @@ class Interaction:
 
     def __init__(self, *, data: InteractionPayload, state: ConnectionState):
         self._state: ConnectionState = state
-        self._session: ClientSession = state.http._HTTPClient__session
+        self._session: ClientSession = state.http._HTTPClient__session  # type: ignore
         self._original_message: Optional[InteractionMessage] = None
         self._from_data(data)
 
@@ -262,6 +273,7 @@ class Interaction:
             self.message = None
             
         # The data that the interaction gave back to us - not optional, but documented as optional
+        # This contains all the data ABOUT the interaction that's given back to us
         self.data: Optional[InteractionData] = payload.get('data')
 
         # Parse the component that triggered the interaction - this does NOT apply to modals
@@ -274,16 +286,12 @@ class Interaction:
             self.component = None
 
         # Parse the given values from the component - this is only used by select components
-        try:
-            self.values = self.data['values']  # type: ignore
-        except (KeyError, AttributeError):
-            self.values = None
+        if self.data and 'values' in self.data:
+            self.values = self.data['values']
 
         # Parse the returned options from the user - this is used by all application commands (including autocorrect)
-        try:
-            self.options = self.data['options']  # type: ignore
-        except (KeyError, AttributeError):
-            self.options = None
+        if self.data and 'options' in self.data:
+            self.options = [ApplicationCommandInteractionDataOption(i) for i in self.data['options']]
 
         # Parse the user and their permissions
         self.user: Optional[Union[User, Member]] = None

@@ -26,7 +26,7 @@ from __future__ import annotations
 
 from typing import Optional, TYPE_CHECKING, Dict, TypedDict, Union, List, Literal
 from .snowflake import Snowflake
-from .components import Component, ComponentType
+from .components import Component, SelectOption
 from .embed import Embed
 from .channel import ChannelType, Channel
 from .member import Member
@@ -39,31 +39,26 @@ if TYPE_CHECKING:
 
 ApplicationCommandType = Literal[1, 2, 3]
 
-class _ApplicationCommandOptional(TypedDict, total=False):
-    options: List[ApplicationCommandOption]
-    type: ApplicationCommandType
 
-
-class ApplicationCommand(_ApplicationCommandOptional):
+class ApplicationCommand(TypedDict):
     id: Snowflake
     application_id: Snowflake
     name: str
     description: str
-
-
-class _ApplicationCommandOptionOptional(TypedDict, total=False):
-    choices: List[ApplicationCommandOptionChoice]
-    options: List[ApplicationCommandOption]
+    options: Optional[List[ApplicationCommandOption]]
+    type: Optional[ApplicationCommandType]
 
 
 ApplicationCommandOptionType = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 
-class ApplicationCommandOption(_ApplicationCommandOptionOptional):
+class ApplicationCommandOption(TypedDict):
     type: ApplicationCommandOptionType
     name: str
     description: str
     required: bool
+    choices: Optional[List[ApplicationCommandOptionChoice]]
+    options: Optional[List[ApplicationCommandOption]]
 
 
 class ApplicationCommandOptionChoice(TypedDict):
@@ -154,28 +149,27 @@ class ApplicationCommandInteractionDataResolved(TypedDict, total=False):
     channels: Dict[Snowflake, ApplicationCommandResolvedPartialChannel]
 
 
-class _ApplicationCommandInteractionDataOptional(TypedDict, total=False):
+class ApplicationCommandInteractionDataOption(TypedDict):
+    name: str
+    type: int
+    value: Optional[str]  # Optional[ApplicationCommandOptionType]
+    options: Optional[ApplicationCommandInteractionDataOption]
+    focused: Optional[bool]
+
+
+class _InteractionDataOptional(TypedDict, total=False):
+    resolved: Dict[str, dict]
     options: List[ApplicationCommandInteractionDataOption]
-    resolved: ApplicationCommandInteractionDataResolved
+    custom_id: str
+    component_type: int
+    values: List[SelectOption]
     target_id: Snowflake
-    type: ApplicationCommandType
 
 
-class ApplicationCommandInteractionData(_ApplicationCommandInteractionDataOptional):
+class InteractionData(_InteractionDataOptional):
     id: Snowflake
     name: str
-
-
-class _ComponentInteractionDataOptional(TypedDict, total=False):
-    values: List[str]
-
-
-class ComponentInteractionData(_ComponentInteractionDataOptional):
-    custom_id: str
-    component_type: ComponentType
-
-
-InteractionData = Union[ApplicationCommandInteractionData, ComponentInteractionData]
+    type: ApplicationCommandType
 
 
 class InteractionResolved(TypedDict):
