@@ -23,6 +23,8 @@ DEALINGS IN THE SOFTWARE.
 """
 
 from __future__ import annotations
+
+import io
 from typing import Any, Dict, List, Optional, TypeVar, Union, overload, TYPE_CHECKING
 
 from .permissions import Permissions
@@ -30,6 +32,9 @@ from .errors import InvalidArgument
 from .colour import Colour
 from .mixins import Hashable
 from .utils import snowflake_time, _get_as_snowflake, MISSING
+from .asset import Asset
+from .emoji import Emoji, PartialEmoji
+from . import utils
 
 __all__ = (
     'RoleTags',
@@ -168,6 +173,10 @@ class Role(Hashable):
         Indicates if the role can be mentioned by users.
     tags: Optional[:class:`RoleTags`]
         The role tags associated with this role.
+    unicode_emoji: Optional[:class:`str`]
+        The emoji that was assigned as this role's icon, if any.
+
+        .. versionadded:: 0.0.5
     """
 
     __slots__ = (
@@ -182,6 +191,8 @@ class Role(Hashable):
         'guild',
         'tags',
         '_state',
+        '_icon',
+        'unicode_emoji',
     )
 
     def __init__(self, *, guild: Guild, state: ConnectionState, data: RolePayload):
@@ -241,6 +252,8 @@ class Role(Hashable):
         self.managed: bool = data.get('managed', False)
         self.mentionable: bool = data.get('mentionable', False)
         self.tags: Optional[RoleTags]
+        self.unicode_emoji: str = data.get('unicode_emoji', None)
+        self._icon: str = data.get('icon', None)
 
         try:
             self.tags = RoleTags(data['tags'])
@@ -271,6 +284,16 @@ class Role(Hashable):
         """
         me = self.guild.me
         return not self.is_default() and not self.managed and (me.top_role > self or me.id == self.guild.owner_id)
+
+    @property
+    def icon(self) -> Optional[Asset]:
+        """Optional[:class:`Asset`]: Returns the roles's icon asset, if available.
+
+        .. versionadded:: 0.0.5"""
+
+        if self._icon is None:
+            return None
+        return Asset._from_role_icon(self._state, self.id, self._icon)
 
     @property
     def permissions(self) -> Permissions:
@@ -341,6 +364,7 @@ class Role(Hashable):
         mentionable: bool = MISSING,
         position: int = MISSING,
         reason: Optional[str] = MISSING,
+        icon: Optional[Union[str, PartialEmoji, Emoji, io.BufferedIOBase]] = MISSING,
     ) -> Optional[Role]:
         """|coro|
 
@@ -368,6 +392,11 @@ class Role(Hashable):
             position or it will fail.
         reason: Optional[:class:`str`]
             The reason for editing this role. Shows up on the audit log.
+        icon: Optional[Union[:class:`str`, :class:`PartialEmoji`, :class:`Emoji`, :class:`io.BufferedIOBase`]
+            The icon that you want to set the role to have. If a string is given, it is assumed
+            to be an emoji.
+
+            .. versionadded:: 0.0.5
 
         Raises
         -------
@@ -408,6 +437,21 @@ class Role(Hashable):
 
         if mentionable is not MISSING:
             payload['mentionable'] = mentionable
+
+        if icon is not MISSING:
+            if isinstance(icon, str):
+                icon = PartialEmoji.from_str(icon)
+                if icon.id is None:
+                    icon = icon.name
+                    payload['unicode_emoji'] = icon
+            if isinstance(icon, (PartialEmoji, Emoji)):
+                icon_bytes = await icon.read()
+                payload['icon'] = utils._bytes_to_base64_data(icon_bytes)
+            elif icon is None:
+                payload['icon'] = None
+            elif isinstance(icon, io.BufferedIOBase):
+                icon_bytes = icon.read()
+                payload['icon'] = utils._bytes_to_base64_data(icon_bytes)
 
         data = await self._state.http.edit_role(self.guild.id, self.id, reason=reason, **payload)
         return Role(guild=self.guild, data=data, state=self._state)
