@@ -22,8 +22,48 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
+from __future__ import annotations
+
 from typing import Optional
 import json
+
+
+class InteractionComponent:
+    """
+    A small component key: value store for components given back to the bot
+    via the API.
+
+    .. versionadded:: 0.0.5
+
+    Attributes
+    ------------
+    custom_id: Optional[:class:`str`]
+        The custom ID given to the component.
+    components: Optional[List[:class:`InteractionComponent`]]
+        The components that are children of this component.
+    value: Optional[:class:`str`]
+        The value that the component was given.
+    type: Optional[:class:`int`]
+        The type of the component.
+    """
+
+    def __init__(self, *, custom_id: str = None, components: list[InteractionComponent] = None, value: str = None, type: int = None):
+        self.custom_id = custom_id
+        self.components = components
+        self.value = value
+        self.type = type
+
+    @classmethod
+    def from_data(cls, payload: dict):
+        components = None
+        if "components" in payload:
+            components = [InteractionComponent.from_data(i) for i in payload["components"]]
+        return cls(
+            custom_id=payload.get("custom_id"),
+            type=payload.get("type"),
+            components=components,
+            value=payload.get("value"),
+        )
 
 
 class BaseComponent:

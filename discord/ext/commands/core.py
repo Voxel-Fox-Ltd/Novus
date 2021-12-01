@@ -1035,7 +1035,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
         Raises
         -------
-        TypeError
+        :exc:`TypeError`
             The coroutine passed is not actually a coroutine.
         """
 

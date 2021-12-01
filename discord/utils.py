@@ -602,7 +602,7 @@ def naive_dt(dt: datetime.datetime) -> datetime.datetime:
 
     Exceptions
     -----------
-    :exception:`ValueError`
+    :exc:`ValueError`
         The given datetime's timezone was not UTC.
     """
 

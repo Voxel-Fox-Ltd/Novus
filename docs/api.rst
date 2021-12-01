@@ -1046,13 +1046,6 @@ to handle it, which defaults to print a traceback and ignoring the exception.
     :param invite: The invite that was deleted.
     :type invite: :class:`Invite`
 
-.. function:: on_autocomplete_interaction(interaction)
-
-    Called when Discord gives you an autocomplete :class:`Interaction`.
-
-    :param interaction: The interaction that was given back to you.
-    :type interaction: :class:`Interaction`
-
 .. function:: on_group_join(channel, user)
               on_group_remove(channel, user)
 
@@ -3407,6 +3400,14 @@ Integration
 .. autoclass:: StreamIntegration()
     :members:
 
+ApplicationCommandInteractionDataOption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: ApplicationCommandInteractionDataOption
+
+.. autoclass:: ApplicationCommandInteractionDataOption()
+    :members:
+
 Interaction
 ~~~~~~~~~~~~
 
@@ -4051,6 +4052,22 @@ MessageComponents
 .. attributetable:: discord.ui.MessageComponents
 
 .. autoclass:: discord.ui.MessageComponents
+    :members:
+
+Modal
+~~~~~~~~~~~~
+
+.. attributetable:: discord.ui.Modal
+
+.. autoclass:: discord.ui.Modal
+    :members:
+
+InteractionComponent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: discord.ui.InteractionComponent
+
+.. autoclass:: discord.ui.InteractionComponent
     :members:
 
 Button

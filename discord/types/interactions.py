@@ -155,6 +155,7 @@ class ApplicationCommandInteractionDataOption(TypedDict):
     value: Optional[str]  # Optional[ApplicationCommandOptionType]
     options: Optional[ApplicationCommandInteractionDataOption]
     focused: Optional[bool]
+    components: Optional[List[ApplicationCommandInteractionDataOption]]
 
 
 class _InteractionDataOptional(TypedDict, total=False):
@@ -164,6 +165,7 @@ class _InteractionDataOptional(TypedDict, total=False):
     component_type: int
     values: List[SelectOption]
     target_id: Snowflake
+    components: List[ApplicationCommandInteractionDataOption]
 
 
 class InteractionData(_InteractionDataOptional):

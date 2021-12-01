@@ -47,6 +47,7 @@ from .object import Object
 from .permissions import Permissions
 from .webhook.async_ import async_context, Webhook, handle_message_parameters
 from .ui.select_menu import SelectOption
+from .ui.models import InteractionComponent
 
 __all__ = (
     'Interaction',
@@ -187,28 +188,30 @@ class Interaction:
     channel_id: Optional[:class:`int`]
         The channel ID the interaction was sent from.
     application_id: :class:`int`
-        The application ID that the interaction was for.
+        The application ID that the interaction was for. Unless you're running multiple
+        bots in one script, this will be generally useless for most people.
     user: Optional[Union[:class:`User`, :class:`Member`]]
         The user or member that sent the interaction.
     message: Optional[:class:`Message`]
-        The message that sent this interaction.
-    component: Optional[:class:`BaseComponent`]
+        The message that this interaction was spawned from. Only present for component
+        interactions.
+    component: Optional[:class:`ui.BaseComponent`]
         The component that was interacted with to spawn this interaction.
-        This may be `None` if the interaction was created from a slash
-        command.
+        This will be ``None`` if the interaction was created from an application command.
     values: Optional[List[:class:`ui.SelectOption`]]
         The values that were passed back from the interaction. If this interaction
-        did not give back any values then this will ne `None`. This is different from
+        did not give back any values then this will be ``None``. This is different from
         the values being an empty list - that would be the user did not
         provide any values for a valid component.
 
         .. versionchanged:: 0.0.5
-            This is now a list of :class:`ui.SelectOption`s.
+            This is now a list of :class:`ui.SelectOption` objecs instead of ``dict``.
     token: :class:`str`
         The token to continue the interaction. These are valid
         for 15 minutes.
     data: :class:`dict`
-        The raw interaction's data attribute.
+        The data from the interaction. You don't need to use this unless you're building your own
+        interaction handler, or dealing with an interaction that isn't yet added to the library.
     resolved: :class:`InteractionResolved`
         The resolved interaction data.
     options: Optional[List[:class:`ApplicationCommandInteractionDataOption`]]
@@ -221,6 +224,10 @@ class Interaction:
         .. versionchanged:: 0.0.5
             Now is a list of :class:`ApplicationCommandInteractionDataOption` objects instead of a
             raw dictionary.
+    components: Optional[List[:class:`ui.InteractionComponent`]]
+        The components that are returned with the interaction. This is only used with modals so far.
+
+        .. versionadded:: 0.0.5
     """
 
     __slots__: Tuple[str, ...] = (
@@ -230,6 +237,7 @@ class Interaction:
         'channel_id',
         'data',
         'component',
+        'components',
         'values',
         'application_id',
         'target_id',
@@ -287,11 +295,21 @@ class Interaction:
 
         # Parse the given values from the component - this is only used by select components
         if self.data and 'values' in self.data:
-            self.values = self.data['values']
+            self.values = [SelectOption(**i) for i in self.data['values']]
+        else:
+            self.values = None
 
         # Parse the returned options from the user - this is used by all application commands (including autocorrect)
         if self.data and 'options' in self.data:
             self.options = [ApplicationCommandInteractionDataOption(i) for i in self.data['options']]
+        else:
+            self.options = None
+
+        # Parse the returned components - this is used by modals
+        if self.data and 'components' in self.data:
+            self.components = [InteractionComponent.from_data(i) for i in self.data['components']]
+        else:
+            self.components = None
 
         # Parse the user and their permissions
         self.user: Optional[Union[User, Member]] = None
