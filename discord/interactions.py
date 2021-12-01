@@ -205,14 +205,14 @@ class Interaction:
     component: Optional[:class:`ui.BaseComponent`]
         The component that was interacted with to spawn this interaction.
         This will be ``None`` if the interaction was created from an application command.
-    values: Optional[List[:class:`ui.SelectOption`]]
+    values: Optional[List[:class:`str`]]
         The values that were passed back from the interaction. If this interaction
         did not give back any values then this will be ``None``. This is different from
         the values being an empty list - that would be the user did not
         provide any values for a valid component.
 
         .. versionchanged:: 0.0.5
-            This is now a list of :class:`ui.SelectOption` objecs instead of ``dict``.
+            This is now a list of :class:`str` objecs instead of ``dict``.
     token: :class:`str`
         The token to continue the interaction. These are valid
         for 15 minutes.
@@ -300,12 +300,13 @@ class Interaction:
             pass
 
         # Parse the given values from the component - this is only used by select components
-        self.values: Optional[List[SelectOption]] = None
+        self.values: Optional[List[str]] = None
         if self.data and 'values' in self.data:
             # try:
             #     self.values = [SelectOption(**i) for i in self.data['values']]
             # except TypeError:
-            self.values = [SelectOption(label=None, value=i) for i in self.data['values']]
+            # self.values = [SelectOption(label=None, value=i) for i in self.data['values']]
+            self.values = self.data['values']
 
         # Parse the returned options from the user - this is used by all application commands (including autocorrect)
         self.options: Optional[List[ApplicationCommandInteractionDataOption]] = None

@@ -163,7 +163,7 @@ class _InteractionDataOptional(TypedDict, total=False):
     options: List[ApplicationCommandInteractionDataOption]
     custom_id: str
     component_type: int
-    values: List[SelectOption]
+    values: List[str]
     target_id: Snowflake
     components: List[ApplicationCommandInteractionDataOption]
 
