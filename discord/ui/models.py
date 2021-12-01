@@ -24,7 +24,7 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Union
 import json
 
 
@@ -68,7 +68,7 @@ class InteractionComponent:
 
 class BaseComponent:
     """
-    The base message component for Discord UI interactions.
+    The base message component for Discord UI interactions. All other components must inherit from this.
     """
 
     def to_dict(self) -> dict:
@@ -80,14 +80,14 @@ class BaseComponent:
         raise NotImplementedError()
 
     @classmethod
-    def from_dict(cls, data: dict) -> 'BaseComponent':
+    def from_dict(cls, data: dict) -> BaseComponent:
         """
         Convert a response from the API into an object of this type.
         """
 
         raise NotImplementedError()
 
-    def __eq__(self, other: 'BaseComponent') -> bool:
+    def __eq__(self, other: BaseComponent) -> bool:
         """
         Checks if two components are equal to one another.
         """
@@ -99,10 +99,27 @@ class BaseComponent:
 
     def __hash__(self):
         """:meta private:"""
+
         return hash(json.dumps(self.to_dict(), sort_keys=True))
 
 
-class DisableableComponent(BaseComponent):
+class InteractableComponent(BaseComponent):
+    """
+    A component that users are able to interact with.
+    """
+
+    custom_id: str
+
+
+class LayoutComponent(BaseComponent):
+    """
+    A component for structuring the layout of other components.
+    """
+
+    pass
+
+
+class DisableableComponent(InteractableComponent):
     """
     A message component that has a `disabled` flag.
     """
@@ -124,37 +141,37 @@ class DisableableComponent(BaseComponent):
 
 class ComponentHolder(BaseComponent):
     """
-    A message component that holds other message components.
+    A mixin for components that hold other components.
 
     Attributes
     -----------
-    components: :class:`discord.ui.BaseComponent`
+    components: Union[:class:`discord.ui.InteractableComponent`, :class:`discord.ui.LayoutComponent`]
         A list of the components that this component holder holds.
     """
 
-    def __init__(self, *components: BaseComponent):
+    def __init__(self, *components: Union[InteractableComponent, LayoutComponent]):
         self.components = list(components)
 
-    def add_component(self, component: BaseComponent):
+    def add_component(self, component: Union[InteractableComponent, LayoutComponent]):
         """
         Adds a component to this holder.
 
         Parameters
         -----------
-        component: :class:`discord.ui.BaseComponent`
+        component: Union[:class:`discord.ui.InteractableComponent`, :class:`discord.ui.LayoutComponent`]
             The component that you want to add.
         """
 
         self.components.append(component)
         return self
 
-    def remove_component(self, component: BaseComponent):
+    def remove_component(self, component: Union[InteractableComponent, LayoutComponent]):
         """
         Removes a component from this holder.
 
         Parameters
         -----------
-        component: :class:`discord.ui.BaseComponent`
+        component: Union[:class:`discord.ui.InteractableComponent`, :class:`discord.ui.LayoutComponent`]
             The component that you want to remove.
         """
 
@@ -187,7 +204,7 @@ class ComponentHolder(BaseComponent):
                 i.enable()
         return self
 
-    def get_component(self, custom_id: str) -> Optional[BaseComponent]:
+    def get_component(self, custom_id: str) -> Optional[InteractableComponent]:
         """
         Get a component from the internal :attr:`components` list using its :attr:`custom_id` attribute.
 
@@ -198,7 +215,7 @@ class ComponentHolder(BaseComponent):
 
         Returns
         --------
-        Optional[:class:`discord.ui.BaseComponent`]
+        Optional[:class:`discord.ui.InteractableComponent`]
             The component that was found, if any.
         """
 
@@ -207,7 +224,9 @@ class ComponentHolder(BaseComponent):
                 v = i.get_component(custom_id)
                 if v:
                     return v
-            else:
+            elif isinstance(i, InteractableComponent):
                 if i.custom_id == custom_id:
                     return i
+            else:
+                raise TypeError(f"Invalid component type {i.__class__}")
         return None

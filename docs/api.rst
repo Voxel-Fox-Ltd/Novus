@@ -4030,12 +4030,20 @@ Bot UI Kit
 
 The library has helpers to help create component-based UIs.
 
-BaseComponent
+InteractableComponent
 ~~~~~~~~~~~~~~~
 
-.. attributetable:: discord.ui.BaseComponent
+.. attributetable:: discord.ui.InteractableComponent
 
-.. autoclass:: discord.ui.BaseComponent
+.. autoclass:: discord.ui.InteractableComponent
+    :members:
+
+LayoutComponent
+~~~~~~~~~~~~~~~
+
+.. attributetable:: discord.ui.LayoutComponent
+
+.. autoclass:: discord.ui.LayoutComponent
     :members:
 
 ActionRow

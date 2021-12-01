@@ -28,7 +28,7 @@ Changed Features
 ~~~~~~~~~~~~~~~~~~~
 
 * :ref:`Autocomplete is now documented <on_autocomplete_interaction>`.
-* Changed the types of :attr:`Interaction.values` and :attr:`Interaction.options`.
+* Changed the types of :attr:`Interaction.values` and :attr:`Interaction.options`. **This is breaking**.
 
 Bugs Fixed
 ~~~~~~~~~~~~~~~~~~

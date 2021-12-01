@@ -27,7 +27,7 @@ from __future__ import annotations
 import uuid
 from typing import Optional, TYPE_CHECKING
 
-from .models import BaseComponent
+from .models import InteractableComponent
 from ..enums import TextStyle, ComponentType
 
 if TYPE_CHECKING:
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     )
 
 
-class InputText(BaseComponent):
+class InputText(InteractableComponent):
     """Represents an input text component.
 
     .. versionadded:: 0.0.5

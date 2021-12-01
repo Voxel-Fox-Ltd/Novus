@@ -25,7 +25,7 @@ DEALINGS IN THE SOFTWARE.
 from typing import List, Optional, Union
 import uuid
 
-from .models import BaseComponent, DisableableComponent
+from .models import InteractableComponent, DisableableComponent
 from ..emoji import Emoji
 from ..enums import ComponentType
 from ..partial_emoji import PartialEmoji, _EmojiTag
@@ -37,26 +37,30 @@ from ..types.components import (
 )
 
 
-class SelectOption(BaseComponent):
+class SelectOption(InteractableComponent):
     """
     An option menu that can go into a :class:`discord.ui.SelectMenu` object.
 
     Attributes
     -----------
-    label: :class:`str`
-        The label that gets shown on the option.
+    label: Optional[:class:`str`]
+        The label that gets shown on the option. This is *not* optional if you are making
+        the options yourself, but only optional when returned by the API (in which case, ``value``)
+        will be used.
     value: Optional[:class:`str`]
-        The value that this option will give back to the bot.
+        The value that this option will give back to the bot. If you don't provide a value, the label
+        will be used in its place.
     description: Optional[:class:`str`]
-        A description for the option.
+        A description that will be shown in the select menu underneath the option.
     emoji: Optional[[Union[:class:`str`, :class:`discord.Emoji`, :class:`discord.PartialEmoji`]]
         An emoji to be displayed with the option.
     default: Optional[bool]
-        Whether or not the option is selected by default.
+        Whether or not the option is selected by default. Only one option can have its ``default`` flag
+        set to ``True`` per select menu. Defaults to ``False``.
     """
 
     def __init__(
-            self, *, label: str, value: Optional[str] = MISSING, description: Optional[str] = None,
+            self, *, label: Optional[str], value: Optional[str] = MISSING, description: Optional[str] = None,
             emoji: Optional[Union[str, Emoji, PartialEmoji]] = None, default: Optional[bool] = False):
         self.label = label
         self.value = value if value is not MISSING else label

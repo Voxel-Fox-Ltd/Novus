@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import typing
 
-from .models import ComponentHolder
+from .models import LayoutComponent, ComponentHolder
 from .button import Button, ButtonStyle
 from ..enums import ComponentType
 from ..components import _component_factory
@@ -37,14 +37,14 @@ from ..types.components import (
 from ..utils import MISSING
 
 
-class ActionRow(ComponentHolder):
+class ActionRow(LayoutComponent, ComponentHolder):
     """
     The main UI component for adding and ordering components on Discord
     messages.
 
     Parameters
     -----------
-    components: :class:`discord.ui.BaseComponent`
+    components: Union[:class:`discord.ui.InteractableComponent`, :class:`discord.ui.LayoutComponent`]
         The components that you want to add to the row.
     """
 
@@ -70,7 +70,7 @@ class MessageComponents(ComponentHolder):
 
     Parameters
     -----------
-    components: :class:`discord.ui.BaseComponent`
+    components: :class:`discord.ui.LayoutComponent`
         The components that you want to add to the message.
     """
 
@@ -86,7 +86,7 @@ class MessageComponents(ComponentHolder):
         return cls(*new_components)
 
     @classmethod
-    def boolean_buttons(cls, yes_id: str = None, no_id: str = None) -> 'MessageComponents':
+    def boolean_buttons(cls, yes_id: str = None, no_id: str = None) -> MessageComponents:
         """
         Return a set of message components with yes/no buttons, ready for use. If provided, the given IDs
         will be used for the buttons. If not, the button custom IDs will be set to the strings

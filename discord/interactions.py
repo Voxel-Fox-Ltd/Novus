@@ -47,7 +47,7 @@ from .object import Object
 from .permissions import Permissions
 from .webhook.async_ import async_context, Webhook, handle_message_parameters
 from .ui.select_menu import SelectOption
-from .ui.models import InteractionComponent
+from .ui.models import BaseComponent, InteractionComponent
 
 __all__ = (
     'Interaction',
@@ -57,6 +57,8 @@ __all__ = (
 )
 
 if TYPE_CHECKING:
+    from aiohttp import ClientSession
+
     from .types.interactions import (
         Interaction as InteractionPayload,
         InteractionData,
@@ -67,15 +69,20 @@ if TYPE_CHECKING:
     from .state import ConnectionState
     from .file import File
     from .mentions import AllowedMentions
-    from aiohttp import ClientSession
     from .embeds import Embed
-    from .ui.action_row import MessageComponents
-    from .ui.modal import Modal
     from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, PartialMessageable
     from .threads import Thread
+    from .ui.models import BaseComponent
+    from .ui.action_row import MessageComponents
+    from .ui.modal import Modal
+    from .ui.button import Button
+    from .ui.select_menu import SelectMenu
 
     InteractionChannel = Union[
-        VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, Thread, PartialMessageable
+        VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, Thread, PartialMessageable,
+    ]
+    InteractableComponent = Union[
+        BaseComponent, Button, SelectMenu,
     ]
 
 MISSING: Any = utils.MISSING
@@ -285,34 +292,33 @@ class Interaction:
         self.data: Optional[InteractionData] = payload.get('data')
 
         # Parse the component that triggered the interaction - this does NOT apply to modals
+        self.component: Optional[InteractableComponent] = None
         try:
             if self.message:
                 self.component = self.message.components.get_component(self.data['custom_id'])  # type: ignore
-            else:
-                self.component = None
         except (KeyError, AttributeError):
-            self.component = None
+            pass
 
         # Parse the given values from the component - this is only used by select components
+        self.values: Optional[List[SelectOption]] = None
         if self.data and 'values' in self.data:
-            self.values = [SelectOption(**i) for i in self.data['values']]
-        else:
-            self.values = None
+            # try:
+            #     self.values = [SelectOption(**i) for i in self.data['values']]
+            # except TypeError:
+            self.values = [SelectOption(label=None, value=i) for i in self.data['values']]
 
         # Parse the returned options from the user - this is used by all application commands (including autocorrect)
+        self.options: Optional[List[ApplicationCommandInteractionDataOption]] = None
         if self.data and 'options' in self.data:
             self.options = [ApplicationCommandInteractionDataOption(i) for i in self.data['options']]
-        else:
-            self.options = None
 
         # Parse the returned components - this is used by modals
+        self.components: Optional[List[InteractionComponent]] = None
         if self.data and 'components' in self.data:
             self.components = [InteractionComponent.from_data(i) for i in self.data['components']]
-        else:
-            self.components = None
 
         # Parse the user and their permissions
-        self.user: Optional[Union[User, Member]] = None
+        self.user: Optional[Union[User, Member]] = None  # documented as optional, for whatever reason
         self._permissions: int = 0
 
         # TODO: there's a potential data loss here
