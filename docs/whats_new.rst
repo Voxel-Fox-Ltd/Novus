@@ -11,6 +11,31 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_5:
+
+v0.0.5
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Added support for :class:`modals <ui.Modal>`.
+* Add :attr:`Interaction.components`.
+* Add :class:`ApplicationCommandInteractionDataOption`.
+* Add :class:`ui.InteractionComponent`.
+
+Changed Features
+~~~~~~~~~~~~~~~~~~~
+
+* :ref:`Autocomplete is now documented <on_autocomplete_interaction>`.
+* Changed the types of :attr:`Interaction.values` and :attr:`Interaction.options`.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~
+
+* Fixed typing of :func:`Member.move_to`.
+* Add proper exports for ``discord.ui``.
+
 .. _vp0_0_4:
 
 v0.0.4
