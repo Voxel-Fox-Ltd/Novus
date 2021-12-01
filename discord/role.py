@@ -32,8 +32,8 @@ from .errors import InvalidArgument
 from .colour import Colour
 from .mixins import Hashable
 from .utils import snowflake_time, _get_as_snowflake, MISSING
-from .asset import Asset
-from .emoji import Emoji, PartialEmoji
+from .asset import Asset, AssetMixin
+from .partial_emoji import PartialEmoji
 from . import utils
 
 __all__ = (
@@ -364,7 +364,7 @@ class Role(Hashable):
         mentionable: bool = MISSING,
         position: int = MISSING,
         reason: Optional[str] = MISSING,
-        icon: Optional[Union[str, PartialEmoji, Emoji, io.BufferedIOBase]] = MISSING,
+        icon: Optional[Union[str, AssetMixin, io.BufferedIOBase]] = MISSING,
     ) -> Optional[Role]:
         """|coro|
 
@@ -392,7 +392,7 @@ class Role(Hashable):
             position or it will fail.
         reason: Optional[:class:`str`]
             The reason for editing this role. Shows up on the audit log.
-        icon: Optional[Union[:class:`str`, :class:`PartialEmoji`, :class:`Emoji`, :class:`io.BufferedIOBase`]
+        icon: Optional[Union[:class:`str`, :class:`AssetMixin`, :class:`io.BufferedIOBase`]
             The icon that you want to set the role to have. If a string is given, it is assumed
             to be an emoji.
 
@@ -444,7 +444,7 @@ class Role(Hashable):
                 if icon.id is None:
                     icon = icon.name
                     payload['unicode_emoji'] = icon
-            if isinstance(icon, (PartialEmoji, Emoji)):
+            if isinstance(icon, AssetMixin):
                 icon_bytes = await icon.read()
                 payload['icon'] = utils._bytes_to_base64_data(icon_bytes)
             elif icon is None:
