@@ -441,14 +441,15 @@ class Role(Hashable):
         if icon is not MISSING:
             if isinstance(icon, str):
                 icon = PartialEmoji.from_str(icon)
-                if icon.id is None:
-                    icon = icon.name
+                if icon.is_unicode_emoji():
+                    icon = str(icon)
                     payload['unicode_emoji'] = icon
-            if isinstance(icon, AssetMixin):
+            if isinstance(icon, PartialEmoji):
                 icon_bytes = await icon.read()
                 payload['icon'] = utils._bytes_to_base64_data(icon_bytes)
             elif icon is None:
                 payload['icon'] = None
+                payload['unicode_emoji'] = None
             elif isinstance(icon, io.BufferedIOBase):
                 icon_bytes = icon.read()
                 payload['icon'] = utils._bytes_to_base64_data(icon_bytes)
