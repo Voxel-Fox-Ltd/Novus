@@ -83,6 +83,8 @@ class InputText(TypedDict):
     options: List[SelectOption]
     min_length: Optional[int]
     max_length: Optional[int]
+    required: bool
+    value: Optional[str]
 
 
 class Modal(TypedDict):

@@ -53,6 +53,10 @@ class InputText(InteractableComponent):
         The minimum length of the required input.
     max_length: Optional[:class:`int`]
         The maximum length of the required input.
+    required: Optional[:class:`bool`]
+        Whether or not the text field is required.
+    value: Optional[:class:`str`]
+        The default value that goes into the text field.
     """
 
     __slots__ = ("label", "style", "custom_id", "min_length", "max_length",)
@@ -60,13 +64,16 @@ class InputText(InteractableComponent):
     def __init__(
             self, *, label: str = None, custom_id: Optional[str] = None,
             style: TextStyle = TextStyle.short, placeholder: Optional[str] = None,
-            min_length: int = None, max_length: int = None):
+            min_length: int = None, max_length: int = None, required: bool = True,
+            value: str = None):
         self.label = label
         self.style = style
         self.placeholder = placeholder
         self.custom_id = custom_id or str(uuid.uuid1())
         self.min_length = min_length
         self.max_length = max_length
+        self.required = required
+        self.value = value
 
     def to_dict(self) -> InputTextPayload:
         v = {
@@ -76,9 +83,11 @@ class InputText(InteractableComponent):
             "custom_id": self.custom_id,
             "placeholder": self.placeholder,
             "min_length": self.min_length,
-            "max_length": self.max_length
+            "max_length": self.max_length,
+            "required": self.required,
+            "value": self.value,
         }
-        return v
+        return v  # type: ignore
 
     @classmethod
     def from_dict(cls, data: InputTextPayload) -> InputText:
@@ -104,4 +113,6 @@ class InputText(InteractableComponent):
             placeholder=data.get("placeholder"),
             min_length=data.get("min_length"),
             max_length=data.get("max_length"),
+            required=data.get("required"),
+            value=data.get("value"),
         )
