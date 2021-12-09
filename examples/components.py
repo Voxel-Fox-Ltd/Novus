@@ -28,7 +28,7 @@ async def ask(ctx: commands.Context):
     # Set up a check for our `wait_for`
     def check(interaction: discord.Interaction):
         if interaction.user != ctx.author:
-            return True
+            return False
         if interaction.message.id != sent_message.id:
             return True
         return True
