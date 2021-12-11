@@ -35,7 +35,6 @@ Bugs Fixed
 
 * Fixed typing of :func:`Member.move_to`.
 * Add proper exports for ``discord.ui``.
-* Force autocomplete parameters to be required.
 
 .. _vp0_0_4:
 
