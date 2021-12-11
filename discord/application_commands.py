@@ -215,6 +215,8 @@ class ApplicationCommandOption(object):
                     channel_types.append(counter)
                 counter += 1
             payload["channel_types"] = channel_types
+        if self.autocomplete:
+            payload.pop("required", True)
         return payload
 
 
