@@ -594,7 +594,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
         # Seeing if we're at the end of the given values via eof, or if the name
         # given isn't in the params returned by Discord in the case of slashies
-        if (view and view.eof) or (param.name not in getattr(ctx, "given_values", {})):
+        if (view and view.eof) or (getattr(ctx, "given_values", None) is not None and param.name not in getattr(ctx, "given_values", {})):
             if param.kind == param.VAR_POSITIONAL:
                 raise RuntimeError() # break the loop
             if required:
@@ -800,17 +800,18 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 else:
                     kwargs[name] = await self.transform(ctx, param)
                 break
-            elif param.kind == param.VAR_POSITIONAL and view is None:
-                raise discord.ClientException("Cannot use positional-only args in slash commands.")
-            elif param.kind == param.VAR_POSITIONAL and view:
-                if view.eof and self.require_var_positional:
-                    raise MissingRequiredArgument(param)
-                while not view.eof:
-                    try:
-                        transformed = await self.transform(ctx, param)
-                        args.append(transformed)
-                    except RuntimeError:
-                        break
+            elif param.kind == param.VAR_POSITIONAL:
+                if view:
+                    if view.eof and self.require_var_positional:
+                        raise MissingRequiredArgument(param)
+                    while not view.eof:
+                        try:
+                            transformed = await self.transform(ctx, param)
+                            args.append(transformed)
+                        except RuntimeError:
+                            break
+                else:
+                    raise discord.ClientException(f"Callback for {self.name} cannot handle variable-length args in slash commands.")
 
         if view and not self.ignore_extra and not view.eof:
             raise TooManyArguments('Too many arguments passed to ' + self.qualified_name)
