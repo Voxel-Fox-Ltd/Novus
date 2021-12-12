@@ -790,9 +790,12 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 args.append(transformed)
             elif param.kind == param.KEYWORD_ONLY:
                 # kwarg only param denotes "consume rest" semantics
-                if self.rest_is_raw and view:
+                if self.rest_is_raw:
                     converter = get_converter(param)
-                    argument = view.read_rest()
+                    if view:
+                        argument = view.read_rest()
+                    else:
+                        argument = getattr(ctx, "given_values", {}).get(param.name, "")
                     kwargs[name] = await run_converters(ctx, converter, argument, param)
                 else:
                     kwargs[name] = await self.transform(ctx, param)
