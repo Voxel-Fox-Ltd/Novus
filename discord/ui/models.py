@@ -28,7 +28,7 @@ from typing import Optional, Union
 import json
 
 
-class InteractionComponent:
+class InteractedComponent:
     """
     A small component key: value store for components given back to the bot
     via the API. Should not be initialised yourself.
@@ -47,7 +47,7 @@ class InteractionComponent:
         The type of the component.
     """
 
-    def __init__(self, *, custom_id: str = None, components: list[InteractionComponent] = None, value: str = None, type: int = None):
+    def __init__(self, *, custom_id: str = None, components: list[InteractedComponent] = None, value: str = None, type: int = None):
         self.custom_id = custom_id
         self.components = components
         self.value = value
@@ -57,7 +57,7 @@ class InteractionComponent:
     def from_data(cls, payload: dict):
         components = None
         if "components" in payload:
-            components = [InteractionComponent.from_data(i) for i in payload["components"]]
+            components = [InteractedComponent.from_data(i) for i in payload["components"]]
         return cls(
             custom_id=payload.get("custom_id"),
             type=payload.get("type"),
