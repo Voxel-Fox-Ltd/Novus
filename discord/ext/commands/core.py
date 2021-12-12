@@ -572,12 +572,16 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         required = param.default is param.empty
         converter = get_converter(param)
         consume_rest_is_special = param.kind == param.KEYWORD_ONLY and not self.rest_is_raw
-        view = ctx.view
-        view.skip_ws()
+        view = None
+        if hasattr(ctx, "view"):
+            view = ctx.view
+            view.skip_ws()
 
         # The greedy converter is simple -- it keeps going until it fails in which case,
         # it undos the view ready for the next parameter to use instead
-        if isinstance(converter, Greedy):
+        # Greedy isn't something we need to worry about when it comes to slash commands,
+        # since the lib just errors by default when adding them.
+        if view and isinstance(converter, Greedy):
             if param.kind in (param.POSITIONAL_OR_KEYWORD, param.POSITIONAL_ONLY):
                 return await self._transform_greedy_pos(ctx, param, required, converter.converter)
             elif param.kind == param.VAR_POSITIONAL:
@@ -588,7 +592,9 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 # into just X and do the parsing that way.
                 converter = converter.converter
 
-        if view.eof:
+        # Seeing if we're at the end of the given values via eof, or if the name
+        # given isn't in the params returned by Discord in the case of slashies
+        if (view and view.eof) or (param.name not in getattr(ctx, "given_values", {})):
             if param.kind == param.VAR_POSITIONAL:
                 raise RuntimeError() # break the loop
             if required:
@@ -599,19 +605,37 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 raise MissingRequiredArgument(param)
             return param.default
 
-        previous = view.index
+        # Set a fallback for the text commands so we can go back later
+        previous = -1
+        if view:
+            previous = view.index
+
+        # See if we want to consume the rest of the argument from the view,
+        # from which we can just grab all remaining content
         if consume_rest_is_special:
-            argument = view.read_rest().strip()
+            if view:
+                argument = view.read_rest().strip()
+            else:
+                argument = getattr(ctx, "given_values", {}).get[param.name]  # Slash context
+
+        # Just a normal argument that we want to grab the value of
         else:
             try:
-                argument = view.get_quoted_word()
-            except ArgumentParsingError as exc:
+                if view:
+                    argument = view.get_quoted_word()
+                else:
+                    argument = getattr(ctx, "given_values", {}).get[param.name]  # Slash context
+            except (KeyError, ArgumentParsingError) as exc:
                 if self._is_typing_optional(param.annotation):
-                    view.index = previous
+                    if view:
+                        view.index = previous
                     return None
                 else:
                     raise exc
-        view.previous = previous
+
+        # Update the view so we can get the next part of text commands next runthrough
+        if view:
+            view.previous = previous
 
         # type-checker fails to narrow argument
         return await run_converters(ctx, converter, argument, param)  # type: ignore
@@ -740,7 +764,9 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         args = ctx.args
         kwargs = ctx.kwargs
 
-        view = ctx.view
+        view = None
+        if hasattr(ctx, "view"):
+            view = ctx.view
         iterator = iter(self.params.items())
 
         if self.cog is not None:
@@ -764,14 +790,16 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 args.append(transformed)
             elif param.kind == param.KEYWORD_ONLY:
                 # kwarg only param denotes "consume rest" semantics
-                if self.rest_is_raw:
+                if self.rest_is_raw and view:
                     converter = get_converter(param)
                     argument = view.read_rest()
                     kwargs[name] = await run_converters(ctx, converter, argument, param)
                 else:
                     kwargs[name] = await self.transform(ctx, param)
                 break
-            elif param.kind == param.VAR_POSITIONAL:
+            elif param.kind == param.VAR_POSITIONAL and view is None:
+                raise discord.ClientException("Cannot use positional-only args in slash commands.")
+            elif param.kind == param.VAR_POSITIONAL and view:
                 if view.eof and self.require_var_positional:
                     raise MissingRequiredArgument(param)
                 while not view.eof:
@@ -781,7 +809,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                     except RuntimeError:
                         break
 
-        if not self.ignore_extra and not view.eof:
+        if view and not self.ignore_extra and not view.eof:
             raise TooManyArguments('Too many arguments passed to ' + self.qualified_name)
 
     async def call_before_hooks(self, ctx: Context) -> None:

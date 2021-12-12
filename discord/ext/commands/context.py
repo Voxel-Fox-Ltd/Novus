@@ -225,12 +225,18 @@ class Context(discord.abc.Messageable, Generic[BotT]):
             The context to reinvoke is not valid.
         """
         cmd = self.command
-        view = self.view
+        if hasattr(self, "view"):
+            view = self.view
+        else:
+            view = None
         if cmd is None:
             raise ValueError('This context is not valid.')
 
         # some state to revert to when we're done
-        index, previous = view.index, view.previous
+        if view:
+            index, previous = view.index, view.previous
+        else:
+            index, previous = -1, -1  # Should really be None, but view doesn't exist anyway
         invoked_with = self.invoked_with
         invoked_subcommand = self.invoked_subcommand
         invoked_parents = self.invoked_parents
@@ -238,10 +244,11 @@ class Context(discord.abc.Messageable, Generic[BotT]):
 
         if restart:
             to_call = cmd.root_parent or cmd
-            view.index = len(self.prefix or '')
-            view.previous = 0
+            if view:
+                view.index = len(self.prefix or '')
+                view.previous = 0
+                self.invoked_with = view.get_word() # advance to get the root command
             self.invoked_parents = []
-            self.invoked_with = view.get_word() # advance to get the root command
         else:
             to_call = cmd
 
@@ -249,8 +256,9 @@ class Context(discord.abc.Messageable, Generic[BotT]):
             await to_call.reinvoke(self, call_hooks=call_hooks)
         finally:
             self.command = cmd
-            view.index = index
-            view.previous = previous
+            if view:
+                view.index = index
+                view.previous = previous
             self.invoked_with = invoked_with
             self.invoked_subcommand = invoked_subcommand
             self.invoked_parents = invoked_parents
