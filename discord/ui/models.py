@@ -31,7 +31,7 @@ import json
 class InteractionComponent:
     """
     A small component key: value store for components given back to the bot
-    via the API.
+    via the API. Should not be initialised yourself.
 
     .. versionadded:: 0.0.5
 
@@ -105,7 +105,8 @@ class BaseComponent:
 
 class InteractableComponent(BaseComponent):
     """
-    A component that users are able to interact with.
+    A component that users are able to interact with. Used as a base for all
+    components that are interacted with.
     """
 
     custom_id: str

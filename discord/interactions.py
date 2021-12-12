@@ -46,8 +46,7 @@ from .message import Message, Attachment
 from .object import Object
 from .permissions import Permissions
 from .webhook.async_ import async_context, Webhook, handle_message_parameters
-from .ui.select_menu import SelectOption
-from .ui.models import BaseComponent, InteractionComponent
+from .ui.models import InteractedComponent
 
 __all__ = (
     'Interaction',
@@ -72,17 +71,11 @@ if TYPE_CHECKING:
     from .embeds import Embed
     from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, PartialMessageable
     from .threads import Thread
-    from .ui.models import BaseComponent
     from .ui.action_row import MessageComponents
     from .ui.modal import Modal
-    from .ui.button import Button
-    from .ui.select_menu import SelectMenu
 
     InteractionChannel = Union[
         VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, Thread, PartialMessageable,
-    ]
-    InteractableComponent = Union[
-        BaseComponent, Button, SelectMenu,
     ]
 
 MISSING: Any = utils.MISSING
@@ -202,7 +195,7 @@ class Interaction:
     message: Optional[:class:`Message`]
         The message that this interaction was spawned from. Only present for component
         interactions.
-    component: Optional[:class:`ui.BaseComponent`]
+    component: Optional[:class:`ui.InteractableComponent`]
         The component that was interacted with to spawn this interaction.
         This will be ``None`` if the interaction was created from an application command.
     values: Optional[List[:class:`str`]]
@@ -292,7 +285,7 @@ class Interaction:
         self.data: Optional[InteractionData] = payload.get('data')
 
         # Parse the component that triggered the interaction - this does NOT apply to modals
-        self.component: Optional[InteractableComponent] = None
+        self.component: Optional[InteractedComponent] = None
         try:
             if self.message:
                 self.component = self.message.components.get_component(self.data['custom_id'])  # type: ignore
@@ -314,9 +307,9 @@ class Interaction:
             self.options = [ApplicationCommandInteractionDataOption(i) for i in self.data['options']]
 
         # Parse the returned components - this is used by modals
-        self.components: Optional[List[InteractionComponent]] = None
+        self.components: Optional[List[InteractedComponent]] = None
         if self.data and 'components' in self.data:
-            self.components = [InteractionComponent.from_data(i) for i in self.data['components']]
+            self.components = [InteractedComponent.from_data(i) for i in self.data['components']]
 
         # Parse the user and their permissions
         self.user: Optional[Union[User, Member]] = None  # documented as optional, for whatever reason
