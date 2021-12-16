@@ -61,6 +61,7 @@ from .stage_instance import *
 from .interactions import *
 from .threads import *
 from .application_commands import *
+from .guild_scheduled_events import *
 
 
 class VersionInfo(NamedTuple):

@@ -59,6 +59,9 @@ __all__ = (
     'ApplicationCommandOptionType',
     'ApplicationCommandType',
     'TextStyle',
+    'GuildScheduledEventPrivacyLevel',
+    'GuildScheduledEventStatus',
+    'GuildScheduledEventEntityType',
 )
 
 
@@ -625,6 +628,24 @@ class ApplicationCommandType(Enum):
     chat_input = 1  # Chat input application commands, like slash commands.
     user = 2  # An application command in the user context menu.
     message = 3  # An application command in the message context menu.
+
+
+class GuildScheduledEventPrivacyLevel(Enum):
+    guild_only = 2  # The event is only accessable to guild members.
+
+
+class GuildScheduledEventStatus(Enum):
+    scheduled = 1
+    active = 2
+    completed = 3
+    canceled = 4
+    cancelled = 4
+
+
+class GuildScheduledEventEntityType(Enum):
+    stage_instance = 1  # The event is tied to a stage instance.
+    voice = 2  # The event is tied to a VC.
+    external = 3  # The event is tied to an external URL.
 
 
 T = TypeVar('T')
