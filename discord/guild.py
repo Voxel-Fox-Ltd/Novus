@@ -815,6 +815,11 @@ class Guild(Hashable):
         return self.get_member(self.owner_id)  # type: ignore
 
     @property
+    def communication_disabled_members(self) -> List[Member]:
+        """List[:class:`Member`]: A list of members who have been timed out."""
+        return [member for member in self.members if member.communication_disabled_until]
+
+    @property
     def icon(self) -> Optional[Asset]:
         """Optional[:class:`Asset`]: Returns the guild's icon asset, if available."""
         if self._icon is None:
