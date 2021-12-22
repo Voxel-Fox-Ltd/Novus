@@ -243,6 +243,8 @@ class Member(discord.abc.Messageable, _UserTag):
     premium_since: Optional[:class:`datetime.datetime`]
         An aware datetime object that specifies the date and time in UTC when the member used their
         "Nitro boost" on the guild, if available. This could be ``None``.
+    communication_disabled_until: Optional[:class:`datetime.datetime`]
+        An aware datetime object that specifies the date and time in UTC when the member is timed out.
     """
 
     __slots__ = (
@@ -253,6 +255,7 @@ class Member(discord.abc.Messageable, _UserTag):
         'guild',
         'pending',
         'nick',
+        'communication_disabled_until',
         '_client_status',
         '_user',
         '_state',
@@ -288,6 +291,7 @@ class Member(discord.abc.Messageable, _UserTag):
         self.nick: Optional[str] = data.get('nick', None)
         self.pending: bool = data.get('pending', False)
         self._avatar: Optional[str] = data.get('avatar')
+        self.communication_disabled_until: Optional[datetime.datetime] = utils.parse_time(data.get('communication_disabled_until'))
 
     def __str__(self) -> str:
         return str(self._user)
@@ -345,6 +349,7 @@ class Member(discord.abc.Messageable, _UserTag):
         self.activities = member.activities
         self._state = member._state
         self._avatar = member._avatar
+        self.communication_disabled_until = member.communication_disabled_until
 
         # Reference will not be copied unless necessary by PRESENCE_UPDATE
         # See below
@@ -371,6 +376,7 @@ class Member(discord.abc.Messageable, _UserTag):
         self.premium_since = utils.parse_time(data.get('premium_since'))
         self._roles = utils.SnowflakeList(map(int, data['roles']))
         self._avatar = data.get('avatar')
+        self.communication_disabled_until = utils.parse_time(data.get('communication_disabled_until'))
 
     def _presence_update(self, data: PartialPresenceUpdate, user: UserPayload) -> Optional[Tuple[User, User]]:
         self.activities = tuple(map(create_activity, data['activities']))
@@ -594,6 +600,12 @@ class Member(discord.abc.Messageable, _UserTag):
         """Optional[:class:`VoiceState`]: Returns the member's current voice state."""
         return self.guild._voice_state_for(self._user.id)
 
+    @property
+    def timed_out(self) -> bool:
+        """:class:`bool`: Returns the member's timeout state.
+        """
+        return self.communication_disabled_until is not None and self.communication_disabled_until > utils.utcnow()
+
     async def ban(
         self,
         *,
@@ -629,6 +641,7 @@ class Member(discord.abc.Messageable, _UserTag):
         suppress: bool = MISSING,
         roles: List[discord.abc.Snowflake] = MISSING,
         voice_channel: Optional[VocalGuildChannel] = MISSING,
+        communication_disabled_until: Optional[datetime.datetime] = MISSING,
         reason: Optional[str] = None,
     ) -> Optional[Member]:
         """|coro|
@@ -650,6 +663,8 @@ class Member(discord.abc.Messageable, _UserTag):
         +---------------+--------------------------------------+
         | voice_channel | :attr:`Permissions.move_members`     |
         +---------------+--------------------------------------+
+        | communication_disabled_until | :attr:`Permissions.moderate_members` |
+        +---------------+--------------------------------------+
 
         All parameters are optional.
 
@@ -669,6 +684,9 @@ class Member(discord.abc.Messageable, _UserTag):
         voice_channel: Optional[:class:`VoiceChannel`]
             The voice channel to move the member to.
             Pass ``None`` to kick them from voice.
+        communication_disabled_until: Optional[:class:`datetime.datetime`]
+            The :class:`datetime.datetime` object to timeout the user.
+            Pass ``None`` to remove the timeout.
         reason: Optional[:class:`str`]
             The reason for editing this member. Shows up on the audit log.
 
@@ -724,6 +742,9 @@ class Member(discord.abc.Messageable, _UserTag):
 
         if roles is not MISSING:
             payload['roles'] = tuple(r.id for r in roles)
+        
+        if communication_disabled_until is not MISSING:
+            payload['communication_disabled_until'] = communication_disabled_until.isoformat() if communication_disabled_until else None
 
         if payload:
             data = await http.edit_member(guild_id, self.id, reason=reason, **payload)
