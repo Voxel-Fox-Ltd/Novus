@@ -23,6 +23,8 @@ New Features
 * Add :attr:`Interaction.components`.
 * Add :class:`ApplicationCommandInteractionDataOption`.
 * Add :class:`ui.InteractionComponent`.
+* Add support for role icons.
+* Add support for member timeouts.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~
