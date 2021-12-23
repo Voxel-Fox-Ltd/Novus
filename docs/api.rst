@@ -4070,14 +4070,6 @@ Modal
 .. autoclass:: discord.ui.Modal
     :members:
 
-InteractionComponent
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. attributetable:: discord.ui.InteractionComponent
-
-.. autoclass:: discord.ui.InteractionComponent
-    :members:
-
 Button
 ~~~~~~~
 
