@@ -632,6 +632,114 @@ class Member(discord.abc.Messageable, _UserTag):
         """
         await self.guild.kick(self, reason=reason)
 
+    async def disable_communication(
+        self,
+        *,
+        seconds: int = 0,
+        minutes: int = 0,
+        hours: int = 0,
+        days: int = 0,
+        weeks: int = 0,
+        reason: Optional[str] = None
+    ) -> Member:
+        r"""|coro|
+
+        Time this member out for a set amount of time.
+
+        You must have the :attr:`~Permissions.moderate_members` permission to
+        use this, and the added :class:`Role`\s must appear lower in the list
+        of roles than the highest role of the member.
+
+        .. note::
+
+            The time parameters are added up.
+
+        Parameters
+        -----------
+        seconds: :class:`int`
+            The amount of seconds to time out the member for.
+        minutes: :class:`int`
+            The amount of minutes to time out the member for. Multiplied by
+            60 when converted to seconds.
+        hours: :class:`int`
+            The amount of hours to time out the member for. Multiplied by
+            3,600 when converted to seconds.
+        days: :class:`int`
+            The amount of days to time out the member for. Multiplied by
+            86,400 when converted to seconds.
+        weeks: :class:`int`
+            The amount of weeks to time out the member for. Multiplied by
+            604,800 when converted to seconds.
+        reason: Optional[:class:`str`]
+            The reason for this timeout. Shows up on the audit log.
+
+        Raises
+        -------
+        Forbidden
+            You do not have permissions to alter this member's communication.
+        HTTPException
+            Timeout failed.
+        """
+
+        additional_time = datetime.timedelta(
+            days=days,
+            seconds=seconds,
+            minutes=minutes,
+            hours=hours,
+            weeks=weeks
+        )
+
+        if additional_time.total_seconds() <= 0:
+            raise ValueError(
+                "Disabled communication time must be greater than 0 seconds."
+            )
+
+        if TYPE_CHECKING:
+            # `member` will always be a `Member` object here.
+            member: Member
+        else:
+            member = await self.edit(
+                communication_disabled_until=utils.utcnow() + additional_time,
+                reason=reason
+            )
+        return member
+
+    async def enable_communication(
+        self,
+        *,
+        reason: Optional[str] = None
+    ) -> Member:
+        r"""|coro|
+
+        Revoke the communication timeout of this member.
+
+        You must have the :attr:`~Permissions.moderate_members` permission to
+        use this, and the added :class:`Role`\s must appear lower in the list
+        of roles than the highest role of the member.
+
+        Parameters
+        -----------
+        reason: Optional[:class:`str`]
+            The reason for this timeout. Shows up on the audit log.
+
+        Raises
+        -------
+        Forbidden
+            You do not have permissions to alter this member's communication.
+        HTTPException
+            Enabling communication failed.
+        """
+
+        if TYPE_CHECKING:
+            # `member` will always be a `Member` object here.
+            member: Member
+        else:
+            member = await self.edit(
+                communication_disabled_until=None,
+                reason=reason
+            )
+        return member
+
     async def edit(
         self,
         *,
