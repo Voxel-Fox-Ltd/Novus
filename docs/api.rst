@@ -2505,6 +2505,45 @@ of :class:`enum.Enum`.
 
         The option is any number, including decimals.
 
+.. class:: GuildScheduledEventPrivacyLevel
+
+    .. attribute:: guild_only
+
+        The event is only accessible to the members of the guild.
+
+.. class:: GuildScheduledEventStatus
+
+    .. attribute:: scheduled
+
+        The event is scheduled.
+
+    .. attribute:: active
+
+        The event is active.
+
+    .. attribute:: completed
+
+        The event is completed.
+
+    .. attribute:: canceled
+
+        The event is canceled.
+
+
+.. class:: GuildScheduledEventEntityType
+
+    .. attribute:: stage_instance
+
+        The event will take place in a stage channel.
+
+    .. attribute:: voice
+
+        The event will take place in a voice channel.
+
+    .. attribute:: external
+
+        The event will take place outside of Discord.
+
 Async Iterator
 ----------------
 
@@ -3382,6 +3421,14 @@ Guild
 
         :type: :class:`User`
 
+GuildScheduledEvent
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: GuildScheduledEvent
+
+.. autoclass:: GuildScheduledEvent()
+    :members:
+
 Integration
 ~~~~~~~~~~~~
 
@@ -4021,6 +4068,14 @@ PublicUserFlags
 .. attributetable:: PublicUserFlags
 
 .. autoclass:: PublicUserFlags()
+    :members:
+
+GuildScheduledEventEntityMetadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: GuildScheduledEventEntityMetadata
+
+.. autoclass:: GuildScheduledEventEntityMetadata()
     :members:
 
 .. _discord_ui_kit:

@@ -46,6 +46,8 @@ class GuildScheduledEventEntityMetadata:
     """
     The medatadata that's included for external guild scheduled events.
 
+    .. versionadded:: 0.0.5
+
     Attributes
     ----------------
     location: :class:`str`
@@ -59,6 +61,8 @@ class GuildScheduledEventEntityMetadata:
 class GuildScheduledEvent(Hashable):
     """
     An object representing a guild scheduled event.
+
+    .. versionadded:: 0.0.5
 
     Attributes
     ------------
@@ -150,7 +154,7 @@ class GuildScheduledEvent(Hashable):
 
     @property
     def channel(self) -> Optional[Union[VoiceChannel, StageChannel]]:
-        """Union[:class:`VoiceChannel`, :class:`StageChannel`, None]: The channel where the event will occur."""
+        """Optional[Union[:class:`VoiceChannel`, :class:`StageChannel`]]: The channel where the event will occur."""
 
         if self.channel_id:
             return self._state._get_channel(self.channel_id)
@@ -162,4 +166,82 @@ class GuildScheduledEvent(Hashable):
 
         Parameters
         -------------
+        channel: Optional[Union[:class:`VoiceChannel`, :class:`StageChannel`]]
+            The channel where the event is going to occur. Can only be set to ``None`` if
+            the event is occuring externally.
+        entity_metadata: Optional[:class:`GuildScheduledEventEntityMetadata`]
+            The metadata of the event's occurence.
+        name: :class:`str`
+            The name that you want to set the event to.
+        privacy_level: :class:`GuildScheduledEventPrivacyLevel`
+            The privacy level that you want to change the event to.
+        scheduled_start_time: :class:`datetime.datetime`
+            The time that the event is meant to start.
+        scheduled_end_time: :class:`datetime.datetime`
+            The time that the event is meant to end.
+        description: :class:`str`
+            The description shown for the event.
+        entity_type: :class:`GuildScheduledEventEntityType`
+            The entity type for the event.
+        status: :class:`GuildScheduledEventStatus`
+            The status for the scheduled event. Once an event is completed or
+            cancelled, you can no longer update its status.
+
+        Raises
+        ------
+        Forbidden
+            You do not have permissions to edit the event.
+        HTTPException
+            Editing the event failed.
+
+        Returns
+        --------
+        :class:`.GuildScheduledEvent`
+            The newly edited event.
         """
+
+        payload = {}
+
+        name = kwargs.pop("name", MISSING)
+        if name is not MISSING:
+            payload["name"] = name
+
+        entity_metadata = kwargs.pop("entity_metadata", MISSING)
+        if entity_metadata is not MISSING:
+            payload["entity_metadata"] = entity_metadata.to_json()
+
+        channel = kwargs.pop("channel", MISSING)
+        if channel is not MISSING:
+            payload["channel_id"] = channel.id
+
+        privacy_level = kwargs.pop("privacy_level", MISSING)
+        if privacy_level is not MISSING:
+            payload["privacy_level"] = privacy_level.value
+
+        scheduled_start_time = kwargs.pop("scheduled_start_time", MISSING)
+        if scheduled_start_time is not MISSING:
+            payload["scheduled_start_time"] = scheduled_start_time.isoformat()
+
+        scheduled_end_time = kwargs.pop("scheduled_end_time", MISSING)
+        if scheduled_end_time is not MISSING:
+            if scheduled_end_time:
+                payload["scheduled_end_time"] = scheduled_end_time.isoformat()
+            else:
+                payload["scheduled_end_time"] = scheduled_end_time
+
+        description = kwargs.pop("description", MISSING)
+        if description is not MISSING:
+            payload["description"] = description
+
+        entity_type = kwargs.pop("entity_type", MISSING)
+        if entity_type is not MISSING:
+            payload["entity_type"] = entity_type.value
+
+        status = kwargs.pop("status", MISSING)
+        if status is not MISSING:
+            payload["status"] = status.value
+
+        returned = self._state.modify_guild_scheduled_event(self.guild_id, self.id, payload)
+        if returned:
+            return self.__class__(state=self._state, data=returned)
+        return None

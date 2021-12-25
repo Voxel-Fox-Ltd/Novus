@@ -1897,19 +1897,19 @@ class HTTPClient:
 
     # Scheduled Events
 
-    def list_scheduled_events(self, guild_id: Snowflake, with_user_count: bool = False) -> Response[None]: # No class yet, Response[None] for now
+    def list_guild_scheduled_events(self, guild_id: Snowflake, with_user_count: bool = False) -> Response[None]: # No class yet, Response[None] for now
         r = Route('GET', '/guilds/{guild_id}/scheduled-events', guild_id=guild_id)
         params: Dict[str, Any] = {}
         if with_user_count:
             params['with_user_count'] = 'true'
         return self.request(r, params=params)
 
-    def create_scheduled_events(
+    def create_guild_scheduled_event(
         self, guild_id: Snowflake, payload: Dict[str, Any]) -> Response[None]: # No class yet, Response[None] for now
         r = Route('POST', '/guilds/{guild_id}/scheduled-events', guild_id=guild_id)
         return self.request(r, json=payload)
 
-    def get_scheduled_event(
+    def get_guild_scheduled_event(
         self, guild_id: Snowflake, scheduled_event_id: Snowflake
     ) -> Response[None]: # No class yet, Response[None] for now
         r = Route('GET', '/guilds/{guild_id}/scheduled-events/{scheduled_event_id}',
@@ -1917,7 +1917,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def modify_scheduled_event(
+    def modify_guild_scheduled_event(
         self, guild_id: Snowflake, scheduled_event_id: Snowflake, payload: Dict[str, Any]
     ) -> Response[None]: # No class yet, Response[None] for now
         r = Route('PATCH', '/guilds/{guild_id}/scheduled-events/{scheduled_event_id}',
@@ -1925,7 +1925,7 @@ class HTTPClient:
         )
         return self.request(r, json=payload)
 
-    def delete_scheduled_event(
+    def delete_guild_scheduled_event(
         self, guild_id: Snowflake, scheduled_event_id: Snowflake
     ) -> Response[None]:
         r = Route('DELETE', '/guilds/{guild_id}/scheduled-events/{scheduled_event_id}',
@@ -1933,7 +1933,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def get_scheduled_event_users(
+    def get_guild_scheduled_event_users(
         self, guild_id: Snowflake, scheduled_event_id: Snowflake,
         limit: int = 100, with_member: bool = False
     ) -> Response[List[user.User]]:
