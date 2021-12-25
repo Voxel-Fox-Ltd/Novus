@@ -694,8 +694,8 @@ class Member(discord.abc.Messageable, _UserTag):
                 "Disabled communication time must be greater than 0 seconds."
             )
 
+        # to avoid `member` being of type `Member | None`.
         if TYPE_CHECKING:
-            # `member` will always be a `Member` object here.
             member: Member
         else:
             member = await self.edit(
@@ -731,7 +731,7 @@ class Member(discord.abc.Messageable, _UserTag):
         """
 
         if TYPE_CHECKING:
-            # `member` will always be a `Member` object here.
+            # to avoid `member` being of type `Member | None`.
             member: Member
         else:
             member = await self.edit(
