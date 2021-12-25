@@ -633,6 +633,45 @@ class Member(discord.abc.Messageable, _UserTag):
         """
         await self.guild.kick(self, reason=reason)
 
+    async def disable_communication_until(
+        self,
+        *,
+        communication_disabled_until: datetime.datetime,
+        reason: Optional[str] = None,
+    ) -> Member:
+        r"""|coro|
+
+        Time this member out until a specific :class:`datetime.datetime`.
+
+        You must have the :attr:`~Permissions.moderate_members` permission to
+        use this, and the added :class:`Role`\s must appear lower in the list
+        of roles than the highest role of the member.
+
+        Parameters
+        -----------
+        communication_disabled_until: :class:`datetime.datetime`
+            The date at which to enable communication for this user again.
+        reason: Optional[:class:`str`]
+            The reason for this timeout. Shows up on the audit log.
+
+        Raises
+        -------
+        Forbidden
+            You do not have permissions to alter this member's communication.
+        HTTPException
+            Timeout failed.
+        """
+
+        # to avoid `member` being of type `Member | None`.
+        if TYPE_CHECKING:
+            member: Member
+        else:
+            member = await self.edit(
+                communication_disabled_until=communication_disabled_until,
+                reason=reason
+            )
+        return member
+
     async def disable_communication_for(
         self,
         *,
