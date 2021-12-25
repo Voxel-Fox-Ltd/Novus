@@ -285,7 +285,10 @@ class GuildScheduledEvent(Hashable):
             Editing the event failed.
         """
 
-        return await self.edit(status=GuildScheduledEventStatus.canceled)
+        payload = {
+            "status": GuildScheduledEventStatus.canceled.value,
+        }
+        await self._state.http.modify_guild_scheduled_event(self.guild_id, self.id, payload)
 
     def __repr__(self) -> str:
         attrs = (
