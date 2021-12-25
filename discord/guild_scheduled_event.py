@@ -27,7 +27,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, Union
 from datetime import datetime as dt
 
-from .guild import Guild
 from .mixins import Hashable
 from .utils import MISSING, _get_as_snowflake, parse_time
 from .enums import GuildScheduledEventPrivacyLevel, GuildScheduledEventStatus, GuildScheduledEventEntityType, try_enum
@@ -35,6 +34,7 @@ from .user import User
 
 if TYPE_CHECKING:
     from .channel import VoiceChannel, StageChannel
+    from .guild import Guild
     from .types.snowflake import Snowflake
 
 __all__ = (
