@@ -635,8 +635,8 @@ class Member(discord.abc.Messageable, _UserTag):
 
     async def disable_communication_until(
         self,
-        *,
         communication_disabled_until: datetime.datetime,
+        *,
         reason: Optional[str] = None,
     ) -> Member:
         r"""|coro|
