@@ -25,6 +25,7 @@ New Features
 * Add :class:`ui.InteractionComponent`.
 * Add support for role icons.
 * Add support for member timeouts.
+* Add support for :class:`guild scheduled events <GuildScheduledEvent>`.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~
