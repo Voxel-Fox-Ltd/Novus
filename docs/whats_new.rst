@@ -24,8 +24,14 @@ New Features
 * Add :class:`ApplicationCommandInteractionDataOption`.
 * Add :class:`ui.InteractionComponent`.
 * Add support for role icons.
+    * Add :attr:`Role.icon`.
+    * Add :attr:`Role.unicode_emoji`.
+    * Add ``icon`` to :func:`Role.edit`.
 * Add support for member timeouts.
+    * Add ``communication_disabled_until`` to :func:`Member.edit`.
 * Add support for :class:`guild scheduled events <GuildScheduledEvent>`.
+    * Add :class:`GuildScheduledEvent`.
+    * Add :func:`Guild.create_scheduled_event`.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~
