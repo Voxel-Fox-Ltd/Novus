@@ -71,17 +71,11 @@ class GuildScheduledEvent(Hashable):
         The ID of the event.
     guild_id: :class:`int`
         The ID of the guild that the event is attached to.
-    guild: Optional[:class:`Guild`]
-        The guild that the event is attached to.
     channel_id: Optional[:class:`int`]
         The ID of the channel where the event is going to occur.
-    channel: Optional[Union[:class:`VoiceChannel`, :class:`StageChannel`]]
-        The channel where the event is set to occur.
     creator_id: :class:`int`
         The ID of the user who created the event. Will only be present for events
         created after October 25th 2021.
-    creator: Optional[:class:`User`]
-        The user who created the event.
     name: :class:`str`
         The name of the event.
     description: :class:`str`

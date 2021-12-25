@@ -4086,7 +4086,7 @@ Bot UI Kit
 The library has helpers to help create component-based UIs.
 
 InteractableComponent
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
 
 .. attributetable:: discord.ui.InteractableComponent
 

@@ -650,21 +650,21 @@ class Member(discord.abc.Messageable, _UserTag):
 
         Depending on the parameter passed, this requires different permissions listed below:
 
-        +---------------+--------------------------------------+
-        |   Parameter   |              Permission              |
-        +---------------+--------------------------------------+
-        | nick          | :attr:`Permissions.manage_nicknames` |
-        +---------------+--------------------------------------+
-        | mute          | :attr:`Permissions.mute_members`     |
-        +---------------+--------------------------------------+
-        | deafen        | :attr:`Permissions.deafen_members`   |
-        +---------------+--------------------------------------+
-        | roles         | :attr:`Permissions.manage_roles`     |
-        +---------------+--------------------------------------+
-        | voice_channel | :attr:`Permissions.move_members`     |
-        +---------------+--------------------------------------+
+        +------------------------------+--------------------------------------+
+        |   Parameter                  |              Permission              |
+        +------------------------------+--------------------------------------+
+        | nick                         | :attr:`Permissions.manage_nicknames` |
+        +------------------------------+--------------------------------------+
+        | mute                         | :attr:`Permissions.mute_members`     |
+        +------------------------------+--------------------------------------+
+        | deafen                       | :attr:`Permissions.deafen_members`   |
+        +------------------------------+--------------------------------------+
+        | roles                        | :attr:`Permissions.manage_roles`     |
+        +------------------------------+--------------------------------------+
+        | voice_channel                | :attr:`Permissions.move_members`     |
+        +------------------------------+--------------------------------------+
         | communication_disabled_until | :attr:`Permissions.moderate_members` |
-        +---------------+--------------------------------------+
+        +------------------------------+--------------------------------------+
 
         All parameters are optional.
 
