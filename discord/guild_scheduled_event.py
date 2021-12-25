@@ -35,6 +35,7 @@ from .user import User
 
 if TYPE_CHECKING:
     from .channel import VoiceChannel, StageChannel
+    from .types.snowflake import Snowflake
 
 __all__ = (
     "GuildScheduledEventEntityMetadata",
@@ -126,10 +127,10 @@ class GuildScheduledEvent(Hashable):
 
     def __init__(self, *, state, data):
         self._state = state
-        self.id: int = _get_as_snowflake(data, "id")
-        self.guild_id: Optional[int] = _get_as_snowflake(data, "guild_id")
-        self.channel_id: Optional[int] = _get_as_snowflake(data, "channel_id")
-        self.creator_id: Optional[int] = _get_as_snowflake(data, "creator_id")
+        self.id: Snowflake = _get_as_snowflake(data, "id")
+        self.guild_id: Optional[Snowflake] = _get_as_snowflake(data, "guild_id")
+        self.channel_id: Optional[Snowflake] = _get_as_snowflake(data, "channel_id")
+        self.creator_id: Optional[Snowflake] = _get_as_snowflake(data, "creator_id")
         self.name: str = data.get("name")
         self.description: Optional[str] = data.get("description")
         self.scheduled_start_time: dt = parse_time(data.get("scheduled_start_time"))
@@ -137,7 +138,7 @@ class GuildScheduledEvent(Hashable):
         self.privacy_level: GuildScheduledEventPrivacyLevel = try_enum(GuildScheduledEventPrivacyLevel, data.get("privacy_level"))
         self.status: GuildScheduledEventStatus = try_enum(GuildScheduledEventStatus, data.get("status"))
         self.entity_type: GuildScheduledEventEntityType = try_enum(GuildScheduledEventEntityType, data.get("entity_type"))
-        self.entity_id: Optional[int] = _get_as_snowflake(data, "entity_id")
+        self.entity_id: Optional[Snowflake] = _get_as_snowflake(data, "entity_id")
         self.entity_metadata: Optional[GuildScheduledEventEntityMetadata] = None
         if data.get("entity_metadata"):
             self.entity_metadata = GuildScheduledEventEntityMetadata(data=data.get("entity_metadata"))
