@@ -58,6 +58,11 @@ class GuildScheduledEventEntityMetadata:
     def __init__(self, *, data):
         self.location: Optional[str] = data.get("location")
 
+    def to_json(self) -> dict:
+        return {
+            "location": self.location,
+        }
+
 
 class GuildScheduledEvent(Hashable):
     """

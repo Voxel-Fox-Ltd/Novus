@@ -38,6 +38,7 @@ Changed Features
 
 * :ref:`Autocomplete is now documented <on_autocomplete_interaction>`.
 * Changed the types of :attr:`Interaction.values` and :attr:`Interaction.options`.
+* Change error for :class:`ui.Button` invalid type to :class:`InvalidArgument`.
 
 Bugs Fixed
 ~~~~~~~~~~~~~~~~~~

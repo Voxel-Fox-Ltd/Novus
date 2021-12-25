@@ -30,6 +30,7 @@ from typing import Optional, TYPE_CHECKING, Union
 from .models import DisableableComponent
 from ..enums import ButtonStyle, ComponentType
 from ..partial_emoji import PartialEmoji, _EmojiTag
+from ..errors import InvalidArgument
 
 if TYPE_CHECKING:
     from ..emoji import Emoji
@@ -80,11 +81,11 @@ class Button(DisableableComponent):
         self.url = url
         self.disabled = disabled
         if url is None and self.style == ButtonStyle.link:
-            raise ValueError("Missing URL for button type of link")
+            raise InvalidArgument("Missing URL for button type of link")
         if url is not None and self.style != ButtonStyle.link:
-            raise ValueError("Incompatible URL passed for button not of type link")
+            raise InvalidArgument("Incompatible URL passed for button not of type link")
         if not label and not emoji:
-            raise ValueError("Both label and emoji cannot be empty")
+            raise InvalidArgument("Both label and emoji cannot be empty")
 
     def to_dict(self) -> ButtonPayload:
         v = {

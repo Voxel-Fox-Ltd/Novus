@@ -2978,6 +2978,8 @@ class Guild(Hashable):
             You do not have permissions to create an event.
         HTTPException
             Creating the event failed.
+        InvalidArgument
+            The arguments provided aren't valid for creating an event.
 
         Returns
         --------
@@ -2991,14 +2993,19 @@ class Guild(Hashable):
         if channel:
             params["channel_id"] = channel.id
         if entity_metadata:
-            params["entity_metadata"] = entity_metadata
-        params["scheduled_start_time"] = scheduled_start_time
+            params["entity_metadata"] = entity_metadata.to_json()
+        params["scheduled_start_time"] = scheduled_start_time.isoformat()
         if scheduled_end_time:
-            params["scheduled_end_time"] = scheduled_end_time
+            params["scheduled_end_time"] = scheduled_end_time.isoformat()
         if description:
             params["description"] = description
         params["entity_type"] = entity_type.value
         params["status"] = status
+
+        if "channel_id" not in params and "entity_metadata" not in params:
+            raise InvalidArgument("You didn't provide a location for the event to take place in.")
+        if "entity_metadata" in params and "scheduled_end_time" not in params:
+            raise InvalidArgument("You must provide an end time if the event is external.")
 
         returned = await self._state.http.create_guild_scheduled_event(self.id, params)
         return GuildScheduledEvent(state=self._state, data=returned)
