@@ -246,3 +246,19 @@ class GuildScheduledEvent(Hashable):
         if returned:
             return self.__class__(state=self._state, data=returned)
         return None
+
+    async def delete(self) -> None:
+        """
+        Delete this event from the guild.
+
+        Raises
+        ------
+        Forbidden
+            You do not have proper permissions to delete the event.
+        NotFound
+            The event was deleted already
+        HTTPException
+            Deleting the event failed.
+        """
+
+        self._state.delete_guild_scheduled_event(self.guild_id, self.id)
