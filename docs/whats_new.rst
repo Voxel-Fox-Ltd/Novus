@@ -29,7 +29,7 @@ New Features
     * Add ``icon`` to :func:`Role.edit`.
 * Add support for member timeouts.
     * Add ``communication_disabled_until`` to :func:`Member.edit`.
-* Add support for :class:`guild scheduled events <GuildScheduledEvent>`.
+* Add support for guild scheduled events.
     * Add :class:`GuildScheduledEvent`.
     * Add :func:`Guild.create_scheduled_event`.
 
