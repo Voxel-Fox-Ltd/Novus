@@ -198,6 +198,8 @@ class GuildScheduledEvent(Hashable):
         ------
         Forbidden
             You do not have permissions to edit the event.
+        NotFound
+            The event was deleted already.
         HTTPException
             Editing the event failed.
 
@@ -262,12 +264,28 @@ class GuildScheduledEvent(Hashable):
         Forbidden
             You do not have proper permissions to delete the event.
         NotFound
-            The event was deleted already
+            The event was deleted already.
         HTTPException
             Deleting the event failed.
         """
 
         await self._state.http.delete_guild_scheduled_event(self.guild_id, self.id)
+
+    async def cancel(self) -> None:
+        """
+        Set the status of the event to canceled.
+
+        Raises
+        ------
+        Forbidden
+            You do not have proper permissions to edit the event.
+        NotFound
+            The event was deleted already.
+        HTTPException
+            Editing the event failed.
+        """
+
+        return await self.edit(status=GuildScheduledEventStatus.canceled)
 
     def __repr__(self) -> str:
         attrs = (
