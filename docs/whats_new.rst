@@ -32,6 +32,8 @@ New Features
 * Add support for guild scheduled events.
     * Add :class:`GuildScheduledEvent`.
     * Add :func:`Guild.create_scheduled_event`.
+    * Add :func:`Guild.fetch_scheduled_event`.
+    * Add :func:`Guild.fetch_scheduled_events`.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~

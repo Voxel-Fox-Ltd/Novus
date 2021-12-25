@@ -3009,3 +3009,25 @@ class Guild(Hashable):
 
         returned = await self._state.http.create_guild_scheduled_event(self.id, params)
         return GuildScheduledEvent(state=self._state, data=returned)
+
+    async def fetch_scheduled_event(self, id: Snowflake) -> GuildScheduledEvent:
+        """
+        Get a scheduled event for this guild given it's ID.
+        """
+
+        returned = await self._state.http.get_guild_scheduled_event(self.id, id)
+        return GuildScheduledEvent(state=self._state, data=returned)
+
+    async def fetch_scheduled_events(self, with_user_count: bool = False) -> List[GuildScheduledEvent]:
+        """
+        Get a list of scheduled events for this guild.
+
+        Parameters
+        -----------
+        with_user_count: Optional[:class:`bool`]
+            Whether or not you want to include the user count of each event.
+        """
+
+        returned = await self._state.http.list_guild_scheduled_events(self.id, with_user_count=with_user_count)
+        return [GuildScheduledEvent(state=self._state, data=i) for i in returned]
+
