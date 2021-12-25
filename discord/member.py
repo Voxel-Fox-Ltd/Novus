@@ -42,6 +42,7 @@ from .permissions import Permissions
 from .enums import Status, try_enum
 from .colour import Colour
 from .object import Object
+from .errors import InvalidArgument
 
 __all__ = (
     'VoiceState',
@@ -632,7 +633,7 @@ class Member(discord.abc.Messageable, _UserTag):
         """
         await self.guild.kick(self, reason=reason)
 
-    async def disable_communication(
+    async def disable_communication_for(
         self,
         *,
         seconds: int = 0,
@@ -690,7 +691,7 @@ class Member(discord.abc.Messageable, _UserTag):
         )
 
         if additional_time.total_seconds() <= 0:
-            raise ValueError(
+            raise InvalidArgument(
                 "Disabled communication time must be greater than 0 seconds."
             )
 
