@@ -22,7 +22,7 @@ New Features
 * Added support for :class:`modals <ui.Modal>`.
 * Add :attr:`Interaction.components`.
 * Add :class:`ApplicationCommandInteractionDataOption`.
-* Add :class:`ui.InteractionComponent`.
+* Add :class:`ui.InteractableComponent`.
 * Add support for role icons.
     * Add :attr:`Role.icon`.
     * Add :attr:`Role.unicode_emoji`.
