@@ -63,6 +63,9 @@ from .enums import (
     ContentFilter,
     NotificationLevel,
     NSFWLevel,
+    GuildScheduledEventPrivacyLevel,
+    GuildScheduledEventEntityType,
+    GuildScheduledEventStatus,
 )
 from .mixins import Hashable
 from .user import User
@@ -77,6 +80,7 @@ from .threads import Thread, ThreadMember
 from .sticker import GuildSticker
 from .file import File
 from .welcome_screen import WelcomeScreen, WelcomeChannel
+from .guild_scheduled_event import GuildScheduledEvent, GuildScheduledEventEntityMetadata
 
 
 __all__ = (
@@ -2932,3 +2936,69 @@ class Guild(Hashable):
         ws = self._state._get_websocket(self.id)
         channel_id = channel.id if channel else None
         await ws.voice_state(self.id, channel_id, self_mute, self_deaf)
+
+    async def create_scheduled_event(
+            self, *, name: str, privacy_level: GuildScheduledEventPrivacyLevel = GuildScheduledEventPrivacyLevel.guild_only,
+            channel: Optional[Union[VoiceChannel, StageChannel]] = None,
+            entity_metadata: Optional[GuildScheduledEventEntityMetadata] = None,
+            scheduled_start_time: datetime.datetime, scheduled_end_time: datetime.datetime = None, description: str = None,
+            entity_type: GuildScheduledEventEntityType, status: GuildScheduledEventStatus = GuildScheduledEventStatus.scheduled
+            ) -> GuildScheduledEvent:
+        """
+        Create an event in the guild.
+
+        Parameters
+        -------------
+        name: :class:`str`
+            The name that you want to set the event to.
+        channel: Optional[Union[:class:`VoiceChannel`, :class:`StageChannel`]]
+            The channel where the event is going to occur. Can only be set to ``None`` if
+            the event is occuring externally.
+        entity_metadata: Optional[:class:`GuildScheduledEventEntityMetadata`]
+            The metadata of the event's occurence.
+        privacy_level: :class:`GuildScheduledEventPrivacyLevel`
+            The privacy level that you want to change the event to. Can only be
+            :attr:`GuildScheduledEventPrivacyLevel.guild_only`.
+        scheduled_start_time: :class:`datetime.datetime`
+            The time that the event is meant to start.
+        scheduled_end_time: Optional[:class:`datetime.datetime`]
+            The time that the event is meant to end.
+        description: Optional[:class:`str`]
+            The description shown for the event.
+        entity_type: :class:`GuildScheduledEventEntityType`
+            The entity type for the event; describes whether the event is occuring in a guild or
+            externally.
+        status: :class:`GuildScheduledEventStatus`
+            The status for the scheduled event. Once an event is completed or
+            cancelled, you can no longer update its status.
+
+        Raises
+        ------
+        Forbidden
+            You do not have permissions to create an event.
+        HTTPException
+            Creating the event failed.
+
+        Returns
+        --------
+        :class:`.GuildScheduledEvent`
+            The newly created event.
+        """
+
+        params = {}
+        params["name"] = name
+        params["privacy_level"] = privacy_level.value
+        if channel:
+            params["channel_id"] = channel.id
+        if entity_metadata:
+            params["entity_metadata"] = entity_metadata
+        params["scheduled_start_time"] = scheduled_start_time
+        if scheduled_end_time:
+            params["scheduled_end_time"] = scheduled_end_time
+        if description:
+            params["description"] = description
+        params["entity_type"] = entity_type.value
+        params["status"] = status
+
+        returned = self._state.create_guild_scheduled_event(self.id, params)
+        return GuildScheduledEvent(state=self._state, data=returned)
