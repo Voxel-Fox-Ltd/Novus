@@ -236,7 +236,7 @@ class GuildScheduledEvent(Hashable):
         if status is not MISSING:
             payload["status"] = status.value
 
-        returned = self._state.http.modify_guild_scheduled_event(self.guild_id, self.id, payload)
+        returned = await self._state.http.modify_guild_scheduled_event(self.guild_id, self.id, payload)
         if returned:
             return self.__class__(state=self._state, data=returned)
         return None
@@ -255,4 +255,4 @@ class GuildScheduledEvent(Hashable):
             Deleting the event failed.
         """
 
-        self._state.http.delete_guild_scheduled_event(self.guild_id, self.id)
+        await self._state.http.delete_guild_scheduled_event(self.guild_id, self.id)

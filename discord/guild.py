@@ -3000,5 +3000,5 @@ class Guild(Hashable):
         params["entity_type"] = entity_type.value
         params["status"] = status
 
-        returned = self._state.http.create_guild_scheduled_event(self.id, params)
+        returned = await self._state.http.create_guild_scheduled_event(self.id, params)
         return GuildScheduledEvent(state=self._state, data=returned)
