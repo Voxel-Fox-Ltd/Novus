@@ -63,6 +63,13 @@ class GuildScheduledEventEntityMetadata:
             "location": self.location,
         }
 
+    def __repr__(self) -> str:
+        attrs = (
+            ('location', self.location),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'<{self.__class__.__name__} {inner}>'
+
 
 class GuildScheduledEvent(Hashable):
     """
@@ -261,3 +268,12 @@ class GuildScheduledEvent(Hashable):
         """
 
         await self._state.http.delete_guild_scheduled_event(self.guild_id, self.id)
+
+    def __repr__(self) -> str:
+        attrs = (
+            ('id', self.id),
+            ('guild_id', self.guild_id),
+            ('name', self.name),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'<{self.__class__.__name__} {inner}>'
