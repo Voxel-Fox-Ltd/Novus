@@ -25,6 +25,9 @@ New Features
 * Add :class:`ui.InteractionComponent`.
 * Add support for role icons.
 * Add support for member timeouts.
+    * Add :func:`Member.disable_communication_until`.
+    * Add :func:`Member.disable_communication_for`.
+    * Add :func:`Member.enable_communication`.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~

@@ -634,11 +634,10 @@ class Member(discord.abc.Messageable, _UserTag):
         await self.guild.kick(self, reason=reason)
 
     async def disable_communication_until(
-        self,
-        communication_disabled_until: datetime.datetime,
-        *,
-        reason: Optional[str] = None,
-    ) -> Member:
+            self,
+            communication_disabled_until: datetime.datetime,
+            *,
+            reason: Optional[str] = None) -> Member:
         r"""|coro|
 
         Time this member out until a specific :class:`datetime.datetime`.
@@ -646,6 +645,8 @@ class Member(discord.abc.Messageable, _UserTag):
         You must have the :attr:`~Permissions.moderate_members` permission to
         use this, and the added :class:`Role`\s must appear lower in the list
         of roles than the highest role of the member.
+
+        .. versionadded:: 0.0.5
 
         Parameters
         -----------
@@ -662,26 +663,22 @@ class Member(discord.abc.Messageable, _UserTag):
             Timeout failed.
         """
 
-        # to avoid `member` being of type `Member | None`.
-        if TYPE_CHECKING:
-            member: Member
-        else:
-            member = await self.edit(
-                communication_disabled_until=communication_disabled_until,
-                reason=reason
-            )
+        member = await self.edit(
+            communication_disabled_until=communication_disabled_until,
+            reason=reason
+        )
+        assert member
         return member
 
     async def disable_communication_for(
-        self,
-        *,
-        seconds: int = 0,
-        minutes: int = 0,
-        hours: int = 0,
-        days: int = 0,
-        weeks: int = 0,
-        reason: Optional[str] = None
-    ) -> Member:
+            self,
+            *,
+            seconds: int = 0,
+            minutes: int = 0,
+            hours: int = 0,
+            days: int = 0,
+            weeks: int = 0,
+            reason: Optional[str] = None) -> Member:
         r"""|coro|
 
         Time this member out for a set amount of time.
@@ -690,26 +687,20 @@ class Member(discord.abc.Messageable, _UserTag):
         use this, and the added :class:`Role`\s must appear lower in the list
         of roles than the highest role of the member.
 
-        .. note::
-
-            The time parameters are added up.
+        .. versionadded:: 0.0.5
 
         Parameters
         -----------
         seconds: :class:`int`
             The amount of seconds to time out the member for.
         minutes: :class:`int`
-            The amount of minutes to time out the member for. Multiplied by
-            60 when converted to seconds.
+            The amount of minutes to time out the member for.
         hours: :class:`int`
-            The amount of hours to time out the member for. Multiplied by
-            3,600 when converted to seconds.
+            The amount of hours to time out the member for.
         days: :class:`int`
-            The amount of days to time out the member for. Multiplied by
-            86,400 when converted to seconds.
+            The amount of days to time out the member for.
         weeks: :class:`int`
-            The amount of weeks to time out the member for. Multiplied by
-            604,800 when converted to seconds.
+            The amount of weeks to time out the member for.
         reason: Optional[:class:`str`]
             The reason for this timeout. Shows up on the audit log.
 
@@ -734,21 +725,17 @@ class Member(discord.abc.Messageable, _UserTag):
                 "Disabled communication time must be greater than 0 seconds."
             )
 
-        # to avoid `member` being of type `Member | None`.
-        if TYPE_CHECKING:
-            member: Member
-        else:
-            member = await self.edit(
-                communication_disabled_until=utils.utcnow() + additional_time,
-                reason=reason
-            )
+        member = await self.edit(
+            communication_disabled_until=utils.utcnow() + additional_time,
+            reason=reason
+        )
+        assert member
         return member
 
     async def enable_communication(
-        self,
-        *,
-        reason: Optional[str] = None
-    ) -> Member:
+            self,
+            *,
+            reason: Optional[str] = None) -> Member:
         r"""|coro|
 
         Revoke the communication timeout of this member.
@@ -756,6 +743,8 @@ class Member(discord.abc.Messageable, _UserTag):
         You must have the :attr:`~Permissions.moderate_members` permission to
         use this, and the added :class:`Role`\s must appear lower in the list
         of roles than the highest role of the member.
+
+        .. versionadded:: 0.0.5
 
         Parameters
         -----------
