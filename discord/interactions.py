@@ -226,6 +226,7 @@ class Interaction:
             raw dictionary.
     components: Optional[List[:class:`ui.InteractionComponent`]]
         The components that are returned with the interaction. This is only used with modals so far.
+        This skips the base level component (ie the modal object) and only gives its components.
 
         .. versionadded:: 0.0.5
     custom_id: Optional[:class:`str`]
