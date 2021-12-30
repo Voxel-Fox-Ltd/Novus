@@ -134,12 +134,11 @@ class Context(discord.abc.Messageable, Generic[BotT]):
 
         .. versionadded:: 0.0.6
     guild_locale: Optional[:class:`str`]
-        A string of the guild's locale for where the command was invoked. In message commands,
-        this will always be ``None``. With interactions this will be set properly.
+        A string of the guild's locale for where the command was invoked.
 
         .. versionadded:: 0.0.6
-    locale: Optional[:class:`str`]
-        Returns the guild locale, the user locale, or ``None``.
+    locale: :class:`str`
+        Returns the guild locale, the user locale, or ``en-US`` (the Discord default).
 
         .. versionadded:: 0.0.6
     """
@@ -175,11 +174,11 @@ class Context(discord.abc.Messageable, Generic[BotT]):
         self.current_parameter: Optional[inspect.Parameter] = current_parameter
         self._state: ConnectionState = self.message._state
         self.user_locale = None
-        self.guild_locale = None
+        self.guild_locale = self.guild.preferred_locale if self.guild else None
 
     @property
     def locale(self):
-        return self.guild_locale or self.user_locale
+        return self.guild_locale or self.user_locale or "en-US"
 
     async def invoke(self, command: Command[CogT, P, T], /, *args: P.args, **kwargs: P.kwargs) -> T:
         r"""|coro|

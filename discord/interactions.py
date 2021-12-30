@@ -357,7 +357,7 @@ class Interaction:
 
     @property
     def locale(self) -> str:
-        return self.guild_locale or self.user_locale
+        return self.guild_locale or self.user_locale or "en-US"
 
     @utils.cached_slot_property('_cs_resolved')
     def resolved(self) -> InteractionResolved:
