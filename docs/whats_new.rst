@@ -19,7 +19,7 @@ v0.0.6
 New Features
 ~~~~~~~~~~~~~~~~~~
 
-* Add ``guild_locale`` and ``user_locale`` to :class:`Interaction`.
+* Add ``guild_locale``, ``user_locale``, and ``locale`` to :class:`Interaction` and the two context objects.
 * Add :attr:`ApplicationCommand.default_permission`.
 
 Changed Features

@@ -242,6 +242,10 @@ class Interaction:
         was invoked from a DM.
 
         .. versionadded:: 0.0.6
+    locale: :class:`str`
+        Returns the user locale or the guild locale
+
+        .. versionadded:: 0.0.6
     """
 
     __slots__: Tuple[str, ...] = (
@@ -350,6 +354,10 @@ class Interaction:
                 self.user = User(state=self._state, data=payload['user'])
             except KeyError:
                 pass
+
+    @property
+    def locale(self) -> str:
+        return self.guild_locale or self.user_locale
 
     @utils.cached_slot_property('_cs_resolved')
     def resolved(self) -> InteractionResolved:
