@@ -20,6 +20,12 @@ New Features
 ~~~~~~~~~~~~~~~~~~
 
 * Add ``guild_locale`` and ``user_locale`` to :class:`Interaction`.
+* Add :attr:`ApplicationCommand.default_permission`.
+
+Changed Features
+~~~~~~~~~~~~~~~~~~~
+
+* Change all args in :class:`ApplicationCommandOptionChoice`, :class:`ApplicationCommandOption`, and :class:`ApplicationCommand`'s inits to be kwargs instead of positional args.
 
 .. _vp0_0_5:
 
