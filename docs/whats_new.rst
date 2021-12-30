@@ -11,6 +11,16 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_6:
+
+v0.0.6
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Add ``guild_locale`` and ``user_locale`` to :class:`Interaction`.
+
 .. _vp0_0_5:
 
 v0.0.5

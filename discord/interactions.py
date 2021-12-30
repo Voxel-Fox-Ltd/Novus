@@ -233,6 +233,15 @@ class Interaction:
         The custom ID associated with the main component of this interaction.
 
         .. versionadded:: 0.0.5
+    user_locale: :class:`str`
+        The locale of the user's client.
+
+        .. versionadded:: 0.0.6
+    guild_locale: Optional[:class:`str`]
+        The locale of the guild where the interaction was invoked. Will be ``None`` if the interaction
+        was invoked from a DM.
+
+        .. versionadded:: 0.0.6
     """
 
     __slots__: Tuple[str, ...] = (
@@ -261,6 +270,8 @@ class Interaction:
         '_cs_channel',
         '_cs_command_name',
         'options',
+        'user_locale',
+        'guild_locale',
     )
 
     def __init__(self, *, data: InteractionPayload, state: ConnectionState):
@@ -319,6 +330,10 @@ class Interaction:
         # Parse the user and their permissions
         self.user: Optional[Union[User, Member]] = None  # documented as optional, for whatever reason
         self._permissions: int = 0
+
+        # Store the locales
+        self.user_locale = payload["locale"]
+        self.guild_locale = payload.get("guild_locale")
 
         # TODO: there's a potential data loss here
         if self.guild_id:
