@@ -277,7 +277,7 @@ class ApplicationCommandMeta:
             default_permission: discord.Permissions = None,
             name_localizations: Dict[str, str] = None,
             description_localizations: Dict[str, str] = None):
-        self.params = params or dict()
+        self.params = params or list()
         self.default_permission = default_permission or None
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
@@ -1370,7 +1370,10 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 "autocomplete": False,
             }
             if self.application_command_meta is not None:
-                meta = self.application_command_meta.params[index]
+                try:
+                    meta = self.application_command_meta.params[index]
+                except IndexError:
+                    meta = None
                 if meta is not None:
                     kwargs = {
                         "description": meta.description or name,
