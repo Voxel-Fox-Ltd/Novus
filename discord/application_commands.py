@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Union, Optional, List
+from typing import TYPE_CHECKING, Any, Dict, Union, Optional, List
 
 from .enums import (
     ApplicationCommandOptionType,
@@ -139,6 +139,14 @@ class ApplicationCommandOption:
         interaction payloads.
 
         .. versionadded:: 0.0.4
+    name_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language code to translation for the name of the command option.
+
+        .. versionadded:: 0.0.6
+    description_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language code to translation for the name of the command option's description.
+
+        .. versionadded:: 0.0.6
     """
 
     def __init__(
@@ -149,7 +157,9 @@ class ApplicationCommandOption:
             description: str,
             default: Optional[str] = None,
             required: bool = True,
-            autocomplete: bool = False):
+            autocomplete: bool = False,
+            name_localizations: Dict[str, str] = None,
+            description_localizations: Dict[str, str] = None):
         self.name: str = name
         self.type: ApplicationCommandOptionType = type
         self.description: str = description
@@ -159,6 +169,8 @@ class ApplicationCommandOption:
         self.options: List[ApplicationCommandOption] = list()
         self.channel_types: list = list()
         self.autocomplete: bool = autocomplete
+        self.name_localizations = name_localizations or dict()
+        self.description_localizations = description_localizations or dict()
 
     def add_choice(self, choice: ApplicationCommandOptionChoice) -> None:
         """
@@ -257,6 +269,14 @@ class ApplicationCommand:
         The permissions that are required to run the application command.
 
         .. versionadded:: 0.0.6
+    name_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language codes to translations for the name of the command.
+
+        .. versionadded:: 0.0.6
+    description_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language codes to translations for the description of the command.
+
+        .. versionadded:: 0.0.6
     """
 
     def __init__(
@@ -266,14 +286,18 @@ class ApplicationCommand:
             description: str = None,
             type: ApplicationCommandType = ApplicationCommandType.chat_input,
             options: List[ApplicationCommandOption] = None,
-            default_permission: Permissions = None):
+            default_permission: Permissions = None,
+            name_localizations: Dict[str, str] = None,
+            description_localizations: Dict[str, str] = None):
         self.name: str = name
         self.description: Optional[str] = description
         self.type: ApplicationCommandType = type
         self.options: List[ApplicationCommandOption] = options or list()
         self.id: Optional[int] = None
         self.application_id: Optional[int] = None
-        self.default_permission = default_permission or Permissions()
+        self.default_permission = default_permission or None
+        self.name_localizations = name_localizations or dict()
+        self.description_localizations = description_localizations or dict()
 
     def __repr__(self):
         return f"ApplcationCommand<name={self.name}, type={self.type.name}>"
@@ -291,7 +315,9 @@ class ApplicationCommand:
             name=data['name'],
             description=data.get('description'),
             type=ApplicationCommandType(data.get('type', 1)),
-            default_permission=Permissions(data.get('permissions', 0)),
+            default_permission=Permissions(int(data.get('permissions', 0))),
+            name_localizations=data.get("name_localizations", dict()),
+            description_localizations=data.get("description_localizations", dict()),
         )
         command.id = int(data.get('id', 0)) or None
         command.application_id = int(data.get('application_id', 0)) or None
@@ -308,10 +334,14 @@ class ApplicationCommand:
             "description": self.description,
             "type": self.type.value,
             "options": [i.to_json() for i in self.options],
-            "default_permission": self.default_permission.value,
+            "name_localizations": self.name_localizations,
+            "description_localizations": self.description_localizations,
         }
+        if self.default_permission:
+            v["default_permission"] = str(self.default_permission.value)
         if self.description is None:
             v.pop("description", None)
+            v.pop("description_localizations")
         if self.type != ApplicationCommandType.chat_input:
             v.pop("options", None)
         return v

@@ -54,7 +54,6 @@ from .converter import run_converters, get_converter, Greedy, try_application_co
 from ._types import _BaseCommand
 from .cog import Cog
 from .context import Context, SlashContext
-from ...enums import ApplicationCommandOptionType, ApplicationCommandType
 
 
 if TYPE_CHECKING:
@@ -73,6 +72,8 @@ if TYPE_CHECKING:
 
 
 __all__ = (
+    'ApplicationCommandParam',
+    'ApplicationCommandMeta',
     'Command',
     'ContextMenuCommand',
     'Group',
@@ -218,6 +219,70 @@ class _CaseInsensitiveDict(dict):
         super().__setitem__(k.casefold(), v)
 
 
+class ApplicationCommandParam:
+    """
+    A container class for passing information about application command
+    arguments into a command decorator.
+
+    .. versionadded:: 0.0.6
+
+    Parameters
+    -----------
+    description: :class:`str`
+        A description for the parameter.
+    autocomplete: :class:`bool`
+        Whether or not the parameter has an autocomplete handler.
+    name_localizations: Dict[str, str]
+        A dictionary of language: text translations for the name of the parameter.
+    description_localizations: Dict[str, str]
+        A dictionary of language: text translations for the description of the parameter.
+    """
+
+    def __init__(
+            self, *,
+            description: str = None,
+            autocomplete: bool = False,
+            name_localizations: Dict[str, str] = None,
+            description_localizations: Dict[str, str] = None):
+        self.description = description
+        self.autocomplete = autocomplete
+        self.name_localizations = name_localizations or dict()
+        self.description_localizations = description_localizations or dict()
+
+
+class ApplicationCommandMeta:
+    """
+    A container class for passing information about application commands
+    onto a command decorator, so that automatic conversion between text
+    commands and slash commands works without a hitch.
+
+    .. versionadded:: 0.0.6
+
+    Parameters
+    -----------
+    params: Dict[:class:`str`, :class:`ApplicationCommandParam`]
+        The data for the parameters that should be converted into an application
+        command.
+    default_permission: :class:`discord.Permissions`
+        The permissions required by default to run the command.
+    name_localizations: Dict[str, str]
+        A dictionary of language: text translations for the name of the command.
+    description_localizations: Dict[str, str]
+        A dictionary of language: text translations for the description of the command.
+    """
+
+    def __init__(
+            self, *,
+            params: Dict[str, ApplicationCommandParam] = None,
+            default_permission: discord.Permissions = None,
+            name_localizations: Dict[str, str] = None,
+            description_localizations: Dict[str, str] = None):
+        self.params = params or dict()
+        self.default_permission = default_permission or None
+        self.name_localizations = name_localizations or dict()
+        self.description_localizations = description_localizations or dict()
+
+
 class Command(_BaseCommand, Generic[CogT, P, T]):
     r"""A class that implements the protocol for a bot text command.
 
@@ -246,13 +311,6 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
     add_slash_command: Optional[:class:`bool`]
         Whether or not this command should be added as a slash command when
         :func:`commands.Bot.register_application_commands()` is run.
-    param_descriptions: Optional[Dict[str, str]]
-        Descriptions for each of the parameters that should be added to the
-        application command description.
-    autocomplete_params: Optional[List[str]]
-        The names of the parameters that should have autocomplete enabled.
-
-        .. versionadded:: 0.0.4
     parent: Optional[:class:`Group`]
         The parent group that this command belongs to. ``None`` if there
         isn't one.
@@ -296,6 +354,10 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
         .. note::
             This object may be copied by the library.
+    application_command_meta: :class:`ApplicationCommandMeta`
+        Additional information for the command to be passed to the application command.
+
+        .. versionadded:: 0.0.6
     """
 
     __original_kwargs__: Dict[str, Any]
@@ -331,9 +393,8 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         self.callback = func
         self.enabled: bool = kwargs.get('enabled', True)
         self.add_slash_command: bool = kwargs.get('add_slash_command', True)
-        self.param_descriptions: Dict[str, str] = kwargs.get('param_descriptions', dict())
 
-        self.autocomplete_params: List[str] = kwargs.get('autocomplete_params', list())
+        self.application_command_meta: ApplicationCommandMeta = kwargs.get("application_command_meta", None)
 
         help_doc = kwargs.get('help')
         if help_doc is not None:
@@ -1272,27 +1333,58 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             An application command equivelant to the current command instance.
         """
 
+        # Get the localizations
+        if self.application_command_meta is None:
+            name_localizations = None
+            description_localizations = None
+            default_permission = None
+        else:
+            name_localizations = self.application_command_meta.name_localizations
+            description_localizations = self.application_command_meta.description_localizations
+            default_permission = self.application_command_meta.default_permission
+
+        # Create the base command
         if self.parent is None:  # No parent
             command = ApplicationCommand(
                 name=self.name,
-                type=ApplicationCommandType.chat_input,
+                type=discord.ApplicationCommandType.chat_input,
                 description=self.short_doc or self.name,
+                name_localizations=name_localizations,
+                description_localizations=description_localizations,
+                default_permission=default_permission,
             )
         else:  # Parent is a group
             command = ApplicationCommandOption(
                 name=self.name,
-                type=ApplicationCommandOptionType.subcommand,
+                type=discord.ApplicationCommandOptionType.subcommand,
                 description=self.short_doc or self.name,
+                name_localizations=name_localizations,
+                description_localizations=description_localizations,
             )
+
+        # Add arguments
         for name, arg in self.clean_params.items():
+            meta = None
+            kwargs = {
+                "description": name,
+                "autocomplete": False,
+            }
+            if self.application_command_meta is not None:
+                meta = self.application_command_meta.params.get("name")
+                if meta is not None:
+                    kwargs = {
+                        "description": meta.description or name,
+                        "description_localizations": meta.description_localizations,
+                        "name_localizations": meta.name_localizations,
+                        "autocomplete": meta.autocomplete,
+                    }
             option = ApplicationCommandOption(
                 name=name,
-                description=self.param_descriptions.get(name, name),
                 type=try_application_command_option_type(arg),
                 required=arg.default == inspect.Signature.empty,
-                autocomplete=name in self.autocomplete_params,
+                **kwargs,
             )
-            if option.type == ApplicationCommandOptionType.channel:
+            if option.type == discord.ApplicationCommandOptionType.channel:
                 channel_types = [arg.annotation]
                 if getattr(arg.annotation, "__origin__", None) is Union:
                     channel_types = arg.annotation.__args__
@@ -1341,9 +1433,9 @@ class ContextMenuCommand(Command):
             if not (annotation := type_.annotation):
                 raise ValueError("Missing annotation for interpolated context menu command.")
             if discord.Message in annotation.mro():
-                self.application_command_type = ApplicationCommandType.message
+                self.application_command_type = discord.ApplicationCommandType.message
             elif discord.user._UserTag in annotation.mro():
-                self.application_command_type = ApplicationCommandType.user
+                self.application_command_type = discord.ApplicationCommandType.user
             else:
                 raise TypeError("Invalid annotation for interpolated context menu command.")
 
@@ -1361,9 +1453,16 @@ class ContextMenuCommand(Command):
             An application command equivelant to the current command instance.
         """
 
+        localizations = None
+        default_permission = None
+        if self.application_command_meta is not None:
+            localizations = self.application_command_meta.name_localizations
+            default_permission = self.application_command_meta.default_permission
         command = ApplicationCommand(
             name=self.name,
             type=self.application_command_type,
+            name_localizations=localizations,
+            default_permission=default_permission,
         )
         return command
 
@@ -1743,16 +1842,24 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
             An application command equivelant to the current command instance.
         """
 
+        localizations = None
+        default_permission = None
+        if self.application_command_meta is not None:
+            localizations = self.application_command_meta.name_localizations
+            default_permission = self.application_command_meta.default_permission
         if self.parent is None:  # No parent, this is the base
             command = ApplicationCommand(
                 name=self.name,
                 description=self.short_doc or self.name,
+                name_localizations=localizations,
+                default_permission=default_permission,
             )
         else:  # Parent is another group
             command = ApplicationCommandOption(
                 name=self.name,
-                type=ApplicationCommandOptionType.subcommand_group,
+                type=discord.ApplicationCommandOptionType.subcommand_group,
                 description=self.short_doc or self.name,
+                name_localizations=localizations,
             )
         for c in self.commands:
             if not c.add_slash_command:
