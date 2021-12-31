@@ -260,7 +260,7 @@ class ApplicationCommandMeta:
 
     Parameters
     -----------
-    params: Dict[:class:`str`, :class:`ApplicationCommandParam`]
+    params: List[:class:`ApplicationCommandParam`]
         The data for the parameters that should be converted into an application
         command.
     default_permission: :class:`discord.Permissions`
@@ -273,7 +273,7 @@ class ApplicationCommandMeta:
 
     def __init__(
             self, *,
-            params: Dict[str, ApplicationCommandParam] = None,
+            params: List[ApplicationCommandParam] = None,
             default_permission: discord.Permissions = None,
             name_localizations: Dict[str, str] = None,
             description_localizations: Dict[str, str] = None):
@@ -1363,14 +1363,14 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             )
 
         # Add arguments
-        for name, arg in self.clean_params.items():
+        for index, (name, arg) in enumerate(self.clean_params.items()):
             meta = None
             kwargs = {
                 "description": name,
                 "autocomplete": False,
             }
             if self.application_command_meta is not None:
-                meta = self.application_command_meta.params.get("name")
+                meta = self.application_command_meta.params[index]
                 if meta is not None:
                     kwargs = {
                         "description": meta.description or name,
