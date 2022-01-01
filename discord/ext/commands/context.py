@@ -436,7 +436,7 @@ class Context(discord.abc.Messageable, Generic[BotT]):
         await self.trigger_typing()
 
 
-class SlashContext(Context):
+class SlashContext(Context, Generic[BotT]):
 
     supports_ephemeral: bool = True
 
