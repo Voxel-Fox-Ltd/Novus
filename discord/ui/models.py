@@ -24,7 +24,7 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Optional, Union
+from typing import Optional, Union, List
 import json
 
 
@@ -47,7 +47,7 @@ class InteractedComponent:
         The type of the component.
     """
 
-    def __init__(self, *, custom_id: str = None, components: list[InteractedComponent] = None, value: str = None, type: int = None):
+    def __init__(self, *, custom_id: str = None, components: List[InteractedComponent] = None, value: str = None, type: int = None):
         self.custom_id = custom_id
         self.components = components
         self.value = value
@@ -65,6 +65,31 @@ class InteractedComponent:
             value=payload.get("value"),
         )
 
+    def get_component(self, custom_id: str) -> Optional[InteractedComponent]:
+        """
+        Search down through the component store for a given custom ID.
+
+        .. versionadded:: 0.0.6
+
+        Parameters
+        -----------
+        custom_id: :class:`str`
+            The custom ID that you want to serach for.
+
+        Returns
+        --------
+        Optional[:class:`InteractedComponent`]
+            The component that was found.
+        """
+
+        if self.custom_id == custom_id:
+            return self
+        if self.components:
+            for c in self.components:
+                s = c.get_component(custom_id)
+                if s:
+                    return s
+        return None
 
 class BaseComponent:
     """

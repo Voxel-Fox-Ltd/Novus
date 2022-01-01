@@ -34,6 +34,7 @@ New Features
     * :func:`Guild.edit_application_command`
     * :func:`Guild.delete_application_command`
     * :func:`Guild.bulk_create_application_commands`
+* Add :func:`InteractedComponent.get_component`
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~
