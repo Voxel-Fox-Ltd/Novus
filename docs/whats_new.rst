@@ -21,6 +21,19 @@ New Features
 
 * Add ``guild_locale``, ``user_locale``, and ``locale`` to :class:`Interaction` and the two context objects.
 * Add :attr:`ApplicationCommand.default_permission`.
+* Add new methods for dealing with application commands.
+    * :func:`Client.fetch_global_application_commands`
+    * :func:`Client.fetch_global_application_command`
+    * :func:`Client.create_global_application_command`
+    * :func:`Client.edit_global_application_command`
+    * :func:`Client.delete_global_application_command`
+    * :func:`Client.bulk_create_global_application_commands`
+    * :func:`Guild.fetch_application_commands`
+    * :func:`Guild.fetch_application_command`
+    * :func:`Guild.create_application_command`
+    * :func:`Guild.edit_application_command`
+    * :func:`Guild.delete_application_command`
+    * :func:`Guild.bulk_create_application_commands`
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~

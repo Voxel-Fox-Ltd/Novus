@@ -53,8 +53,8 @@ Error = Union[
     Callable[[AnyContext, "CommandError"], Coro[Any]],
 ]
 Autocomplete = Union[
-    Callable[["Cog", SlashContext, Interaction], Coro[Any]],
-    Callable[[SlashContext, Interaction], Coro[Any]],
+    Callable[["Cog", "SlashContext", "Interaction"], Coro[Any]],
+    Callable[["SlashContext", "Interaction"], Coro[Any]],
 ]
 
 

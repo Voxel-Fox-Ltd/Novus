@@ -251,8 +251,22 @@ class ApplicationCommand:
         The name of this command.
     description: :class:`str`
         The description for this command.
+    type: :class:`ApplicationCommandType`
+        The type of the application command.
     options: List[:class:`ApplicationCommandOption`]
         A list of the options added to this command.
+    default_permission: :class:`Permissions`
+        The permissions that are required to run the application command.
+
+        .. versionadded:: 0.0.6
+    name_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language codes to translations for the name of the command.
+
+        .. versionadded:: 0.0.6
+    description_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language codes to translations for the description of the command.
+
+        .. versionadded:: 0.0.6
     id: :class:`int`
         The ID of this application command.
     application_id: :class:`int`

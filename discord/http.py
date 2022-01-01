@@ -1555,7 +1555,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def create_global_application_commands(self, application_id: Snowflake, payload) -> Response[interactions.ApplicationCommand]:
+    def create_global_application_command(self, application_id: Snowflake, payload) -> Response[interactions.ApplicationCommand]:
         r = Route('POST', '/applications/{application_id}/commands', application_id=application_id)
         return self.request(r, json=payload)
 
@@ -1588,7 +1588,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def bulk_add_global_application_commands(
+    def bulk_create_global_application_commands(
         self, application_id: Snowflake, payload
     ) -> Response[List[interactions.ApplicationCommand]]:
         r = Route('PUT', '/applications/{application_id}/commands', application_id=application_id)
@@ -1673,7 +1673,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def bulk_add_guild_application_commands(
+    def bulk_create_guild_application_commands(
         self,
         application_id: Snowflake,
         guild_id: Snowflake,
