@@ -1581,7 +1581,7 @@ class Client:
             application_info = await self.application_info()
             application_id = application_info.id
         if guild:
-            data = await self.http.bulk_upsert_guild_commands(application_id, guild.id, [c.to_json() for c in commands])
+            data = await self.http.bulk_add_guild_application_commands(application_id, guild.id, [c.to_json() for c in commands])
         else:
-            data = await self.http.bulk_upsert_global_commands(application_id, [c.to_json() for c in commands])
+            data = await self.http.bulk_add_global_application_commands(application_id, [c.to_json() for c in commands])
         return [ApplicationCommand.from_data(c) for c in data]
