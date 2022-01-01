@@ -369,19 +369,19 @@ class Interaction:
 
         if self.data is None:
             return
-        if self.type != InteractionType.application_command:
-            return
         data = self.data.copy()
         command_name = data.get('name')
-        while command_name:
-            if "options" not in data:
-                break
-            if data['options'][0]['type'] in [1, 2]:
-                data = data['options'][0]
-                command_name += f" {data['name']}"
-            else:
-                break
-        return command_name
+        try:
+            while command_name:
+                if "options" not in data:
+                    break
+                if data['options'][0]['type'] in [1, 2]:
+                    data = data['options'][0]
+                    command_name += f" {data['name']}"
+                else:
+                    break
+        finally:
+            return command_name
 
     @property
     def guild(self) -> Optional[Guild]:
