@@ -159,14 +159,17 @@ class ApplicationCommandOption:
             required: bool = True,
             autocomplete: bool = False,
             name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None):
+            description_localizations: Dict[str, str] = None,
+            choices: List[ApplicationCommandOptionChoice] = None,
+            options: List[ApplicationCommandOption] = None,
+            ):
         self.name: str = name
         self.type: ApplicationCommandOptionType = type
         self.description: str = description
         self.default: Optional[str] = default
         self.required: bool = required
-        self.choices: List[ApplicationCommandOptionChoice] = list()
-        self.options: List[ApplicationCommandOption] = list()
+        self.choices: List[ApplicationCommandOptionChoice] = choices or list()
+        self.options: List[ApplicationCommandOption] = options or list()
         self.channel_types: list = list()
         self.autocomplete: bool = autocomplete
         self.name_localizations = name_localizations or dict()
