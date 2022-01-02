@@ -228,6 +228,10 @@ class ApplicationCommandParam:
 
     Parameters
     -----------
+    name: :class:`str`
+        The name of the parameter as seen by the user.
+    type: :class:`discord.ApplicationCommandOptionType`
+        The type of the parameter.
     description: :class:`str`
         A description for the parameter.
     autocomplete: :class:`bool`
@@ -240,14 +244,21 @@ class ApplicationCommandParam:
 
     def __init__(
             self, *,
-            description: str = None,
+            name: str,
+            type: discord.ApplicationCommandOptionType,
+            description: str,
             autocomplete: bool = False,
             name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None):
+            description_localizations: Dict[str, str] = None,
+            channel_types: List[type] = None
+            ):
+        self.name = name
+        self.type = type
         self.description = description
         self.autocomplete = autocomplete
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
+        self.channel_types = channel_types
 
 
 class ApplicationCommandMeta:
@@ -1334,7 +1345,9 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         """
 
         # Get the localizations
-        if self.application_command_meta is None:
+        if self.application_command_meta is None and self.clean_params:
+            raise TypeError(f"Missing application command meta in command {self.name}.")
+        elif self.application_command_meta is None:
             name_localizations = None
             description_localizations = None
             default_permission = None
@@ -1362,36 +1375,22 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 description_localizations=description_localizations,
             )
 
-        # Add arguments
-        for index, (name, arg) in enumerate(self.clean_params.items()):
-            meta = None
-            kwargs = {
-                "description": name,
-                "autocomplete": False,
-            }
-            if self.application_command_meta is not None:
-                try:
-                    meta = self.application_command_meta.params[index]
-                except IndexError:
-                    meta = None
-                if meta is not None:
-                    kwargs = {
-                        "description": meta.description or name,
-                        "description_localizations": meta.description_localizations,
-                        "name_localizations": meta.name_localizations,
-                        "autocomplete": meta.autocomplete,
-                    }
+        # If we don't have a meta
+        if self.application_command_meta is None:
+            return command
+
+        # Add arguments if we set up a meta
+        for meta in self.application_command_meta.params:
             option = ApplicationCommandOption(
-                name=name,
-                type=try_application_command_option_type(arg),
-                required=arg.default == inspect.Signature.empty,
-                **kwargs,
+                name=meta.name,
+                description=meta.description,
+                type=meta.type,
+                description_localizations=meta.description_localizations,
+                name_localizations=meta.name_localizations,
+                autocomplete=meta.autocomplete,
             )
-            if option.type == discord.ApplicationCommandOptionType.channel:
-                channel_types = [arg.annotation]
-                if getattr(arg.annotation, "__origin__", None) is Union:
-                    channel_types = arg.annotation.__args__
-                option.channel_types = channel_types
+            if meta.type == discord.ApplicationCommandOptionType.channel:
+                option.channel_types = meta.channel_types
             command.add_option(option)
         return command
 

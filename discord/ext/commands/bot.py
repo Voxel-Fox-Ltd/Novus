@@ -1120,8 +1120,11 @@ class BotBase(GroupMixin):
         await ctx.command.dispatch_autocomplete(ctx, interaction)
 
     async def register_application_commands(
-            self, commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]] = MISSING,
-            *, guild: Optional[discord.abc.Snowflake] = None) -> List[ApplicationCommand]:
+            self,
+            commands: Optional[List[Union[Command, Group, ContextMenuCommand, ApplicationCommand]]] = MISSING,
+            *,
+            guild: Optional[discord.abc.Snowflake] = None,
+            ) -> List[ApplicationCommand]:
         """|coro|
 
         Register the bot's commands as application and slash commands. Providing ``None`` or an empty list
