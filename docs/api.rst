@@ -597,6 +597,13 @@ to handle it, which defaults to print a traceback and ignoring the exception.
     :param payload: The raw event payload data.
     :type payload: :class:`RawReactionClearEmojiEvent`
 
+.. function:: on_interaction(interaction)
+
+    When any interaction is sent to the bot.
+
+    :param interaction: The interaction data.
+    :type interaction: :class:`Interaction`
+
 .. function:: on_slash_command(interaction)
 
     Called when a slash command is parsed.
@@ -616,6 +623,15 @@ to handle it, which defaults to print a traceback and ignoring the exception.
     Called when an autocomplete interaction is parsed and sent to the bot.
 
     .. versionadded:: 0.0.4
+
+    :param interaction: The interaction data.
+    :type interaction: :class:`Interaction`
+
+.. function:: on_modal_submit(interaction)
+
+    Called when a modal interaction is parsed and sent to the bot.
+
+    .. versionadded:: 0.0.5
 
     :param interaction: The interaction data.
     :type interaction: :class:`Interaction`

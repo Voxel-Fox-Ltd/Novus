@@ -30,7 +30,7 @@ import logging
 import signal
 import sys
 import traceback
-from typing import Any, Callable, Coroutine, Dict, Generator, List, Optional, Sequence, TYPE_CHECKING, Tuple, TypeVar, Union
+from typing import Any, Callable, Coroutine, Dict, Generator, List, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, TypeVar, Union, overload
 
 import aiohttp
 
@@ -70,6 +70,9 @@ if TYPE_CHECKING:
     from .message import Message
     from .member import Member
     from .voice_client import VoiceProtocol
+    from .reaction import Reaction
+    from .raw_models import RawReactionActionEvent
+    from .interactions import Interaction
     from .types.snowflake import Snowflake
 
 __all__ = (
@@ -870,6 +873,106 @@ class Client:
         Waits until the client's internal cache is all ready.
         """
         await self._ready.wait()
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["message"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Message:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["reaction_add"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Tuple[Reaction, Union[User, Member]]:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["raw_reaction_add"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> RawReactionActionEvent:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["reaction_remove"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Tuple[Reaction, Union[User, Member]]:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["raw_reaction_remove"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> RawReactionActionEvent:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["slash_command"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Interaction:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["component_interaction"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Interaction:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["autocomplete_interaction"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Interaction:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["modal_submit"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Interaction:
+        ...
+
+    @overload
+    async def wait_for(
+            self,
+            event: Literal["interaction"],
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Interaction:
+        ...
 
     def wait_for(
         self,
