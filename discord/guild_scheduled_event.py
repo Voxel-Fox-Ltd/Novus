@@ -47,7 +47,7 @@ class GuildScheduledEventEntityMetadata:
     """
     The medatadata that's included for external guild scheduled events.
 
-    .. versionadded:: 0.0.5
+    .. versionadded:: 0.0.6
 
     Attributes
     ----------------
@@ -75,7 +75,7 @@ class GuildScheduledEvent(Hashable):
     """
     An object representing a guild scheduled event.
 
-    .. versionadded:: 0.0.5
+    .. versionadded:: 0.0.6
 
     Attributes
     ------------

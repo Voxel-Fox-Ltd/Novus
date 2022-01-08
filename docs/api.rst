@@ -2507,11 +2507,15 @@ of :class:`enum.Enum`.
 
 .. class:: GuildScheduledEventPrivacyLevel
 
+    .. versionadded:: 0.0.6
+
     .. attribute:: guild_only
 
         The event is only accessible to the members of the guild.
 
 .. class:: GuildScheduledEventStatus
+
+    .. versionadded:: 0.0.6
 
     .. attribute:: scheduled
 
@@ -2531,6 +2535,8 @@ of :class:`enum.Enum`.
 
 
 .. class:: GuildScheduledEventEntityType
+
+    .. versionadded:: 0.0.6
 
     .. attribute:: stage_instance
 

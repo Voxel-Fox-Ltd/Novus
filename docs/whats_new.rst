@@ -11,6 +11,20 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_6:
+
+v0.0.6
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Add support for guild scheduled events.
+    * Add :class:`GuildScheduledEvent`.
+    * Add :func:`Guild.create_scheduled_event`.
+    * Add :func:`Guild.fetch_scheduled_event`.
+    * Add :func:`Guild.fetch_scheduled_events`.
+
 .. _vp0_0_5:
 
 v0.0.5
@@ -32,11 +46,6 @@ New Features
     * Add :func:`Member.disable_communication_for`.
     * Add :func:`Member.enable_communication`.
     * Add ``communication_disabled_until`` to :func:`Member.edit`.
-* Add support for guild scheduled events.
-    * Add :class:`GuildScheduledEvent`.
-    * Add :func:`Guild.create_scheduled_event`.
-    * Add :func:`Guild.fetch_scheduled_event`.
-    * Add :func:`Guild.fetch_scheduled_events`.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~
