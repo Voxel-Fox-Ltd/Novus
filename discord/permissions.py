@@ -143,7 +143,12 @@ class Permissions(BaseFlags):
         """A factory method that creates a :class:`Permissions` with all
         permissions set to ``True``.
         """
-        return cls(0b111111111111111111111111111111111111111)
+
+        bits = max(cls.VALID_FLAGS.values()).bit_length()
+        value = (1 << bits) - 1
+        self = cls.__new__(cls)
+        self.value = value
+        return self
 
     @classmethod
     def all_channel(cls: Type[P]) -> P:
@@ -175,7 +180,7 @@ class Permissions(BaseFlags):
         """A factory method that creates a :class:`Permissions` with all
         "Membership" permissions from the official Discord UI set to ``True``.
         """
-        return cls(0b00001100000000000000000000000111)
+        return cls(0b10000000000001100000000000000000000000111)
 
     @classmethod
     def text(cls: Type[P]) -> P:
@@ -501,7 +506,21 @@ class Permissions(BaseFlags):
         """
         return 1 << 40
 
+    @make_permission_alias('moderate_members')
+    def time_out_members(self) -> int:
+        """:class:`bool`: An alias for :attr:`moderate_members`.
+        """
+        return 1 << 40
+
+    @make_permission_alias('moderate_members')
+    def timeout_members(self) -> int:
+        """:class:`bool`: An alias for :attr:`moderate_members`.
+        """
+        return 1 << 40
+
+
 PO = TypeVar('PO', bound='PermissionOverwrite')
+
 
 def _augment_from_permissions(cls):
     cls.VALID_NAMES = set(Permissions.VALID_FLAGS)
