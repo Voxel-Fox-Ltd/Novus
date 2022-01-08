@@ -1542,10 +1542,10 @@ class HTTPClient:
 
     # Application commands (global)
 
-    def get_global_commands(self, application_id: Snowflake) -> Response[List[interactions.ApplicationCommand]]:
+    def get_global_application_commands(self, application_id: Snowflake) -> Response[List[interactions.ApplicationCommand]]:
         return self.request(Route('GET', '/applications/{application_id}/commands', application_id=application_id))
 
-    def get_global_command(
+    def get_global_application_command(
         self, application_id: Snowflake, command_id: Snowflake
     ) -> Response[interactions.ApplicationCommand]:
         r = Route(
@@ -1556,11 +1556,11 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def upsert_global_command(self, application_id: Snowflake, payload) -> Response[interactions.ApplicationCommand]:
+    def create_global_application_command(self, application_id: Snowflake, payload) -> Response[interactions.ApplicationCommand]:
         r = Route('POST', '/applications/{application_id}/commands', application_id=application_id)
         return self.request(r, json=payload)
 
-    def edit_global_command(
+    def edit_global_application_command(
         self,
         application_id: Snowflake,
         command_id: Snowflake,
@@ -1580,7 +1580,7 @@ class HTTPClient:
         )
         return self.request(r, json=payload)
 
-    def delete_global_command(self, application_id: Snowflake, command_id: Snowflake) -> Response[None]:
+    def delete_global_application_command(self, application_id: Snowflake, command_id: Snowflake) -> Response[None]:
         r = Route(
             'DELETE',
             '/applications/{application_id}/commands/{command_id}',
@@ -1589,7 +1589,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def bulk_upsert_global_commands(
+    def bulk_create_global_application_commands(
         self, application_id: Snowflake, payload
     ) -> Response[List[interactions.ApplicationCommand]]:
         r = Route('PUT', '/applications/{application_id}/commands', application_id=application_id)
@@ -1597,7 +1597,7 @@ class HTTPClient:
 
     # Application commands (guild)
 
-    def get_guild_commands(
+    def get_guild_application_commands(
         self, application_id: Snowflake, guild_id: Snowflake
     ) -> Response[List[interactions.ApplicationCommand]]:
         r = Route(
@@ -1608,7 +1608,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def get_guild_command(
+    def get_guild_application_command(
         self,
         application_id: Snowflake,
         guild_id: Snowflake,
@@ -1623,7 +1623,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def upsert_guild_command(
+    def create_guild_application_command(
         self,
         application_id: Snowflake,
         guild_id: Snowflake,
@@ -1637,7 +1637,7 @@ class HTTPClient:
         )
         return self.request(r, json=payload)
 
-    def edit_guild_command(
+    def edit_guild_application_command(
         self,
         application_id: Snowflake,
         guild_id: Snowflake,
@@ -1659,7 +1659,7 @@ class HTTPClient:
         )
         return self.request(r, json=payload)
 
-    def delete_guild_command(
+    def delete_guild_application_command(
         self,
         application_id: Snowflake,
         guild_id: Snowflake,
@@ -1674,7 +1674,7 @@ class HTTPClient:
         )
         return self.request(r)
 
-    def bulk_upsert_guild_commands(
+    def bulk_create_guild_application_commands(
         self,
         application_id: Snowflake,
         guild_id: Snowflake,

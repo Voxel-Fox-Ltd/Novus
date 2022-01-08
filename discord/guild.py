@@ -80,6 +80,7 @@ from .threads import Thread, ThreadMember
 from .sticker import GuildSticker
 from .file import File
 from .welcome_screen import WelcomeScreen, WelcomeChannel
+from .application_commands import ApplicationCommand
 from .guild_scheduled_event import GuildScheduledEvent, GuildScheduledEventEntityMetadata
 
 
@@ -3030,4 +3031,188 @@ class Guild(Hashable):
 
         returned = await self._state.http.list_guild_scheduled_events(self.id, with_user_count=with_user_count)
         return [GuildScheduledEvent(state=self._state, data=i) for i in returned]
+
+    async def fetch_application_commands(self) -> List[ApplicationCommand]:
+        """
+        |coro|
+
+        Get all of the application commands that the bot has registered globally.
+
+        Returns
+        --------
+        List[:class:`ApplicationCommand`]
+            A list of added application commands.
+
+        Raises
+        -------
+        :exception:`discord.HTTPException`
+            Getting the application commands failed.
+        """
+
+        application_id = self._state.application_id
+        if application_id is None:
+            application_info = await self._state.http.application_info()
+            application_id = application_info["id"]
+        payload = await self._state.http.get_guild_application_commands(application_id, self.id)
+        return [
+            ApplicationCommand.from_data(i)
+            for i in payload
+        ]
+
+    async def fetch_application_command(self, command_id: int) -> ApplicationCommand:
+        """
+        |coro|
+
+        Get a globally added command by its ID.
+
+        Parameters
+        -----------
+        command_id: :class:`int`
+            The ID of the command that you want to get.
+
+        Returns
+        --------
+        :class:`ApplicationCommand`
+            The application command with the ID given.
+
+        Raises
+        -------
+        :exception:`discord.NotFound`
+            There is no globally added command with the ID provided.
+        :exception:`discord.HTTPException`
+            Getting the application commands failed.
+        """
+
+        application_id = self._state.application_id
+        if application_id is None:
+            application_info = await self._state.http.application_info()
+            application_id = application_info["id"]
+        payload = await self._state.http.get_guild_application_command(application_id, self.id, command_id)
+        return ApplicationCommand.from_data(payload)
+
+    async def create_application_command(self, command: ApplicationCommand) -> ApplicationCommand:
+        """
+        |coro|
+
+        Create a new application command.
+
+        Parameters
+        -----------
+        command: :class:`discord.ApplicationCommand`
+            The command that you want to add.
+
+        Returns
+        --------
+        :class:`ApplicationCommand`
+            The command that was added.
+
+        Raises
+        -------
+        :exception:`discord.HTTPException`
+            Failed to create the new command.
+        """
+
+        application_id = self._state.application_id
+        if application_id is None:
+            application_info = await self._state.http.application_info()
+            application_id = application_info["id"]
+        payload = await self._state.http.create_guild_application_command(application_id, self.id, command.to_json())
+        return ApplicationCommand.from_data(payload)
+
+    async def edit_application_command(self, command: Snowflake, **kwargs) -> ApplicationCommand:
+        """
+        |coro|
+
+        Edit the attributes of an application command.
+
+        Parameters
+        -----------
+        command: :class:`discord.abc.Snowflake`
+            The command that you want to edit.
+        name: :class:`str`
+            The new name of the command.
+        description: :class:`str`
+            The new description of the command.
+        options: List[:class:`discord.ApplicationCommandOption`]
+            The new options of the command.
+
+        Returns
+        --------
+        :class:`discord.abc.Snowflake`
+            The command that you want to edit the attribute of.
+
+        Raises
+        -------
+        :exception:`discord.NotFound`
+            There is no globally added command with the ID provided.
+        :exception:`discord.HTTPException`
+            Getting the application commands failed.
+        """
+
+        application_id = self._state.application_id
+        if application_id is None:
+            application_info = await self._state.http.application_info()
+            application_id = application_info["id"]
+        payload = await self._state.http.edit_guild_application_command(application_id, self.id, command.id, kwargs)
+        return ApplicationCommand.from_data(payload)
+
+    async def delete_application_command(self, command: Snowflake) -> None:
+        """
+        |coro|
+
+        Delete a global application command.
+
+        Parameters
+        -----------
+        command: :class:`discord.abc.Snowflake`
+            The command that you want to delete.
+
+        Raises
+        -------
+        :exception:`discord.NotFound`
+            There is no globally added command with the ID provided.
+        :exception:`discord.HTTPException`
+            Getting the application commands failed.
+        """
+
+        application_id = self._state.application_id
+        if application_id is None:
+            application_info = await self._state.http.application_info()
+            application_id = application_info["id"]
+        await self._state.http.delete_guild_application_command(application_id, self.id, command.id)
+
+    async def bulk_create_application_commands(self, commands: List[ApplicationCommand]) -> List[ApplicationCommand]:
+        """
+        |coro|
+
+        Set all of the global application command for the bot.
+
+        Parameters
+        -----------
+        commands: List[:class:`ApplicationCommand`]
+            A list of commands that you want to add.
+
+        Returns
+        --------
+        List[:class:`ApplicationCommand`]
+            The application commands that you added.
+
+        Raises
+        -------
+        :exception:`discord.HTTPException`
+            Getting the application commands failed.
+        """
+
+        application_id = self._state.application_id
+        if application_id is None:
+            application_info = await self._state.http.application_info()
+            application_id = application_info["id"]
+        payload = await self._state.http.bulk_create_guild_application_commands(application_id, self.id, [
+            c.to_json()
+            for c in commands
+        ])
+        return [
+            ApplicationCommand.from_data(i)
+            for i in payload
+        ]
 

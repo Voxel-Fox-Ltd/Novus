@@ -38,11 +38,24 @@ Coro = Coroutine[Any, Any, T]
 MaybeCoro = Union[T, Coro[T]]
 CoroFunc = Callable[..., Coro[Any]]
 
-AnyContext = Union["Context[Any]", "SlashContext"]
-Check = Union[Callable[["Cog", AnyContext], MaybeCoro[bool]], Callable[[AnyContext], MaybeCoro[bool]]]
-Hook = Union[Callable[["Cog", AnyContext], Coro[Any]], Callable[[AnyContext], Coro[Any]]]
-Error = Union[Callable[["Cog", AnyContext, "CommandError"], Coro[Any]], Callable[[AnyContext, "CommandError"], Coro[Any]]]
-Autocomplete = Union[Callable[["Cog", "SlashContext", "Interaction"], Coro[Any]], Callable[["SlashContext", "Interaction"], Coro[Any]]]
+AnyContext = Union["Context[Any]", "SlashContext[Any]"]
+
+Check = Union[
+    Callable[["Cog", AnyContext], MaybeCoro[bool]],
+    Callable[[AnyContext], MaybeCoro[bool]],
+]
+Hook = Union[
+    Callable[["Cog", AnyContext], Coro[Any]],
+    Callable[[AnyContext], Coro[Any]],
+]
+Error = Union[
+    Callable[["Cog", AnyContext, "CommandError"], Coro[Any]],
+    Callable[[AnyContext, "CommandError"], Coro[Any]],
+]
+Autocomplete = Union[
+    Callable[["Cog", "SlashContext", "Interaction"], Coro[Any]],
+    Callable[["SlashContext", "Interaction"], Coro[Any]],
+]
 
 
 # This is merely a tag type to avoid circular import issues.

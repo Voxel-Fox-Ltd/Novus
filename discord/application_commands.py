@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Union, Optional, List
+from typing import TYPE_CHECKING, Any, Dict, Union, Optional, List
 
 from .enums import (
     ApplicationCommandOptionType,
     ApplicationCommandType,
 )
 from .channel import _channel_factory
+from .permissions import Permissions
 
 if TYPE_CHECKING:
     from .types.interactions import (
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 
 ApplicationCommandOptionChoiceValue = Union[str, int]
 
+
 __all__ = (
     "ApplicationCommandOptionChoice",
     "ApplicationCommandOption",
@@ -24,9 +26,10 @@ __all__ = (
 )
 
 
-class ApplicationCommandInteractionDataOption(object):
+class ApplicationCommandInteractionDataOption:
     """
     A response from the API containing data from the user for a given interaction.
+    This should not be created manually.
 
     .. versionadded:: 0.0.5
 
@@ -52,22 +55,26 @@ class ApplicationCommandInteractionDataOption(object):
         "focused",
     )
 
-    def __init__(self, payload: ApplicationCommandInteractionDataOptionPayload):
-        self.from_data(payload)
+    def __init__(self, data: ApplicationCommandInteractionDataOptionPayload):
+        self.from_data(data)
 
-    def from_data(self, payload: ApplicationCommandInteractionDataOptionPayload):
-        self.name: str = payload["name"]
-        self.type: ApplicationCommandOptionType = ApplicationCommandOptionType(payload["type"])
-        self.value: Optional[str] = payload.get("value")
+    def from_data(self, data: ApplicationCommandInteractionDataOptionPayload):
+        self.name: str = data["name"]
+        self.type: ApplicationCommandOptionType = ApplicationCommandOptionType(data["type"])
+        self.value: Optional[str] = data.get("value")
         self.options: Optional[List[ApplicationCommandInteractionDataOption]] = [
-            ApplicationCommandInteractionDataOption(i) for i in payload.get("options", [])
+            ApplicationCommandInteractionDataOption(i) for i in data.get("options", [])
         ] or None
-        self.focused: Optional[bool] = payload.get("focused")
+        self.focused: Optional[bool] = data.get("focused")
 
 
-class ApplicationCommandOptionChoice(object):
+class ApplicationCommandOptionChoice:
     """
     The possible choices that an application command can take.
+
+    .. versionchanged:: 0.0.6
+
+        The positional args are now kwargs.
 
     Parameters
     -----------
@@ -77,13 +84,20 @@ class ApplicationCommandOptionChoice(object):
         The value given to this option.
     """
 
-    def __init__(self, name: str, value: ApplicationCommandOptionChoiceValue = None):
+    def __init__(
+            self,
+            *,
+            name: str,
+            value: ApplicationCommandOptionChoiceValue = None):
         self.name: str = name
         self.value: Any = value if value is not None else name
 
     @classmethod
     def from_data(cls, data: dict):
-        return cls(data['name'], data['value'])
+        return cls(
+            name=data['name'],
+            value=data['value'],
+        )
 
     def to_json(self) -> dict:
         return {
@@ -92,9 +106,13 @@ class ApplicationCommandOptionChoice(object):
         }
 
 
-class ApplicationCommandOption(object):
+class ApplicationCommandOption:
     """
     An option displayed in a given application command.
+
+    .. versionchanged:: 0.0.6
+
+        The positional args are now kwargs.
 
     Parameters
     -----------
@@ -121,40 +139,41 @@ class ApplicationCommandOption(object):
         interaction payloads.
 
         .. versionadded:: 0.0.4
+    name_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language code to translation for the name of the command option.
+
+        .. versionadded:: 0.0.6
+    description_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language code to translation for the name of the command option's description.
+
+        .. versionadded:: 0.0.6
     """
 
     def __init__(
-            self, name: str, type: ApplicationCommandOptionType, description: str,
-            default: Optional[str] = None, required: bool = True, autocomplete: bool = False):
-        """
-        Parameters
-        -----------
-        name: :class:`str`
-            The name of this option.
-        type: :class:`ApplicationCommandOptionType`
-            The type of this command option.
-        description: :class:`str`
-            The description given to this argument.
-        default: :class:`str`
-            The default value given to the command option.
-        required: :class:`bool`
-            Whether or not this option is required for the command to run.
-        autocomplete: :class:`bool`
-            Whether or not the user typing this option should send autocomplete
-            interaction payloads.
-
-            .. versionadded:: 0.0.4
-        """
-
+            self,
+            *,
+            name: str,
+            type: ApplicationCommandOptionType,
+            description: str,
+            default: Optional[str] = None,
+            required: bool = True,
+            autocomplete: bool = False,
+            name_localizations: Dict[str, str] = None,
+            description_localizations: Dict[str, str] = None,
+            choices: List[ApplicationCommandOptionChoice] = None,
+            options: List[ApplicationCommandOption] = None,
+            ):
         self.name: str = name
         self.type: ApplicationCommandOptionType = type
         self.description: str = description
         self.default: Optional[str] = default
         self.required: bool = required
-        self.choices: List[ApplicationCommandOptionChoice] = list()
-        self.options: List[ApplicationCommandOption] = list()
+        self.choices: List[ApplicationCommandOptionChoice] = choices or list()
+        self.options: List[ApplicationCommandOption] = options or list()
         self.channel_types: list = list()
         self.autocomplete: bool = autocomplete
+        self.name_localizations = name_localizations or dict()
+        self.description_localizations = description_localizations or dict()
 
     def add_choice(self, choice: ApplicationCommandOptionChoice) -> None:
         """
@@ -218,9 +237,13 @@ class ApplicationCommandOption(object):
         return payload
 
 
-class ApplicationCommand(object):
+class ApplicationCommand:
     """
     An instance of an application command.
+
+    .. versionchanged:: 0.0.6
+
+        The positional args are now kwargs.
 
     Attributes
     -----------
@@ -228,8 +251,22 @@ class ApplicationCommand(object):
         The name of this command.
     description: :class:`str`
         The description for this command.
+    type: :class:`ApplicationCommandType`
+        The type of the application command.
     options: List[:class:`ApplicationCommandOption`]
         A list of the options added to this command.
+    default_permission: :class:`Permissions`
+        The permissions that are required to run the application command.
+
+        .. versionadded:: 0.0.6
+    name_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language codes to translations for the name of the command.
+
+        .. versionadded:: 0.0.6
+    description_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language codes to translations for the description of the command.
+
+        .. versionadded:: 0.0.6
     id: :class:`int`
         The ID of this application command.
     application_id: :class:`int`
@@ -241,20 +278,43 @@ class ApplicationCommand(object):
         The name of this command.
     description: :class:`str`
         The description for this command.
+    type: :class:`ApplicationCommandType`
+        The type of the application command. Defaults to a chat input (slash) command.
     options: List[:class:`ApplicationCommandOption`]
         A list of the options added to this command.
+    default_permission: :class:`Permissions`
+        The permissions that are required to run the application command.
+
+        .. versionadded:: 0.0.6
+    name_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language codes to translations for the name of the command.
+
+        .. versionadded:: 0.0.6
+    description_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language codes to translations for the description of the command.
+
+        .. versionadded:: 0.0.6
     """
 
     def __init__(
-            self, name: str, description: str = None,
+            self,
+            *,
+            name: str,
+            description: str = None,
             type: ApplicationCommandType = ApplicationCommandType.chat_input,
-            options: List[ApplicationCommandOption] = None):
+            options: List[ApplicationCommandOption] = None,
+            default_permission: Permissions = None,
+            name_localizations: Dict[str, str] = None,
+            description_localizations: Dict[str, str] = None):
         self.name: str = name
         self.description: Optional[str] = description
         self.type: ApplicationCommandType = type
         self.options: List[ApplicationCommandOption] = options or list()
         self.id: Optional[int] = None
         self.application_id: Optional[int] = None
+        self.default_permission = default_permission or None
+        self.name_localizations = name_localizations or dict()
+        self.description_localizations = description_localizations or dict()
 
     def __repr__(self):
         return f"ApplcationCommand<name={self.name}, type={self.type.name}>"
@@ -269,9 +329,12 @@ class ApplicationCommand(object):
     @classmethod
     def from_data(cls, data: dict):
         command = cls(
-            data['name'],
-            data.get('description'),
-            ApplicationCommandType(data.get('type', 1)),
+            name=data['name'],
+            description=data.get('description'),
+            type=ApplicationCommandType(data.get('type', 1)),
+            default_permission=Permissions(int(data.get('permissions', 0))),
+            name_localizations=data.get("name_localizations", dict()),
+            description_localizations=data.get("description_localizations", dict()),
         )
         command.id = int(data.get('id', 0)) or None
         command.application_id = int(data.get('application_id', 0)) or None
@@ -288,9 +351,14 @@ class ApplicationCommand(object):
             "description": self.description,
             "type": self.type.value,
             "options": [i.to_json() for i in self.options],
+            "name_localizations": self.name_localizations,
+            "description_localizations": self.description_localizations,
         }
+        if self.default_permission:
+            v["default_permission"] = str(self.default_permission.value)
         if self.description is None:
             v.pop("description", None)
+            v.pop("description_localizations")
         if self.type != ApplicationCommandType.chat_input:
             v.pop("options", None)
         return v

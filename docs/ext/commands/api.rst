@@ -198,6 +198,18 @@ GroupMixin
     .. automethod:: GroupMixin.group(*args, **kwargs)
         :decorator:
 
+ApplicationCommandParam
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: discord.ext.commands.ApplicationCommandParam
+    :special-members: __init__
+
+ApplicationCommandMeta
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. autoclass:: discord.ext.commands.ApplicationCommandMeta
+    :special-members: __init__
+
 .. _ext_commands_api_cogs:
 
 Cogs

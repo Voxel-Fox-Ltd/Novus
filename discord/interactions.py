@@ -27,7 +27,7 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, Union
+from typing import Any, Dict, Generic, List, Optional, TYPE_CHECKING, Tuple, Union, TypeVar
 import asyncio
 import json
 
@@ -79,6 +79,9 @@ if TYPE_CHECKING:
     ]
 
 MISSING: Any = utils.MISSING
+
+
+T = TypeVar("T", None, str)
 
 
 class InteractionResolved:
@@ -171,7 +174,7 @@ class InteractionResolved:
         return messages
 
 
-class Interaction:
+class Interaction(Generic[T]):
     """Represents a Discord interaction.
 
     An interaction happens when a user does an action that needs to
@@ -233,6 +236,19 @@ class Interaction:
         The custom ID associated with the main component of this interaction.
 
         .. versionadded:: 0.0.5
+    user_locale: :class:`str`
+        The locale of the user's client.
+
+        .. versionadded:: 0.0.6
+    guild_locale: Optional[:class:`str`]
+        The locale of the guild where the interaction was invoked. Will be ``None`` if the interaction
+        was invoked from a DM.
+
+        .. versionadded:: 0.0.6
+    locale: :class:`str`
+        Returns the user locale or the guild locale
+
+        .. versionadded:: 0.0.6
     """
 
     __slots__: Tuple[str, ...] = (
@@ -261,6 +277,8 @@ class Interaction:
         '_cs_channel',
         '_cs_command_name',
         'options',
+        'user_locale',
+        'guild_locale',
     )
 
     def __init__(self, *, data: InteractionPayload, state: ConnectionState):
@@ -299,7 +317,9 @@ class Interaction:
             pass
 
         # Parse the main custom ID
-        self.custom_id: Optional[str] = self.data.get('custom_id')
+        self.custom_id: T = None
+        if self.data:
+            self.custom_id = self.data.get('custom_id')
 
         # Parse the given values from the component - this is only used by select components
         self.values: Optional[List[str]] = None
@@ -320,6 +340,10 @@ class Interaction:
         self.user: Optional[Union[User, Member]] = None  # documented as optional, for whatever reason
         self._permissions: int = 0
 
+        # Store the locales
+        self.user_locale = payload["locale"]
+        self.guild_locale = payload.get("guild_locale")
+
         # TODO: there's a potential data loss here
         if self.guild_id:
             guild = self.guild or Object(id=self.guild_id)
@@ -336,6 +360,10 @@ class Interaction:
             except KeyError:
                 pass
 
+    @property
+    def locale(self) -> str:
+        return self.guild_locale or self.user_locale or "en-US"
+
     @utils.cached_slot_property('_cs_resolved')
     def resolved(self) -> InteractionResolved:
         return InteractionResolved(interaction=self, data=(self.data or {}).copy().get("resolved", dict()), state=self._state)
@@ -346,19 +374,19 @@ class Interaction:
 
         if self.data is None:
             return
-        if self.type != InteractionType.application_command:
-            return
         data = self.data.copy()
         command_name = data.get('name')
-        while command_name:
-            if "options" not in data:
-                break
-            if data['options'][0]['type'] in [1, 2]:
-                data = data['options'][0]
-                command_name += f" {data['name']}"
-            else:
-                break
-        return command_name
+        try:
+            while command_name:
+                if "options" not in data:
+                    break
+                if data['options'][0]['type'] in [1, 2]:
+                    data = data['options'][0]
+                    command_name += f" {data['name']}"
+                else:
+                    break
+        finally:
+            return command_name
 
     @property
     def guild(self) -> Optional[Guild]:

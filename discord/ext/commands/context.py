@@ -128,6 +128,19 @@ class Context(discord.abc.Messageable, Generic[BotT]):
     command_failed: :class:`bool`
         A boolean that indicates if the command failed to be parsed, checked,
         or invoked.
+    user_locale: Optional[:class:`str`]
+        A string of the user's locale. In message commands, this will always be ``None``.
+        With interactions this will be set properly.
+
+        .. versionadded:: 0.0.6
+    guild_locale: Optional[:class:`str`]
+        A string of the guild's locale for where the command was invoked.
+
+        .. versionadded:: 0.0.6
+    locale: :class:`str`
+        Returns the guild locale, the user locale, or ``en-US`` (the Discord default).
+
+        .. versionadded:: 0.0.6
     """
 
     def __init__(self,
@@ -160,6 +173,12 @@ class Context(discord.abc.Messageable, Generic[BotT]):
         self.command_failed: bool = command_failed
         self.current_parameter: Optional[inspect.Parameter] = current_parameter
         self._state: ConnectionState = self.message._state
+        self.user_locale = None
+        self.guild_locale = self.guild.preferred_locale if self.guild else None
+
+    @property
+    def locale(self):
+        return self.guild_locale or self.user_locale or "en-US"
 
     async def invoke(self, command: Command[CogT, P, T], /, *args: P.args, **kwargs: P.kwargs) -> T:
         r"""|coro|
@@ -417,7 +436,7 @@ class Context(discord.abc.Messageable, Generic[BotT]):
         await self.trigger_typing()
 
 
-class SlashContext(Context):
+class SlashContext(Context, Generic[BotT]):
 
     supports_ephemeral: bool = True
 
@@ -466,6 +485,14 @@ class SlashContext(Context):
     @property
     def guild(self):
         return self.interaction.guild
+
+    @property
+    def user_locale(self) -> str:
+        return self.interaction.user_locale
+
+    @property
+    def guild_locale(self) -> Optional[str]:
+        return self.interaction.guild_locale
 
     async def send(self, *args, **kwargs):
         if not self.interaction.response.is_done():

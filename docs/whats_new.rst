@@ -19,11 +19,32 @@ v0.0.6
 New Features
 ~~~~~~~~~~~~~~~~~~
 
+* Add ``guild_locale``, ``user_locale``, and ``locale`` to :class:`Interaction` and the two context objects.
+* Add :attr:`ApplicationCommand.default_permission`.
+* Add new methods for dealing with application commands.
+    * :func:`Client.fetch_global_application_commands`
+    * :func:`Client.fetch_global_application_command`
+    * :func:`Client.create_global_application_command`
+    * :func:`Client.edit_global_application_command`
+    * :func:`Client.delete_global_application_command`
+    * :func:`Client.bulk_create_global_application_commands`
+    * :func:`Guild.fetch_application_commands`
+    * :func:`Guild.fetch_application_command`
+    * :func:`Guild.create_application_command`
+    * :func:`Guild.edit_application_command`
+    * :func:`Guild.delete_application_command`
+    * :func:`Guild.bulk_create_application_commands`
+* Add :func:`InteractedComponent.get_component`
 * Add support for guild scheduled events.
     * Add :class:`GuildScheduledEvent`.
     * Add :func:`Guild.create_scheduled_event`.
     * Add :func:`Guild.fetch_scheduled_event`.
     * Add :func:`Guild.fetch_scheduled_events`.
+
+Changed Features
+~~~~~~~~~~~~~~~~~~~
+
+* Change all args in :class:`ApplicationCommandOptionChoice`, :class:`ApplicationCommandOption`, and :class:`ApplicationCommand`'s inits to be kwargs instead of positional args.
 
 .. _vp0_0_5:
 
