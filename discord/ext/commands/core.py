@@ -956,17 +956,16 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         ctx.args = [ctx] if self.cog is None else [self.cog, ctx]
         ctx.kwargs = {}
         for name, value in ctx.given_values.items():
+            sig = None
             if name is None:
                 for name, sig in self.clean_params.items():
                     break  # Just get the first param - deliberately shadow "name"
             else:
                 sig = self.clean_params[name]
+            assert sig
             converter = get_converter(sig)
             v = await run_converters(ctx, converter, value, sig)  # Could raise; that's fine
-            if sig.kind in [inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD]:
-                ctx.args.append(v)
-            else:
-                ctx.kwargs[name] = v
+            ctx.kwargs[name] = v
 
     async def prepare(self, ctx: Context) -> None:
         if isinstance(ctx, SlashContext):
