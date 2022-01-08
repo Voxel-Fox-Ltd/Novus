@@ -37,10 +37,10 @@ from typing import Any, Callable, Mapping, List, Dict, TYPE_CHECKING, Optional, 
 
 import discord
 
-from .core import GroupMixin
+from . import errors
+from .core import GroupMixin, ContextMenuCommand
 from .view import StringView
 from .context import Context, SlashContext
-from . import errors
 from .help import HelpCommand, DefaultHelpCommand
 from .cog import Cog
 from ...application_commands import ApplicationCommand
@@ -55,7 +55,7 @@ if TYPE_CHECKING:
         CoroFunc,
     )
     from discord.guild import Guild
-    from .core import Command, ContextMenuCommand, Group
+    from .core import Command, Group
 
 __all__ = (
     'when_mentioned',
@@ -1159,7 +1159,7 @@ class BotBase(GroupMixin):
         if commands is MISSING:
             new_commands = []
             for command in self.commands:
-                if not command.application_command_meta:
+                if not command.application_command_meta and not isinstance(command, ContextMenuCommand):
                     continue
                 new_commands.append(command.to_application_command())
 
