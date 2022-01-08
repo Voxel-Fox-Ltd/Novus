@@ -226,6 +226,11 @@ class Interaction:
             raw dictionary.
     components: Optional[List[:class:`ui.InteractionComponent`]]
         The components that are returned with the interaction. This is only used with modals so far.
+        This skips the base level component (ie the modal object) and only gives its components.
+
+        .. versionadded:: 0.0.5
+    custom_id: Optional[:class:`str`]
+        The custom ID associated with the main component of this interaction.
 
         .. versionadded:: 0.0.5
     """
@@ -245,6 +250,7 @@ class Interaction:
         'user',
         'token',
         'version',
+        'custom_id',
         '_cs_resolved',
         '_permissions',
         '_state',
@@ -279,7 +285,7 @@ class Interaction:
             self.message = Message(state=self._state, channel=self.channel, data=payload['message'])  # type: ignore
         except KeyError:
             self.message = None
-            
+
         # The data that the interaction gave back to us - not optional, but documented as optional
         # This contains all the data ABOUT the interaction that's given back to us
         self.data: Optional[InteractionData] = payload.get('data')
@@ -292,13 +298,12 @@ class Interaction:
         except (KeyError, AttributeError):
             pass
 
+        # Parse the main custom ID
+        self.custom_id: Optional[str] = self.data.get('custom_id')
+
         # Parse the given values from the component - this is only used by select components
         self.values: Optional[List[str]] = None
         if self.data and 'values' in self.data:
-            # try:
-            #     self.values = [SelectOption(**i) for i in self.data['values']]
-            # except TypeError:
-            # self.values = [SelectOption(label=None, value=i) for i in self.data['values']]
             self.values = self.data['values']
 
         # Parse the returned options from the user - this is used by all application commands (including autocorrect)

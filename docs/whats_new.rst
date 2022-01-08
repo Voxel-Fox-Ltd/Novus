@@ -28,6 +28,9 @@ New Features
     * Add :attr:`Role.unicode_emoji`.
     * Add ``icon`` to :func:`Role.edit`.
 * Add support for member timeouts.
+    * Add :func:`Member.disable_communication_until`.
+    * Add :func:`Member.disable_communication_for`.
+    * Add :func:`Member.enable_communication`.
     * Add ``communication_disabled_until`` to :func:`Member.edit`.
 * Add support for guild scheduled events.
     * Add :class:`GuildScheduledEvent`.
