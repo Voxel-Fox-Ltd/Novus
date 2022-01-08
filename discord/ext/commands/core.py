@@ -22,7 +22,6 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 from __future__ import annotations
-from discord.application_commands import ApplicationCommand, ApplicationCommandOption
 
 from typing import (
     Any,
@@ -72,7 +71,6 @@ if TYPE_CHECKING:
 
 
 __all__ = (
-    'ApplicationCommandParam',
     'ApplicationCommandMeta',
     'Command',
     'ContextMenuCommand',
@@ -219,59 +217,20 @@ class _CaseInsensitiveDict(dict):
         super().__setitem__(k.casefold(), v)
 
 
-class ApplicationCommandParam:
-    """
-    A container class for passing information about application command
-    arguments into a command decorator.
-
-    .. versionadded:: 0.0.6
-
-    Parameters
-    -----------
-    name: :class:`str`
-        The name of the parameter as seen by the user.
-    type: :class:`discord.ApplicationCommandOptionType`
-        The type of the parameter.
-    description: :class:`str`
-        A description for the parameter.
-    autocomplete: :class:`bool`
-        Whether or not the parameter has an autocomplete handler.
-    name_localizations: Dict[str, str]
-        A dictionary of language: text translations for the name of the parameter.
-    description_localizations: Dict[str, str]
-        A dictionary of language: text translations for the description of the parameter.
-    """
-
-    def __init__(
-            self, *,
-            name: str,
-            type: discord.ApplicationCommandOptionType,
-            description: str,
-            autocomplete: bool = False,
-            name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None,
-            channel_types: List[type] = None
-            ):
-        self.name = name
-        self.type = type
-        self.description = description
-        self.autocomplete = autocomplete
-        self.name_localizations = name_localizations or dict()
-        self.description_localizations = description_localizations or dict()
-        self.channel_types = channel_types
-
-
 class ApplicationCommandMeta:
     """
     A container class for passing information about application commands
     onto a command decorator, so that automatic conversion between text
     commands and slash commands works without a hitch.
 
+    This is used instead of using :class:`discord.ApplicationCommand` so that
+    you don't need to do a bunch of funky stuff to get command groups to work.
+
     .. versionadded:: 0.0.6
 
     Parameters
     -----------
-    params: List[:class:`ApplicationCommandParam`]
+    options: List[:class:`discord.ApplicationCommandOption`]
         The data for the parameters that should be converted into an application
         command.
     default_permission: :class:`discord.Permissions`
@@ -284,11 +243,11 @@ class ApplicationCommandMeta:
 
     def __init__(
             self, *,
-            params: List[ApplicationCommandParam] = None,
+            options: List[discord.ApplicationCommandOption] = None,
             default_permission: discord.Permissions = None,
             name_localizations: Dict[str, str] = None,
             description_localizations: Dict[str, str] = None):
-        self.params = params or list()
+        self.options = options or list()
         self.default_permission = default_permission or None
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
@@ -1333,12 +1292,12 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         finally:
             ctx.command = original
 
-    def to_application_command(self) -> Union[ApplicationCommand, ApplicationCommandOption]:
+    def to_application_command(self) -> Union[discord.ApplicationCommand, discord.ApplicationCommandOption]:
         """Convert the current command instance to an application command.
 
         Returns
         --------
-        Union[:class:`ApplicationCommand`, :class:`ApplicationCommandOption`]
+        Union[:class:`discord.ApplicationCommand`, :class:`discord.ApplicationCommandOption`]
             An application command equivelant to the current command instance.
         """
 
@@ -1356,7 +1315,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
         # Create the base command
         if self.parent is None:  # No parent
-            command = ApplicationCommand(
+            command = discord.ApplicationCommand(
                 name=self.name,
                 type=discord.ApplicationCommandType.chat_input,
                 description=self.short_doc or self.name,
@@ -1365,7 +1324,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 default_permission=default_permission,
             )
         else:  # Parent is a group
-            command = ApplicationCommandOption(
+            command = discord.ApplicationCommandOption(
                 name=self.name,
                 type=discord.ApplicationCommandOptionType.subcommand,
                 description=self.short_doc or self.name,
@@ -1378,17 +1337,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             return command
 
         # Add arguments if we set up a meta
-        for meta in self.application_command_meta.params:
-            option = ApplicationCommandOption(
-                name=meta.name,
-                description=meta.description,
-                type=meta.type,
-                description_localizations=meta.description_localizations,
-                name_localizations=meta.name_localizations,
-                autocomplete=meta.autocomplete,
-            )
-            if meta.type == discord.ApplicationCommandOptionType.channel:
-                option.channel_types = meta.channel_types
+        for option in self.application_command_meta.options:
             command.add_option(option)
         return command
 
@@ -1444,12 +1393,12 @@ class ContextMenuCommand(Command):
             return
         return await super().invoke(ctx)
 
-    def to_application_command(self) -> ApplicationCommand:
+    def to_application_command(self) -> discord.ApplicationCommand:
         """Convert the current command instance to an application command.
 
         Returns
         -------
-        :class:`ApplicationCommand`
+        :class:`discord.ApplicationCommand`
             An application command equivelant to the current command instance.
         """
 
@@ -1458,7 +1407,7 @@ class ContextMenuCommand(Command):
         if self.application_command_meta is not None:
             localizations = self.application_command_meta.name_localizations
             default_permission = self.application_command_meta.default_permission
-        command = ApplicationCommand(
+        command = discord.ApplicationCommand(
             name=self.name,
             type=self.application_command_type,
             name_localizations=localizations,
@@ -1833,12 +1782,12 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
             view.previous = previous
             await super().reinvoke(ctx, call_hooks=call_hooks)
 
-    def to_application_command(self) -> Union[ApplicationCommand, ApplicationCommandOption]:
+    def to_application_command(self) -> Union[discord.ApplicationCommand, discord.ApplicationCommandOption]:
         """Convert the current command instance to an application command.
 
         Returns
         --------
-        :class:`ApplicationCommand`
+        :class:`discord.ApplicationCommand`
             An application command equivelant to the current command instance.
         """
 
@@ -1848,14 +1797,14 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
             localizations = self.application_command_meta.name_localizations
             default_permission = self.application_command_meta.default_permission
         if self.parent is None:  # No parent, this is the base
-            command = ApplicationCommand(
+            command = discord.ApplicationCommand(
                 name=self.name,
                 description=self.short_doc or self.name,
                 name_localizations=localizations,
                 default_permission=default_permission,
             )
         else:  # Parent is another group
-            command = ApplicationCommandOption(
+            command = discord.ApplicationCommandOption(
                 name=self.name,
                 type=discord.ApplicationCommandOptionType.subcommand_group,
                 description=self.short_doc or self.name,
@@ -1865,7 +1814,7 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
             if not c.application_command_meta:
                 continue
             a = c.to_application_command()
-            assert isinstance(a, ApplicationCommandOption)
+            assert isinstance(a, discord.ApplicationCommandOption)
             command.add_option(a)
         return command
 

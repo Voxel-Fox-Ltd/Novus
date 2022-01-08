@@ -133,6 +133,40 @@ class ApplicationCommandOption:
     channel_types: :class:`list`
         A list of channel types that the option accepts.
 
+        .. versionadded:: 0.0.6
+    autocomplete: :class:`bool`
+        Whether or not the user typing this option should send autocomplete
+        interaction payloads.
+
+        .. versionadded:: 0.0.4
+    name_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language code to translation for the name of the command option.
+
+        .. versionadded:: 0.0.6
+    description_localizations: Dict[:class:`str`, :class:`str`]
+        A dictionary of language code to translation for the name of the command option's description.
+
+        .. versionadded:: 0.0.6
+
+    Attributes
+    -----------
+    name: :class:`str`
+        The name of this option.
+    type: :class:`ApplicationCommandOptionType`
+        The type of this command option.
+    description: :class:`str`
+        The description given to this argument.
+    default: :class:`Any`
+        The default value given to the command option.
+    required: Optional[:class:`bool`]
+        Whether or not this option is required for the command to run.
+    choices: List[:class:`ApplicationCommandOptionChoice`]
+        A list of choices that this command can take.
+    options: List[:class:`ApplicationCommandOption`]
+        A list of options that go into the application command.
+    channel_types: :class:`list`
+        A list of channel types that the option accepts.
+
         .. versionadded:: 0.0.4
     autocomplete: :class:`bool`
         Whether or not the user typing this option should send autocomplete
@@ -162,6 +196,7 @@ class ApplicationCommandOption:
             description_localizations: Dict[str, str] = None,
             choices: List[ApplicationCommandOptionChoice] = None,
             options: List[ApplicationCommandOption] = None,
+            channel_types: list = None
             ):
         self.name: str = name
         self.type: ApplicationCommandOptionType = type
@@ -170,7 +205,7 @@ class ApplicationCommandOption:
         self.required: bool = required
         self.choices: List[ApplicationCommandOptionChoice] = choices or list()
         self.options: List[ApplicationCommandOption] = options or list()
-        self.channel_types: list = list()
+        self.channel_types: list = channel_types or list()
         self.autocomplete: bool = autocomplete
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
@@ -226,14 +261,7 @@ class ApplicationCommandOption:
             payload.pop("channel_types", None)
             payload.pop("autocomplete", None)
         else:
-            counter = 0
-            channel_types = []
-            while len(channel_types) != len(self.channel_types) and counter < 50:
-                t, _ = _channel_factory(counter)
-                if t in self.channel_types:
-                    channel_types.append(counter)
-                counter += 1
-            payload["channel_types"] = channel_types
+            payload["channel_types"] = [i.type.value for i in self.channel_types]
         return payload
 
 
