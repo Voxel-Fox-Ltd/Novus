@@ -40,11 +40,18 @@ New Features
     * Add :func:`Guild.create_scheduled_event`.
     * Add :func:`Guild.fetch_scheduled_event`.
     * Add :func:`Guild.fetch_scheduled_events`.
+* Add :func:`commands.Command.application_command_meta`.
+    * This contains meta info for the command that should be converted to slash commands.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~
 
 * Change all args in :class:`ApplicationCommandOptionChoice`, :class:`ApplicationCommandOption`, and :class:`ApplicationCommand`'s inits to be kwargs instead of positional args.
+
+Removed Features
+~~~~~~~~~~~~~~~~~~~~
+
+* Removed ``Command.add_slash_command`` attr and kwarg. This has been replcaed by :attr:`commands.Command.application_command_meta`.
 
 .. _vp0_0_5:
 

@@ -319,9 +319,6 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         If the command is invoked while it is disabled, then
         :exc:`.DisabledCommand` is raised to the :func:`.on_command_error`
         event. Defaults to ``True``.
-    add_slash_command: Optional[:class:`bool`]
-        Whether or not this command should be added as a slash command when
-        :func:`commands.Bot.register_application_commands()` is run.
     parent: Optional[:class:`Group`]
         The parent group that this command belongs to. ``None`` if there
         isn't one.
@@ -366,7 +363,9 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         .. note::
             This object may be copied by the library.
     application_command_meta: :class:`ApplicationCommandMeta`
-        Additional information for the command to be passed to the application command.
+        Additional information for the command to be passed to the application
+        command. Only commands with a meta object set will work with
+        :func:`Bot.register_application_commands`.
 
         .. versionadded:: 0.0.6
     """
@@ -403,7 +402,6 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
 
         self.callback = func
         self.enabled: bool = kwargs.get('enabled', True)
-        self.add_slash_command: bool = kwargs.get('add_slash_command', True)
 
         self.application_command_meta: ApplicationCommandMeta = kwargs.get("application_command_meta", None)
 
@@ -1864,7 +1862,7 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
                 name_localizations=localizations,
             )
         for c in self.commands:
-            if not c.add_slash_command:
+            if not c.application_command_meta:
                 continue
             a = c.to_application_command()
             assert isinstance(a, ApplicationCommandOption)

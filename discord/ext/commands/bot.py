@@ -1159,7 +1159,7 @@ class BotBase(GroupMixin):
         if commands is MISSING:
             new_commands = []
             for command in self.commands:
-                if not command.add_slash_command or command.hidden or not command.enabled:
+                if not command.application_command_meta:
                     continue
                 new_commands.append(command.to_application_command())
 
