@@ -147,6 +147,14 @@ class ApplicationCommandOption:
         A dictionary of language code to translation for the name of the command option's description.
 
         .. versionadded:: 0.0.6
+    min_value: Optional[:class:`int`]
+        The minimum acceptable value of the field. Only usable for numeric types.
+
+        .. versionadded:: 0.0.6
+    max_value: Optional[:class:`int`]
+        The maximum acceptable value of the field. Only usable for numeric types.
+
+        .. versionadded:: 0.0.6
 
     Attributes
     -----------
@@ -181,6 +189,14 @@ class ApplicationCommandOption:
         A dictionary of language code to translation for the name of the command option's description.
 
         .. versionadded:: 0.0.6
+    min_value: Optional[:class:`int`]
+        The minimum acceptable value of the field. Only usable for numeric types.
+
+        .. versionadded:: 0.0.6
+    max_value: Optional[:class:`int`]
+        The maximum acceptable value of the field. Only usable for numeric types.
+
+        .. versionadded:: 0.0.6
     """
 
     def __init__(
@@ -196,7 +212,9 @@ class ApplicationCommandOption:
             description_localizations: Dict[str, str] = None,
             choices: List[ApplicationCommandOptionChoice] = None,
             options: List[ApplicationCommandOption] = None,
-            channel_types: list = None
+            channel_types: list = None,
+            min_value: Optional[int] = None,
+            max_value: Optional[int] = None,
             ):
         self.name: str = name
         self.type: ApplicationCommandOptionType = type
@@ -209,6 +227,8 @@ class ApplicationCommandOption:
         self.autocomplete: bool = autocomplete
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
+        self.min_value = min_value
+        self.max_value = max_value
 
     def add_choice(self, choice: ApplicationCommandOptionChoice) -> None:
         """
@@ -233,6 +253,8 @@ class ApplicationCommandOption:
             default=data.get('default', None),
             required=data.get('required', False),
             autocomplete=data.get('autocomplete', False),
+            min_value=data.get('min_value', None),
+            max_value=data.get('max_value', None),
         )
         for choice in data.get('choices', list()):
             base_option.add_choice(ApplicationCommandOptionChoice.from_data(choice))
@@ -253,6 +275,8 @@ class ApplicationCommandOption:
             "autocomplete": self.autocomplete,
             "choices": [i.to_json() for i in self.choices],
             "options": [i.to_json() for i in self.options],
+            "min_value": self.min_value,
+            "max_value": self.max_value,
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
             payload.pop("required", None)

@@ -43,6 +43,7 @@ New Features
 * Add :func:`commands.Command.application_command_meta`.
     * This contains meta info for the command that should be converted to slash commands.
 * Add support for :class:`ui.Modal`s and :class:`ui.InputText` components.
+* Add :attr:`ApplicationCommandOption.max_value` and :attr:`ApplicationCommandOption.min_value`.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~
