@@ -42,11 +42,17 @@ New Features
     * Add :func:`Guild.fetch_scheduled_events`.
 * Add :func:`commands.Command.application_command_meta`.
     * This contains meta info for the command that should be converted to slash commands.
+* Add support for :class:`ui.Modal`s and :class:`ui.InputText` components.
 
 Changed Features
 ~~~~~~~~~~~~~~~~~~~
 
 * Change all args in :class:`ApplicationCommandOptionChoice`, :class:`ApplicationCommandOption`, and :class:`ApplicationCommand`'s inits to be kwargs instead of positional args.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~
+
+* Fix ``moderate_members`` not being included in ``Permissions.all``.
 
 Removed Features
 ~~~~~~~~~~~~~~~~~~~~

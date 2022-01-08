@@ -2566,6 +2566,23 @@ of :class:`enum.Enum`.
 
         The event will take place outside of Discord.
 
+
+.. class:: TextStyle
+
+    .. versionadded:: 0.0.5
+
+    .. attribute:: short
+
+        The input field is a single line.
+
+    .. attribute:: paragraph
+
+        The input field is a paragraph length.
+
+    .. attribute:: long
+
+        Alias for :attr:`paragraph`.
+
 Async Iterator
 ----------------
 
@@ -4171,6 +4188,15 @@ SelectMenu
 .. attributetable:: discord.ui.SelectMenu
 
 .. autoclass:: discord.ui.SelectMenu
+    :members:
+    :inherited-members:
+
+InputText
+~~~~~~~~~~~~~~~
+
+.. attributetable:: discord.ui.InputText
+
+.. autoclass:: discord.ui.InputText
     :members:
     :inherited-members:
 

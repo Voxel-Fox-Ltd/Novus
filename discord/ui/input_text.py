@@ -49,6 +49,8 @@ class InputText(InteractableComponent):
         The style of the input text component.
     custom_id: Optional[:class:`str`]
         The ID that you want to assign to this input text component.
+    placeholder: Optional[:class:`str`]
+        The text shown (greyed out) in the input text component.
     min_length: Optional[:class:`int`]
         The minimum length of the required input.
     max_length: Optional[:class:`int`]
