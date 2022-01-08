@@ -23,7 +23,7 @@ async def on_ready():
 
 # Pinged whenever the bot receives a slash command
 @client.event
-async def on_slash_command(interaction: discord.Interaction):
+async def on_slash_command(interaction: discord.Interaction[None]):
     """Send a response if the command is ping."""
 
     command_name = interaction.command_name
