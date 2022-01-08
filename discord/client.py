@@ -931,7 +931,7 @@ class Client:
             *,
             check: Optional[Callable[..., bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction:
+            ) -> Interaction[None]:
         ...
 
     @overload
@@ -941,7 +941,7 @@ class Client:
             *,
             check: Optional[Callable[..., bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction:
+            ) -> Interaction[str]:
         ...
 
     @overload
@@ -951,7 +951,7 @@ class Client:
             *,
             check: Optional[Callable[..., bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction:
+            ) -> Interaction[None]:
         ...
 
     @overload
@@ -961,7 +961,7 @@ class Client:
             *,
             check: Optional[Callable[..., bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction:
+            ) -> Interaction[str]:
         ...
 
     @overload

@@ -27,7 +27,7 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING, Tuple, Union
+from typing import Any, Dict, Generic, List, Optional, TYPE_CHECKING, Tuple, Union, TypeVar
 import asyncio
 import json
 
@@ -79,6 +79,9 @@ if TYPE_CHECKING:
     ]
 
 MISSING: Any = utils.MISSING
+
+
+T = TypeVar("T", None, str)
 
 
 class InteractionResolved:
@@ -171,7 +174,7 @@ class InteractionResolved:
         return messages
 
 
-class Interaction:
+class Interaction(Generic[T]):
     """Represents a Discord interaction.
 
     An interaction happens when a user does an action that needs to
@@ -314,7 +317,9 @@ class Interaction:
             pass
 
         # Parse the main custom ID
-        self.custom_id: Optional[str] = self.data.get('custom_id')
+        self.custom_id: T = None
+        if self.data:
+            self.custom_id = self.data.get('custom_id')
 
         # Parse the given values from the component - this is only used by select components
         self.values: Optional[List[str]] = None
