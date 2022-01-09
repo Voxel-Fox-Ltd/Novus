@@ -38,7 +38,7 @@ class GuildScheduledEventEntityMetadata(TypedDict):
     location: Optional[str]
 
 
-class _GuildScheduledEventOptional(TypedDict, final=False):
+class _GuildScheduledEventOptional(TypedDict, total=False):
     channel_id: Snowflake
     creator_id: Snowflake
     description: str
