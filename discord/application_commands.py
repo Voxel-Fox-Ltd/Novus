@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Dict, Union, Optional, List
 from .enums import (
     ApplicationCommandOptionType,
     ApplicationCommandType,
+    ChannelType,
 )
 from .channel import _channel_factory
 from .permissions import Permissions
@@ -212,7 +213,7 @@ class ApplicationCommandOption:
             description_localizations: Dict[str, str] = None,
             choices: List[ApplicationCommandOptionChoice] = None,
             options: List[ApplicationCommandOption] = None,
-            channel_types: list = None,
+            channel_types: List[ChannelType] = None,
             min_value: Optional[int] = None,
             max_value: Optional[int] = None,
             ):
@@ -285,7 +286,7 @@ class ApplicationCommandOption:
             payload.pop("channel_types", None)
             payload.pop("autocomplete", None)
         else:
-            payload["channel_types"] = [i.type.value for i in self.channel_types]
+            payload["channel_types"] = [i.value for i in self.channel_types]
         return payload
 
 
