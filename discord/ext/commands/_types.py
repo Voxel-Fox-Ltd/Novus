@@ -2,6 +2,7 @@
 The MIT License (MIT)
 
 Copyright (c) 2015-2021 Rapptz
+Copyright (c) 2021-present Kae Bartlett
 
 Permission is hereby granted, free of charge, to any person obtaining a
 copy of this software and associated documentation files (the "Software"),
@@ -27,10 +28,10 @@ from typing import Any, Callable, Coroutine, TYPE_CHECKING, TypeVar, Union
 
 
 if TYPE_CHECKING:
+    from discord import Interaction
     from .context import Context, SlashContext
     from .cog import Cog
     from .errors import CommandError
-    from ...interactions import Interaction
 
 T = TypeVar('T')
 
@@ -53,9 +54,12 @@ Error = Union[
     Callable[[AnyContext, "CommandError"], Coro[Any]],
 ]
 Autocomplete = Union[
-    Callable[["Cog", "SlashContext", "Interaction"], Coro[Any]],
-    Callable[["SlashContext", "Interaction"], Coro[Any]],
+    Callable[["Cog", "SlashContext[Any]", "Interaction"], Coro[Any]],
+    Callable[["SlashContext[Any]", "Interaction"], Coro[Any]],
 ]
+
+# Error = Callable[[AnyContext, "CommandError"], Coro[Any]],
+# Autocomplete = Callable[["SlashContext[Any]", "Interaction"], Coro[Any]],
 
 
 # This is merely a tag type to avoid circular import issues.
