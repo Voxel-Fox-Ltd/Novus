@@ -20,7 +20,7 @@ New Features
 ~~~~~~~~~~~~~~~~~~
 
 * Add ``guild_locale``, ``user_locale``, and ``locale`` to :class:`Interaction` and the two context objects.
-* Add :attr:`ApplicationCommand.default_permission`.
+* Add :attr:`ApplicationCommand.default_member_permissions` and :attr:`ApplicationCommand.dm_permissions`.
 * Add new methods for dealing with application commands.
     * :func:`Client.fetch_global_application_commands`
     * :func:`Client.fetch_global_application_command`
@@ -54,6 +54,7 @@ Bugs Fixed
 ~~~~~~~~~~~~~~~~~~~~
 
 * Fix ``moderate_members`` not being included in ``Permissions.all``.
+* Fix positional arguments not being passed properly to commands when invoked via slash command.
 
 Removed Features
 ~~~~~~~~~~~~~~~~~~~~

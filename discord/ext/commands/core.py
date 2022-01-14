@@ -246,11 +246,16 @@ class ApplicationCommandMeta:
             options: List[discord.ApplicationCommandOption] = None,
             default_permission: discord.Permissions = None,
             name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None):
+            description_localizations: Dict[str, str] = None,
+            guild_only: bool = False,
+            permissions: discord.Permissions = None,
+            ):
         self.options = options or list()
         self.default_permission = default_permission or None
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
+        self.guild_only = guild_only
+        self.permissions = permissions or discord.Permissions.none()
 
 
 class Command(_BaseCommand, Generic[CogT, P, T]):

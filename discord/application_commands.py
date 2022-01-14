@@ -12,6 +12,7 @@ from .permissions import Permissions
 
 if TYPE_CHECKING:
     from .types.interactions import (
+        ApplicationCommand as ApplicationCommandPayload,
         ApplicationCommandInteractionDataOption as ApplicationCommandInteractionDataOptionPayload,
     )
 
@@ -308,10 +309,6 @@ class ApplicationCommand:
         The type of the application command.
     options: List[:class:`ApplicationCommandOption`]
         A list of the options added to this command.
-    default_permission: :class:`Permissions`
-        The permissions that are required to run the application command.
-
-        .. versionadded:: 0.0.6
     name_localizations: Dict[:class:`str`, :class:`str`]
         A dictionary of language codes to translations for the name of the command.
 
@@ -324,6 +321,14 @@ class ApplicationCommand:
         The ID of this application command.
     application_id: :class:`int`
         The application ID that this command is attached to.
+    dm_permissions: :class:`bool`
+        Whether or not the command is runnable in DMs.
+
+        .. versionadded:: 0.0.6
+    default_member_permissions: :class:`discord.Permissions`
+        The default permissions needed to be able to run this command.
+
+        .. versionadded:: 0.0.6
 
     Parameters
     -----------
@@ -335,16 +340,20 @@ class ApplicationCommand:
         The type of the application command. Defaults to a chat input (slash) command.
     options: List[:class:`ApplicationCommandOption`]
         A list of the options added to this command.
-    default_permission: :class:`Permissions`
-        The permissions that are required to run the application command.
-
-        .. versionadded:: 0.0.6
     name_localizations: Dict[:class:`str`, :class:`str`]
         A dictionary of language codes to translations for the name of the command.
 
         .. versionadded:: 0.0.6
     description_localizations: Dict[:class:`str`, :class:`str`]
         A dictionary of language codes to translations for the description of the command.
+
+        .. versionadded:: 0.0.6
+    dm_permissions: :class:`bool`
+        Whether or not the command is runnable in DMs.
+
+        .. versionadded:: 0.0.6
+    default_member_permissions: :class:`discord.Permissions`
+        The default permissions needed to be able to run this command.
 
         .. versionadded:: 0.0.6
     """
@@ -356,18 +365,21 @@ class ApplicationCommand:
             description: str = None,
             type: ApplicationCommandType = ApplicationCommandType.chat_input,
             options: List[ApplicationCommandOption] = None,
-            default_permission: Permissions = None,
             name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None):
+            description_localizations: Dict[str, str] = None,
+            dm_permissions: bool = True,
+            default_member_permissions: Permissions = None,
+            ):
         self.name: str = name
         self.description: Optional[str] = description
         self.type: ApplicationCommandType = type
         self.options: List[ApplicationCommandOption] = options or list()
         self.id: Optional[int] = None
         self.application_id: Optional[int] = None
-        self.default_permission = default_permission or None
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
+        self.dm_permissions = dm_permissions
+        self.default_member_permissions = default_member_permissions or Permissions.none()
 
     def __repr__(self):
         return f"ApplcationCommand<name={self.name}, type={self.type.name}>"
@@ -380,14 +392,15 @@ class ApplicationCommand:
         self.options.append(option)
 
     @classmethod
-    def from_data(cls, data: dict):
+    def from_data(cls, data: ApplicationCommandPayload):
         command = cls(
             name=data['name'],
             description=data.get('description'),
             type=ApplicationCommandType(data.get('type', 1)),
-            default_permission=Permissions(int(data.get('permissions', 0))),
             name_localizations=data.get("name_localizations", dict()),
             description_localizations=data.get("description_localizations", dict()),
+            dm_permissions=data.get("dm_permissions", True),
+            default_member_permissions=Permissions(int(data.get("default_member_permissions", 0))),
         )
         command.id = int(data.get('id', 0)) or None
         command.application_id = int(data.get('application_id', 0)) or None
@@ -398,17 +411,17 @@ class ApplicationCommand:
     def __eq__(self, other):
         return isinstance(other, self.__class__) and self.to_json() == other.to_json()
 
-    def to_json(self):
-        v = {
+    def to_json(self) -> ApplicationCommandPayload:
+        v: ApplicationCommandPayload = {
             "name": self.name,
             "description": self.description,
             "type": self.type.value,
             "options": [i.to_json() for i in self.options],
             "name_localizations": self.name_localizations,
             "description_localizations": self.description_localizations,
+            "default_member_permissions": str(self.default_member_permissions.value),
+            "dm_permissions": self.dm_permissions,
         }
-        if self.default_permission:
-            v["default_permission"] = str(self.default_permission.value)
         if self.description is None:
             v.pop("description", None)
             v.pop("description_localizations")
