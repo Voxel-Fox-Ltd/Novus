@@ -229,29 +229,30 @@ class ApplicationCommandMeta:
     .. versionadded:: 0.0.6
 
     Parameters
-    -----------
-    options: List[:class:`discord.ApplicationCommandOption`]
+    ----------
+    options : Optional[List[discord.ApplicationCommandOption]]
         The data for the parameters that should be converted into an application
         command.
-    default_permission: :class:`discord.Permissions`
-        The permissions required by default to run the command.
-    name_localizations: Dict[str, str]
+    name_localizations : Optional[Dict[str, str]]
         A dictionary of language: text translations for the name of the command.
-    description_localizations: Dict[str, str]
+    description_localizations : Optional[Dict[str, str]]
         A dictionary of language: text translations for the description of the command.
+    guild_only : Optional[bool]
+        Whether or not the command is only runnable in a guild.
+    permissions : Optional[discord.Permissions]
+        The permissions required by default to run the command.
     """
 
     def __init__(
-            self, *,
+            self,
+            *,
             options: List[discord.ApplicationCommandOption] = None,
-            default_permission: discord.Permissions = None,
             name_localizations: Dict[str, str] = None,
             description_localizations: Dict[str, str] = None,
             guild_only: bool = False,
-            permissions: discord.Permissions = None,
+            permissions: discord.Permissions = None
             ):
         self.options = options or list()
-        self.default_permission = default_permission or None
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
         self.guild_only = guild_only
