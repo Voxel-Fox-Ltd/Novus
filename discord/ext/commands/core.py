@@ -227,20 +227,6 @@ class ApplicationCommandMeta:
     you don't need to do a bunch of funky stuff to get command groups to work.
 
     .. versionadded:: 0.0.6
-
-    Parameters
-    ----------
-    options : Optional[List[discord.ApplicationCommandOption]]
-        The data for the parameters that should be converted into an application
-        command.
-    name_localizations : Optional[Dict[str, str]]
-        A dictionary of language: text translations for the name of the command.
-    description_localizations : Optional[Dict[str, str]]
-        A dictionary of language: text translations for the description of the command.
-    guild_only : Optional[bool]
-        Whether or not the command is only runnable in a guild.
-    permissions : Optional[discord.Permissions]
-        The permissions required by default to run the command.
     """
 
     def __init__(
@@ -252,11 +238,27 @@ class ApplicationCommandMeta:
             guild_only: bool = False,
             permissions: discord.Permissions = None
             ):
-        self.options = options or list()
-        self.name_localizations = name_localizations or dict()
-        self.description_localizations = description_localizations or dict()
-        self.guild_only = guild_only
-        self.permissions = permissions or discord.Permissions.none()
+        """
+        Parameters
+        ----------
+        options : Optional[List[discord.ApplicationCommandOption]]
+            The data for the parameters that should be converted into an application
+            command.
+        name_localizations : Optional[Dict[str, str]]
+            A dictionary of language: text translations for the name of the command.
+        description_localizations : Optional[Dict[str, str]]
+            A dictionary of language: text translations for the description of the command.
+        guild_only : Optional[bool]
+            Whether or not the command is only runnable in a guild.
+        permissions : Optional[discord.Permissions]
+            The permissions required by default to run the command.
+        """
+
+        self.options: List[discord.ApplicationCommandOption] = options or list()
+        self.name_localizations: Dict[str, str] = name_localizations or dict()
+        self.description_localizations: Dict[str, str] = description_localizations or dict()
+        self.guild_only: bool = guild_only
+        self.permissions: discord.Permissions = permissions or discord.Permissions.none()
 
 
 class Command(_BaseCommand, Generic[CogT, P, T]):
