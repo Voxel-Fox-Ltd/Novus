@@ -1314,11 +1314,13 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         elif self.application_command_meta is None:
             name_localizations = None
             description_localizations = None
-            default_permission = None
+            default_member_permissions = None
+            guild_only = None
         else:
             name_localizations = self.application_command_meta.name_localizations
             description_localizations = self.application_command_meta.description_localizations
-            default_permission = self.application_command_meta.default_permission
+            default_member_permissions = self.application_command_meta.permissions
+            guild_only = self.application_command_meta.guild_only
 
         # Create the base command
         if self.parent is None:  # No parent
@@ -1328,7 +1330,8 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 description=self.short_doc or self.name,
                 name_localizations=name_localizations,
                 description_localizations=description_localizations,
-                default_permission=default_permission,
+                default_member_permissions=default_member_permissions,
+                dm_permissions=not guild_only,
             )
         else:  # Parent is a group
             command = discord.ApplicationCommandOption(
@@ -1410,15 +1413,18 @@ class ContextMenuCommand(Command):
         """
 
         localizations = None
-        default_permission = None
+        default_member_permissions = None
+        guild_only = False
         if self.application_command_meta is not None:
             localizations = self.application_command_meta.name_localizations
-            default_permission = self.application_command_meta.default_permission
+            default_member_permissions = self.application_command_meta.permissions
+            guild_only = self.application_command_meta.guild_only
         command = discord.ApplicationCommand(
             name=self.name,
             type=self.application_command_type,
             name_localizations=localizations,
-            default_permission=default_permission,
+            default_member_permissions=default_member_permissions,
+            dm_permissions=not guild_only,
         )
         return command
 
@@ -1799,16 +1805,19 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
         """
 
         localizations = None
-        default_permission = None
+        default_member_permissions = None
+        guild_only = False
         if self.application_command_meta is not None:
             localizations = self.application_command_meta.name_localizations
-            default_permission = self.application_command_meta.default_permission
+            default_member_permissions = self.application_command_meta.permissions
+            guild_only = self.application_command_meta.guild_only
         if self.parent is None:  # No parent, this is the base
             command = discord.ApplicationCommand(
                 name=self.name,
                 description=self.short_doc or self.name,
                 name_localizations=localizations,
-                default_permission=default_permission,
+                default_member_permissions=default_member_permissions,
+                dm_permissions=not guild_only,
             )
         else:  # Parent is another group
             command = discord.ApplicationCommandOption(
