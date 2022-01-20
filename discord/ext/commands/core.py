@@ -2410,16 +2410,17 @@ def bot_has_permissions(**perms: bool) -> Callable[[T], T]:
     def predicate(ctx: Context) -> bool:
         guild = ctx.guild
         me = guild.me if guild is not None else ctx.bot.user
+        newperms = perms.copy()
         if isinstance(ctx, SlashContext):
             for p in slash_permission_ignores:
-                v = perms.pop(p, None)
+                v = newperms.pop(p, None)
                 if v is False:
-                    perms[p] = v
-        if not perms:
+                    newperms[p] = v
+        if not newperms:
             return True
         permissions = ctx.channel.permissions_for(me)  # type: ignore
 
-        missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
+        missing = [perm for perm, value in newperms.items() if getattr(permissions, perm) != value]
 
         if not missing:
             return True
