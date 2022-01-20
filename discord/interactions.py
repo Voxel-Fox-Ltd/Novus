@@ -341,7 +341,7 @@ class Interaction(Generic[T]):
         self._permissions: int = 0
 
         # Store the locales
-        self.user_locale = payload["locale"]
+        self.user_locale = payload.get("locale")
         self.guild_locale = payload.get("guild_locale")
 
         # TODO: there's a potential data loss here
