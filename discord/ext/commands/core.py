@@ -2412,7 +2412,7 @@ def bot_has_permissions(**perms: bool) -> Callable[[T], T]:
         me = guild.me if guild is not None else ctx.bot.user
         if isinstance(ctx, SlashContext):
             for p in slash_permission_ignores:
-                v = perms.pop(p)
+                v = perms.pop(p, None)
                 if v is False:
                     perms[p] = v
         if not perms:
