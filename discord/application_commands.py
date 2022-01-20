@@ -61,7 +61,7 @@ class ApplicationCommandInteractionDataOption:
         self.from_data(data)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}<name={self.name!r}, value={self.value!r}, type={self.type.name!r}>"
+        return f"{self.__class__.__name__}<name={self.name!r}, value={self.value!r}, type={self.type!r}>"
 
     def from_data(self, data: ApplicationCommandInteractionDataOptionPayload):
         self.name: str = data["name"]
@@ -239,7 +239,7 @@ class ApplicationCommandOption:
         self.max_value = max_value
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type.name!r}, choices={self.choices!r}, options={self.options!r}>"
+        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type!r}, choices={self.choices!r}, options={self.options!r}>"
 
     def add_choice(self, choice: ApplicationCommandOptionChoice) -> None:
         """
@@ -391,7 +391,7 @@ class ApplicationCommand:
         self.default_member_permissions = default_member_permissions
 
     def __repr__(self):
-        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type.name!r}, options={self.options!r}>"
+        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type!r}, options={self.options!r}>"
 
     def add_option(self, option: ApplicationCommandOption):
         """
