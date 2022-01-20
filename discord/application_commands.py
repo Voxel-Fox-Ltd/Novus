@@ -325,7 +325,7 @@ class ApplicationCommand:
         Whether or not the command is runnable in DMs.
 
         .. versionadded:: 0.0.6
-    default_member_permissions: :class:`discord.Permissions`
+    default_member_permissions: Optional[:class:`discord.Permissions`]
         The default permissions needed to be able to run this command.
 
         .. versionadded:: 0.0.6
@@ -379,7 +379,7 @@ class ApplicationCommand:
         self.name_localizations = name_localizations or dict()
         self.description_localizations = description_localizations or dict()
         self.dm_permissions = dm_permissions
-        self.default_member_permissions = default_member_permissions or Permissions.none()
+        self.default_member_permissions = default_member_permissions
 
     def __repr__(self):
         return f"ApplcationCommand<name={self.name}, type={self.type.name}>"
@@ -400,7 +400,7 @@ class ApplicationCommand:
             name_localizations=data.get("name_localizations", dict()),
             description_localizations=data.get("description_localizations", dict()),
             dm_permissions=data.get("dm_permissions", True),
-            default_member_permissions=Permissions(int(data.get("default_member_permissions", 0))),
+            default_member_permissions=Permissions(int(data.get("default_member_permissions", 0))) if data.get("default_member_permissions") else None,
         )
         command.id = int(data.get('id', 0)) or None
         command.application_id = int(data.get('application_id', 0)) or None
@@ -419,7 +419,7 @@ class ApplicationCommand:
             "options": [i.to_json() for i in self.options],
             "name_localizations": self.name_localizations,
             "description_localizations": self.description_localizations,
-            "default_member_permissions": str(self.default_member_permissions.value),
+            "default_member_permissions": str(self.default_member_permissions.value) if self.default_member_permissions else None,
             "dm_permissions": self.dm_permissions,
         }
         if self.description is None:
