@@ -60,6 +60,9 @@ class ApplicationCommandInteractionDataOption:
     def __init__(self, data: ApplicationCommandInteractionDataOptionPayload):
         self.from_data(data)
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}<name={self.name!r}, value={self.value!r}, type={self.type.name!r}>"
+
     def from_data(self, data: ApplicationCommandInteractionDataOptionPayload):
         self.name: str = data["name"]
         self.type: ApplicationCommandOptionType = ApplicationCommandOptionType(data["type"])
@@ -93,6 +96,9 @@ class ApplicationCommandOptionChoice:
             value: ApplicationCommandOptionChoiceValue = None):
         self.name: str = name
         self.value: Any = value if value is not None else name
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}<name={self.name!r}, value={self.value!r}>"
 
     @classmethod
     def from_data(cls, data: dict):
@@ -231,6 +237,9 @@ class ApplicationCommandOption:
         self.description_localizations = description_localizations or dict()
         self.min_value = min_value
         self.max_value = max_value
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type.name!r}, choices={self.choices!r}, options={self.options!r}>"
 
     def add_choice(self, choice: ApplicationCommandOptionChoice) -> None:
         """
@@ -382,7 +391,7 @@ class ApplicationCommand:
         self.default_member_permissions = default_member_permissions
 
     def __repr__(self):
-        return f"ApplcationCommand<name={self.name}, type={self.type.name}>"
+        return f"{self.__class__.__name__}<name={self.name}, type={self.type.name}, options={self.options}>"
 
     def add_option(self, option: ApplicationCommandOption):
         """
