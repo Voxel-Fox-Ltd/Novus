@@ -153,6 +153,14 @@ class GuildScheduledEvent(Hashable):
             self.creator = User(state=state, data=data.get("creator"))
         self.user_count: Optional[int] = data.get("user_count")
 
+    def __repr__(self) -> str:
+        attrs = (
+            ('id', self.id),
+            ('name', self.name),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'<{self.__class__.__name__} {inner}>'
+
     @property
     def guild(self) -> Optional[Guild]:
         """:class:`Guild`: The guild this event belongs to."""

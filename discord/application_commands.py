@@ -433,7 +433,7 @@ class ApplicationCommand:
         }
         if self.description is None:
             v.pop("description", None)
-            v.pop("description_localizations")
+            v.pop("description_localizations", None)
         if self.type != ApplicationCommandType.chat_input:
             v.pop("options", None)
         return v
