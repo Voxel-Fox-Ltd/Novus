@@ -130,8 +130,6 @@ class ApplicationCommandOption:
         The type of this command option.
     description: :class:`str`
         The description given to this argument.
-    default: :class:`Any`
-        The default value given to the command option.
     required: Optional[:class:`bool`]
         Whether or not this option is required for the command to run.
     choices: List[:class:`ApplicationCommandOptionChoice`]
@@ -172,8 +170,6 @@ class ApplicationCommandOption:
         The type of this command option.
     description: :class:`str`
         The description given to this argument.
-    default: :class:`Any`
-        The default value given to the command option.
     required: Optional[:class:`bool`]
         Whether or not this option is required for the command to run.
     choices: List[:class:`ApplicationCommandOptionChoice`]
@@ -213,7 +209,6 @@ class ApplicationCommandOption:
             name: str,
             type: ApplicationCommandOptionType,
             description: str,
-            default: Optional[str] = None,
             required: bool = True,
             autocomplete: bool = False,
             name_localizations: Dict[str, str] = None,
@@ -227,7 +222,6 @@ class ApplicationCommandOption:
         self.name: str = name
         self.type: ApplicationCommandOptionType = type
         self.description: str = description
-        self.default: Optional[str] = default
         self.required: bool = required
         self.choices: List[ApplicationCommandOptionChoice] = choices or list()
         self.options: List[ApplicationCommandOption] = options or list()
@@ -261,7 +255,6 @@ class ApplicationCommandOption:
             name=data['name'],
             type=ApplicationCommandOptionType(data['type']),
             description=data['description'],
-            default=data.get('default', None),
             required=data.get('required', False),
             autocomplete=data.get('autocomplete', False),
             min_value=data.get('min_value', None),
@@ -281,7 +274,6 @@ class ApplicationCommandOption:
             "name": self.name,
             "type": self.type.value,
             "description": self.description,
-            "default": self.default,
             "required": self.required,
             "autocomplete": self.autocomplete,
             "choices": [i.to_json() for i in self.choices],
@@ -291,7 +283,6 @@ class ApplicationCommandOption:
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
             payload.pop("required", None)
-            payload.pop("default", None)
             payload.pop("choices", None)
             payload.pop("channel_types", None)
             payload.pop("autocomplete", None)
