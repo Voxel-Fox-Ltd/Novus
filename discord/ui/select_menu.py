@@ -59,6 +59,8 @@ class SelectOption(InteractableComponent):
         set to ``True`` per select menu. Defaults to ``False``.
     """
 
+    __slots__ = ("label", "value", "description", "emoji", "default",)
+
     def __init__(
             self, *, label: Optional[str], value: Optional[str] = MISSING, description: Optional[str] = None,
             emoji: Optional[Union[str, Emoji, PartialEmoji]] = None, default: Optional[bool] = False):
@@ -73,10 +75,21 @@ class SelectOption(InteractableComponent):
             elif isinstance(emoji, dict):
                 self.emoji = PartialEmoji(**emoji)
             else:
-                raise TypeError(f'expected emoji to be str, Emoji, or PartialEmoji not {emoji.__class__}')
+                raise TypeError(f'expected emoji to be str, Emoji, PartialEmoji, or dict not {emoji.__class__}')
         else:
             self.emoji = None
         self.default = default or False
+
+    def __repr__(self) -> str:
+        attrs = (
+            ('label', self.label),
+            ('value', self.value),
+            ('description', self.description),
+            ('emoji', self.emoji),
+            ('default', self.default),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'<{self.__class__.__name__} {inner}>'
 
     def to_dict(self) -> SelectOptionPayload:
         v = {
@@ -125,8 +138,10 @@ class SelectMenu(DisableableComponent):
         Whether or not the select menu is clickable.
     """
 
+    __slots__ = ("custom_id", "options", "placeholder", "min_values", "max_values", "disabled",)
+
     def __init__(
-            self, *, custom_id: Optional[str] = MISSING, options: List[SelectOption] = MISSING, placeholder: Optional[str] = None,
+            self, *, custom_id: str = MISSING, options: List[SelectOption] = MISSING, placeholder: Optional[str] = None,
             min_values: Optional[int] = 1, max_values: Optional[int] = 1, disabled: Optional[bool] = False):
         self.custom_id = custom_id if custom_id is not MISSING else str(uuid.uuid1())
         self.options = options
@@ -134,6 +149,18 @@ class SelectMenu(DisableableComponent):
         self.min_values = min_values
         self.max_values = max_values
         self.disabled = disabled
+
+    def __repr__(self) -> str:
+        attrs = (
+            ('custom_id', self.custom_id),
+            ('options ', self.options),
+            ('placeholder ', self.placeholder),
+            ('min_values ', self.min_values),
+            ('max_values ', self.max_values),
+            ('disabled', self.disable),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'<{self.__class__.__name__} {inner}>'
 
     def to_dict(self) -> SelectMenuPayload:
         return {

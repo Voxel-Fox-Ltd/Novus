@@ -53,6 +53,15 @@ class InteractedComponent:
         self.value = value
         self.type = type
 
+    def __repr__(self) -> str:
+        attrs = (
+            ('custom_id', self.custom_id),
+            ('components', self.components),
+            ('value', self.value),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'<{self.__class__.__name__} {inner}>'
+
     @classmethod
     def from_data(cls, payload: dict):
         components = None
@@ -177,6 +186,13 @@ class ComponentHolder(BaseComponent):
 
     def __init__(self, *components: Union[InteractableComponent, LayoutComponent]):
         self.components = list(components)
+
+    def __repr__(self) -> str:
+        attrs = (
+            ('components', self.components),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'<{self.__class__.__name__} {inner}>'
 
     def add_component(self, component: Union[InteractableComponent, LayoutComponent]):
         """
