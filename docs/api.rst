@@ -2521,6 +2521,12 @@ of :class:`enum.Enum`.
 
         The option is any number, including decimals.
 
+    .. attribute:: attachment
+
+        The option is any attachment.
+
+        All attachments receieved by the bot via application commands are ephemeral, and are only stored for two weeks.
+
 .. class:: GuildScheduledEventPrivacyLevel
 
     .. versionadded:: 0.0.6

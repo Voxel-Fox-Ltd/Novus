@@ -90,18 +90,26 @@ class InteractionResolved:
 
     .. versionadded:: 0.0.3
 
+    .. versionchanged:: 0.0.7
+
+        Changed all list attributes to dicts.
+
     Attributes
     ------------
-    users: List[Union[:class:`User`, :class:`Member`]]
+    users: Dict[:class:`int`, Union[:class:`User`, :class:`Member`]]
         The users who were mentioned in the interaction.
-    members: List[:class:`Member`]
+    members: Dict[:class:`int`, :class:`Member`]
         The members who were mentioned in the interaction.
-    roles: List[:class:`Role`]
+    roles: Dict[:class:`int`, :class:`Role`]
         The roles that were mentioned in the interaction.
-    channels: List[Union[:class:`VoiceChannel`, :class:`StageChannel`, :class:`TextChannel`, :class:`CategoryChannel`, :class:`StoreChannel`, :class:`Thread`]]
+    channels: Dict[:class:`int`, Union[:class:`VoiceChannel`, :class:`StageChannel`, :class:`TextChannel`, :class:`CategoryChannel`, :class:`StoreChannel`, :class:`Thread`]]
         The channels that were mentioned in the interaction.
-    message: List[:class:`Message`]
+    messages: Dict[:class:`int`, :class:`Message`]
         The messages that were mentioned in the interaction.
+    attachments: Dict[:class:`int`, :class:`Attachment`]
+        The attachments that were sent with the payload.
+
+        .. versionadded:: 0.0.7
     """
 
     __slots__ = (
@@ -112,6 +120,7 @@ class InteractionResolved:
         "_cs_roles",
         "_cs_channels",
         "_cs_messages",
+        "_cs_attachments",
         "_data",
     )
 
@@ -121,57 +130,69 @@ class InteractionResolved:
         self._data = data
 
     @utils.cached_slot_property("_cs_users")
-    def users(self) -> List[Union[User, Member]]:
-        users = []
+    def users(self) -> Dict[int, Union[User, Member]]:
+        users = {}
         user_data = self._data.get("users", dict())
         member_data = self._data.get("members", dict())
         for uid, d in member_data.items():
             d.update({"user": user_data.pop(uid)})
-        users.extend(User(data=d, state=self._state) for _, d in user_data.items())
+        users.update({
+            int(i): User(data=d, state=self._state)
+            for i, d in user_data.items()
+        })
         return users
 
     @utils.cached_slot_property("_cs_members")
-    def members(self) -> List[Member]:
-        members = []
+    def members(self) -> Dict[int, Member]:
+        members = {}
         if not self._interaction.guild:
-            return []
+            return {}
         user_data = self._data.get("users", dict())
         member_data = self._data.get("members", dict())
         for uid, d in member_data.items():
             d.update({"user": user_data.pop(uid)})
-        members.extend(Member(data=d, state=self._state, guild=self._interaction.guild) for _, d in member_data.items())
+        members.update({
+            int(i): Member(data=d, state=self._state, guild=self._interaction.guild)
+            for i, d in member_data.items()
+        })
         return members
 
     @utils.cached_slot_property("_cs_roles")
-    def roles(self) -> List[Role]:
-        roles = []
+    def roles(self) -> Dict[int, Role]:
+        roles = {}
         if self._interaction.guild:
-            for rid, d in self._data.get("roles", dict()).items():
-                roles.append(Role(guild=self._interaction.guild, state=self._state, data=d))
+            for i, d in self._data.get("roles", dict()).items():
+                roles[int(i)] = Role(guild=self._interaction.guild, state=self._state, data=d)
         return roles
 
     @utils.cached_slot_property("_cs_channels")
-    def channels(self) -> List[InteractionChannel]:
-        channels = []
-        for cid, d in self._data.get("channels", dict()).items():
+    def channels(self) -> Dict[int, InteractionChannel]:
+        channels = {}
+        for _, d in self._data.get("channels", dict()).items():
             factory, ch_type = _threaded_channel_factory(d['type'])
             if factory is None:
                 raise InvalidData('Unknown channel type {type} for channel ID {id}.'.format_map(d))
             if ch_type in (ChannelType.group, ChannelType.private):
                 channel = factory(me=self.user, data=d, state=self._connection) # type: ignore
             else:
-                guild_id = int(self._data['guild_id']) # type: ignore
                 guild = self._interaction.guild
                 channel = factory(guild=guild, state=self._connection, data=d) # type: ignore
-            channels.append(channel)
+            channels[channel.id] = channel
         return channels
 
     @utils.cached_slot_property("_cs_messages")
-    def messages(self) -> List[Message]:
-        messages = []
-        for _, d in self._data.get("messages", dict()).items():
-            messages.append(Message(state=self._state, channel=self._interaction.channel, data=d))
+    def messages(self) -> Dict[int, Message]:
+        messages = {}
+        for i, d in self._data.get("messages", dict()).items():
+            messages[int(i)] = Message(state=self._state, channel=self._interaction.channel, data=d)
         return messages
+
+    @utils.cached_slot_property("_cs_attachments")
+    def attachments(self) -> Dict[int, Attachment]:
+        attachments = {}
+        for i, d in self._data.get("attachments", dict()).items():
+            attachments[int(i)] = Attachment(state=self._state, data=d)
+        return attachments
 
 
 class Interaction(Generic[T]):

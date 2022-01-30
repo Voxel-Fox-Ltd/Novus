@@ -11,6 +11,19 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_7:
+
+v0.0.7
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Add support for attachment slash options.
+    * Add :attr:`ApplicationCommandOptionType.attachment`.
+    * Add :attr:`ApplicationCommandResolved.attachments`.
+    * Add :attr:`Attachment.ephemeral`.
+
 .. _vp0_0_6:
 
 v0.0.6

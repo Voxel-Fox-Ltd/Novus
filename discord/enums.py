@@ -622,6 +622,7 @@ class ApplicationCommandOptionType(Enum):
     role = 8  # If the option is a role.
     mentionable = 9  # Any mentionable user or role.
     number = 10  # Any double.
+    attachment = 11  # Any attachment.
 
 
 class ApplicationCommandType(Enum):

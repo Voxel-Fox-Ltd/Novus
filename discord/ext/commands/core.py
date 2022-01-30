@@ -960,19 +960,32 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         Parse the arguments for a given context.
         """
 
-        # Convert our given values
+        # Set up our initial values
         ctx.args = [ctx] if self.cog is None else [self.cog, ctx]
         ctx.kwargs = {}
+
+        # Go through each value given by the user
         for name, value in ctx.given_values.items():
+
+            # Get the signature
             sig = None
-            if name is None:
+            if name is None:  # We only get here for context commands
                 for name, sig in self.clean_params.items():
                     break  # Just get the first param - deliberately shadow "name"
             else:
                 sig = self.clean_params[name]
             assert sig
+
+            # Get the converter
             converter = get_converter(sig)
-            v = await run_converters(ctx, converter, value, sig)  # Could raise; that's fine
+
+            # Get the value
+            if converter == discord.Attachment:
+                v = ctx.interaction.resolved.attachments[int(value)]
+            else:
+                v = await run_converters(ctx, converter, value, sig)  # Could raise; that's fine
+
+            # And store
             ctx.kwargs[name] = v
 
     async def prepare(self, ctx: Context) -> None:
