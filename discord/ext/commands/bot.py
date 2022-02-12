@@ -1002,7 +1002,7 @@ class BotBase(GroupMixin):
         command_name = data.get('name')
         options = list()
         while command_name:
-            if "options" not in data:
+            if "options" not in data or len(data["options"]) == 0:
                 break
             if data['options'][0]['type'] in [1, 2]:
                 data = data['options'][0]
