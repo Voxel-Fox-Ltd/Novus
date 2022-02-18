@@ -41,7 +41,7 @@ async def ask(ctx: commands.SlashContext):
     await interaction.response.edit_message(components=components)
 
     # Give different responses based on what they clicked
-    if interaction.custom_id == "YES":
+    if interaction.custom_id == yes_button.custom_id:
         await interaction.followup.send("You clicked yes!")
     else:
         await interaction.followup.send("You clicked no :<")
