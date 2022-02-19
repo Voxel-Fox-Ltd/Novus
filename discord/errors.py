@@ -143,7 +143,7 @@ class HTTPException(DiscordException):
             self.code = 0
 
         if self.status == 429:
-            fmt = '{0.status} {0.reason} (retry after {0.headers[retry-after]}) (error code: {1})'
+            fmt = '{0.status} {0.reason} (retry after {0.headers[retry-after]}s) (error code: {1})'
         else:
             fmt = '{0.status} {0.reason} (error code: {1})'
         if len(self.text):
