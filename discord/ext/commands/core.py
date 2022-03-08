@@ -982,6 +982,16 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             # Get the value
             if converter == discord.Attachment:
                 v = ctx.interaction.resolved.attachments[int(value)]
+            elif converter == discord.Member:
+                v = ctx.interaction.resolved.members[int(value)]
+            elif converter == discord.User:
+                v = ctx.interaction.resolved.users[int(value)]
+            elif converter == discord.Message:
+                v = ctx.interaction.resolved.messages[int(value)]
+            elif converter == discord.Role:
+                v = ctx.interaction.resolved.roles[int(value)]
+            elif converter in [discord.VoiceChannel, discord.StageChannel, discord.TextChannel, discord.CategoryChannel, discord.StoreChannel, discord.Thread]:
+                v = ctx.interaction.resolved.channels[int(value)]
             else:
                 v = await run_converters(ctx, converter, value, sig)  # Could raise; that's fine
 
