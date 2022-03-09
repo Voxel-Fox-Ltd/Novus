@@ -2406,7 +2406,11 @@ def has_permissions(**perms: bool) -> Callable[[T], T]:
 
     def predicate(ctx: Context) -> bool:
         ch = ctx.channel
-        permissions = ch.permissions_for(ctx.author)  # type: ignore
+
+        if hasattr(ctx, "interaction"):
+            permissions = ctx.interaction.permissions  # type: ignore
+        else:
+            permissions = ch.permissions_for(ctx.author)  # type: ignore
 
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
 
