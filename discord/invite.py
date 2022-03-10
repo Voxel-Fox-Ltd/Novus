@@ -166,10 +166,10 @@ class PartialInviteGuild:
         self.nsfw_level: NSFWLevel = try_enum(NSFWLevel, data.get('nsfw_level', 0))
         self._banner: Optional[str] = data.get('banner')
         self._splash: Optional[str] = data.get('splash')
-        self.vanity_url_code: str = data.get('vanity_url_code')
+        self.vanity_url_code: str = data.get('vanity_url_code') or None
         self.verification_level: VerificationLevel = try_enum(VerificationLevel, data.get('verification_level'))
         self.description: Optional[str] = data.get('description')
-        self.premium_subscription_count: int = data.get('premium_subscription_count')
+        self.premium_subscription_count: int = data.get('premium_subscription_count') or 0
 
     def __str__(self) -> str:
         return self.name
