@@ -29,7 +29,7 @@ from .asset import Asset
 from .utils import parse_time, snowflake_time, _get_as_snowflake
 from .object import Object
 from .mixins import Hashable
-from .enums import ChannelType, VerificationLevel, InviteTarget, try_enum
+from .enums import ChannelType, VerificationLevel, NSFWLevel, InviteTarget, try_enum
 from .appinfo import PartialAppInfo
 
 __all__ = (
@@ -154,18 +154,22 @@ class PartialInviteGuild:
         The partial guild's description.
     """
 
-    __slots__ = ('_state', 'features', '_icon', '_banner', 'id', 'name', '_splash', 'verification_level', 'description')
+    __slots__ = ('_state', 'features', '_icon', '_banner', 'id', 'name', '_splash', 'verification_level', 'description','nsfw', 'nsfw_level', 'vanity_url_code', 'premium_subscription_count')
 
     def __init__(self, state: ConnectionState, data: InviteGuildPayload, id: int):
         self._state: ConnectionState = state
         self.id: int = id
         self.name: str = data['name']
+        self.nsfw: str = data.get('nsfw', False)
         self.features: List[str] = data.get('features', [])
         self._icon: Optional[str] = data.get('icon')
+        self.nsfw_level: NSFWLevel = try_enum(NSFWLevel, data.get('nsfw_level', 0))
         self._banner: Optional[str] = data.get('banner')
         self._splash: Optional[str] = data.get('splash')
+        self.vanity_url_code: str = data.get('vanity_url_code')
         self.verification_level: VerificationLevel = try_enum(VerificationLevel, data.get('verification_level'))
         self.description: Optional[str] = data.get('description')
+        self.premium_subscription_count: int = data.get('premium_subscription_count')
 
     def __str__(self) -> str:
         return self.name
@@ -175,6 +179,17 @@ class PartialInviteGuild:
             f'<{self.__class__.__name__} id={self.id} name={self.name!r} features={self.features} '
             f'description={self.description!r}>'
         )
+
+    @property
+    def premium_tier(self) -> int:
+        """:class:`int`: The guild's premium tier."""
+        if self.premium_subscription_count >= 2 and self.premium_subscription_count < 7:
+            return 1
+        elif self.premium_subscription_count >= 7 and self.premium_subscription_count < 14:
+            return 2
+        elif self.premium_subscription_count >= 14:
+            return 3
+        return 0
 
     @property
     def created_at(self) -> datetime.datetime:
