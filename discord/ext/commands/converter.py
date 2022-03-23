@@ -418,9 +418,9 @@ class GuildChannelConverter(IDConverter[discord.abc.GuildChannel]):
             # not a mention
             if guild:
                 if isinstance(ctx, SlashContext):
-                    iterable: Iterable[CT] = ctx.interaction.resolved.channels.values()
-                    if len(iterable) == 0 and guild:
-                        iterable = getattr(guild, attribute)
+                    iterable: Iterable[CT] = list(ctx.interaction.resolved.channels.values())
+                    if guild:
+                        iterable += getattr(guild, attribute)
                 else:
                     iterable: Iterable[CT] = getattr(guild, attribute)
                 result: Optional[CT] = discord.utils.get(iterable, name=argument)
