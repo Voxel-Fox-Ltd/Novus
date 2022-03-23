@@ -470,6 +470,7 @@ class SlashContext(Context, Generic[BotT]):
         self.current_parameter: Optional[inspect.Parameter] = current_parameter
         self._state: ConnectionState = bot._connection
         self.given_values = {}
+        self._guild = None
 
     @property
     def author(self):
@@ -485,7 +486,7 @@ class SlashContext(Context, Generic[BotT]):
 
     @property
     def guild(self):
-        return self.interaction.guild
+        return self._guild or self.interaction.guild
 
     @property
     def user_locale(self) -> str:
