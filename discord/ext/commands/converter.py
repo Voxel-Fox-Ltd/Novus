@@ -230,7 +230,7 @@ class MemberConverter(IDConverter[discord.Member]):
         else:
             user_id = int(match.group(1))
             if guild:
-                mentions = ctx.interaction.resolved.users if isinstance(ctx, SlashContext) else ctx.message.mentions
+                mentions = ctx.interaction.resolved.users.values() if isinstance(ctx, SlashContext) else ctx.message.mentions
                 result = guild.get_member(user_id) or _utils_get(mentions, id=user_id)
             else:
                 result = _get_from_guilds(bot, 'get_member', user_id)
@@ -270,7 +270,7 @@ class UserConverter(IDConverter[discord.User]):
 
         if match is not None:
             user_id = int(match.group(1))
-            mentions = ctx.interaction.resolved.users if isinstance(ctx, SlashContext) else ctx.message.mentions
+            mentions = ctx.interaction.resolved.users.values() if isinstance(ctx, SlashContext) else ctx.message.mentions
             result = ctx.bot.get_user(user_id) or _utils_get(mentions, id=user_id)
             if result is None:
                 try:
