@@ -486,7 +486,9 @@ class SlashContext(Context, Generic[BotT]):
 
     @property
     def guild(self):
-        return self._guild or self.interaction.guild
+        if self._guild:
+            return self._guild
+        return self.interaction.guild
 
     @property
     def user_locale(self) -> str:
