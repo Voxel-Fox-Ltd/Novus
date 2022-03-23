@@ -2520,7 +2520,11 @@ def dm_only() -> Callable[[T], T]:
     """
 
     def predicate(ctx: Context) -> bool:
-        if ctx.guild is not None:
+        if isinstance(ctx, SlashContext):
+            check = ctx.interaction.guild_id is None
+        else:
+            check = ctx.guild is None
+        if not check:
             raise PrivateMessageOnly()
         return True
 
@@ -2537,7 +2541,11 @@ def guild_only() -> Callable[[T], T]:
     """
 
     def predicate(ctx: Context) -> bool:
-        if ctx.guild is None:
+        if isinstance(ctx, SlashContext):
+            check = ctx.interaction.guild_id is None
+        else:
+            check = ctx.guild is None
+        if check:
             raise NoPrivateMessage()
         return True
 
