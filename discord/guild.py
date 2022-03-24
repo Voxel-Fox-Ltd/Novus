@@ -3153,6 +3153,9 @@ class Guild(Hashable):
         if application_id is None:
             application_info = await self._state.http.application_info()
             application_id = application_info["id"]
+        options = kwargs.pop("options", None)
+        if options:
+            kwargs["options"] = [i.to_json() for i in options]
         payload = await self._state.http.edit_guild_application_command(application_id, self.id, command.id, kwargs)
         return ApplicationCommand.from_data(payload)
 
