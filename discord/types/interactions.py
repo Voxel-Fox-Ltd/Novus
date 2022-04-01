@@ -41,12 +41,16 @@ ApplicationCommandType = Literal[1, 2, 3]
 
 
 class ApplicationCommand(TypedDict):
-    id: Snowflake
-    application_id: Snowflake
+    id: Optional[Snowflake]
+    application_id: Optional[Snowflake]
     name: str
     description: str
+    type: ApplicationCommandType
     options: Optional[List[ApplicationCommandOption]]
-    type: Optional[ApplicationCommandType]
+    name_localizations: Optional[Dict[str, str]]
+    description_localizations: Optional[Dict[str, str]]
+    default_member_permissions: Optional[int]
+    dm_permissions: bool
 
 
 ApplicationCommandOptionType = Literal[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
