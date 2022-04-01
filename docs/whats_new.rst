@@ -24,6 +24,20 @@ New Features
     * Add :attr:`ApplicationCommandResolved.attachments`.
     * Add :attr:`Attachment.ephemeral`.
 
+Changed Features
+~~~~~~~~~~~~~~~~~~~
+
+* Many options from slash commands are now gathered from the resolved data.
+* Change reprs for components.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~
+
+* Fix `Bot.get_slash_context()` for subcommands without options.
+* Fix member converter.
+* Fix permissions checks for interactions.
+* Add localisations to the json output for application command options.
+
 .. _vp0_0_6:
 
 v0.0.6
