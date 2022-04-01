@@ -77,6 +77,20 @@ class InputText(InteractableComponent):
         self.required = required
         self.value = value
 
+    def __repr__(self) -> str:
+        attrs = (
+            ('label', self.label),
+            ('style', self.style),
+            ('placeholder', self.placeholder),
+            ('custom_id', self.custom_id),
+            ('min_length', self.min_length),
+            ('max_length', self.max_length),
+            ('required', self.required),
+            ('value', self.value),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'{self.__class__.__name__}({inner})'
+
     def to_dict(self) -> InputTextPayload:
         v = {
             "type": ComponentType.input_text.value,

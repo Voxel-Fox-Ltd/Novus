@@ -60,7 +60,7 @@ class InteractedComponent:
             ('value', self.value),
         )
         inner = ' '.join('%s=%r' % t for t in attrs)
-        return f'<{self.__class__.__name__} {inner}>'
+        return f'{self.__class__.__name__}({inner})'
 
     @classmethod
     def from_data(cls, payload: dict):
@@ -192,7 +192,7 @@ class ComponentHolder(BaseComponent):
             ('components', self.components),
         )
         inner = ' '.join('%s=%r' % t for t in attrs)
-        return f'<{self.__class__.__name__} {inner}>'
+        return f'{self.__class__.__name__}({inner})'
 
     def add_component(self, component: Union[InteractableComponent, LayoutComponent]):
         """

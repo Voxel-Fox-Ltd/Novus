@@ -87,6 +87,18 @@ class Button(DisableableComponent):
         if not label and not emoji:
             raise InvalidArgument("Both label and emoji cannot be empty")
 
+    def __repr__(self) -> str:
+        attrs = (
+            ('label', self.label),
+            ('style', self.style),
+            ('custom_id', self.custom_id),
+            ('emoji', self.emoji),
+            ('url', self.url),
+            ('disabled', self.disabled),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'{self.__class__.__name__}({inner})'
+
     def to_dict(self) -> ButtonPayload:
         v = {
             "type": ComponentType.button.value,

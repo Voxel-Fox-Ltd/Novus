@@ -89,7 +89,7 @@ class SelectOption(InteractableComponent):
             ('default', self.default),
         )
         inner = ' '.join('%s=%r' % t for t in attrs)
-        return f'<{self.__class__.__name__} {inner}>'
+        return f'{self.__class__.__name__}({inner})'
 
     def to_dict(self) -> SelectOptionPayload:
         v = {
@@ -160,7 +160,7 @@ class SelectMenu(DisableableComponent):
             ('disabled', self.disable),
         )
         inner = ' '.join('%s=%r' % t for t in attrs)
-        return f'<{self.__class__.__name__} {inner}>'
+        return f'{self.__class__.__name__}({inner})'
 
     def to_dict(self) -> SelectMenuPayload:
         return {
