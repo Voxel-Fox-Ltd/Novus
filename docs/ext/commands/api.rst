@@ -198,12 +198,6 @@ GroupMixin
     .. automethod:: GroupMixin.group(*args, **kwargs)
         :decorator:
 
-ApplicationCommandParam
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. autoclass:: discord.ext.commands.ApplicationCommandParam
-    :special-members: __init__
-
 ApplicationCommandMeta
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -366,7 +360,7 @@ Checks
 .. autofunction:: discord.ext.commands.defer(*, ephemeral=False)
     :decorator:
 
-.. autofunction:: discord.ext.commands.is_slash_command(,)
+.. autofunction:: discord.ext.commands.is_slash_command(*, check_scopes=False)
     :decorator:
 
 .. _ext_commands_api_context:

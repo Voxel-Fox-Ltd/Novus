@@ -2763,19 +2763,41 @@ def defer(*, ephemeral: bool = False):
     return check(predicate)
 
 
-def is_slash_command():
+def is_slash_command(*, check_scopes: bool = False):
     """
     The check for whether or not the command was invoved from an application command
     (as defined by `ctx` being an instance of :class:`discord.ext.commands.SlashContext`).
 
     .. versionadded:: 0.0.4
 
-    Raises:
-        `IsNotSlashCommand`: If the command isn't being used in a slash command.
+    Parameters
+    ---------------
+    check_scopes: Optional[:class:`bool`]
+        Whether or not to check the bot has the ``applications.commands`` scope in the guild.
+
+        .. versionadded:: 0.0.8
+
+    Raises
+    ------------
+    :class:`IsNotSlashCommand`
+        If the command isn't being used in a slash command.
     """
 
     async def predicate(ctx: Union[Context, SlashContext]):
+
+        # It's a slashie
         if isinstance(ctx, SlashContext):
             return True
-        raise IsNotSlashCommand()
+
+        # It's not a slashie but we don't care about scopes or it's a DM
+        if not check_scopes or ctx.guild is None:
+            raise IsNotSlashCommand()
+
+        # Let's see if we have scopes
+        try:
+            await ctx.guild.fetch_application_commands()
+        except discord.Forbidden:
+            raise IsNotSlashCommand(missing_scope=True)
+        raise IsNotSlashCommand(missing_scope=False)
+
     return check(predicate)

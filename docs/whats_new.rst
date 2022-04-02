@@ -11,6 +11,16 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_8:
+
+v0.0.8
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Add ``check_scopes`` parameter to :func:`ext.commands.is_slash_command()`.
+
 .. _vp0_0_7:
 
 v0.0.7
@@ -21,7 +31,7 @@ New Features
 
 * Add support for attachment slash options.
     * Add :attr:`ApplicationCommandOptionType.attachment`.
-    * Add :attr:`ApplicationCommandResolved.attachments`.
+    * Add :attr:`InteractionResolved.attachments`.
     * Add :attr:`Attachment.ephemeral`.
 
 Changed Features
