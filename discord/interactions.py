@@ -131,11 +131,12 @@ class InteractionResolved:
 
     @utils.cached_slot_property("_cs_users")
     def users(self) -> Dict[int, Union[User, Member]]:
-        users = {}
+        users = self.members.copy()
         user_data = self._data.get("users", dict())
         member_data = self._data.get("members", dict())
         for uid, d in member_data.items():
-            d.update({"user": user_data.pop(uid)})
+            if int(uid) not in users:
+                d.update({"user": user_data.pop(uid)})
         users.update({
             int(i): User(data=d, state=self._state)
             for i, d in user_data.items()
