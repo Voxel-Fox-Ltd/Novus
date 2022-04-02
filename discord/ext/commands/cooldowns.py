@@ -25,17 +25,16 @@ DEALINGS IN THE SOFTWARE.
 from __future__ import annotations
 
 
-from typing import Any, Callable, Deque, Dict, Optional, Type, TypeVar, TYPE_CHECKING
+from typing import Any, Callable, Union, Deque, Dict, Optional, Type, TypeVar, TYPE_CHECKING
 from discord.enums import Enum
 import time
 import asyncio
 from collections import deque
 
 from ...abc import PrivateChannel
+from ...message import Message
+from ...interactions import Interaction
 from .errors import MaxConcurrencyReached
-
-if TYPE_CHECKING:
-    from ...message import Message
 
 __all__ = (
     'BucketType',
@@ -57,7 +56,14 @@ class BucketType(Enum):
     category = 5
     role     = 6
 
-    def get_key(self, msg: Message) -> Any:
+    def get_key(self, msg: Union[Message, Interaction]) -> Any:
+        if isinstance(msg, Message):
+            return self._get_key_message(msg)
+        elif isinstance(msg, Interaction):
+            return self._get_key_interaction(msg)
+        raise TypeError("msg must be either a Message or an Interaction")
+
+    def _get_key_message(self, msg: Message) -> Any:
         if self is BucketType.user:
             return msg.author.id
         elif self is BucketType.guild:
@@ -74,6 +80,25 @@ class BucketType(Enum):
             # NOTE: PrivateChannel doesn't actually have an id attribute but we assume we are
             # recieving a DMChannel or GroupChannel which inherit from PrivateChannel and do
             return (msg.channel if isinstance(msg.channel, PrivateChannel) else msg.author.top_role).id  # type: ignore
+
+    def _get_key_interaction(self, msg: Interaction) -> Any:
+        assert msg.user  # The user has to exist for slashies
+        if self is BucketType.user:
+            return msg.user.id
+        elif self is BucketType.guild:
+            return msg.guild_id or msg.user.id
+        elif self is BucketType.channel:
+            return msg.channel_id
+        elif self is BucketType.member:
+            return (msg.guild_id, msg.user.id)
+        elif self is BucketType.category:
+            return (msg.channel.category or msg.channel).id  # type: ignore
+        elif self is BucketType.role:
+            # we return the channel id of a private-channel as there are only roles in guilds
+            # and that yields the same result as for a guild with only the @everyone role
+            # NOTE: PrivateChannel doesn't actually have an id attribute but we assume we are
+            # recieving a DMChannel or GroupChannel which inherit from PrivateChannel and do
+            return (msg.channel if msg.guild_id is None else msg.user.top_role).id  # type: ignore
 
     def __call__(self, msg: Message) -> Any:
         return self.get_key(msg)
@@ -196,14 +221,14 @@ class CooldownMapping:
     def __init__(
         self,
         original: Optional[Cooldown],
-        type: Callable[[Message], Any],
+        type: Callable[[Union[Message, Interaction]], Any],  # is a BucketType
     ) -> None:
         if not callable(type):
             raise TypeError('Cooldown type must be a BucketType or callable')
 
         self._cache: Dict[Any, Cooldown] = {}
         self._cooldown: Optional[Cooldown] = original
-        self._type: Callable[[Message], Any] = type
+        self._type: Callable[[Union[Message, Interaction]], Any] = type
 
     def copy(self) -> CooldownMapping:
         ret = CooldownMapping(self._cooldown, self._type)
@@ -215,14 +240,14 @@ class CooldownMapping:
         return self._cooldown is not None
 
     @property
-    def type(self) -> Callable[[Message], Any]:
+    def type(self) -> Callable[[Union[Message, Interaction]], Any]:
         return self._type
 
     @classmethod
     def from_cooldown(cls: Type[C], rate, per, type) -> C:
         return cls(Cooldown(rate, per), type)
 
-    def _bucket_key(self, msg: Message) -> Any:
+    def _bucket_key(self, msg: Union[Message, Interaction]) -> Any:
         return self._type(msg)
 
     def _verify_cache_integrity(self, current: Optional[float] = None) -> None:
@@ -234,10 +259,10 @@ class CooldownMapping:
         for k in dead_keys:
             del self._cache[k]
 
-    def create_bucket(self, message: Message) -> Cooldown:
+    def create_bucket(self, message: Union[Message, Interaction]) -> Cooldown:
         return self._cooldown.copy()  # type: ignore
 
-    def get_bucket(self, message: Message, current: Optional[float] = None) -> Cooldown:
+    def get_bucket(self, message: Union[Message, Interaction], current: Optional[float] = None) -> Cooldown:
         if self._type is BucketType.default:
             return self._cooldown  # type: ignore
 
@@ -252,7 +277,10 @@ class CooldownMapping:
 
         return bucket
 
-    def update_rate_limit(self, message: Message, current: Optional[float] = None) -> Optional[float]:
+    def get_message(self, ctx) -> Union[Message, Interaction]:
+        return ctx.message or getattr(ctx, "interaction", None) or ctx
+
+    def update_rate_limit(self, message: Union[Message, Interaction], current: Optional[float] = None) -> Optional[float]:
         bucket = self.get_bucket(message, current)
         return bucket.update_rate_limit(current)
 
@@ -260,11 +288,11 @@ class DynamicCooldownMapping(CooldownMapping):
 
     def __init__(
         self,
-        factory: Callable[[Message], Cooldown],
-        type: Callable[[Message], Any]
+        factory: Callable[[Union[Message, Interaction]], Cooldown],
+        type: Callable[[Union[Message, Interaction]], Any]
     ) -> None:
         super().__init__(None, type)
-        self._factory: Callable[[Message], Cooldown] = factory
+        self._factory: Callable[[Union[Message, Interaction]], Cooldown] = factory
 
     def copy(self) -> DynamicCooldownMapping:
         ret = DynamicCooldownMapping(self._factory, self._type)
@@ -275,7 +303,7 @@ class DynamicCooldownMapping(CooldownMapping):
     def valid(self) -> bool:
         return True
 
-    def create_bucket(self, message: Message) -> Cooldown:
+    def create_bucket(self, message: Union[Message, Interaction]) -> Cooldown:
         return self._factory(message)
 
 class _Semaphore:
@@ -358,10 +386,10 @@ class MaxConcurrency:
     def __repr__(self) -> str:
         return f'<MaxConcurrency per={self.per!r} number={self.number} wait={self.wait}>'
 
-    def get_key(self, message: Message) -> Any:
+    def get_key(self, message: Union[Message, Interaction]) -> Any:
         return self.per.get_key(message)
 
-    async def acquire(self, message: Message) -> None:
+    async def acquire(self, message: Union[Message, Interaction]) -> None:
         key = self.get_key(message)
 
         try:
@@ -373,7 +401,7 @@ class MaxConcurrency:
         if not acquired:
             raise MaxConcurrencyReached(self.number, self.per)
 
-    async def release(self, message: Message) -> None:
+    async def release(self, message: Union[Message, Interaction]) -> None:
         # Technically there's no reason for this function to be async
         # But it might be more useful in the future
         key = self.get_key(message)
