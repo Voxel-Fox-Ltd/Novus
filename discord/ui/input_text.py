@@ -62,6 +62,7 @@ class InputText(InteractableComponent):
     """
 
     __slots__ = ("label", "style", "custom_id", "min_length", "max_length",)
+    TYPE = ComponentType.input_text
 
     def __init__(
             self, *, label: str = None, custom_id: Optional[str] = None,
@@ -93,7 +94,7 @@ class InputText(InteractableComponent):
 
     def to_dict(self) -> InputTextPayload:
         v = {
-            "type": ComponentType.input_text.value,
+            "type": self.TYPE.value,
             "label": self.label,
             "style": self.style.value,
             "custom_id": self.custom_id,

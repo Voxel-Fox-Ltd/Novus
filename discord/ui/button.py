@@ -60,6 +60,7 @@ class Button(DisableableComponent):
     """
 
     __slots__ = ("label", "style", "custom_id", "emoji", "url", "disabled",)
+    TYPE = ComponentType.button
 
     def __init__(
             self, *, label: Optional[str] = None, custom_id: Optional[str] = None,
@@ -101,7 +102,7 @@ class Button(DisableableComponent):
 
     def to_dict(self) -> ButtonPayload:
         v = {
-            "type": ComponentType.button.value,
+            "type": self.TYPE.value,
             "label": self.label,
             "style": self.style.value,
             "disabled": self.disabled,

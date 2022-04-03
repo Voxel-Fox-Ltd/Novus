@@ -566,6 +566,10 @@ class ComponentType(Enum):
     button = 2
     select_menu = 3
     input_text = 4
+    user_select_menu = 5
+    role_select_menu = 6
+    mentionable_select_menu = 7
+    channel_select_menu = 8
 
     def __int__(self):
         return self.value

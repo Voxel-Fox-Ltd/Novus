@@ -27,12 +27,14 @@ import uuid
 
 from .models import InteractableComponent, DisableableComponent
 from ..emoji import Emoji
-from ..enums import ComponentType
+from ..enums import ComponentType, ChannelType
 from ..partial_emoji import PartialEmoji, _EmojiTag
+from ..channel import _channel_factory
 from ..utils import MISSING
 from ..types.components import (
     Component, 
     SelectMenu as SelectMenuPayload,
+    ChannelSelectMenu as ChannelSelectMenuPayload,
     SelectOption as SelectOptionPayload,
 )
 
@@ -63,7 +65,7 @@ class SelectOption(InteractableComponent):
 
     def __init__(
             self, *, label: Optional[str], value: Optional[str] = MISSING, description: Optional[str] = None,
-            emoji: Optional[Union[str, Emoji, PartialEmoji]] = None, default: Optional[bool] = False):
+            emoji: Optional[Union[str, Emoji, PartialEmoji]] = None, default: bool = False):
         self.label = label
         self.value = value if value is not MISSING else label
         self.description = description
@@ -78,7 +80,7 @@ class SelectOption(InteractableComponent):
                 raise TypeError(f'expected emoji to be str, Emoji, PartialEmoji, or dict not {emoji.__class__}')
         else:
             self.emoji = None
-        self.default = default or False
+        self.default = default
 
     def __repr__(self) -> str:
         attrs = (
@@ -95,17 +97,16 @@ class SelectOption(InteractableComponent):
         v = {
             "label": self.label,
             "value": self.value,
+            "default": self.default,
         }
         if self.description:
-            v.update({"description": self.description})
+            v["description"] = self.description
         if self.emoji:
-            v.update({"emoji": self.emoji.to_dict()})
-        if self.default:
-            v.update({"default": self.default})
+            v["emoji"] = self.emoji.to_dict()
         return v
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: SelectOptionPayload):
         emoji = data.get("emoji")
         if emoji is not None:
             emoji = PartialEmoji.from_dict(emoji)
@@ -139,6 +140,7 @@ class SelectMenu(DisableableComponent):
     """
 
     __slots__ = ("custom_id", "options", "placeholder", "min_values", "max_values", "disabled",)
+    TYPE = ComponentType.select_menu
 
     def __init__(
             self, *, custom_id: str = MISSING, options: List[SelectOption] = MISSING, placeholder: Optional[str] = None,
@@ -164,7 +166,7 @@ class SelectMenu(DisableableComponent):
 
     def to_dict(self) -> SelectMenuPayload:
         return {
-            "type": ComponentType.select_menu.value,
+            "type": self.TYPE.value,
             "custom_id": self.custom_id,
             "placeholder": self.placeholder,
             "min_values": self.min_values,
@@ -174,14 +176,63 @@ class SelectMenu(DisableableComponent):
         }
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: SelectMenuPayload):
         v = data.get("options", list())
         options = [SelectOption.from_dict(i) for i in v]
         return cls(
-            custom_id=data.get("custom_id"),
+            custom_id=data["custom_id"],
             options=options,
             placeholder=data.get("placeholder"),
             min_values=data.get("min_values"),
             max_values=data.get("max_values"),
             disabled=data.get("disabled", False)
         )
+
+
+class UserSelectMenu(SelectMenu):
+    """
+    A dropdown component that lets you select a user.
+    """
+
+    TYPE = ComponentType.user_select_menu
+
+
+class RoleSelectMenu(SelectMenu):
+    """
+    A dropdown component that lets you select a role.
+    """
+
+    TYPE = ComponentType.role_select_menu
+
+
+class MentionableSelectMenu(SelectMenu):
+    """
+    A dropdown component that lets you select a mentionable (role or user).
+    """
+
+    TYPE = ComponentType.mentionable_select_menu
+
+
+class ChannelSelectMenu(SelectMenu):
+    """
+    A dropdown component that lets you select a channel.
+    """
+
+    TYPE = ComponentType.channel_select_menu
+
+    def __init__(self, *args, channel_types: Optional[List[ChannelType]] = None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.channel_types = channel_types or list()
+
+    def to_dict(self) -> ChannelSelectMenuPayload:
+        v: ChannelSelectMenuPayload = super().to_dict()  # type: ignore
+        if self.channel_types:
+            v["channel_types"] = [i.value for i in self.channel_types]
+        return v
+
+    def from_dict(self, data: ChannelSelectMenuPayload):
+        v = super().from_dict(data)
+        for channel_type in data.get('channel_types', list()):
+            channel, _ = _channel_factory(channel_type)
+            v.channel_types.append(channel)
+

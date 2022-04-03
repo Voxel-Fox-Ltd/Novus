@@ -48,9 +48,11 @@ class ActionRow(LayoutComponent, ComponentHolder):
         The components that you want to add to the row.
     """
 
+    TYPE = ComponentType.action_row
+
     def to_dict(self) -> ActionRowPayload:
         return {
-            "type": ComponentType.action_row.value,
+            "type": self.TYPE.value,
             "components": [i.to_dict() for i in self.components],
         }
 
