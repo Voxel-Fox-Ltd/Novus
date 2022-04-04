@@ -232,9 +232,11 @@ class ChannelSelectMenu(SelectMenu):
             v["channel_types"] = [i.value for i in self.channel_types]
         return v
 
-    def from_dict(self, data: ChannelSelectMenuPayload):
+    @classmethod
+    def from_dict(cls, data: ChannelSelectMenuPayload):
         v = super().from_dict(data)
         for channel_type in data.get('channel_types', list()):
             channel, _ = _channel_factory(channel_type)
             v.channel_types.append(channel)
+        return v
 
