@@ -165,15 +165,17 @@ class SelectMenu(DisableableComponent):
         return f'{self.__class__.__name__}({inner})'
 
     def to_dict(self) -> SelectMenuPayload:
-        return {
+        v = {
             "type": self.TYPE.value,
             "custom_id": self.custom_id,
             "placeholder": self.placeholder,
             "min_values": self.min_values,
             "max_values": self.max_values,
-            "options": [i.to_dict() for i in self.options],
             "disabled": self.disabled
         }
+        if self.options:
+            v["options"] = [i.to_dict() for i in self.options],
+        return v
 
     @classmethod
     def from_dict(cls, data: SelectMenuPayload):
