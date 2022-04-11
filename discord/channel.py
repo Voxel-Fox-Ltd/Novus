@@ -53,7 +53,7 @@ from .utils import MISSING
 from .asset import Asset
 from .errors import ClientException, InvalidArgument
 from .stage_instance import StageInstance
-from .threads import Thread
+from .threads import Thread, ForumChannelTag
 from .iterators import ArchivedThreadIterator
 
 __all__ = (
@@ -84,6 +84,7 @@ if TYPE_CHECKING:
         DMChannel as DMChannelPayload,
         CategoryChannel as CategoryChannelPayload,
         StoreChannel as StoreChannelPayload,
+        ForumChannel as ForumChannelPayload,
         GroupDMChannel as GroupChannelPayload,
     )
     from .types.snowflake import SnowflakeList
@@ -94,7 +95,7 @@ async def _single_delete_strategy(messages: Iterable[Message]):
         await m.delete()
 
 
-class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
+class TextChannel(discord.abc.Messageable, discord.abc.Threadable, Hashable):
     """Represents a Discord guild text channel.
 
     .. container:: operations
@@ -221,12 +222,6 @@ class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
     def members(self) -> List[Member]:
         """List[:class:`Member`]: Returns all members that can see this channel."""
         return [m for m in self.guild.members if self.permissions_for(m).read_messages]
-
-    @property
-    def threads(self) -> List[Thread]:
-        """List[:class:`Thread`]: Returns all the threads that you can see.
-        """
-        return [thread for thread in self.guild._threads.values() if thread.parent_id == self.id]
 
     def is_nsfw(self) -> bool:
         """:class:`bool`: Checks if the channel is NSFW."""
@@ -631,131 +626,6 @@ class TextChannel(discord.abc.Messageable, discord.abc.GuildChannel, Hashable):
         from .message import PartialMessage
 
         return PartialMessage(channel=self, id=message_id)
-
-    def get_thread(self, thread_id: int, /) -> Optional[Thread]:
-        """Returns a thread with the given ID.
-
-        Parameters
-        -----------
-        thread_id: :class:`int`
-            The ID to search for.
-
-        Returns
-        --------
-        Optional[:class:`Thread`]
-            The returned thread or ``None`` if not found.
-        """
-        return self.guild.get_thread(thread_id)
-
-    async def create_thread(
-        self,
-        *,
-        name: str,
-        message: Optional[Snowflake] = None,
-        auto_archive_duration: ThreadArchiveDuration = MISSING,
-        type: Optional[ChannelType] = None,
-        reason: Optional[str] = None,
-    ) -> Thread:
-        """|coro|
-
-        Creates a thread in this text channel.
-
-        To create a public thread, you must have :attr:`~discord.Permissions.create_public_threads`.
-        For a private thread, :attr:`~discord.Permissions.create_private_threads` is needed instead.
-
-        Parameters
-        -----------
-        name: :class:`str`
-            The name of the thread.
-        message: Optional[:class:`abc.Snowflake`]
-            A snowflake representing the message to create the thread with.
-            If ``None`` is passed then a private thread is created.
-            Defaults to ``None``.
-        auto_archive_duration: :class:`int`
-            The duration in minutes before a thread is automatically archived for inactivity.
-            If not provided, the channel's default auto archive duration is used.
-        type: Optional[:class:`ChannelType`]
-            The type of thread to create. If a ``message`` is passed then this parameter
-            is ignored, as a thread created with a message is always a public thread.
-            By default this creates a private thread if this is ``None``.
-        reason: :class:`str`
-            The reason for creating a new thread. Shows up on the audit log.
-
-        Raises
-        -------
-        Forbidden
-            You do not have permissions to create a thread.
-        HTTPException
-            Starting the thread failed.
-
-        Returns
-        --------
-        :class:`Thread`
-            The created thread
-        """
-
-        if type is None:
-            type = ChannelType.private_thread
-
-        if message is None:
-            data = await self._state.http.start_thread_without_message(
-                self.id,
-                name=name,
-                auto_archive_duration=auto_archive_duration or self.default_auto_archive_duration,
-                type=type.value,
-                reason=reason,
-            )
-        else:
-            data = await self._state.http.start_thread_with_message(
-                self.id,
-                message.id,
-                name=name,
-                auto_archive_duration=auto_archive_duration or self.default_auto_archive_duration,
-                reason=reason,
-            )
-
-        return Thread(guild=self.guild, state=self._state, data=data)
-
-    def archived_threads(
-        self,
-        *,
-        private: bool = False,
-        joined: bool = False,
-        limit: Optional[int] = 50,
-        before: Optional[Union[Snowflake, datetime.datetime]] = None,
-    ) -> ArchivedThreadIterator:
-        """Returns an :class:`~discord.AsyncIterator` that iterates over all archived threads in the guild.
-
-        You must have :attr:`~Permissions.read_message_history` to use this. If iterating over private threads
-        then :attr:`~Permissions.manage_threads` is also required.
-
-        Parameters
-        -----------
-        limit: Optional[:class:`bool`]
-            The number of threads to retrieve.
-            If ``None``, retrieves every archived thread in the channel. Note, however,
-            that this would make it a slow operation.
-        before: Optional[Union[:class:`abc.Snowflake`, :class:`datetime.datetime`]]
-            Retrieve archived channels before the given date or ID.
-        private: :class:`bool`
-            Whether to retrieve private archived threads.
-        joined: :class:`bool`
-            Whether to retrieve private archived threads that you've joined.
-            You cannot set ``joined`` to ``True`` and ``private`` to ``False``.
-
-        Raises
-        ------
-        Forbidden
-            You do not have permissions to get archived threads.
-        HTTPException
-            The request to get the archived threads failed.
-
-        Yields
-        -------
-        :class:`Thread`
-            The archived threads.
-        """
-        return ArchivedThreadIterator(self.id, self.guild, limit=limit, joined=joined, private=private, before=before)
 
 
 class VocalGuildChannel(discord.abc.Connectable, discord.abc.GuildChannel, Hashable):
@@ -1621,6 +1491,185 @@ class StoreChannel(discord.abc.GuildChannel, Hashable):
             return self.__class__(state=self._state, guild=self.guild, data=payload)  # type: ignore
 
 
+class ForumChannel(discord.abc.Threadable, Hashable):
+    """Represents a Discord guild forum channel.
+
+    .. versionadded:: 0.0.8
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            Checks if two channels are equal.
+
+        .. describe:: x != y
+
+            Checks if two channels are not equal.
+
+        .. describe:: hash(x)
+
+            Returns the channel's hash.
+
+        .. describe:: str(x)
+
+            Returns the channel's name.
+
+    Attributes
+    -----------
+    name: :class:`str`
+        The channel name.
+    guild: :class:`Guild`
+        The guild the channel belongs to.
+    id: :class:`int`
+        The channel ID.
+    category_id: :class:`int`
+        The category channel ID this channel belongs to.
+    position: :class:`int`
+        The position in the channel list. This is a number that starts at 0. e.g. the
+        top channel is position 0.
+    nsfw: :class:`bool`
+        If the channel is marked as "not safe for work".
+
+        .. note::
+
+            To check if the channel or the guild of that channel are marked as NSFW, consider :meth:`is_nsfw` instead.
+    """
+
+    __slots__ = (
+        'name',
+        'id',
+        'guild',
+        '_state',
+        'nsfw',
+        'category_id',
+        'position',
+        'last_message_id',
+        'slowmode_delay',
+        'available_tags',
+        'template',
+        'default_auto_archive_duration',
+        '_overwrites',
+    )
+
+    def __init__(self, *, state: ConnectionState, guild: Guild, data: ForumChannelPayload):
+        self._state: ConnectionState = state
+        self.id: int = int(data['id'])
+        self._update(guild, data)
+
+    def __repr__(self) -> str:
+        return f'<ForumChannel id={self.id} name={self.name!r} position={self.position} nsfw={self.nsfw}>'
+
+    def _update(self, guild: Guild, data: ForumChannelPayload) -> None:
+        self.guild: Guild = guild
+        self.name: str = data['name']
+        self.category_id: Optional[int] = utils._get_as_snowflake(data, 'parent_id')
+        self.position: int = data['position']
+        self.nsfw: bool = data.get('nsfw', False)
+        self.last_message_id: Optional[int] = utils._get_as_snowflake(data, 'last_message_id')
+        self.slowmode_delay: int = data.get('rate_limit_per_user', 0)
+        self.available_tags: List[ForumChannelTag] = [
+            ForumChannelTag(state=self._state, channel=self, data=i)
+            for i in data.get('available_tags', list())
+        ]
+        self.template: str = data.get('template', '')
+        self.default_auto_archive_duration: ThreadArchiveDuration = data.get('default_auto_archive_duration', 1440)
+        self._fill_overwrites(data)
+
+    @property
+    def _sorting_bucket(self) -> int:
+        return ChannelType.text.value
+
+    @property
+    def type(self) -> ChannelType:
+        """:class:`ChannelType`: The channel's Discord type."""
+        return ChannelType.forum
+
+    @utils.copy_doc(discord.abc.GuildChannel.permissions_for)
+    def permissions_for(self, obj: Union[Member, Role], /) -> Permissions:
+        base = super().permissions_for(obj)
+
+        # forum channels do not have voice related permissions
+        denied = Permissions.voice()
+        base.value &= ~denied.value
+        return base
+
+    def is_nsfw(self) -> bool:
+        """:class:`bool`: Checks if the channel is NSFW."""
+        return self.nsfw
+
+    @utils.copy_doc(discord.abc.GuildChannel.clone)
+    async def clone(self, *, name: Optional[str] = None, reason: Optional[str] = None) -> ForumChannel:
+        return await self._clone_impl({'nsfw': self.nsfw}, name=name, reason=reason)
+
+    @overload
+    async def edit(
+        self,
+        *,
+        name: str = ...,
+        position: int = ...,
+        nsfw: bool = ...,
+        sync_permissions: bool = ...,
+        category: Optional[CategoryChannel],
+        reason: Optional[str],
+        overwrites: Mapping[Union[Role, Member], PermissionOverwrite],
+    ) -> Optional[ForumChannel]:
+        ...
+
+    @overload
+    async def edit(self) -> Optional[ForumChannel]:
+        ...
+
+    async def edit(self, *, reason=None, **options):
+        """|coro|
+
+        Edits the channel.
+
+        You must have the :attr:`~Permissions.manage_channels` permission to
+        use this.
+
+        Parameters
+        ----------
+        name: :class:`str`
+            The new channel name.
+        position: :class:`int`
+            The new channel's position.
+        nsfw: :class:`bool`
+            To mark the channel as NSFW or not.
+        sync_permissions: :class:`bool`
+            Whether to sync permissions with the channel's new or pre-existing
+            category. Defaults to ``False``.
+        category: Optional[:class:`CategoryChannel`]
+            The new category for this channel. Can be ``None`` to remove the
+            category.
+        reason: Optional[:class:`str`]
+            The reason for editing this channel. Shows up on the audit log.
+        overwrites: :class:`Mapping`
+            A :class:`Mapping` of target (either a role or a member) to
+            :class:`PermissionOverwrite` to apply to the channel.
+
+        Raises
+        ------
+        InvalidArgument
+            If position is less than 0 or greater than the number of channels, or if
+            the permission overwrite information is not in proper form.
+        Forbidden
+            You do not have permissions to edit the channel.
+        HTTPException
+            Editing the channel failed.
+
+        Returns
+        --------
+        Optional[:class:`.ForumChannel`]
+            The newly edited forum channel. If the edit was only positional
+            then ``None`` is returned instead.
+        """
+
+        payload = await self._edit(options, reason=reason)
+        if payload is not None:
+            # the payload will always be the proper channel payload
+            return self.__class__(state=self._state, guild=self.guild, data=payload)  # type: ignore
+
+
 DMC = TypeVar('DMC', bound='DMChannel')
 
 
@@ -1964,6 +2013,10 @@ def _guild_channel_factory(channel_type: int):
         return StoreChannel, value
     elif value is ChannelType.stage_voice:
         return StageChannel, value
+    # elif value is ChannelType.directory:
+    #     return DirectoryChannel, value
+    elif value is ChannelType.forum:
+        return ForumChannel, value
     else:
         return None, value
 

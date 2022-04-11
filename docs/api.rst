@@ -3333,6 +3333,12 @@ Messageable
     .. automethod:: discord.abc.Messageable.typing
         :async-with:
 
+Threadable
+~~~~~~~~~~~~
+
+.. autoclass:: discord.abc.Threadable()
+    :members:
+
 Connectable
 ~~~~~~~~~~~~
 
@@ -3622,6 +3628,15 @@ TextChannel
     .. automethod:: typing
         :async-with:
 
+ForumChannel
+~~~~~~~~~~~~
+
+.. attributetable:: ForumChannel
+
+.. autoclass:: ForumChannel()
+    :members:
+    :inherited-members:
+
 Thread
 ~~~~~~~~
 
@@ -3644,6 +3659,14 @@ ThreadMember
 .. attributetable:: ThreadMember
 
 .. autoclass:: ThreadMember()
+    :members:
+
+ForumChannelTag
+~~~~~~~~~~~~~
+
+.. attributetable:: ForumChannelTag
+
+.. autoclass:: ForumChannelTag()
     :members:
 
 StoreChannel

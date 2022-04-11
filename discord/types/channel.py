@@ -38,7 +38,14 @@ class PermissionOverwrite(TypedDict):
     deny: str
 
 
-ChannelType = Literal[0, 1, 2, 3, 4, 5, 6, 10, 11, 12, 13]
+class ForumChannelTag(TypedDict):
+    id: Snowflake
+    name: str
+    emoji_id: Union[Snowflake, Literal[0]]
+    emoji_name: Optional[str]
+
+
+ChannelType = Literal[0, 1, 2, 3, 4, 5, 6, 10, 11, 12, 13, 14, 15]
 
 
 class _BaseChannel(TypedDict):
@@ -107,6 +114,15 @@ class StageChannel(_BaseGuildChannel, _StageChannelOptional):
     user_limit: int
 
 
+class ForumChannel(_BaseGuildChannel):
+    type: Literal[15]
+    last_message_id: Optional[Snowflake]
+    topic: Optional[str]
+    rate_limit_per_user: int
+    available_tags: List[ForumChannelTag]
+    template: str
+
+
 class _ThreadChannelOptional(TypedDict, total=False):
     member: ThreadMember
     owner_id: Snowflake
@@ -128,7 +144,16 @@ class ThreadChannel(_BaseChannel, _ThreadChannelOptional):
     thread_metadata: ThreadMetadata
 
 
-GuildChannel = Union[TextChannel, NewsChannel, VoiceChannel, CategoryChannel, StoreChannel, StageChannel, ThreadChannel]
+GuildChannel = Union[
+    TextChannel,
+    NewsChannel,
+    VoiceChannel,
+    CategoryChannel,
+    StoreChannel,
+    StageChannel,
+    ThreadChannel,
+    ForumChannel,
+]
 
 
 class DMChannel(_BaseChannel):
