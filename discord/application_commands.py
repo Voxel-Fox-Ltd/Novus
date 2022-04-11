@@ -280,6 +280,8 @@ class ApplicationCommandOption:
             "options": [i.to_json() for i in self.options],
             "min_value": self.min_value,
             "max_value": self.max_value,
+            "name_localizations": self.name_localizations,
+            "description_localizations": self.description_localizations,
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
             payload.pop("required", None)

@@ -944,4 +944,22 @@ class IsNotSlashCommand(CheckFailure):
     The generic error for the bot failing the :func:`utils.checks.is_slash_command` check.
 
     .. versionadded:: 0.0.4
+
+    Parameters
+    ------------
+    missing_scope: Optional[:class:`bool`]
+        Whether or not the server the error originated from has the ``applications.commands`` scope.
+
+        .. versionadded:: 0.0.8
+
+    Attributes
+    ------------
+    missing_scope: :class:`bool`
+        Whether or not the server the error originated from has the ``applications.commands`` scope.
+        If the error came from a DM, then this will always be ``False``.
+
+        .. versionadded:: 0.0.8
     """
+
+    def __init__(self, missing_scope: bool = False):
+        self.missing_scope = missing_scope

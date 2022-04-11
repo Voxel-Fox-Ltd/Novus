@@ -54,6 +54,15 @@ class Modal(ComponentHolder):
         self.custom_id = custom_id or str(uuid.uuid1())
         self.components = components or []
 
+    def __repr__(self) -> str:
+        attrs = (
+            ('title', self.title),
+            ('custom_id', self.custom_id),
+            ('components', self.components),
+        )
+        inner = ' '.join('%s=%r' % t for t in attrs)
+        return f'{self.__class__.__name__}({inner})'
+
     def to_dict(self) -> ModalPayload:
         return {
             "title": self.title,

@@ -11,6 +11,16 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_0_8:
+
+v0.0.8
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~
+
+* Add ``check_scopes`` parameter to :func:`ext.commands.is_slash_command()`.
+
 .. _vp0_0_7:
 
 v0.0.7
@@ -21,8 +31,22 @@ New Features
 
 * Add support for attachment slash options.
     * Add :attr:`ApplicationCommandOptionType.attachment`.
-    * Add :attr:`ApplicationCommandResolved.attachments`.
+    * Add :attr:`InteractionResolved.attachments`.
     * Add :attr:`Attachment.ephemeral`.
+
+Changed Features
+~~~~~~~~~~~~~~~~~~~
+
+* Many options from slash commands are now gathered from the resolved data.
+* Change reprs for components.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~
+
+* Fix `Bot.get_slash_context()` for subcommands without options.
+* Fix member converter.
+* Fix permissions checks for interactions.
+* Add localisations to the json output for application command options.
 
 .. _vp0_0_6:
 
