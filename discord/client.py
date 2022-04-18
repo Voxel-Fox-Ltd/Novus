@@ -1699,6 +1699,11 @@ class Client:
         |coro|
 
         Get all of the application commands that the bot has registered globally.
+        
+        Parameters
+        -----------
+        with_localizations: Optional[:class:`bool`]
+            Whether to return all the command localizations.
 
         Returns
         --------
