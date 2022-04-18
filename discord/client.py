@@ -1694,7 +1694,7 @@ class Client:
             data = await self.http.bulk_create_global_application_commands(application_id, [c.to_json() for c in commands])
         return [ApplicationCommand.from_data(c) for c in data]
 
-    async def fetch_global_application_commands(self) -> List[ApplicationCommand]:
+    async def fetch_global_application_commands(self, with_localizations: bool = False) -> List[ApplicationCommand]:
         """
         |coro|
 
@@ -1715,7 +1715,7 @@ class Client:
         if application_id is None:
             application_info = await self.application_info()
             application_id = application_info.id
-        payload = await self.http.get_global_application_commands(application_id)
+        payload = await self.http.get_global_application_commands(application_id, with_localizations)
         return [
             ApplicationCommand.from_data(i)
             for i in payload
