@@ -255,6 +255,8 @@ class ApplicationCommandOption:
             name=data['name'],
             type=ApplicationCommandOptionType(data['type']),
             description=data['description'],
+            name_localizations=data.get("name_localizations", dict()),
+            description_localizations=data.get("description_localizations", dict()),
             required=data.get('required', False),
             autocomplete=data.get('autocomplete', False),
             min_value=data.get('min_value', None),
