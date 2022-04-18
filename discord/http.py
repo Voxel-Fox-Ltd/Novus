@@ -1543,7 +1543,7 @@ class HTTPClient:
     # Application commands (global)
     
     def get_global_application_commands(self, application_id: Snowflake, with_localizations: bool = False) -> Response[List[interactions.ApplicationCommand]]:
-        if (with_localizations):
+        if with_localizations:
             return self.request(Route('GET', '/applications/{application_id}/commands?with_localizations=true', application_id=application_id))
         return self.request(Route('GET', '/applications/{application_id}/commands', application_id=application_id))
 
