@@ -386,7 +386,7 @@ class ApplicationCommand:
         self.default_member_permissions = default_member_permissions
 
     def __repr__(self):
-        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type.name!r}, options={self.options!r}>"
+        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type.name!r}, options={self.options!r}, permissions={self.default_member_permissions!r}>"
 
     def add_option(self, option: ApplicationCommandOption):
         """
