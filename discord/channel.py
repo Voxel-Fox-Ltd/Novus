@@ -64,6 +64,7 @@ __all__ = (
     'CategoryChannel',
     'StoreChannel',
     'GroupChannel',
+    'ForumChannel',
     'PartialMessageable',
 )
 

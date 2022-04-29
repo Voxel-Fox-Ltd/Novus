@@ -20,6 +20,13 @@ New Features
 ~~~~~~~~~~~~~~~~~~
 
 * Add ``check_scopes`` parameter to :func:`ext.commands.is_slash_command()`.
+* Add support for :class:`ForumChannel`.
+* Add support for :class:`ui.UserSelectMenu`, :class:`ui.RoleSelectMenu`, :class:`ui.MentionableSelectMenu`, and :class:`ui.ChannelSelectMenu`.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~
+
+* Fix default permissions in application command meta.
 
 .. _vp0_0_7:
 
