@@ -232,11 +232,11 @@ class ApplicationCommandMeta:
     def __init__(
             self,
             *,
-            options: List[discord.ApplicationCommandOption] = None,
-            name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None,
+            options: Optional[List[discord.ApplicationCommandOption]] = None,
+            name_localizations: Optional[Dict[str, str]] = None,
+            description_localizations: Optional[Dict[str, str]] = None,
             guild_only: bool = False,
-            permissions: discord.Permissions = None
+            permissions: Optional[discord.Permissions] = None
             ):
         """
         Parameters
@@ -258,7 +258,7 @@ class ApplicationCommandMeta:
         self.name_localizations: Dict[str, str] = name_localizations or dict()
         self.description_localizations: Dict[str, str] = description_localizations or dict()
         self.guild_only: bool = guild_only
-        self.permissions: discord.Permissions = permissions or discord.Permissions.none()
+        self.permissions: Optional[discord.Permissions] = permissions
 
 
 class Command(_BaseCommand, Generic[CogT, P, T]):
