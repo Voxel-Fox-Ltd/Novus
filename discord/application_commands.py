@@ -366,16 +366,16 @@ class ApplicationCommand:
             self,
             *,
             name: str,
-            description: str = None,
+            description: Optional[str] = None,
             type: ApplicationCommandType = ApplicationCommandType.chat_input,
-            options: List[ApplicationCommandOption] = None,
-            name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None,
+            options: Optional[List[ApplicationCommandOption]] = None,
+            name_localizations: Optional[Dict[str, str]] = None,
+            description_localizations: Optional[Dict[str, str]] = None,
             dm_permissions: bool = True,
-            default_member_permissions: Permissions = None,
+            default_member_permissions: Optional[Permissions] = None,
             ):
         self.name: str = name
-        self.description: Optional[str] = description
+        self.description: str = description or name
         self.type: ApplicationCommandType = type
         self.options: List[ApplicationCommandOption] = options or list()
         self.id: Optional[int] = None
@@ -399,12 +399,12 @@ class ApplicationCommand:
     def from_data(cls, data: ApplicationCommandPayload):
         command = cls(
             name=data['name'],
-            description=data.get('description'),
+            description=data['description'],
             type=ApplicationCommandType(data.get('type', 1)),
             name_localizations=data.get("name_localizations", dict()),
             description_localizations=data.get("description_localizations", dict()),
             dm_permissions=data.get("dm_permissions", True),
-            default_member_permissions=Permissions(int(data.get("default_member_permissions", 0))) if data.get("default_member_permissions") else None,
+            default_member_permissions=None if data.get("default_member_permissions") is None else Permissions(int(data["default_member_permissions"])),
         )
         command.id = int(data.get('id', 0)) or None
         command.application_id = int(data.get('application_id', 0)) or None
