@@ -1025,7 +1025,7 @@ class BotBase(GroupMixin):
         ctx.prefix = "/"
         if command_name:
             command = self.get_command(command_name)
-            if command is None:
+            if command is None or command.name != command_name:
                 command = self.get_command(command_name, ignore_spaces=True)
             ctx.command = command
         ctx.given_values = given_values

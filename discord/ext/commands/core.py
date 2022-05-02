@@ -39,6 +39,7 @@ from typing import (
     Type,
     TYPE_CHECKING,
     overload,
+    get_args,
 )
 import asyncio
 import functools
@@ -990,7 +991,15 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 v = ctx.interaction.resolved.messages[int(value)]
             elif converter == discord.Role:
                 v = ctx.interaction.resolved.roles[int(value)]
-            elif converter in [discord.VoiceChannel, discord.StageChannel, discord.TextChannel, discord.CategoryChannel, discord.StoreChannel, discord.Thread]:
+            elif converter in [
+                        discord.VoiceChannel,
+                        discord.StageChannel,
+                        discord.TextChannel,
+                        discord.CategoryChannel,
+                        discord.StoreChannel,
+                        discord.Thread,
+                        discord.ForumChannel,
+                    ]:
                 v = ctx.interaction.resolved.channels[int(value)]
             else:
                 v = await run_converters(ctx, converter, value, sig)  # Could raise; that's fine
@@ -1414,9 +1423,17 @@ class ContextMenuCommand(Command):
                 continue
             if not (annotation := type_.annotation):
                 raise ValueError("Missing annotation for interpolated context menu command.")
-            if discord.Message in annotation.mro():
+
+            base_annotations = get_args(annotation)
+            if not base_annotations:
+                base_annotations = (annotation,)
+            mro = []
+            for i in base_annotations:
+                mro.extend(i.mro())
+
+            if discord.Message in mro:
                 self.application_command_type = discord.ApplicationCommandType.message
-            elif discord.user._UserTag in annotation.mro():
+            elif discord.user._UserTag in mro:
                 self.application_command_type = discord.ApplicationCommandType.user
             else:
                 raise TypeError("Invalid annotation for interpolated context menu command.")

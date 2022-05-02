@@ -307,7 +307,7 @@ class ApplicationCommand:
     -----------
     name: :class:`str`
         The name of this command.
-    description: :class:`str`
+    description: Optional[:class:`str`]
         The description for this command.
     type: :class:`ApplicationCommandType`
         The type of the application command.
@@ -338,7 +338,7 @@ class ApplicationCommand:
     -----------
     name: :class:`str`
         The name of this command.
-    description: :class:`str`
+    description: Optional[:class:`str`]
         The description for this command.
     type: :class:`ApplicationCommandType`
         The type of the application command. Defaults to a chat input (slash) command.
@@ -426,9 +426,8 @@ class ApplicationCommand:
             "default_member_permissions": str(self.default_member_permissions.value) if self.default_member_permissions else None,
             "dm_permissions": self.dm_permissions,
         }
-        if self.description is None:
-            v.pop("description", None)
-            v.pop("description_localizations", None)
         if self.type != ApplicationCommandType.chat_input:
             v.pop("options", None)
+            v.pop("description", None)
+            v.pop("description_localizations", None)
         return v
