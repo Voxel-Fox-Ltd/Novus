@@ -12,13 +12,13 @@ This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
 .. _vp0_1_0:
-
 .. _vp0_1_1:
+.. _vp0_1_2:
 
-v0.1.1
+v0.1.2
 --------
 
-The *only* change for these releases is that VoxelBotUtils is now native to this package. You can install with ``pip install novus[vbu]``.
+The *only* change for this release (and .0 and .1) is that VoxelBotUtils is now native to this package. You can install with ``pip install novus[vbu]``.
 
 .. _vp0_0_8:
 
