@@ -62,6 +62,7 @@ __all__ = (
     'GuildScheduledEventPrivacyLevel',
     'GuildScheduledEventStatus',
     'GuildScheduledEventEntityType',
+    'Locale',
 )
 
 
@@ -653,6 +654,42 @@ class GuildScheduledEventEntityType(Enum):
     stage_instance = 1  # The event is tied to a stage instance.
     voice = 2  # The event is tied to a VC.
     external = 3  # The event is tied to an external URL.
+
+
+class Locale(Enum):
+    american_english = 'en-US'
+    british_english = 'en-GB'
+    bulgarian = 'bg'
+    chinese = 'zh-CN'
+    taiwan_chinese = 'zh-TW'
+    croatian = 'hr'
+    czech = 'cs'
+    danish = 'da'
+    dutch = 'nl'
+    finnish = 'fi'
+    french = 'fr'
+    german = 'de'
+    greek = 'el'
+    hindi = 'hi'
+    hungarian = 'hu'
+    italian = 'it'
+    japanese = 'ja'
+    korean = 'ko'
+    lithuanian = 'lt'
+    norwegian = 'no'
+    polish = 'pl'
+    brazil_portuguese = 'pt-BR'
+    romanian = 'ro'
+    russian = 'ru'
+    spain_spanish = 'es-ES'
+    swedish = 'sv-SE'
+    thai = 'th'
+    turkish = 'tr'
+    ukrainian = 'uk'
+    vietnamese = 'vi'
+
+    def __str__(self) -> str:
+        return self.value
 
 
 T = TypeVar('T')

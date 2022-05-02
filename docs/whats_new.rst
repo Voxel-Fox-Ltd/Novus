@@ -11,6 +11,18 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_1_3:
+
+v0.1.3
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Add :class:`Locale`.
+
+.. _vp0_0_8:
+
 .. _vp0_1_0:
 .. _vp0_1_1:
 .. _vp0_1_2:
