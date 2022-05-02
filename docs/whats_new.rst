@@ -22,6 +22,8 @@ New Features
 * Add ``check_scopes`` parameter to :func:`ext.commands.is_slash_command()`.
 * Add support for :class:`ForumChannel`.
 * Add support for :class:`ui.UserSelectMenu`, :class:`ui.RoleSelectMenu`, :class:`ui.MentionableSelectMenu`, and :class:`ui.ChannelSelectMenu`.
+* Add support for text in voice (voice channels are now sendable).
+* Add support for NSFW VCs.
 
 Bugs Fixed
 ~~~~~~~~~~~~~~~~~~~~

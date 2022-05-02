@@ -93,6 +93,7 @@ class VoiceChannel(_BaseGuildChannel, _VoiceChannelOptional):
     type: Literal[2]
     bitrate: int
     user_limit: int
+    nsfw: bool
 
 
 class CategoryChannel(_BaseGuildChannel):

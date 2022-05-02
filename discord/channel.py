@@ -642,6 +642,7 @@ class VocalGuildChannel(discord.abc.Connectable, discord.abc.GuildChannel, Hasha
         'category_id',
         'rtc_region',
         'video_quality_mode',
+        'nsfw',
     )
 
     def __init__(self, *, state: ConnectionState, guild: Guild, data: Union[VoiceChannelPayload, StageChannelPayload]):
@@ -665,6 +666,7 @@ class VocalGuildChannel(discord.abc.Connectable, discord.abc.GuildChannel, Hasha
         self.position: int = data['position']
         self.bitrate: int = data.get('bitrate')
         self.user_limit: int = data.get('user_limit')
+        self.nsfw: bool = data.get('nsfw', False)
         self._fill_overwrites(data)
 
     @property
@@ -717,8 +719,12 @@ class VocalGuildChannel(discord.abc.Connectable, discord.abc.GuildChannel, Hasha
         return base
 
 
-class VoiceChannel(VocalGuildChannel):
+class VoiceChannel(VocalGuildChannel, discord.abc.Messageable):
     """Represents a Discord guild voice channel.
+
+    .. versionchanged:: 0.0.8
+
+        VCs are now sendable.
 
     .. container:: operations
 
@@ -760,6 +766,10 @@ class VoiceChannel(VocalGuildChannel):
         A value of ``None`` indicates automatic voice region detection.
     video_quality_mode: :class:`VideoQualityMode`
         The camera video quality for the voice channel's participants.
+    nsfw: :class:`bool`
+        Whether or not the channel is marked as NSFW.
+
+        .. versionadded:: 0.0.8
     """
 
     __slots__ = ()
@@ -774,9 +784,13 @@ class VoiceChannel(VocalGuildChannel):
             ('video_quality_mode', self.video_quality_mode),
             ('user_limit', self.user_limit),
             ('category_id', self.category_id),
+            ('nsfw', self.nsfw),
         ]
         joined = ' '.join('%s=%r' % t for t in attrs)
         return f'<{self.__class__.__name__} {joined}>'
+
+    async def _get_channel(self):
+        return self
 
     @property
     def type(self) -> ChannelType:
@@ -800,6 +814,7 @@ class VoiceChannel(VocalGuildChannel):
         overwrites: Mapping[Union[Role, Member], PermissionOverwrite] = ...,
         rtc_region: Optional[VoiceRegion] = ...,
         video_quality_mode: VideoQualityMode = ...,
+        nsfw: bool = ...,
         reason: Optional[str] = ...,
     ) -> Optional[VoiceChannel]:
         ...
@@ -842,6 +857,10 @@ class VoiceChannel(VocalGuildChannel):
             A value of ``None`` indicates automatic voice region detection.
         video_quality_mode: :class:`VideoQualityMode`
             The camera video quality for the voice channel's participants.
+        nsfw: :class:`bool`
+            Whether or not the channel is marked as nsfw.
+
+            .. versionadded:: 0.0.8
 
         Raises
         ------
