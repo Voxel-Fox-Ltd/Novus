@@ -7,9 +7,9 @@ with open('requirements.txt') as f:
   requirements = f.read().splitlines()
 
 
-version = ''
+version: str = ''
 with open('discord/__init__.py') as f:
-    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)  # type: ignore
 
 
 if not version:
@@ -54,6 +54,23 @@ extras_require = {
         'Brotli',
         'cchardet',
     ],
+    'vbu': [
+        # Main build
+        "toml",
+        "aiosqlite",
+        "aioredis>=1.3,<2.0",
+        "aioredlock>=0.7.0,<0.8",
+        "aiodogstatsd>=0.14.0,<0.15",
+        "upgradechatpy>=1.0.3<2.0",
+
+        # Web build
+        "cryptography",
+        "aiohttp_jinja2",
+        "aiohttp_session",
+        "jinja2>=3.0.0,<4.0.0",
+        "markdown",
+        "htmlmin",
+    ]
 }
 
 
@@ -64,6 +81,8 @@ packages = [
     'discord.webhook',
     'discord.ext.commands',
     'discord.ext.tasks',
+    'discord.ext.vbu',
+    'voxelbotutils',
 ]
 
 
@@ -99,4 +118,13 @@ setup(
         'Topic :: Utilities',
         'Typing :: Typed',
     ],
+    entry_points={
+        "console_scripts": [
+            "voxelbotutils=voxelbotutils.__main__:main",
+            "vbu=voxelbotutils.__main__:main",
+        ],
+    },
+    package_data={
+        "voxelbotutils": ["config/*"]
+    },
 )

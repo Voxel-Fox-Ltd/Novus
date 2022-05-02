@@ -161,6 +161,7 @@ html_context = {
   'discord_extensions': [
     ('discord.ext.commands', 'ext/commands'),
     ('discord.ext.tasks', 'ext/tasks'),
+    ('discord.ext.vbu', 'ext/vbu'),
   ],
 }
 
