@@ -731,7 +731,7 @@ class Bot(MinimalBot):
 
         ext = glob.glob('cogs/[!_]*.py')
         extensions = []
-        extensions.extend([f'voxelbotutils.cogs.{i}' for i in all_vfl_package_names])
+        extensions.extend([f'discord.ext.vbu.cogs.{i}' for i in all_vfl_package_names])
         extensions.extend([i.replace('\\', '.').replace('/', '.')[:-3] for i in ext])
         self.logger.debug("Getting all extensions: " + str(extensions))
         return extensions
