@@ -9,6 +9,7 @@ from .enums import (
 )
 from .channel import _channel_factory
 from .permissions import Permissions
+from .abc import Snowflake
 
 if TYPE_CHECKING:
     from .types.interactions import (
@@ -295,7 +296,7 @@ class ApplicationCommandOption:
         return payload
 
 
-class ApplicationCommand:
+class ApplicationCommand(Snowflake):
     """
     An instance of an application command.
 
