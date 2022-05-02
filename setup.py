@@ -130,11 +130,11 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "voxelbotutils=voxelbotutils.__main__:main",
-            "vbu=voxelbotutils.__main__:main",
+            "voxelbotutils=discord.ext.vbu.__main__:main",
+            "vbu=discord.ext.vbu.__main__:main",
         ],
     },
     package_data={
-        "voxelbotutils": ["config/*"]
+        "voxelbotutils": ["discord/ext/vbu/config/*"]
     },
 )
