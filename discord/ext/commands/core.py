@@ -50,10 +50,11 @@ import discord
 
 from .errors import *
 from .cooldowns import Cooldown, BucketType, CooldownMapping, MaxConcurrency, DynamicCooldownMapping
-from .converter import run_converters, get_converter, Greedy, try_application_command_option_type
+from .converter import run_converters, get_converter, Greedy
 from ._types import _BaseCommand
 from .cog import Cog
 from .context import Context, SlashContext
+from ...enums import Locale
 
 
 if TYPE_CHECKING:
@@ -234,8 +235,8 @@ class ApplicationCommandMeta:
             self,
             *,
             options: Optional[List[discord.ApplicationCommandOption]] = None,
-            name_localizations: Optional[Dict[str, str]] = None,
-            description_localizations: Optional[Dict[str, str]] = None,
+            name_localizations: Optional[Dict[Union[Locale, str], str]] = None,
+            description_localizations: Optional[Dict[Union[Locale, str], str]] = None,
             guild_only: bool = False,
             permissions: Optional[discord.Permissions] = None
             ):
@@ -256,8 +257,8 @@ class ApplicationCommandMeta:
         """
 
         self.options: List[discord.ApplicationCommandOption] = options or list()
-        self.name_localizations: Dict[str, str] = name_localizations or dict()
-        self.description_localizations: Dict[str, str] = description_localizations or dict()
+        self.name_localizations: Dict[Union[Locale, str], str] = name_localizations or dict()
+        self.description_localizations: Dict[Union[Locale, str], str] = description_localizations or dict()
         self.guild_only: bool = guild_only
         self.permissions: Optional[discord.Permissions] = permissions
 

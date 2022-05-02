@@ -6,6 +6,7 @@ from .enums import (
     ApplicationCommandOptionType,
     ApplicationCommandType,
     ChannelType,
+    Locale,
 )
 from .channel import _channel_factory
 from .permissions import Permissions
@@ -212,8 +213,8 @@ class ApplicationCommandOption:
             description: str,
             required: bool = True,
             autocomplete: bool = False,
-            name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None,
+            name_localizations: Dict[Union[Locale, str], str] = None,
+            description_localizations: Dict[Union[Locale, str], str] = None,
             choices: List[ApplicationCommandOptionChoice] = None,
             options: List[ApplicationCommandOption] = None,
             channel_types: List[ChannelType] = None,
@@ -283,8 +284,8 @@ class ApplicationCommandOption:
             "options": [i.to_json() for i in self.options],
             "min_value": self.min_value,
             "max_value": self.max_value,
-            "name_localizations": self.name_localizations,
-            "description_localizations": self.description_localizations,
+            "name_localizations": {str(i): o for i, o in self.name_localizations.items()},
+            "description_localizations": {str(i): o for i, o in self.description_localizations.items()},
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
             payload.pop("required", None)
@@ -370,8 +371,8 @@ class ApplicationCommand(Snowflake):
             description: Optional[str] = None,
             type: ApplicationCommandType = ApplicationCommandType.chat_input,
             options: Optional[List[ApplicationCommandOption]] = None,
-            name_localizations: Optional[Dict[str, str]] = None,
-            description_localizations: Optional[Dict[str, str]] = None,
+            name_localizations: Optional[Dict[Union[Locale, str], str]] = None,
+            description_localizations: Optional[Dict[Union[Locale, str], str]] = None,
             dm_permissions: bool = True,
             default_member_permissions: Optional[Permissions] = None,
             ):
@@ -422,8 +423,8 @@ class ApplicationCommand(Snowflake):
             "description": self.description,
             "type": self.type.value,
             "options": [i.to_json() for i in self.options],
-            "name_localizations": self.name_localizations,
-            "description_localizations": self.description_localizations,
+            "name_localizations": {str(i): o for i, o in self.name_localizations.items()},
+            "description_localizations": {str(i): o for i, o in self.description_localizations.items()},
             "default_member_permissions": str(self.default_member_permissions.value) if self.default_member_permissions else None,
             "dm_permissions": self.dm_permissions,
         }
