@@ -65,7 +65,6 @@ def get_default_program_arguments() -> argparse.ArgumentParser:
     application_subparser = runner_subparser.add_parser("commands")
     create_config_subparser = runner_subparser.add_parser("create-config")
     check_config_subparser = runner_subparser.add_parser("check-config")
-    runner_subparser.add_parser("version")
 
     # Set up the bot arguments
     bot_subparser.add_argument("bot_directory", nargs="?", default=".", help="The directory containing a config and a cogs folder for the bot to run.")
@@ -170,8 +169,6 @@ def main():
     # Wew let's see if we want to run a bot
     parser = get_default_program_arguments()
     args = parser.parse_args()
-    from . import __version__
-    next_version = get_next_version(__version__)
 
     # Let's see if we copyin bois
     if args.subcommand == "create-config":
@@ -182,7 +179,7 @@ def main():
             create_file("config", "database.pgsql", content=get_path_relative_to_file("config/database_base_file.pgsql"))
             create_file("_run_website.sh", content="vbu run-website .\n")
             create_file(".gitignore", content="__pycache__/\n.venv/\nconfig/config.toml\nconfig/website.toml\n")
-            create_file("requirements.txt", content=f"voxelbotutils[web]>={__version__},<{next_version}\n")
+            create_file("requirements.txt", content=f"novus[vbu]\n")
             create_file("website", "frontend.py", content=get_path_relative_to_file("config/website_frontend_content.py"))
             create_file("website", "backend.py", content=get_path_relative_to_file("config/website_backend_content.py"))
             create_file("website", "static", ".gitkeep", content="\n")
@@ -196,7 +193,7 @@ def main():
             create_file("cogs", "ping_command.py", content=get_path_relative_to_file("config/cog_example_file.py"))
             create_file("_run_bot.sh", content="vbu run-bot .\n")
             create_file(".gitignore", content="__pycache__/\nconfig/config.toml\nconfig/website.toml\n")
-            create_file("requirements.txt", content=f"voxelbotutils>={__version__},<{next_version}\n")
+            create_file("requirements.txt", content=f"novus[vbu]\n")
             create_file(".venv")
             print("Created bot config file.")
         exit(1)
@@ -223,11 +220,6 @@ def main():
         for key, value in base_config_file.items():
             check_config_value([key], value, compare_config_file.get(key))
         print("Completed config check.")
-        exit(1)
-
-    # If we just want the version
-    elif args.subcommand == "version":
-        print(f"VoxelBotUtils v{__version__}")
         exit(1)
 
     # Run things
