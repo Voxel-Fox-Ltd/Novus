@@ -179,7 +179,7 @@ class Context(discord.abc.Messageable, Generic[BotT]):
 
     @property
     def locale(self):
-        return self.guild_locale or self.user_locale or "en-US"
+        return self.user_locale or self.guild_locale or "en-US"
 
     async def invoke(self, command: Command[CogT, P, T], /, *args: P.args, **kwargs: P.kwargs) -> T:
         r"""|coro|
