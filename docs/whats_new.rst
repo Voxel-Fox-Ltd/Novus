@@ -29,6 +29,7 @@ Bugs Fixed
 ~~~~~~~~~~~~~~~~~~~~
 
 * Fix default permissions in application command meta.
+* Fix error in context commands that didn't allow for unions.
 
 .. _vp0_0_7:
 
