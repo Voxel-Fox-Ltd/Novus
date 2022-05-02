@@ -81,7 +81,17 @@ packages = [
     'discord.webhook',
     'discord.ext.commands',
     'discord.ext.tasks',
+
     'discord.ext.vbu',
+    'discord.ext.vbu.cogs',
+    'discord.ext.vbu.cogs.utils',
+    'discord.ext.vbu.cogs.utils.checks',
+    'discord.ext.vbu.cogs.utils.converters',
+    'discord.ext.vbu.cogs.utils.database',
+    'discord.ext.vbu.cogs.utils.menus',
+    'discord.ext.vbu.cogs.utils.types',
+    'discord.ext.vbu.web',
+    'discord.ext.vbu.web.utils',
     'voxelbotutils',
 ]
 
