@@ -24,7 +24,7 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
-import typing
+from typing import Union, Tuple, List, Optional
 
 from .models import LayoutComponent, ComponentHolder
 from .button import Button, ButtonStyle
@@ -88,7 +88,13 @@ class MessageComponents(ComponentHolder):
         return cls(*new_components)
 
     @classmethod
-    def boolean_buttons(cls, yes_id: str = None, no_id: str = None) -> MessageComponents:
+    def boolean_buttons(
+            cls,
+            yes_id: Optional[str] = None,
+            no_id: Optional[str] = None,
+            *,
+            yes: Optional[Union[str, Tuple[str, Union[str, None]]]] = None,
+            no: Optional[Union[str, Tuple[str, Union[str, None]]]] = None) -> MessageComponents:
         """
         Return a set of message components with yes/no buttons, ready for use. If provided, the given IDs
         will be used for the buttons. If not, the button custom IDs will be set to the strings
@@ -96,10 +102,12 @@ class MessageComponents(ComponentHolder):
 
         Parameters
         -----------
-        yes_id:  Optional[:class:`str`:
-            The custom ID of the yes button.
-        no_id:  Optional[:class:`str`:
-            The custom ID of the no button.
+        yes: Optional[Union[str, Tuple[str, Union[str, None]]]]:
+            Either a custom ID for the yes button, or two
+            strings defining the button's text and custom ID respectively.
+        no: Optional[Union[str, Tuple[str, Union[str, None]]]]:
+            Either a custom ID for the no button, or two
+            strings defining the button's text and custom ID respectively.
 
         Returns
         --------
@@ -107,10 +115,25 @@ class MessageComponents(ComponentHolder):
             A message components instance with the given buttons.
         """
 
+        if yes:
+            if isinstance(yes, str):
+                yes = ("Yes", yes,)
+        elif yes_id:
+            yes = ("Yes", yes_id,)
+        else:
+            yes = ("Yes", None,)
+        if no:
+            if isinstance(no, str):
+                no = ("No", no,)
+        elif no_id:
+            no = ("No", no_id,)
+        else:
+            no = ("No", None,)
+
         return cls(
             ActionRow(
-                Button(label="Yes", style=ButtonStyle.success, custom_id=yes_id or "YES"),
-                Button(label="No", style=ButtonStyle.danger, custom_id=no_id or "NO"),
+                Button(label=yes[0], style=ButtonStyle.success, custom_id=yes[1]),
+                Button(label=no[0], style=ButtonStyle.danger, custom_id=no[1]),
             ),
         )
 
@@ -134,7 +157,7 @@ class MessageComponents(ComponentHolder):
 
     @classmethod
     def add_number_buttons(
-            cls, numbers: typing.List[int] = MISSING, *,
+            cls, numbers: List[int] = MISSING, *,
             add_negative: bool = False):
         """
         Creates a message components object with a list of number buttons added.
@@ -147,7 +170,7 @@ class MessageComponents(ComponentHolder):
 
         Parameters
         -----------
-        numbers: typing.List[:class:`int`]
+        numbers: List[:class:`int`]
             The numbers that you want to add. If not provided, then 1, 5, 10, 50, and 100 are used.
             A list of more than five values must not be given.
             These will be added as buttons with the custom ID ``NUMBER VALUE``, where ``VALUE``
