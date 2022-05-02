@@ -41,7 +41,7 @@ def minify_html(text: str) -> str:
 
 
 def translation(
-        ctx: _typing.Union[_dpy_commands.Context, _discord.Interaction, str],
+        ctx: _typing.Union[_dpy_commands.Context, _discord.Interaction, _discord.Locale, str],
         domain: str,
         *,
         use_guild: bool = False,
@@ -77,6 +77,8 @@ def translation(
         languages = [ctx.locale, ctx.locale.split("-")[0]]
         if use_guild and ctx.guild and ctx.guild_locale:
             languages = [ctx.guild_locale, ctx.guild_locale.split("-")[0], *languages]
+    elif isinstance(ctx, _discord.Locale):
+        languages = [ctx.value, ctx.value.split("-")[0]]
     elif isinstance(ctx, str):
         languages = [ctx]
     else:
