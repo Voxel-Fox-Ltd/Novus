@@ -11,6 +11,16 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_1_4:
+
+v0.1.4
+--------
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Fixed not supporting ``None`` command prefixes.
+
 .. _vp0_1_3:
 
 v0.1.3

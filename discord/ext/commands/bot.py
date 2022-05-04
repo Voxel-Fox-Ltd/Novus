@@ -926,6 +926,8 @@ class BotBase(GroupMixin):
         if message.author.id == self.user.id:  # type: ignore
             return ctx
 
+        if self.command_prefix is None:
+            return ctx
         prefix = await self.get_prefix(message)
         invoked_prefix = prefix
 
