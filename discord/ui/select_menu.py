@@ -174,7 +174,7 @@ class SelectMenu(DisableableComponent):
             "disabled": self.disabled
         }
         if self.options:
-            v["options"] = [i.to_dict() for i in self.options],
+            v["options"] = [i.to_dict() for i in self.options]
         return v
 
     @classmethod
