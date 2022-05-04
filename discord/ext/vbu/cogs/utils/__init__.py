@@ -59,7 +59,7 @@ def translation(
 
     Parameters
     -----------
-    ctx: Union[:class:`discord.ext.commands.Context`, :class:`discord.Interaction`, :class:`str`]
+    ctx: Union[:class:`discord.ext.commands.Context`, :class:`discord.Interaction`, :class:`discord.Locale`, :class:`str`]
         The context that you want to get the translation within, or
         the name of the locale that you want to get anyway.
     domain: :class:`str`

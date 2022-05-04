@@ -21,6 +21,11 @@ New Features
 
 * Add :class:`Locale`.
 
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Fixed an error in select menus merged in from the testing branch.
+
 .. _vp0_0_8:
 
 .. _vp0_1_0:
