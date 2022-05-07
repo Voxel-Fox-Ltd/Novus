@@ -8,7 +8,6 @@ import discord
 from discord.ext import commands as _commands
 
 from .redis import RedisChannelHandler
-from . import translation
 
 if typing.TYPE_CHECKING:
     from .custom_bot import Bot
