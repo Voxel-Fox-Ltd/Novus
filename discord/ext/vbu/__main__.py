@@ -7,7 +7,7 @@ from .runner import run_bot, run_website, run_sharder, run_shell, run_modify_com
 
 
 def get_path_relative_to_file(
-        path: pathlib.Path
+        path: typing.Union[pathlib.Path, str]
         ) -> pathlib.Path:
     """
     Get the full path for a file relative to a given location.
