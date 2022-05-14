@@ -189,7 +189,7 @@ class TextChannel(discord.abc.Messageable, discord.abc.Threadable, Hashable):
         self.name: str = data['name']
         self.category_id: Optional[int] = utils._get_as_snowflake(data, 'parent_id')
         self.topic: Optional[str] = data.get('topic')
-        self.position: int = data['position']
+        self.position: Optional[int] = data.get('position', None)
         self.nsfw: bool = data.get('nsfw', False)
         # Does this need coercion into `int`? No idea yet.
         self.slowmode_delay: int = data.get('rate_limit_per_user', 0)
@@ -663,7 +663,7 @@ class VocalGuildChannel(discord.abc.Connectable, discord.abc.GuildChannel, Hasha
         self.rtc_region: Optional[VoiceRegion] = try_enum(VoiceRegion, rtc) if rtc is not None else None
         self.video_quality_mode: VideoQualityMode = try_enum(VideoQualityMode, data.get('video_quality_mode', 1))
         self.category_id: Optional[int] = utils._get_as_snowflake(data, 'parent_id')
-        self.position: int = data['position']
+        self.position: Optional[int] = data.get('position', None)
         self.bitrate: int = data.get('bitrate')
         self.user_limit: int = data.get('user_limit')
         self.nsfw: bool = data.get('nsfw', False)
@@ -1190,7 +1190,7 @@ class CategoryChannel(discord.abc.GuildChannel, Hashable):
         self.name: str = data['name']
         self.category_id: Optional[int] = utils._get_as_snowflake(data, 'parent_id')
         self.nsfw: bool = data.get('nsfw', False)
-        self.position: int = data['position']
+        self.position: Optional[int] = data.get('position', None)
         self._fill_overwrites(data)
 
     @property
@@ -1412,7 +1412,7 @@ class StoreChannel(discord.abc.GuildChannel, Hashable):
         self.guild: Guild = guild
         self.name: str = data['name']
         self.category_id: Optional[int] = utils._get_as_snowflake(data, 'parent_id')
-        self.position: int = data['position']
+        self.position: Optional[int] = data.get('position', None)
         self.nsfw: bool = data.get('nsfw', False)
         self._fill_overwrites(data)
 
@@ -1583,7 +1583,7 @@ class ForumChannel(discord.abc.Threadable, Hashable):
         self.guild: Guild = guild
         self.name: str = data['name']
         self.category_id: Optional[int] = utils._get_as_snowflake(data, 'parent_id')
-        self.position: int = data['position']
+        self.position: Optional[int] = data.get('position', None)
         self.nsfw: bool = data.get('nsfw', False)
         self.last_message_id: Optional[int] = utils._get_as_snowflake(data, 'last_message_id')
         self.slowmode_delay: int = data.get('rate_limit_per_user', 0)
