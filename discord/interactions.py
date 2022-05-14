@@ -174,10 +174,10 @@ class InteractionResolved:
             if factory is None:
                 raise InvalidData('Unknown channel type {type} for channel ID {id}.'.format_map(d))
             if ch_type in (ChannelType.group, ChannelType.private):
-                channel = factory(me=self.user, data=d, state=self._connection) # type: ignore
+                channel = factory(me=self.user, data=d, state=self._state)
             else:
                 guild = self._interaction.guild
-                channel = factory(guild=guild, state=self._connection, data=d) # type: ignore
+                channel = factory(guild=guild, state=self._state, data=d)
             channels[channel.id] = channel
         return channels
 
