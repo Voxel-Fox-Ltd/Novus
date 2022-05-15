@@ -20,6 +20,9 @@ Bugs Fixed
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * Fixed not supporting ``None`` command prefixes.
+* Fix ``InteractionResolved.channels`` not parsing properly.
+* Fix channel kwarg not being optional for ``discord.GuildChannel``.
+* [vbu] Fix package data in the setup files.
 
 .. _vp0_1_3:
 
