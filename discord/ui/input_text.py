@@ -29,6 +29,7 @@ from typing import Optional, TYPE_CHECKING
 
 from .models import InteractableComponent
 from ..enums import TextStyle, ComponentType
+from ..utils import MISSING
 
 if TYPE_CHECKING:
     from ..types.components import (
@@ -62,12 +63,19 @@ class InputText(InteractableComponent):
     """
 
     __slots__ = ("label", "style", "custom_id", "min_length", "max_length",)
+    TYPE = ComponentType.input_text
 
     def __init__(
-            self, *, label: str = None, custom_id: Optional[str] = None,
-            style: TextStyle = TextStyle.short, placeholder: Optional[str] = None,
-            min_length: int = None, max_length: int = None, required: bool = True,
-            value: str = None):
+            self,
+            *,
+            label: str = MISSING,
+            custom_id: Optional[str] = None,
+            style: TextStyle = TextStyle.short,
+            placeholder: Optional[str] = None,
+            min_length: Optional[int] = None,
+            max_length: Optional[int] = None,
+            required: bool = True,
+            value: Optional[str] = None):
         self.label = label
         self.style = style
         self.placeholder = placeholder
@@ -93,7 +101,7 @@ class InputText(InteractableComponent):
 
     def to_dict(self) -> InputTextPayload:
         v = {
-            "type": ComponentType.input_text.value,
+            "type": self.TYPE.value,
             "label": self.label,
             "style": self.style.value,
             "custom_id": self.custom_id,
@@ -124,11 +132,11 @@ class InputText(InteractableComponent):
 
         return cls(
             style=TextStyle(data.get("style", TextStyle.short.value)),
-            custom_id=data.get("custom_id"),
-            label=data.get("label"),
+            custom_id=data["custom_id"],
+            label=data["label"],
             placeholder=data.get("placeholder"),
             min_length=data.get("min_length"),
             max_length=data.get("max_length"),
-            required=data.get("required"),
+            required=data.get("required", False),
             value=data.get("value"),
         )

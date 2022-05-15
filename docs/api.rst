@@ -3333,6 +3333,12 @@ Messageable
     .. automethod:: discord.abc.Messageable.typing
         :async-with:
 
+Threadable
+~~~~~~~~~~~~
+
+.. autoclass:: discord.abc.Threadable()
+    :members:
+
 Connectable
 ~~~~~~~~~~~~
 
@@ -3622,6 +3628,15 @@ TextChannel
     .. automethod:: typing
         :async-with:
 
+ForumChannel
+~~~~~~~~~~~~~
+
+.. attributetable:: ForumChannel
+
+.. autoclass:: ForumChannel()
+    :members:
+    :inherited-members:
+
 Thread
 ~~~~~~~~
 
@@ -3644,6 +3659,14 @@ ThreadMember
 .. attributetable:: ThreadMember
 
 .. autoclass:: ThreadMember()
+    :members:
+
+ForumChannelTag
+~~~~~~~~~~~~~
+
+.. attributetable:: ForumChannelTag
+
+.. autoclass:: ForumChannelTag()
     :members:
 
 StoreChannel
@@ -4194,6 +4217,42 @@ SelectMenu
 .. attributetable:: discord.ui.SelectMenu
 
 .. autoclass:: discord.ui.SelectMenu
+    :members:
+    :inherited-members:
+
+UserSelectMenu
+~~~~~~~~~~~~~~~~
+
+.. attributetable:: discord.ui.UserSelectMenu
+
+.. autoclass:: discord.ui.UserSelectMenu
+    :members:
+    :inherited-members:
+
+RoleSelectMenu
+~~~~~~~~~~~~~~~~
+
+.. attributetable:: discord.ui.RoleSelectMenu
+
+.. autoclass:: discord.ui.RoleSelectMenu
+    :members:
+    :inherited-members:
+
+MentionableSelectMenu
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: discord.ui.MentionableSelectMenu
+
+.. autoclass:: discord.ui.MentionableSelectMenu
+    :members:
+    :inherited-members:
+
+ChannelSelectMenu
+~~~~~~~~~~~~~~~~~~~~
+
+.. attributetable:: discord.ui.ChannelSelectMenu
+
+.. autoclass:: discord.ui.ChannelSelectMenu
     :members:
     :inherited-members:
 

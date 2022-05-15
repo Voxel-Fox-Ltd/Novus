@@ -32,11 +32,13 @@ from .mixins import Hashable
 from .abc import Messageable
 from .enums import ChannelType, try_enum
 from .errors import ClientException
-from .utils import MISSING, parse_time, _get_as_snowflake
+from .emoji import PartialEmoji
+from .utils import MISSING, cached_slot_property, parse_time, _get_as_snowflake
 
 __all__ = (
     'Thread',
     'ThreadMember',
+    'ForumChannelTag',
 )
 
 if TYPE_CHECKING:
@@ -47,8 +49,9 @@ if TYPE_CHECKING:
         ThreadArchiveDuration,
     )
     from .types.snowflake import SnowflakeList
+    from .types.channel import ForumChannelTag as ForumChannelTagPayload
     from .guild import Guild
-    from .channel import TextChannel, CategoryChannel
+    from .channel import TextChannel, CategoryChannel, ForumChannel
     from .member import Member
     from .message import Message, PartialMessage
     from .abc import Snowflake, SnowflakeTime
@@ -119,6 +122,10 @@ class Thread(Messageable, Hashable):
         Usually a value of 60, 1440, 4320 and 10080.
     archive_timestamp: :class:`datetime.datetime`
         An aware timestamp of when the thread's archived status was last updated in UTC.
+    applied_tags: List[:class:`int`]
+        A list of IDs of tags that were applied to the thread. Only relevant in forum thread channels.
+
+        .. versionadded:: 0.0.8
     """
 
     __slots__ = (
@@ -141,6 +148,7 @@ class Thread(Messageable, Hashable):
         'archiver_id',
         'auto_archive_duration',
         'archive_timestamp',
+        'applied_tags',
     )
 
     def __init__(self, *, guild: Guild, state: ConnectionState, data: ThreadPayload):
@@ -171,6 +179,7 @@ class Thread(Messageable, Hashable):
         self.slowmode_delay = data.get('rate_limit_per_user', 0)
         self.message_count = data['message_count']
         self.member_count = data['member_count']
+        self.applied_tags = [int(i) for i in data.get('applied_tags', list())]
         self._unroll_metadata(data['thread_metadata'])
 
         try:
@@ -207,9 +216,23 @@ class Thread(Messageable, Hashable):
         return self._type
 
     @property
-    def parent(self) -> Optional[TextChannel]:
-        """Optional[:class:`TextChannel`]: The parent channel this thread belongs to."""
+    def parent(self) -> Optional[Union[TextChannel, ForumChannel]]:
+        """Optional[Union[:class:`TextChannel`, :class:`ForumChannel`]]: The parent channel this thread belongs to."""
         return self.guild.get_channel(self.parent_id)  # type: ignore
+
+    @property
+    def tags(self) -> List[ForumChannelTag]:
+        """
+        The tags that were added to the thread. Only
+        present when the thread is in a forum channel, and only populated when the parent
+        forum channel is cached. See :attr:`applied_tags` for a list of the tag IDs.
+
+        .. versionadded:: 0.0.8
+        """
+
+        if self.applied_tags and self.parent and isinstance(self.parent, ForumChannel):
+            return [i for i in self.parent.available_tags if i.id in self.applied_tags]
+        return list()
 
     @property
     def owner(self) -> Optional[Member]:
@@ -507,7 +530,7 @@ class Thread(Messageable, Hashable):
             count += 1
             ret.append(message)
 
-        # SOme messages remaining to poll
+        # Some messages remaining to poll
         if count >= 2:
             # more than 2 messages -> bulk delete
             to_delete = ret[-count:]
@@ -794,3 +817,64 @@ class ThreadMember(Hashable):
     def thread(self) -> Thread:
         """:class:`Thread`: The thread this member belongs to."""
         return self.parent
+
+
+class ForumChannelTag(Hashable):
+    """Represents a Discord forum thread tag.
+
+    .. versionadded:: 0.0.8
+
+    .. container:: operations
+
+        .. describe:: x == y
+
+            Checks if two tags are equal.
+
+        .. describe:: x != y
+
+            Checks if two tags are not equal.
+
+        .. describe:: hash(x)
+
+            Returns the tag's hash.
+
+    Attributes
+    -----------
+    id: :class:`int`
+        The thread member's ID.
+    name: :class:`str`
+        The name of the tag.
+    emoji_name: Optional[:class:`str`]
+        The name of the emoji, if the emoji is unicode.
+    emoji_id: Optional[:class:`int`]
+        The ID of the emoji, if the emoji is custom.
+    emoji: Optional[:class:`discord.PartialEmoji`]
+        A partial emoji associated with the tag, if an emoji was
+        specified for the tag itself.
+    """
+
+    __slots__ = (
+        "_state",
+        "id",
+        "name",
+        "channel",
+        "emoji_name",
+        "emoji_id",
+        "_cs_emoji",
+    )
+
+    def __init__(self, *, state, channel: ForumChannel, data: ForumChannelTagPayload):
+        self._state = state
+        self.channel = channel
+        self.id: int = int(data["id"])
+        self.name: str = data.get("name", "")
+        self.emoji_name: Optional[str] = data.get("emoji_name", None)
+        self.emoji_id: Optional[int] = _get_as_snowflake(data, "emoji_id")
+
+    @cached_slot_property("_cs_emoji")
+    def emoji(self) -> Optional[PartialEmoji]:
+        """The emoji associated with the tag."""
+
+        if self.emoji_id or self.emoji_name:
+            return PartialEmoji(name=self.emoji_name or "", id=self.emoji_id)
+        return None

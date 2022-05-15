@@ -342,6 +342,40 @@ class Client:
         return asyncio.create_task(wrapped, name=f'Novus: {event_name}')
 
     def dispatch(self, event: str, *args: Any, **kwargs: Any) -> None:
+        """
+
+        Dispatches an event to all listeners with the ``on_`` prefix.
+
+        This could be used to send an event to a custom handler or utilize the same code for different
+        (Discord) dispatched events such as handling checks before welcoming a user to a Guild.
+
+        See the :func:`~discord.Client.event` decorator or the :ref:`documentation below <discord-api-events>` for how
+        to listen for an event.
+
+        Examples
+        --------
+
+        Reacting to every message with the word ``hello``: ::
+
+            @client.event
+            async def on_message(message):
+                if message.content == 'hello':
+                    client.dispatch('react_hello', message)
+
+            @client.event
+            async def on_react_hello(message):
+                await message.add_reaction('👋')
+
+
+        Parameters
+        ----------
+        event: :class:`str`
+            The event name without the ``on_`` prefix to dispatch out to.
+        args
+            Arguments to pass to the listener(s) that handle the dispatched event.
+        kwargs
+            Keyword Arguments to pass to the listener(s) that handle the dispatched event.
+        """
         _log.debug('Dispatching event %s', event)
         method = 'on_' + event
 
@@ -1694,11 +1728,16 @@ class Client:
             data = await self.http.bulk_create_global_application_commands(application_id, [c.to_json() for c in commands])
         return [ApplicationCommand.from_data(c) for c in data]
 
-    async def fetch_global_application_commands(self) -> List[ApplicationCommand]:
+    async def fetch_global_application_commands(self, with_localizations: bool = False) -> List[ApplicationCommand]:
         """
         |coro|
 
         Get all of the application commands that the bot has registered globally.
+        
+        Parameters
+        -----------
+        with_localizations: Optional[:class:`bool`]
+            Whether to return all the command localizations.
 
         Returns
         --------
@@ -1715,7 +1754,7 @@ class Client:
         if application_id is None:
             application_info = await self.application_info()
             application_id = application_info.id
-        payload = await self.http.get_global_application_commands(application_id)
+        payload = await self.http.get_global_application_commands(application_id, with_localizations)
         return [
             ApplicationCommand.from_data(i)
             for i in payload

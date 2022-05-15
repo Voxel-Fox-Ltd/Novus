@@ -98,7 +98,7 @@ if TYPE_CHECKING:
     )
     from .types.voice import GuildVoiceState
     from .permissions import Permissions
-    from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel
+    from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, ForumChannel
     from .template import Template
     from .webhook import Webhook
     from .state import ConnectionState
@@ -107,7 +107,7 @@ if TYPE_CHECKING:
     import datetime
 
     VocalGuildChannel = Union[VoiceChannel, StageChannel]
-    GuildChannel = Union[VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel]
+    GuildChannel = Union[VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, ForumChannel]
     ByCategoryItem = Tuple[Optional[CategoryChannel], List[GuildChannel]]
 
 

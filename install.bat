@@ -1,2 +1,2 @@
-py -m pip install --upgrade . --use-feature=in-tree-build
+py -m pip install --upgrade .[vbu,speed] --use-feature=in-tree-build
 ./clean.bat

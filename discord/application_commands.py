@@ -6,9 +6,11 @@ from .enums import (
     ApplicationCommandOptionType,
     ApplicationCommandType,
     ChannelType,
+    Locale,
 )
 from .channel import _channel_factory
 from .permissions import Permissions
+from .abc import Snowflake
 
 if TYPE_CHECKING:
     from .types.interactions import (
@@ -211,8 +213,8 @@ class ApplicationCommandOption:
             description: str,
             required: bool = True,
             autocomplete: bool = False,
-            name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None,
+            name_localizations: Dict[Union[Locale, str], str] = None,
+            description_localizations: Dict[Union[Locale, str], str] = None,
             choices: List[ApplicationCommandOptionChoice] = None,
             options: List[ApplicationCommandOption] = None,
             channel_types: List[ChannelType] = None,
@@ -255,6 +257,8 @@ class ApplicationCommandOption:
             name=data['name'],
             type=ApplicationCommandOptionType(data['type']),
             description=data['description'],
+            name_localizations=data.get("name_localizations", dict()),
+            description_localizations=data.get("description_localizations", dict()),
             required=data.get('required', False),
             autocomplete=data.get('autocomplete', False),
             min_value=data.get('min_value', None),
@@ -280,8 +284,8 @@ class ApplicationCommandOption:
             "options": [i.to_json() for i in self.options],
             "min_value": self.min_value,
             "max_value": self.max_value,
-            "name_localizations": self.name_localizations,
-            "description_localizations": self.description_localizations,
+            "name_localizations": {str(i): o for i, o in self.name_localizations.items()},
+            "description_localizations": {str(i): o for i, o in self.description_localizations.items()},
         }
         if self.type in [ApplicationCommandOptionType.subcommand, ApplicationCommandOptionType.subcommand_group]:
             payload.pop("required", None)
@@ -293,7 +297,7 @@ class ApplicationCommandOption:
         return payload
 
 
-class ApplicationCommand:
+class ApplicationCommand(Snowflake):
     """
     An instance of an application command.
 
@@ -305,7 +309,7 @@ class ApplicationCommand:
     -----------
     name: :class:`str`
         The name of this command.
-    description: :class:`str`
+    description: Optional[:class:`str`]
         The description for this command.
     type: :class:`ApplicationCommandType`
         The type of the application command.
@@ -336,7 +340,7 @@ class ApplicationCommand:
     -----------
     name: :class:`str`
         The name of this command.
-    description: :class:`str`
+    description: Optional[:class:`str`]
         The description for this command.
     type: :class:`ApplicationCommandType`
         The type of the application command. Defaults to a chat input (slash) command.
@@ -364,16 +368,16 @@ class ApplicationCommand:
             self,
             *,
             name: str,
-            description: str = None,
+            description: Optional[str] = None,
             type: ApplicationCommandType = ApplicationCommandType.chat_input,
-            options: List[ApplicationCommandOption] = None,
-            name_localizations: Dict[str, str] = None,
-            description_localizations: Dict[str, str] = None,
+            options: Optional[List[ApplicationCommandOption]] = None,
+            name_localizations: Optional[Dict[Union[Locale, str], str]] = None,
+            description_localizations: Optional[Dict[Union[Locale, str], str]] = None,
             dm_permissions: bool = True,
-            default_member_permissions: Permissions = None,
+            default_member_permissions: Optional[Permissions] = None,
             ):
         self.name: str = name
-        self.description: Optional[str] = description
+        self.description: str = description or name
         self.type: ApplicationCommandType = type
         self.options: List[ApplicationCommandOption] = options or list()
         self.id: Optional[int] = None
@@ -384,7 +388,7 @@ class ApplicationCommand:
         self.default_member_permissions = default_member_permissions
 
     def __repr__(self):
-        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type.name!r}, options={self.options!r}>"
+        return f"{self.__class__.__name__}<name={self.name!r}, type={self.type.name!r}, options={self.options!r}, permissions={self.default_member_permissions!r}>"
 
     def add_option(self, option: ApplicationCommandOption):
         """
@@ -397,12 +401,12 @@ class ApplicationCommand:
     def from_data(cls, data: ApplicationCommandPayload):
         command = cls(
             name=data['name'],
-            description=data.get('description'),
+            description=data['description'],
             type=ApplicationCommandType(data.get('type', 1)),
             name_localizations=data.get("name_localizations", dict()),
             description_localizations=data.get("description_localizations", dict()),
             dm_permissions=data.get("dm_permissions", True),
-            default_member_permissions=Permissions(int(data.get("default_member_permissions", 0))) if data.get("default_member_permissions") else None,
+            default_member_permissions=None if data.get("default_member_permissions") is None else Permissions(int(data["default_member_permissions"])),
         )
         command.id = int(data.get('id', 0)) or None
         command.application_id = int(data.get('application_id', 0)) or None
@@ -419,14 +423,13 @@ class ApplicationCommand:
             "description": self.description,
             "type": self.type.value,
             "options": [i.to_json() for i in self.options],
-            "name_localizations": self.name_localizations,
-            "description_localizations": self.description_localizations,
+            "name_localizations": {str(i): o for i, o in self.name_localizations.items()},
+            "description_localizations": {str(i): o for i, o in self.description_localizations.items()},
             "default_member_permissions": str(self.default_member_permissions.value) if self.default_member_permissions else None,
             "dm_permissions": self.dm_permissions,
         }
-        if self.description is None:
-            v.pop("description", None)
-            v.pop("description_localizations", None)
         if self.type != ApplicationCommandType.chat_input:
             v.pop("options", None)
+            v.pop("description", None)
+            v.pop("description_localizations", None)
         return v

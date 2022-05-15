@@ -44,7 +44,7 @@ from typing import (
     runtime_checkable,
 )
 
-from .iterators import HistoryIterator
+from .iterators import HistoryIterator, ArchivedThreadIterator
 from .context_managers import Typing
 from .enums import ChannelType
 from .errors import InvalidArgument, ClientException
@@ -63,6 +63,7 @@ __all__ = (
     'PrivateChannel',
     'GuildChannel',
     'Messageable',
+    'Threadable',
     'Connectable',
 )
 
@@ -90,6 +91,7 @@ if TYPE_CHECKING:
         GuildChannel as GuildChannelPayload,
         OverwriteType,
     )
+    from .types.threads import ThreadArchiveDuration
 
     PartialMessageableChannel = Union[TextChannel, Thread, DMChannel, PartialMessageable]
     MessageableChannel = Union[PartialMessageableChannel, GroupChannel]
@@ -1564,6 +1566,153 @@ class Messageable:
             The message with the message data parsed.
         """
         return HistoryIterator(self, limit=limit, before=before, after=after, around=around, oldest_first=oldest_first)
+
+
+class Threadable(GuildChannel):
+    """An ABC that details operations that can be done on channels that support threads.
+    Threads are only supported in guilds.
+
+    .. versionadded:: 0.0.8
+
+    The following implement this ABC:
+
+    - :class:`~discord.TextChannel`
+    - :class:`~discord.ForumChannel`
+    """
+
+    @property
+    def threads(self) -> List[Thread]:
+        """List[:class:`Thread`]: Returns all the threads that you can see.
+        """
+        return [thread for thread in self.guild._threads.values() if thread.parent_id == self.id]
+
+
+    def get_thread(self, thread_id: int, /) -> Optional[Thread]:
+        """Returns a thread with the given ID.
+
+        Parameters
+        -----------
+        thread_id: :class:`int`
+            The ID to search for.
+
+        Returns
+        --------
+        Optional[:class:`Thread`]
+            The returned thread or ``None`` if not found.
+        """
+        return self.guild.get_thread(thread_id)
+
+
+    async def create_thread(
+        self,
+        *,
+        name: str,
+        message: Optional[Snowflake] = None,
+        auto_archive_duration: ThreadArchiveDuration = MISSING,
+        type: Optional[ChannelType] = None,
+        reason: Optional[str] = None,
+    ) -> Thread:
+        """|coro|
+
+        Creates a thread in this text channel.
+
+        To create a public thread, you must have :attr:`~discord.Permissions.create_public_threads`.
+        For a private thread, :attr:`~discord.Permissions.create_private_threads` is needed instead.
+
+        Parameters
+        -----------
+        name: :class:`str`
+            The name of the thread.
+        message: Optional[:class:`abc.Snowflake`]
+            A snowflake representing the message to create the thread with.
+            If ``None`` is passed then a private thread is created.
+            Defaults to ``None``.
+        auto_archive_duration: :class:`int`
+            The duration in minutes before a thread is automatically archived for inactivity.
+            If not provided, the channel's default auto archive duration is used.
+        type: Optional[:class:`ChannelType`]
+            The type of thread to create. If a ``message`` is passed then this parameter
+            is ignored, as a thread created with a message is always a public thread.
+            By default this creates a private thread if this is ``None``.
+        reason: :class:`str`
+            The reason for creating a new thread. Shows up on the audit log.
+
+        Raises
+        -------
+        Forbidden
+            You do not have permissions to create a thread.
+        HTTPException
+            Starting the thread failed.
+
+        Returns
+        --------
+        :class:`Thread`
+            The created thread
+        """
+
+        if type is None:
+            type = ChannelType.private_thread
+
+        if message is None:
+            data = await self._state.http.start_thread_without_message(
+                self.id,
+                name=name,
+                auto_archive_duration=auto_archive_duration or self.default_auto_archive_duration,
+                type=type.value,
+                reason=reason,
+            )
+        else:
+            data = await self._state.http.start_thread_with_message(
+                self.id,
+                message.id,
+                name=name,
+                auto_archive_duration=auto_archive_duration or self.default_auto_archive_duration,
+                reason=reason,
+            )
+
+        return Thread(guild=self.guild, state=self._state, data=data)
+
+
+    def archived_threads(
+        self,
+        *,
+        private: bool = False,
+        joined: bool = False,
+        limit: Optional[int] = 50,
+        before: Optional[Union[Snowflake, datetime]] = None,
+    ) -> ArchivedThreadIterator:
+        """Returns an :class:`~discord.AsyncIterator` that iterates over all archived threads in the guild.
+
+        You must have :attr:`~Permissions.read_message_history` to use this. If iterating over private threads
+        then :attr:`~Permissions.manage_threads` is also required.
+
+        Parameters
+        -----------
+        limit: Optional[:class:`bool`]
+            The number of threads to retrieve.
+            If ``None``, retrieves every archived thread in the channel. Note, however,
+            that this would make it a slow operation.
+        before: Optional[Union[:class:`abc.Snowflake`, :class:`datetime.datetime`]]
+            Retrieve archived channels before the given date or ID.
+        private: :class:`bool`
+            Whether to retrieve private archived threads.
+        joined: :class:`bool`
+            Whether to retrieve private archived threads that you've joined.
+            You cannot set ``joined`` to ``True`` and ``private`` to ``False``.
+
+        Raises
+        ------
+        Forbidden
+            You do not have permissions to get archived threads.
+        HTTPException
+            The request to get the archived threads failed.
+
+        Yields
+        -------
+        :class:`Thread`
+            The archived threads.
+        """
+        return ArchivedThreadIterator(self.id, self.guild, limit=limit, joined=joined, private=private, before=before)
 
 
 class Connectable(Protocol):

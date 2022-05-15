@@ -11,6 +11,42 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_1_4:
+
+v0.1.4
+--------
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Fixed not supporting ``None`` command prefixes.
+
+.. _vp0_1_3:
+
+v0.1.3
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Add :class:`Locale`.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Fixed an error in select menus merged in from the testing branch.
+
+.. _vp0_0_8:
+
+.. _vp0_1_0:
+.. _vp0_1_1:
+.. _vp0_1_2:
+
+v0.1.2
+--------
+
+The *only* change for this release (and .0 and .1) is that VoxelBotUtils is now native to this package. You can install with ``pip install novus[vbu]``.
+
 .. _vp0_0_8:
 
 v0.0.8
@@ -20,6 +56,16 @@ New Features
 ~~~~~~~~~~~~~~~~~~
 
 * Add ``check_scopes`` parameter to :func:`ext.commands.is_slash_command()`.
+* Add support for :class:`ForumChannel`.
+* Add support for :class:`ui.UserSelectMenu`, :class:`ui.RoleSelectMenu`, :class:`ui.MentionableSelectMenu`, and :class:`ui.ChannelSelectMenu`.
+* Add support for text in voice (voice channels are now sendable).
+* Add support for NSFW VCs.
+
+Bugs Fixed
+~~~~~~~~~~~~~~~~~~~~
+
+* Fix default permissions in application command meta.
+* Fix error in context commands that didn't allow for unions.
 
 .. _vp0_0_7:
 

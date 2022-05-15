@@ -1,0 +1,165 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: VoxelBotUtils\n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.0.1\n"
+"X-Poedit-Basepath: ../cogs\n"
+"X-Poedit-SearchPath-0: error_handler.py\n"
+
+#: error_handler.py:25 error_handler.py:31
+#, python-brace-format
+msgid "You're missing `{parameter_name}`, which is required for this command."
+msgstr ""
+
+#: error_handler.py:37
+msgid "The quotes in your message have been done incorrectly."
+msgstr ""
+
+#: error_handler.py:43
+#, python-brace-format
+msgid "You can use this command again in {timestamp}."
+msgstr ""
+
+#: error_handler.py:49
+msgid "The bot isn't ready to start processing that command yet - please wait."
+msgstr ""
+
+#: error_handler.py:55
+msgid "You can only run this command in channels set as NSFW."
+msgstr ""
+
+#: error_handler.py:62
+msgid "This command can only be run as a slash command."
+msgstr ""
+
+#: error_handler.py:65
+msgid "This command can only be run as a slash command. Please re-invite the bot to add slash commands to your server."
+msgstr ""
+
+#: error_handler.py:72
+msgid "This command has been disabled."
+msgstr ""
+
+#: error_handler.py:78
+msgid "You need to be part of the bot's support team to be able to run this command."
+msgstr ""
+
+#: error_handler.py:84
+#, python-brace-format
+msgid "You need to have at least one of {roles} to be able to run this command."
+msgstr ""
+
+#: error_handler.py:90
+#, python-brace-format
+msgid "I need to have one of the {roles} roles for you to be able to run this command."
+msgstr ""
+
+#: error_handler.py:96
+#, python-brace-format
+msgid "You need to have the `{role}` role to be able to run this command."
+msgstr ""
+
+#: error_handler.py:102
+#, python-brace-format
+msgid "I need to have the `{role}` role for you to be able to run this command."
+msgstr ""
+
+#: error_handler.py:108
+#, python-brace-format
+msgid "You need the `{permission}` permission to run this command."
+msgstr ""
+
+#: error_handler.py:114
+#, python-brace-format
+msgid "I need the `{permission}` permission for me to be able to run this command."
+msgstr ""
+
+#: error_handler.py:120
+msgid "This command can't be run in DMs."
+msgstr ""
+
+#: error_handler.py:126
+msgid "This command can only be run in DMs."
+msgstr ""
+
+#: error_handler.py:132
+msgid "You need to be registered as an owner to run this command."
+msgstr ""
+
+#: error_handler.py:138
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into a message."
+msgstr ""
+
+#: error_handler.py:144
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into a guild member."
+msgstr ""
+
+#: error_handler.py:150
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into a user."
+msgstr ""
+
+#: error_handler.py:156
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into a channel."
+msgstr ""
+
+#: error_handler.py:162
+#, python-brace-format
+msgid "I can't read messages in <#{id}>."
+msgstr ""
+
+#: error_handler.py:168
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into a colour."
+msgstr ""
+
+#: error_handler.py:174
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into a role."
+msgstr ""
+
+#: error_handler.py:180
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into an invite."
+msgstr ""
+
+#: error_handler.py:186
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into an emoji."
+msgstr ""
+
+#: error_handler.py:192
+#, python-brace-format
+msgid "I couldn't convert `{argument}` into a boolean."
+msgstr ""
+
+#: error_handler.py:198
+#, python-brace-format
+msgid "I couldn't convert your provided `{parameter_name}`."
+msgstr ""
+
+#: error_handler.py:214
+msgid "You can't run this command right now."
+msgstr ""
+
+#: error_handler.py:220
+msgid "You gave too many arguments to this command."
+msgstr ""
+
+#: error_handler.py:234
+msgid "Discord is saying I'm unable to perform that action."
+msgstr ""
+
+#: error_handler.py:240
+msgid "Either I or Discord messed up running this command. Please try again later."
+msgstr ""

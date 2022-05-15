@@ -63,15 +63,22 @@ class _SelectOptionsOptional(TypedDict, total=False):
 
 
 class SelectOption(_SelectOptionsOptional):
-    label: str
-    value: str
+    label: Optional[str]
+    value: Optional[str]
     default: bool
 
 
 class SelectMenu(_SelectMenuOptional):
-    type: Literal[3]
+    type: Literal[3, 5, 6, 7, 8]
     custom_id: str
     options: List[SelectOption]
+
+
+class ChannelSelectMenu(_SelectMenuOptional):
+    type: Literal[8]
+    custom_id: str
+    options: List[SelectOption]
+    channel_types: List[int]
 
 
 class InputText(TypedDict):
@@ -93,7 +100,7 @@ class Modal(TypedDict):
     components: List[Component]
 
 
-InteractionComponent = Union[Button, SelectMenu]
-LayoutComponent = ActionRow
-Component = Union[InteractionComponent, LayoutComponent]
-MessageComponents = List[Component]
+InteractionComponent = Union[Button, SelectMenu, ChannelSelectMenu]  # Components that give an interaction
+LayoutComponent = Union[ActionRow, Modal]  # Components used to define layouts
+Component = Union[InteractionComponent, LayoutComponent, InputText]  # Components that exist
+MessageComponents = List[Component]  # Components that can go in a message

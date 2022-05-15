@@ -269,6 +269,9 @@ class ComponentHolder(BaseComponent):
             elif isinstance(i, InteractableComponent):
                 if i.custom_id == custom_id:
                     return i
+            elif type(i) == BaseComponent:
+                if getattr(i, "custom_id", None) == custom_id:
+                    return i
             else:
                 raise TypeError(f"Invalid component type {i.__class__}")
         return None
