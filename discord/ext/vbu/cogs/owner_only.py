@@ -14,7 +14,6 @@ import importlib
 import discord
 from discord.ext import commands
 
-from discord.types.member import PartialMember
 from discord.types.user import PartialUser
 
 from . import utils as vbu
@@ -105,7 +104,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
 
         if not content:
             raise vbu.errors.MissingRequiredArgumentString("content")
-        async with self.bot.redis() as re:
+        async with vbu.Redis() as re:
             await re.publish("RunRedisEval", {
                 'channel_id': ctx.channel.id,
                 'message_id': ctx.message.id,
@@ -126,7 +125,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
 
         if not content:
             raise vbu.errors.MissingRequiredArgumentString("content")
-        async with self.bot.redis() as re:
+        async with vbu.Redis() as re:
             await re.publish("RunRedisEval", {
                 'channel_id': ctx.channel.id,
                 'message_id': ctx.message.id,
@@ -149,7 +148,10 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
             raise vbu.errors.MissingRequiredArgumentString("command_name")
         command = self.bot.get_command(command_name)
         if command is None:
-            return await ctx.send(f"I couldn't find a command named `{command_name}`.", allowed_mentions=discord.AllowedMentions.none())
+            return await ctx.send(
+                f"I couldn't find a command named `{command_name}`.",
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
 
         # Get its source
         data = textwrap.dedent(inspect.getsource(command.callback))
