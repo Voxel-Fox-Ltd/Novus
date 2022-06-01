@@ -224,8 +224,7 @@ class Bot(MinimalBot):
             intents: discord.Intents = None,
             allowed_mentions: discord.AllowedMentions = discord.AllowedMentions(everyone=False),
             *args,
-            **kwargs,
-            ):
+            **kwargs):
         """
         Args:
             config_file (str): The path to the :class:`config file<BotConfig>` for the bot.
@@ -488,6 +487,15 @@ class Bot(MinimalBot):
             f"{self.user.name.replace(' ', '-')} (Discord.py discord bot https://github.com/Voxel-Fox-Ltd/Novus) "
             f"Python/{platform.python_version()} aiohttp/{aiohttp.__version__}"
         ))
+
+    @property
+    def cluster(self) -> int:
+        """
+        Gets the bot cluster based on the shard count
+        and an evenly split amount of shards.
+        """
+
+        return (self.shard_ids or [0])[0] // len(self.shard_ids or [0])
 
     @property
     def upgrade_chat(self) -> upgradechat.UpgradeChat:
