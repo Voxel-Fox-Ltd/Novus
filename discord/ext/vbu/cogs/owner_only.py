@@ -170,6 +170,18 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         # Paginate
         await vbu.Paginator(pages, per_page=1).start(ctx)
 
+    @vbu.command()
+    @commands.is_owner()
+    @commands.bot_has_permissions()
+    async def shard(self, ctx: vbu.Context, guild_id: int = 0):
+        """
+        Tells you the shard ID for a given guild.
+        """
+
+        guild_id = guild_id or ctx.guild.id
+        shard_id = (guild_id >> 22) % (self.bot.shard_count or 1)
+        await ctx.send(str(shard_id))
+
     @vbu.command(aliases=['pm', 'dm', 'send'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True, add_reactions=True)
