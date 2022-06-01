@@ -97,11 +97,24 @@ class Analytics(vbu.Cog):
         Post the average guild count to Statsd
         """
 
-        # Only shard 0 can post
-        if self.bot.shard_count and self.bot.shard_count > 1 and 0 not in self.bot.shard_ids:
-            return
+        # Work out how many guilds to a shard
+        shard_guilds = {}
+        for i in (self.bot.shard_ids or [0]):
+            shard_guilds[i] = 0
+        for guild in self.bot.guilds:
+            shard_guilds[guild.shard_id] += 1
+
+        # Post that value
         async with self.bot.stats() as stats:
-            stats.gauge("discord.stats.guild_count", value=self.get_effective_guild_count())
+            for shard_id, count in shard_guilds.items():
+                stats.gauge(
+                    "discord.stats.guild_count",
+                    value=count,
+                    tags={
+                        "shard_id": shard_id,
+                        "cluster": self.bot.cluster,
+                    },
+                )
             stats.gauge("discord.stats.shard_count", value=self.bot.shard_count or 1)
 
     @post_statsd_guild_count.before_loop
