@@ -16,6 +16,19 @@ in specific versions.
 v0.1.4
 --------
 
+New Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* [vbu] Add ``shard`` command to owner only cog.
+* [vbu] Add :attr:`ext.vbu.Bot.cluster`.
+* [vbu] Add cluster and shard IDs to the statsd logger.
+
+Changed Features
+~~~~~~~~~~~~~~~~~~~
+
+* [vbu] ``ev`` command runs invoked via the ``redis`` command will no longer try and add a reaction.
+* [vbu] The statsd logger for guild count now runs per cluster for more accurate guild count measurement.
+
 Bugs Fixed
 ~~~~~~~~~~~~~~~~~~~~~~
 
