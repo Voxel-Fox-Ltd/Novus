@@ -147,4 +147,12 @@ def get_interaction_route_table(bot: BotBase, application_public_key: str, *, pa
         # And give some return data
         return interaction.response._aiohttp_response
 
+    @routes.get(path)
+    async def get_wrapper(request: web.Request) -> web.StreamResponse:
+        """
+        Handle a GET request from the browser.
+        """
+
+        return web.Response(text=f"{bot.user or 'Running interaction server'!s}")
+
     return routes
