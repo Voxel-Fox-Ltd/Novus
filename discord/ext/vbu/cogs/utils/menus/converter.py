@@ -222,9 +222,12 @@ class Converter(object):
             c = None
             for c in self.checks:
                 try:
-                    assert isinstance(c, ModalCheck)
+                    assert isinstance(c, ModalCheck), "Check is not a modal check"
                     checks_failed = not c.check(modal_submission)
-                except Exception:
+                except AssertionError as e:
+                    ctx.bot.logger.error("Error in menus in check", exc_info=e)
+                    checks_failed = True
+                except Exception as e:
                     checks_failed = True
                 if checks_failed:
                     break
