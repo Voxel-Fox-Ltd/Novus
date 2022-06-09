@@ -1,12 +1,26 @@
 from __future__ import annotations
 
 import enum
-import typing
+# import typing
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    List,
+    Any,
+    Union,
+    Awaitable
+)
 
 import discord
 
-if typing.TYPE_CHECKING:
-    from ..custom_context import Context
+if TYPE_CHECKING:
+    from discord.ext import commands, vbu
+    AnyContext = Union[
+        vbu.Context,
+        vbu.SlashContext,
+        commands.Context,
+        commands.SlashContext,
+    ]
 
 
 class DataLocation(enum.Enum):
@@ -44,7 +58,7 @@ class MenuCallbacks(object):
             data_location: DataLocation,
             table_name: str,
             column_name: str,
-            ) -> typing.Coroutine[typing.Any, typing.Any, None]:
+            ) -> Callable[..., Awaitable[None]]:
         """
         Returns a wrapper that updates the guild settings table for the bot's database.
 
@@ -91,7 +105,7 @@ class MenuCallbacks(object):
             cls,
             data_location: DataLocation,
             *settings_path: str,
-            ) -> typing.Callable[[Context, typing.List[typing.Any]], None]:
+            ) -> Callable[[AnyContext, List[Any]], None]:
         """
         Returns a wrapper that changes the :attr:`voxelbotutils.Bot.guild_settings` internal cache.
 
@@ -126,7 +140,7 @@ class MenuCallbacks(object):
             cls,
             data_location: DataLocation,
             *settings_path: str,
-            ) -> typing.Callable[[Context, typing.List[typing.Any]], None]:
+            ) -> Callable[[AnyContext, List[Any]], None]:
         """
         Returns a wrapper that changes the :attr:`voxelbotutils.Bot.guild_settings` internal cache.
 
@@ -165,7 +179,7 @@ class MenuCallbacks(object):
             cls,
             data_location: DataLocation,
             *settings_path: str,
-            ) -> typing.Callable[[Context, typing.List[typing.Any]], None]:
+            ) -> Callable[[AnyContext, List[Any]], None]:
         """
         Returns a wrapper that changes the :attr:`voxelbotutils.Bot.guild_settings` internal cache.
 
@@ -204,7 +218,7 @@ class MenuCallbacks(object):
             cls,
             data_location: DataLocation,
             *settings_path: str,
-            ) -> typing.Callable[[str], typing.Callable[[Context, typing.List[typing.Any]], None]]:
+            ) -> Callable[[str], Callable[[AnyContext, List[Any]], None]]:
         """
         Returns a wrapper that changes the :attr:`voxelbotutils.Bot.guild_settings` internal cache.
         Gives a nested function that takes a :code:`key` argument that acts as the primary key of the dict.
@@ -241,7 +255,7 @@ class MenuCallbacks(object):
             cls,
             data_location: DataLocation,
             *settings_path: str,
-            ) -> typing.Callable[[str], typing.Callable[[Context, typing.List[typing.Any]], None]]:
+            ) -> Callable[[Any], Callable[[AnyContext, List[Any]], None]]:
         """
         Returns a wrapper that changes the :attr:`voxelbotutils.Bot.guild_settings` internal cache.
         Gives a nested function that takes a :code:`value` argument that acts as the data to delete.
@@ -253,7 +267,7 @@ class MenuCallbacks(object):
                 should be removed from the cache of.
 
         Returns:
-            typing.Callable[[str], typing.Callable[[discord.ext.commands.Context, typing.List[typing.Any]]]]: A
+            typing.Callable[[Any], typing.Callable[[discord.ext.commands.Context, typing.List[typing.Any]]]]: A
                 wrapper method that does the actual work of removing data from your cache. The first wrapper takes
                 the value that should be removed. The second wrapper takes the context object from
                 the menu, and the list of returned converted arguments. Both wrappers are necessary as the outer wrapper
@@ -261,7 +275,7 @@ class MenuCallbacks(object):
                 :class:`voxelbotutils.menus.Menu` uses.
         """
 
-        def inner(value: typing.Any):
+        def inner(value: Any):
             def wrapper(ctx, data: list):
                 if data_location == DataLocation.GUILD:
                     d = ctx.bot.guild_settings[ctx.guild.id]

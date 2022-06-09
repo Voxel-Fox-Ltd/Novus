@@ -1,7 +1,21 @@
 from __future__ import annotations
 
 import asyncio
-import typing
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Tuple,
+    Type,
+    TypeVar,
+    Awaitable,
+    Union,
+    Optional,
+    List,
+    Iterable,
+    Any,
+    overload,
+)
 import inspect
 
 import discord
@@ -16,29 +30,30 @@ from ..custom_cog import Cog
 from ..custom_command import Command
 from ..custom_bot import Bot
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from ..custom_context import Context, SlashContext
 
-    ContextCallable = typing.Callable[[Context], None]
-    AwaitableContextCallable = typing.Awaitable[ContextCallable]
-    MaybeCoroContextCallable = typing.Union[ContextCallable, AwaitableContextCallable]
+    ContextCallable = Callable[[Context], None]
+    AwaitableContextCallable = Callable[[Context], Awaitable[None]]
+    MaybeCoroContextCallable = Union[ContextCallable, AwaitableContextCallable]
+    AnyContext = Union[Context, SlashContext]
 
 
-T = typing.TypeVar("T")
+T = TypeVar("T")
 
 
-@typing.overload
-def _do_nothing(return_value: typing.Type[T]) -> typing.Callable[[], T]:
+@overload
+def _do_nothing(return_value: Type[T]) -> Callable[[], T]:
     ...
 
 
-@typing.overload
-def _do_nothing(return_value=None) -> typing.Callable[[], None]:
+@overload
+def _do_nothing(return_value=None) -> Callable[[], None]:
     ...
 
 
-def _do_nothing(return_value: typing.Optional[typing.Type[T]] = None) -> typing.Callable[[], typing.Optional[T]]:
-    def wrapper(*args, **kwargs) -> typing.Optional[T]:
+def _do_nothing(return_value: Optional[Type[T]] = None) -> Callable[[], Optional[T]]:
+    def wrapper(*args, **kwargs) -> Optional[T]:
         if return_value:
             return return_value()
         return return_value
@@ -55,63 +70,65 @@ class Menu(MenuDisplayable):
     def __init__(
             self,
             *options: Option,
-            display: str = None,
-            component_display: str = None,
-            ):
+            display: Optional[str] = None,
+            component_display: Optional[str] = None):
         """
-        Args:
-            options (typing.List[Option]): A list of options that should be displayed in the menu.
-            display (str, optional): When using a nested submenu, this is the option that should be displayed.
-            component_display (str, optional): When using a nested submenu, this is the option that
-                should be displayed in the component.
+        Parameters
+        ----------
+        *options : Option
+            A list of options that are inside the menu.
+        display : Optional[Optional[str]]
+            When this menu itself is an option, this is the text that is
+            displayed on the parent menu.
+        component_display : Optional[Optional[str]]
+            When this menu itself is an option, this is the text that is
+            displayed for the parent menu's component.
         """
 
-        self.display = display  # Used for nested menus
-        self.component_display = component_display  # Used for nested menus
+        self.display: Optional[str] = display  # Used for nested menus
+        self.component_display: Optional[str] = component_display  # Used for nested menus
         self._options = list(options)
 
-    @typing.overload
+    @overload
     def create_cog(
             self,
             bot=None,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
-            aliases: typing.List[str] = ["setup"],
-            permissions: typing.List[str] = None,
+            aliases: List[str] = ["setup"],
+            permissions: List[str] = None,
             post_invoke: MaybeCoroContextCallable = None,
             guild_only: bool = True,
-            **command_kwargs
-            ) -> typing.Type[commands.Cog]:
+            **command_kwargs) -> Type[commands.Cog]:
         ...
 
-    @typing.overload
+    @overload
     def create_cog(
             self,
             bot: Bot,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
-            aliases: typing.List[str] = ["setup"],
-            permissions: typing.List[str] = None,
+            aliases: List[str] = ["setup"],
+            permissions: List[str] = None,
             post_invoke: MaybeCoroContextCallable = None,
             guild_only: bool = True,
-            **command_kwargs
-            ) -> commands.Cog:
+            **command_kwargs) -> commands.Cog:
         ...
 
     def create_cog(
             self,
-            bot: typing.Optional[Bot] = None,
+            bot: Optional[Bot] = None,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
-            aliases: typing.List[str] = ["setup"],
-            permissions: typing.List[str] = None,
+            aliases: List[str] = ["setup"],
+            permissions: List[str] = None,
             post_invoke: MaybeCoroContextCallable = None,
             guild_only: bool = True,
             **command_kwargs
-            ) -> typing.Union[commands.Cog, typing.Type[commands.Cog]]:
+            ) -> Union[commands.Cog, Type[commands.Cog]]:
         """
         Creates a cog that can be loaded into the bot in a setup method.
 
@@ -196,7 +213,10 @@ class Menu(MenuDisplayable):
             return NestedCog(bot)
         return NestedCog
 
-    async def get_options(self, ctx: commands.SlashContext, force_regenerate: bool = False) -> typing.List[Option]:
+    async def get_options(
+            self,
+            ctx: commands.SlashContext,
+            force_regenerate: bool = False) -> List[Option]:
         """
         Get all of the options for an instance.
         This method has an open database instance in :code:`ctx.database`.
@@ -204,7 +224,10 @@ class Menu(MenuDisplayable):
 
         return self._options
 
-    async def start(self, ctx: commands.SlashContext, delete_message: bool = False) -> None:
+    async def start(
+            self,
+            ctx: commands.SlashContext,
+            delete_message: bool = False) -> None:
         """
         Run the menu instance.
 
@@ -317,22 +340,32 @@ class Menu(MenuDisplayable):
 
         # Add items to the list
         async with ctx.bot.database() as db:
-            ctx.database = db
+            ctx.database = db  # type: ignore - context doesn't have slots deliberately
             options = await self.get_options(ctx, force_regenerate=True)
             for i in options:
                 output = await i.get_display(ctx)
                 if output:
                     output_strings.append(f"\N{BULLET} {output}")
-                style = (discord.ui.ButtonStyle.secondary if isinstance(i._callback, Menu) else None) or i._button_style or discord.ui.ButtonStyle.primary
+                style = (
+                    discord.ui.ButtonStyle.secondary
+                    if isinstance(i._callback, Menu)
+                    else None
+                ) or i._button_style or discord.ui.ButtonStyle.primary
                 buttons.append(discord.ui.Button(
                     label=i.component_display,
                     custom_id=i._component_custom_id,
                     style=style,
                 ))
-        ctx.database = None
+        ctx.database = None  # type: ignore - context doesn't have slots deliberately
 
         # Add a done button
-        buttons.append(discord.ui.Button(label="Done", custom_id="Done", style=discord.ui.ButtonStyle.success))
+        buttons.append(
+            discord.ui.Button(
+                label="Done",
+                custom_id="Done",
+                style=discord.ui.ButtonStyle.success,
+            ),
+        )
 
         # Output
         components = discord.ui.MessageComponents.add_buttons_with_rows(*buttons)
@@ -357,39 +390,61 @@ class MenuIterable(Menu, Option):
             select_sql: str,
             insert_sql: str,
             delete_sql: str,
-            row_text_display: typing.Callable[[Context, dict], str],
-            row_component_display: typing.Callable[[Context, dict], str],
-            converters: typing.List[Converter],
-            select_sql_args: typing.Callable[[Context], typing.Iterable[typing.Any]] = None,
-            insert_sql_args: typing.Callable[[Context, typing.List[typing.Any]], typing.Iterable[typing.Any]] = None,
-            delete_sql_args: typing.Callable[[Context, dict], typing.Iterable[typing.Any]] = None,
-            cache_callback: typing.Optional[typing.Callable[[Context, typing.List[typing.Any]], None]] = None,
-            cache_delete_callback: typing.Optional[typing.Callable[[Context, typing.List[typing.Any]], None]] = None,
-            cache_delete_args: typing.Optional[typing.Callable[[dict], typing.Iterable[typing.Any]]] = None,
-            ):
+            row_text_display: Callable[[AnyContext, Dict[str, Any]], str],
+            row_component_display: Callable[[AnyContext, Dict[str, Any]], Union[str, Tuple[str, str]]],
+            converters: List[Converter],
+            select_sql_args: Callable[[AnyContext], Iterable[Any]],
+            insert_sql_args: Callable[[AnyContext, List[Any]], Iterable[Any]],
+            delete_sql_args: Callable[[AnyContext, Dict[str, Any]], Iterable[Any]],
+            cache_callback: Optional[Callable[[AnyContext, List[Any]], None]] = None,
+            cache_delete_callback: Optional[Callable[[str], Callable[[AnyContext, List[Any]], None]]] = None,
+            cache_delete_args: Optional[Callable[[Dict[str, Any]], Iterable[Any]]] = None):
         """
-        Args:
-            select_sql (str): The SQL that should be used to select the rows to be displayed from the database.
-            select_sql_args (typing.Callable[[commands.Context], typing.List[typing.Any]]): A function returning a
-                list of arguments that should be passed to the database select. The list given is args that are passed
-                to the select statement.
-            insert_sql (str): The SQL that should be used to insert the data into the database.
-            insert_sql_args (typing.Callable[[commands.Context, typing.List[typing.Any]], typing.List[typing.Any]]): A
-                function returning a list of arguments that should be passed to the database insert. The list given is
-                a list of items returned from the option.
-            delete_sql (str): The SQL that should be used to delete a row from the database.
-            delete_sql_args (typing.Callable[[commands.Context, dict], typing.List[typing.Any]]): A function returning a
-                list of arguments that should be passed to the database delete. The dict given is a row from the database.
-            row_text_display (typing.Callable[[commands.Context, dict], str]): A function returning a string which should
-                be showed in the menu. The dict given is the row from the database.
-            row_component_display (typing.Callable[[commands.Context, dict], typing.Union[str, typing.Tuple[str, str]]): A
-                function returning a string which should be shown on the component. The dict given is the row from the database.
-                If one string is returned, it's used for both the button and its custom ID. If two strings are given, the
-                first is used for the button and the second for the custom ID.
-            converters (typing.List[Converter]): A list of converters that the user should be asked for.
-            cache_callback (typing.Optional[typing.Callable[[commands.Context, typing.List[typing.Any]], None]]): Description
-            cache_delete_callback (typing.Optional[typing.Callable[[commands.Context, typing.List[typing.Any]], None]]): Description
-            cache_delete_args (typing.Optional[typing.Callable[[dict], typing.List[typing.Any]]]): Description
+        Parameters
+        ----------
+        select_sql : str
+            The SQL that should be used to select the rows to be displayed from the database.
+        insert_sql : str
+            The SQL that should be used to insert the data into the database.
+        delete_sql : str
+            The SQL that should be used to delete a row from the database.
+        row_text_display : Callable[[AnyContext, Dict[str, Any]], str]
+            A function returning a string which should
+            be showed in the menu. The dict given is the row from the database.
+        row_component_display : Callable[[AnyContext, Dict[str, Any]], Union[str, Tuple[str, str]]]
+            A function returning a string which should be shown on the component.
+            The dict given is the row from the database. If one string is
+            returned, it's used for both the button and its custom ID.
+            If two strings are given, the first is used for the button
+            and the second for the custom ID.
+        converters : List[Converter]
+            A list of converters that the user should be asked for.
+        select_sql_args : Callable[[AnyContext], Iterable[Any]]
+            A function returning a list of arguments that should be
+            passed to the database select. The list given is args
+            that are passed to the select statement.
+        insert_sql_args : Callable[[AnyContext, List[Any]], Iterable[Any]]
+            A function returning a list of arguments that should
+            be passed to the database insert. The list given is
+            a list of items returned from the option.
+        delete_sql_args : Callable[[AnyContext, Dict[str, Any]], Iterable[Any]]
+            A function returning a list of arguments that should
+            be passed to the database delete. The dict given is
+            a row from the database.
+        cache_callback : Optional[Callable[[AnyContext, List[Any]], None]]
+            A function that takes in a context and a list of
+            converted items from the user for you to cache as
+            you please.
+        cache_delete_callback : Optional[Callable[[str], Callable[[AnyContext, List[Any]], None]]]
+            A function that returns a function that takes in
+            a context and a list of  converted items from
+            the user for you to remove from the cache as you please.
+            The initial function takes in the data returned from
+            ``cache_delete_args``.
+        cache_delete_args : Optional[Callable[[Dict[str, Any]], Iterable[Any]]]
+            A function that takes in a row from the database
+            and returns a list of items to be passed into
+            ``cache_delete_callback``.
         """
 
         self.row_text_display = row_text_display
@@ -433,7 +488,10 @@ class MenuIterable(Menu, Option):
                 await db(self.delete_sql, *args)
         return wrapper
 
-    async def get_options(self, ctx: commands.SlashContext, force_regenerate: bool = False):
+    async def get_options(
+            self,
+            ctx: SlashContext,
+            force_regenerate: bool = False):
         """
         Get all of the options for an instance.
         This method has an open database instance in :code:`Context.database`.

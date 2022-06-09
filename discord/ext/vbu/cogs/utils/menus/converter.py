@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-import typing
+from typing import TYPE_CHECKING, Callable, Union, Type, Optional, List, overload
 
 import discord
 from discord.ext import commands
@@ -10,17 +10,20 @@ from .check import Check, ModalCheck
 from .errors import ConverterFailure, ConverterTimeout
 from .utils import get_discord_converter
 
-if typing.TYPE_CHECKING:
-    AnyConverter = typing.Union[
-        typing.Callable[[typing.Union[str, discord.Interaction[str]]], typing.Any],
-        typing.Type[discord.Role],
-        typing.Type[discord.TextChannel],
-        typing.Type[discord.User],
-        typing.Type[discord.Member],
-        typing.Type[discord.VoiceChannel],
-        typing.Type[str],
-        typing.Type[int],
-        typing.Type[bool],
+if TYPE_CHECKING:
+    TypeConverter = Union[
+        Type[discord.Role],
+        Type[discord.TextChannel],
+        Type[discord.User],
+        Type[discord.Member],
+        Type[discord.VoiceChannel],
+        Type[str],
+        Type[int],
+        Type[bool],
+    ]
+    AnyConverter = Union[
+        Callable[[discord.Interaction], bool],
+        TypeConverter,
     ]
 
 
@@ -38,13 +41,33 @@ class Converter(object):
     An object for use in the settings menus for describing things that the user should input.
     """
 
+    @overload
     def __init__(
             self,
             prompt: str,
-            checks: typing.List[Check] = None,
-            converter: AnyConverter = str,
-            components: discord.ui.MessageComponents = None,
-            timeout_message: str = None):
+            checks: Optional[List[Check]] = ...,
+            converter: Optional[Callable[[discord.Interaction], bool]] = ...,
+            components: discord.ui.MessageComponents = ...,
+            timeout_message: Optional[str] = ...):
+        ...
+
+    @overload
+    def __init__(
+            self,
+            prompt: str,
+            checks: Optional[List[Check]] = ...,
+            converter: Optional[TypeConverter] = ...,
+            components: Optional[discord.ui.MessageComponents] = None,
+            timeout_message: Optional[str] = ...):
+        ...
+
+    def __init__(
+            self,
+            prompt: str,
+            checks: Optional[List[Check]] = None,
+            converter: Optional[AnyConverter] = str,
+            components: Optional[discord.ui.MessageComponents] = None,
+            timeout_message: Optional[str] = None):
         """
         Args:
             prompt (str): The message that should be sent to the user when asking for the convertable.
@@ -55,18 +78,18 @@ class Converter(object):
                 so use the given checks to make sure that this does not happen if this behaviour is undesirable. If you set
                 :code:`components`, then this function should instead take the payload instance that was given back by the
                 user's interaction.
-            components (voxelbotutils.MessageComponents): An instance of message components to be sent by the bot.
+            components (discord.ui.MessageComponents): An instance of message components to be sent by the bot.
                 If components are sent then the bot will not accept a message as a response, only an interaction
                 with the component.
             timeout_message (str): The message that should get output to the user if this converter times out.
         """
 
-        self.prompt = prompt
-        self.checks = checks or list()
-        self._converter = converter
+        self.prompt: str = prompt
+        self.checks: List[Check] = checks or list()
+        self._converter: Optional[AnyConverter] = converter
         self.converter = self._wrap_converter(converter)
-        self.components = components
-        self.timeout_message = timeout_message
+        self.components: Optional[discord.ui.MessageComponents] = components
+        self.timeout_message: Optional[str] = timeout_message
 
     @staticmethod
     def _wrap_converter(converter):
