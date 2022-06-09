@@ -31,12 +31,10 @@ if TYPE_CHECKING:
         # commands.Context,
         commands.SlashContext,
     ]
-
-
-Callback = Union[
-    Callable[[AnyContext, List[Any]], Awaitable[None]],
-    Callable[[AnyContext, List[Any]], None],
-]
+    Callback = Union[
+        Callable[[AnyContext, List[Any]], Awaitable[None]],
+        Callable[[AnyContext, List[Any]], None],
+    ]
 
 
 class Option(MenuDisplayable):
