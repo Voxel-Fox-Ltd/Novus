@@ -17,6 +17,7 @@ from typing import (
     overload,
 )
 import inspect
+import uuid
 
 import discord
 from discord.ext import commands
@@ -97,8 +98,8 @@ class Menu(MenuDisplayable):
             cog_name: str = "Bot Settings",
             name: str = "settings",
             aliases: List[str] = ["setup"],
-            permissions: List[str] = None,
-            post_invoke: MaybeCoroContextCallable = None,
+            permissions: Optional[List[str]] = None,
+            post_invoke: Optional[MaybeCoroContextCallable] = None,
             guild_only: bool = True,
             **command_kwargs) -> Type[commands.Cog]:
         ...
@@ -111,8 +112,8 @@ class Menu(MenuDisplayable):
             cog_name: str = "Bot Settings",
             name: str = "settings",
             aliases: List[str] = ["setup"],
-            permissions: List[str] = None,
-            post_invoke: MaybeCoroContextCallable = None,
+            permissions: Optional[List[str]] = None,
+            post_invoke: Optional[MaybeCoroContextCallable] = None,
             guild_only: bool = True,
             **command_kwargs) -> commands.Cog:
         ...
@@ -124,8 +125,8 @@ class Menu(MenuDisplayable):
             cog_name: str = "Bot Settings",
             name: str = "settings",
             aliases: List[str] = ["setup"],
-            permissions: List[str] = None,
-            post_invoke: MaybeCoroContextCallable = None,
+            permissions: Optional[List[str]] = None,
+            post_invoke: Optional[MaybeCoroContextCallable] = None,
             guild_only: bool = True,
             **command_kwargs
             ) -> Union[commands.Cog, Type[commands.Cog]]:
@@ -179,7 +180,7 @@ class Menu(MenuDisplayable):
                 application_command_meta=command_kwargs.pop("application_command_meta", meta),
                 **command_kwargs,
             )
-            @commands.defer()
+            # @commands.defer()
             @commands.has_permissions(**{i: True for i in permissions})
             @commands.bot_has_permissions(send_messages=True, embed_links=True)
             async def settings(nested_self, ctx):
@@ -190,6 +191,7 @@ class Menu(MenuDisplayable):
                 # Make sure it's a slashie
                 if not isinstance(ctx, commands.SlashContext):
                     return await ctx.send("This command can only be run as a slash command.")
+                await ctx.interaction.response.send_message("Loading menu...")
 
                 # Get a guild if we need to
                 if ctx.interaction.guild_id:
@@ -241,27 +243,27 @@ class Menu(MenuDisplayable):
         """
 
         # Set up our base case
-        sendable_data: dict = await self.get_sendable_data(ctx)
+        component_custom_id: str = str(uuid.uuid4())
+        sendable_data: dict = await self.get_sendable_data(ctx, component_custom_id)
         sent_components: discord.ui.MessageComponents = sendable_data['components']
-        menu_message: discord.Message
+        component_custom_ids: List[str] = []
 
         # Send the initial message
         if not isinstance(ctx, commands.SlashContext):
-            menu_message = await ctx.send(**sendable_data)  # No interaction?
+            await ctx.send(**sendable_data)  # No interaction? Somehow?
         elif ctx.interaction.response.is_done:
-            menu_message = await ctx.interaction.followup.send(**sendable_data)  # Deferred interaction
+            await ctx.interaction.edit_original_message(**sendable_data)
         else:
-            await ctx.interaction.response.defer()
-            menu_message = await ctx.interaction.followup.send(**sendable_data)
+            await ctx.interaction.response.edit_message(**sendable_data)
 
         # Set up a function so as to get
-        def get_button_check(given_message):
-            def button_check(payload):
-                if payload.message.id != given_message.id:
+        def get_button_check(valid_ids: List[str]):
+            def button_check(payload: discord.Interaction):
+                if payload.custom_id not in valid_ids:
                     return False
                 if payload.user.id == ctx.interaction.user.id:
                     return True
-                ctx.bot.loop.create_task(payload.respond(
+                ctx.bot.loop.create_task(payload.response.send_message(
                     f"Only {ctx.interaction.user.mention} can interact with these buttons.",
                     ephemeral=True,
                 ))
@@ -271,15 +273,21 @@ class Menu(MenuDisplayable):
         # Keep looping while we're expecting a user input
         while True:
 
+            # Get the valid custom IDs for this menu
+            component_custom_ids.clear()
+            for ar in sent_components.components:
+                for co in ar.components:
+                    component_custom_ids.append(co.custom_id)
+
             # Wait for the user to click on a button
             try:
                 payload: discord.Interaction = await ctx.bot.wait_for(
                     "component_interaction",
-                    check=get_button_check(menu_message),
+                    check=get_button_check(component_custom_ids),
                     timeout=60.0,
                 )
+                await payload.response.defer_update()
                 ctx.interaction = payload
-                await payload.response.edit_message(components=sent_components.disable_components())
             except asyncio.TimeoutError:
                 break
 
@@ -299,37 +307,31 @@ class Menu(MenuDisplayable):
             # Run the given option
             # This may change the interaction object within the context,
             # but at all points it should be deferred (update)
-            try:
-                if isinstance(clicked_option._callback, Menu):
-                    await clicked_option._callback.start(ctx, delete_message=True)
-                else:
-                    await clicked_option.run(ctx)
-            except ConverterTimeout as e:
-                try:
-                    await ctx.interaction.followup.send(
-                        content=e.message,
-                    )
-                except:
-                    pass
-                break
-            except asyncio.TimeoutError:
-                break
+            if isinstance(clicked_option._callback, Menu):
+                await clicked_option._callback.start(ctx)
+            else:
+                await clicked_option.run(ctx)
 
             # Edit the message with our new buttons
-            sendable_data = await self.get_sendable_data(ctx)
-            sent_components = sendable_data['components']
-            menu_message = await ctx.interaction.followup.send(**sendable_data)
+            sendable_data = await self.get_sendable_data(ctx, component_custom_id)
+            if ctx.interaction.response.is_done:
+                await ctx.interaction.edit_original_message(**sendable_data)
+            else:
+                await ctx.interaction.response.edit_message(**sendable_data)
 
         # Disable the buttons before we leave
         try:
             if delete_message:
                 await ctx.interaction.delete_original_message()
             else:
-                await ctx.interaction.edit_original_message(components=sent_components.disable_components())
+                await ctx.interaction.edit_original_message(components=None)
         except Exception:
             pass
 
-    async def get_sendable_data(self, ctx: commands.SlashContext) -> dict:
+    async def get_sendable_data(
+            self,
+            ctx: commands.SlashContext,
+            component_custom_id: Optional[str] = None) -> dict:
         """
         Gets a dictionary of sendable objects to unpack for the :func:`start` method.
         """
@@ -362,7 +364,7 @@ class Menu(MenuDisplayable):
         buttons.append(
             discord.ui.Button(
                 label="Done",
-                custom_id="Done",
+                custom_id=component_custom_id,
                 style=discord.ui.ButtonStyle.success,
             ),
         )
@@ -372,7 +374,8 @@ class Menu(MenuDisplayable):
         embed = discord.Embed(colour=0xffffff)
         embed.description = "\n".join(output_strings) or "No options added."
         return {
-            "embed": embed,
+            "content": None,
+            "embeds": [embed],
             "components": components,
         }
 

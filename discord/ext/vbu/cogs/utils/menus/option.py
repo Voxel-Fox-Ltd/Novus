@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-# import typing
 from typing import (
     TYPE_CHECKING,
-    TypeVar,
     Awaitable,
     Callable,
-    Coroutine,
     Any,
     Union,
     Tuple,
@@ -24,11 +21,9 @@ from .utils import async_wrap_callback
 if TYPE_CHECKING:
     from .menu import Menu
     from .converter import Converter
-    from ..custom_context import Context, SlashContext
+    from ..custom_context import SlashContext
     AnyContext = Union[
-        # Context,
         SlashContext,
-        # commands.Context,
         commands.SlashContext,
     ]
     Callback = Union[
