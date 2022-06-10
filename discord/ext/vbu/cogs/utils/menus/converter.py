@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import TYPE_CHECKING, Any, Callable, Protocol, Union, Type, Optional, List, overload
+from typing import TYPE_CHECKING, Any, Callable, Dict, Protocol, Union, Type, Optional, List, overload
 
 import discord
 from discord.ext import commands
@@ -53,7 +53,8 @@ class Converter(object):
             checks: Optional[List[Check]] = ...,
             converter: Optional[Callable[[discord.Interaction], bool]] = ...,
             components: discord.ui.MessageComponents = ...,
-            timeout_message: Optional[str] = ...):
+            timeout_message: Optional[str] = ...,
+            input_text_kwargs: Optional[Dict[str, Any]] = None):
         ...
 
     @overload
@@ -63,7 +64,8 @@ class Converter(object):
             checks: Optional[List[Check]] = ...,
             converter: Optional[TypeConverter] = ...,
             components: Optional[discord.ui.MessageComponents] = None,
-            timeout_message: Optional[str] = ...):
+            timeout_message: Optional[str] = ...,
+            input_text_kwargs: Optional[Dict[str, Any]] = None):
         ...
 
     def __init__(
@@ -72,21 +74,33 @@ class Converter(object):
             checks: Optional[List[Check]] = None,
             converter: Optional[AnyConverter] = str,
             components: Optional[discord.ui.MessageComponents] = None,
-            timeout_message: Optional[str] = None):
+            timeout_message: Optional[str] = None,
+            input_text_kwargs: Optional[Dict[str, Any]] = None):
         """
-        Args:
-            prompt (str): The message that should be sent to the user when asking for the convertable.
-            checks (typing.List[voxelbotutils.menus.Check]): A list of check objects that should be used to make sure the user's
-                input is valid. These will be silently ignored if a :code:`components` parameter is passed.
-            converter (typing.Union[typing.Callable[[str], typing.Any], commands.Converter]): A callable that
-                will be used to convert the user's input. If a converter fails then :code:`None` will be returned,
-                so use the given checks to make sure that this does not happen if this behaviour is undesirable. If you set
-                :code:`components`, then this function should instead take the payload instance that was given back by the
-                user's interaction.
-            components (discord.ui.MessageComponents): An instance of message components to be sent by the bot.
-                If components are sent then the bot will not accept a message as a response, only an interaction
-                with the component.
-            timeout_message (str): The message that should get output to the user if this converter times out.
+        Parameters
+        ----------
+        prompt : str
+            The message that should be sent to the user when asking
+            for the convertable.
+        checks : Optional[Optional[List[Check]]]
+            A list of check objects that should be used to make sure the user's
+            input is valid. These will be silently ignored if a :code:`components` parameter is passed.
+        converter : Optional[Optional[AnyConverter]]
+            A callable that
+            will be used to convert the user's input. If a converter fails
+            then :code:`None` will be returned, so use the given checks
+            to make sure that this does not happen if this behaviour
+            is undesirable. If you set :code:`components`, then this
+            function should instead take the payload instance that was
+            given back by the user's interaction.
+        components : Optional[Optional[discord.ui.MessageComponents]]
+            An instance of message components to be sent by the bot.
+            If components are sent then the bot will not accept a message as a response, only an interaction
+            with the component.
+        timeout_message : Optional[Optional[str]]
+            The message that should get output to the user if this converter times out.
+        input_text_kwargs : Optional[Optional[Dict[str, Any]]]
+            Kwargs to be passed directly into the InputText for the modal.
         """
 
         self.prompt: str = prompt
@@ -95,6 +109,7 @@ class Converter(object):
         self.converter: _ConverterProtocol = self._wrap_converter(converter)  # type: ignore - reassignment
         self.components: Optional[discord.ui.MessageComponents] = components
         self.timeout_message: Optional[str] = timeout_message
+        self.input_text_kwargs: Dict[str, Any] = input_text_kwargs or dict()
 
     @staticmethod
     def _wrap_converter(converter: AnyConverter):
@@ -316,6 +331,7 @@ class Converter(object):
                 discord.ui.ActionRow(
                     discord.ui.InputText(
                         label="Input",
+                        **self.input_text_kwargs,
                     ),
                 ),
             ],
