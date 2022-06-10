@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     AwaitableContextCallable = Callable[[Context], Awaitable[None]]
     MaybeCoroContextCallable = Union[ContextCallable, AwaitableContextCallable]
     AnyContext = Union[Context, SlashContext]
+    AnyBot = Union[discord.Client, commands.Bot, Bot]
 
 
 T = TypeVar("T")
@@ -93,7 +94,7 @@ class Menu(MenuDisplayable):
     @overload
     def create_cog(
             self,
-            bot=None,
+            bot: None = None,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
@@ -107,7 +108,7 @@ class Menu(MenuDisplayable):
     @overload
     def create_cog(
             self,
-            bot: Bot,
+            bot: AnyBot = ...,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
@@ -120,7 +121,7 @@ class Menu(MenuDisplayable):
 
     def create_cog(
             self,
-            bot: Optional[Bot] = None,
+            bot: Optional[AnyBot] = None,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
