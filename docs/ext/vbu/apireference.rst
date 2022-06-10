@@ -211,11 +211,6 @@ menus.ModalCheck
 
 .. autoclass:: voxelbotutils.menus.ModalCheck
 
-menus.CheckFailureAction
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: voxelbotutils.menus.CheckFailureAction
-
 menus.Converter
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

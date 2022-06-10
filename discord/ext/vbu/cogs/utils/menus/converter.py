@@ -348,11 +348,7 @@ class Converter(object):
 
         # Deal with a check failure
         if checks_failed and c is not None:
-            if c.on_failure == Check.failures.RETRY:
-                return c
-            elif c.on_failure == Check.failures.FAIL:
-                raise ConverterFailure()
-            return None  # We shouldn't reach here but this is just for good luck
+            return c
 
         # And we converted properly
         try:

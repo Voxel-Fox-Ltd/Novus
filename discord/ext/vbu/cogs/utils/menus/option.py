@@ -91,11 +91,6 @@ class Option(MenuDisplayable):
             different reusable methods.
         allow_none : Optional[bool]
             Whether or not the option should allow ``None`` as a valid input.
-
-        Raises
-        ------
-        TypeError
-            Description
         """
 
         self.display: Optional[Union[str, Callable[[SlashContext], str]]] = display
