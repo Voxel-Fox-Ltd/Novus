@@ -641,6 +641,9 @@ def run_website(args: argparse.Namespace) -> None:
 
     loop = app.loop
 
+    # Set log levels
+    set_default_log_levels(args)
+
     # Connect the database pool
     if app['config'].get('database', {}).get('enabled', False):
         db_connect_task = start_database_pool(app['config'])
@@ -656,8 +659,8 @@ def run_website(args: argparse.Namespace) -> None:
     for index, (bot_name, bot_config_location) in enumerate(config.get('discord_bot_configs', dict()).items()):
         bot = Bot(f"./config/{bot_config_location}")
         app['bots'][bot_name] = bot
-        if index == 0:
-            set_default_log_levels(args)
+        # if index == 0:
+        #     set_default_log_levels(args)
         try:
             loop.run_until_complete(bot.login())
             bot.load_all_extensions()
