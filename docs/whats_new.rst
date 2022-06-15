@@ -11,6 +11,16 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_1_5:
+
+v0.1.5
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Add :func:`Guild.create_forum_channel`.
+
 .. _vp0_1_4:
 
 v0.1.4
