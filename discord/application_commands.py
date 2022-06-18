@@ -95,8 +95,10 @@ class ApplicationCommandOptionChoice:
             self,
             *,
             name: str,
+            name_localizations: Dict[Union[Locale, str], str] = None,
             value: ApplicationCommandOptionChoiceValue = None):
         self.name: str = name
+        self.name_localizations = name_localizations or dict()
         self.value: Any = value if value is not None else name
 
     def __repr__(self) -> str:
@@ -106,12 +108,14 @@ class ApplicationCommandOptionChoice:
     def from_data(cls, data: dict):
         return cls(
             name=data['name'],
+            name_localizations=data.get("name_localizations", dict()),
             value=data['value'],
         )
 
     def to_json(self) -> dict:
         return {
             "name": self.name,
+            "name_localizations": {str(i): o for i, o in self.name_localizations.items()},
             "value": self.value,
         }
 

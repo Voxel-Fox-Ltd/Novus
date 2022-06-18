@@ -67,6 +67,7 @@ class ApplicationCommandOption(TypedDict):
 
 class ApplicationCommandOptionChoice(TypedDict):
     name: str
+    name_localizations: Optional[Dict[str, str]]
     value: Union[str, int]
 
 
