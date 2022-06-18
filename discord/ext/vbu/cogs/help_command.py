@@ -5,6 +5,8 @@ from . import utils as vbu
 
 class Help(vbu.Cog):
 
+    _original_help_command = None
+
     def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self._original_help_command = bot.help_command
@@ -34,4 +36,10 @@ class Help(vbu.Cog):
 
 def setup(bot: vbu.Bot):
     x = Help(bot)
+    if not bot.config['default_prefix']:
+        return bot.remove_command("help")
     bot.add_cog(x)
+
+
+def teardown(bot: vbu.Bot):
+    bot.help_command = Help._original_help_command
