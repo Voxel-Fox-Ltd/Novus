@@ -1,6 +1,7 @@
 from importlib import metadata
 import sys
 import typing
+import textwrap
 
 import discord
 from discord.ext import commands
@@ -24,7 +25,7 @@ class BotStats(vbu.Cog):
         # Get the info embed
         bot_info = self.bot.config.get("bot_info", {})
         info_embed = vbu.Embed(
-            description=bot_info.get("content", "").format(bot=self.bot),
+            description=textwrap.dedent(bot_info.get("content", "")).format(bot=self.bot),
         ).set_author_to_user(
             self.bot.user,
         )
