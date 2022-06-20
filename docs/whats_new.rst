@@ -20,6 +20,7 @@ New Features
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * Add :func:`Guild.create_forum_channel`.
+* [vbu] Add :func:`vbu.component_id_check`.
 
 .. _vp0_1_4:
 

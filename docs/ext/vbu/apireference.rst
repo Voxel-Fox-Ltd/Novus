@@ -93,6 +93,11 @@ component_check
 
 .. autofunction:: voxelbotutils.component_check
 
+component_id_check
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. autofunction:: voxelbotutils.component_id_check
+
 format
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
