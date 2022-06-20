@@ -17,10 +17,11 @@ oauth_scopes = [ "identify", "guilds", ]  # The scopes that should be added to t
 
 # This data is passed directly over to asyncpg.connect().
 [database]
-    enabled = false
-    user = "database_username"
-    password = "database_password"
-    database = "database_name"
+    type = "sqlite"  # postgres, sqlite, mysql
+    enabled = true
+    user = ""
+    password = ""
+    database = ".database.sqlite"
     host = "127.0.0.1"
     port = 5432
 
