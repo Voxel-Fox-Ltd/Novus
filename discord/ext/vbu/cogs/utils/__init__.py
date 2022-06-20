@@ -18,7 +18,7 @@ from .time_value import TimeValue
 from .paginator import Paginator
 from .help_command import HelpCommand
 from .string import Formatter
-from .component_check import component_check
+from .component_check import component_check, component_id_check
 from .embeddify import Embeddify
 from .twitch_stream import TwitchStream
 
