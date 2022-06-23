@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import enum
-# import typing
 from typing import (
     TYPE_CHECKING,
     Callable,

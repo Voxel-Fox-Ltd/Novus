@@ -22,6 +22,11 @@ New Features
 * Add :func:`Guild.create_forum_channel`.
 * [vbu] Add :func:`vbu.component_id_check`.
 
+Removed Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* [vbu] Removed ``vbu.command``,  ``vbu.Command``, ``vbu.group``, and ``vbu.Group``.
+
 .. _vp0_1_4:
 
 v0.1.4

@@ -9,7 +9,7 @@ _ = vbu.translation
 
 class BotSettings(vbu.Cog):
 
-    @vbu.command(add_slash_command=False)
+    @commands.command(add_slash_command=False)
     @commands.bot_has_permissions(send_messages=True)
     @commands.guild_only()
     @vbu.checks.is_config_set('database', 'enabled')

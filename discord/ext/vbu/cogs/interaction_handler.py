@@ -59,7 +59,7 @@ class InteractionHandler(vbu.Cog, command_attrs={'hidden': True, 'add_slash_comm
         # Indent and return
         return text
 
-    @vbu.command(aliases=['addslashcommands', 'addslashcommand', 'addapplicationcommand'])
+    @commands.command(aliases=['addslashcommands', 'addslashcommand', 'addapplicationcommand'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True, add_reactions=True, attach_files=True)
     async def addapplicationcommands(self, ctx, guild_id: int = None, *commands: str):
@@ -88,7 +88,7 @@ class InteractionHandler(vbu.Cog, command_attrs={'hidden': True, 'add_slash_comm
         output = f"Added **{len(added_commands)}** slash commands."
         await ctx.send(output, file=file)
 
-    @vbu.command(aliases=['removeslashcommands', 'removeslashcommand', 'removeapplicationcommand'])
+    @commands.command(aliases=['removeslashcommands', 'removeslashcommand', 'removeapplicationcommand'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True, add_reactions=True, attach_files=True)
     async def removeapplicationcommands(self, ctx, guild_id: int = None, *commands: str):

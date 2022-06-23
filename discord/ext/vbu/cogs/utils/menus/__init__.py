@@ -6,13 +6,13 @@ from .option import Option
 
 
 __all__ = (
-    "DataLocation",
-    "MenuCallbacks",
-    "Check",
-    "ModalCheck",
-    "CheckFailureAction",
-    "Converter",
-    "Menu",
-    "MenuIterable",
-    "Option",
+    'DataLocation',
+    'MenuCallbacks',
+    'Check',
+    'ModalCheck',
+    'CheckFailureAction',
+    'Converter',
+    'Menu',
+    'MenuIterable',
+    'Option',
 )

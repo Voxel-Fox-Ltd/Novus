@@ -314,7 +314,7 @@ class ErrorHandler(vbu.Cog):
                 return await ctx.reinvoke()
 
         # See if the command itself has an error handler AND it isn't a locally handlled arg
-        # if hasattr(ctx.command, "on_error") and not isinstance(ctx.command, vbu.Command):
+        # if hasattr(ctx.command, "on_error") and not isinstance(ctx.command, commands.command):
         if hasattr(ctx.command, "on_error"):
             return
 

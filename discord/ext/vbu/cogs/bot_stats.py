@@ -11,7 +11,7 @@ from . import utils as vbu
 
 class BotStats(vbu.Cog):
 
-    @vbu.command(
+    @commands.command(
         application_command_meta=commands.ApplicationCommandMeta(),
     )
     @commands.defer()
@@ -80,7 +80,7 @@ class BotStats(vbu.Cog):
         oauth['permissions'] = permissions
         return self.bot.get_invite_link(**oauth)
 
-    @vbu.command()
+    @commands.command()
     @commands.bot_has_permissions(send_messages=True)
     @vbu.checks.is_config_set('oauth', 'enabled')
     async def invite(self, ctx: vbu.Context):
@@ -90,7 +90,7 @@ class BotStats(vbu.Cog):
 
         await ctx.send(f"<{self.get_invite_link()}>")
 
-    @vbu.command()
+    @commands.command()
     @commands.bot_has_permissions(send_messages=True)
     @vbu.checks.is_config_set('bot_listing_api_keys', 'topgg_token')
     async def vote(self, ctx: vbu.Context):
@@ -193,7 +193,7 @@ class BotStats(vbu.Cog):
 
         return embed
 
-    @vbu.command(aliases=['status', 'botinfo'])
+    @commands.command(aliases=['status', 'botinfo'])
     @commands.bot_has_permissions(send_messages=True, embed_links=True)
     async def stats(self, ctx: vbu.Context):
         """

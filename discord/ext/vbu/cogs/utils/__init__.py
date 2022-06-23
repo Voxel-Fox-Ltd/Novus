@@ -9,7 +9,6 @@ from . import checks, converters, errors, menus, types
 from .context_embed import Embed
 from .custom_bot import MinimalBot, Bot
 from .custom_cog import Cog
-from .custom_command import Command, Group
 from .custom_context import Context, AbstractMentionable, PrintContext, SlashContext
 from .database import DatabaseWrapper, DatabaseTransaction
 from .redis import RedisConnection, RedisChannelHandler, redis_channel_handler
@@ -23,19 +22,46 @@ from .embeddify import Embeddify
 from .twitch_stream import TwitchStream
 
 
-def command(*args, **kwargs):
-    return _dpy_commands.command(*args, cls=Command, **kwargs)
-
-
-def group(*args, **kwargs):
-    if 'case_insensitive' not in kwargs:
-        kwargs['case_insensitive'] = True
-    return _dpy_commands.group(*args, cls=Group, **kwargs)
+__all__ = (
+    'checks',
+    'converters',
+    'errors',
+    'menus',
+    'types',
+    'Embed',
+    'MinimalBot',
+    'Bot',
+    'Cog',
+    'Context',
+    'AbstractMentionable',
+    'PrintContext',
+    'SlashContext',
+    'DatabaseWrapper',
+    'DatabaseTransaction',
+    'RedisConnection',
+    'RedisChannelHandler',
+    'redis_channel_handler',
+    'StatsdConnection',
+    'TimeValue',
+    'Paginator',
+    'HelpCommand',
+    'Formatter',
+    'component_check',
+    'component_id_check',
+    'Embeddify',
+    'TwitchStream',
+    'minify_html',
+    'translation',
+    'format',
+    'embeddify',
+    'DatabaseConnection',
+    'Database',
+    'Redis',
+    'Stats',
+)
 
 
 _html_minifier = _re.compile(r"\s{2,}|\n")
-
-
 def minify_html(text: str) -> str:
     return _html_minifier.sub("", text)
 
@@ -91,8 +117,7 @@ def translation(
     )
 
 
-_formatter = Formatter()
-format = _formatter.format
+format = Formatter().format
 embeddify = Embeddify.send
 DatabaseConnection = DatabaseWrapper
 Database = DatabaseWrapper

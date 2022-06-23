@@ -93,7 +93,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         # And run
         await self.bot.invoke(ctx)
 
-    @vbu.command()
+    @commands.command()
     @commands.is_owner()
     @vbu.checks.is_config_set("redis", "enabled")
     @commands.bot_has_permissions(send_messages=True, attach_files=True, add_reactions=True)
@@ -114,7 +114,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
                 'fetch': False,
             })
 
-    @vbu.command()
+    @commands.command()
     @commands.is_owner()
     @vbu.checks.is_config_set("redis", "enabled")
     @commands.bot_has_permissions(send_messages=True, attach_files=True, add_reactions=True)
@@ -135,7 +135,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
                 'fetch': True,
             })
 
-    @vbu.command(aliases=['src'])
+    @commands.command(aliases=['src'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True, attach_files=True, add_reactions=True)
     async def source(self, ctx: vbu.Context, *, command_name: str):
@@ -172,7 +172,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         # Paginate
         await vbu.Paginator(pages, per_page=1).start(ctx)
 
-    @vbu.command()
+    @commands.command()
     @commands.is_owner()
     @commands.bot_has_permissions()
     async def shard(self, ctx: vbu.Context, guild_id: int = 0):
@@ -184,7 +184,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         shard_id = (guild_id >> 22) % (self.bot.shard_count or 1)
         await ctx.send(str(shard_id))
 
-    @vbu.command(aliases=['pm', 'dm', 'send'])
+    @commands.command(aliases=['pm', 'dm', 'send'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True, add_reactions=True)
     async def message(self, ctx: vbu.Context, snowflake: int, *, content: str = None):
@@ -266,7 +266,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
             index += 1
         return f"Executed in **{time_taken:,.3f}** {precision}."
 
-    @vbu.command(aliases=['evall', 'eval'])
+    @commands.command(aliases=['evall', 'eval'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def ev(self, ctx: vbu.Context, *, content: str = None):
@@ -377,7 +377,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
             file=discord.File(io.StringIO(result), filename=f"ev.{filetype}")
         )
 
-    @vbu.command(aliases=['rld', 'rl'])
+    @commands.command(aliases=['rld', 'rl'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def reload(self, ctx: vbu.Context, *cog_name: str):
@@ -416,7 +416,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
             await ctx.send("Reloaded:\n`" + "`\n`".join(reloaded_cogs) + "`")
         return
 
-    @vbu.command(aliases=['downloadcog', 'dlcog', 'download', 'dl', 'stealcog'])
+    @commands.command(aliases=['downloadcog', 'dlcog', 'download', 'dl', 'stealcog'])
     @commands.is_owner()
     async def downloadfile(self, ctx: vbu.Context, url: str, file_folder: typing.Optional[str]):
         """
@@ -467,7 +467,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         # And done
         await ctx.send(f"Downloaded the `{file_name}` cog, saved as `{file_path}`, and loaded successfully into the bot.")
 
-    @vbu.command()
+    @commands.command()
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def runsql(self, ctx: vbu.Context, *, sql: str):
@@ -523,7 +523,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         file = discord.File(io.StringIO(string_output), filename="runsql.txt")
         await ctx.send(file=file)
 
-    @vbu.group()
+    @commands.group()
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def botuser(self, ctx: vbu.Context):
@@ -590,7 +590,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         status = getattr(discord.Status, status.lower())
         await self.bot.change_presence(activity=self.bot.guilds[0].me.activity, status=status)
 
-    @vbu.command(aliases=['sudo'])
+    @commands.command(aliases=['sudo'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def su(self, ctx, who: discord.User, *, command: str):
@@ -615,7 +615,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         # Invoke it dab
         await self.bot.invoke(new_ctx)
 
-    @vbu.command(aliases=['sh'])
+    @commands.command(aliases=['sh'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def shell(self, ctx: vbu.Context, *, command: str):
@@ -657,7 +657,7 @@ class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_comm
         except discord.HTTPException:
             pass
 
-    @vbu.group()
+    @commands.group()
     @commands.is_owner()
     async def export(self, ctx: vbu.Context):
         """
