@@ -9,11 +9,6 @@ if typing.TYPE_CHECKING:
     from .custom_bot import Bot
 
 
-TextDestinations = typing.Union[discord.User, discord.Member, discord.TextChannel]
-ContextDestinations = typing.Union[commands.Context, commands.SlashContext]
-Destinations = typing.Union[TextDestinations, ContextDestinations]
-
-
 MISSING = discord.utils.MISSING
 
 
@@ -27,7 +22,7 @@ class Embeddify:
     @classmethod
     async def send(
             cls,
-            dest: Destinations,
+            dest: typing.Union[discord.abc.Messageable, discord.Webhook],
             content: typing.Optional[str],
             **kwargs,
             ) -> discord.Message:
@@ -36,7 +31,7 @@ class Embeddify:
     @classmethod
     def get_embeddify(
             cls,
-            dest: Destinations,
+            dest: typing.Union[discord.abc.Messageable, discord.Webhook],
             content: typing.Optional[str] = MISSING,
             *,
             embed: discord.Embed = MISSING,
