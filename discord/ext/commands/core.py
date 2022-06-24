@@ -121,9 +121,13 @@ if TYPE_CHECKING:
 else:
     P = TypeVar('P')
 
-slash_permission_ignores = [
-    "send_messages",
-    "embed_links",
+
+SLASH_PERMISSION_IGNORES = [
+    'send_messages',
+    'embed_links',
+    'attach_files',
+    'external_emojis',
+    'read_messages',
 ]  # permissions that don't matter to slash command checks
 
 
@@ -2455,9 +2459,10 @@ def bot_has_permissions(**perms: bool) -> Callable[[T], T]:
     def predicate(ctx: Context) -> bool:
         guild = ctx.guild
         me = guild.me if guild is not None else ctx.bot.user
+
         newperms = perms.copy()
         if isinstance(ctx, SlashContext):
-            for p in slash_permission_ignores:
+            for p in SLASH_PERMISSION_IGNORES:
                 v = newperms.pop(p, None)
                 if v is False:
                     newperms[p] = v
@@ -2518,7 +2523,7 @@ def bot_has_guild_permissions(**perms: bool) -> Callable[[T], T]:
         permissions = ctx.me.guild_permissions  # type: ignore
         missing = [perm for perm, value in perms.items() if getattr(permissions, perm) != value]
         if isinstance(ctx, SlashContext):
-            missing = [i for i in missing if i not in slash_permission_ignores]
+            missing = [i for i in missing if i not in SLASH_PERMISSION_IGNORES]
 
         if not missing:
             return True
