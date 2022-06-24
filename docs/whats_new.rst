@@ -20,6 +20,7 @@ New Features
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * Add :func:`Guild.create_forum_channel`.
+* Add :func:`AllowedMentions.only`.
 * [vbu] Add :func:`vbu.component_id_check`.
 
 Removed Features

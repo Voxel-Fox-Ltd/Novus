@@ -25,6 +25,7 @@ DEALINGS IN THE SOFTWARE.
 from __future__ import annotations
 from typing import Type, TypeVar, Union, List, TYPE_CHECKING, Any, Union
 
+
 __all__ = (
     'AllowedMentions',
 )
@@ -32,6 +33,9 @@ __all__ = (
 if TYPE_CHECKING:
     from .types.message import AllowedMentions as AllowedMentionsPayload
     from .abc import Snowflake
+
+    from .user import BaseUser
+    from .role import Role
 
 
 class _FakeBool:
@@ -95,15 +99,72 @@ class AllowedMentions:
 
     @classmethod
     def all(cls: Type[A]) -> A:
-        """A factory method that returns a :class:`AllowedMentions` with all fields explicitly set to ``True``
         """
-        return cls(everyone=True, users=True, roles=True, replied_user=True)
+        A factory method that returns a :class:`AllowedMentions` with all
+        fields explicitly set to ``True``.
+        """
+
+        return cls(
+            everyone=True,
+            users=True,
+            roles=True,
+            replied_user=True,
+        )
 
     @classmethod
     def none(cls: Type[A]) -> A:
-        """A factory method that returns a :class:`AllowedMentions` with all fields set to ``False``
         """
-        return cls(everyone=False, users=False, roles=False, replied_user=False)
+        A factory method that returns a :class:`AllowedMentions` with all
+        fields set to ``False``.
+        """
+
+        return cls(
+            everyone=False,
+            users=False,
+            roles=False,
+            replied_user=False,
+        )
+
+    @classmethod
+    def only(
+            cls: Type[A],
+            *mentionable: Union[BaseUser, Role]) -> A:
+        """
+        A factory method that returns a :class:`AllowedMentions` that
+        only mentions the provided user/role.
+
+        ``everyone`` and ``replied_user`` will both be set to ``False``.
+
+        Unlike ``__init__``, this has to explicitly take :class:`User`,
+        :class:`Member`, and :class:`Role` objects instead of just snowflakes.
+
+        Examples
+        ---------
+
+        .. code-block:: python3
+
+            member = discord.utils.get(guild.members, name='Foo')
+            mentions = discord.AllowedMentions.only(member)
+            await channel.send(f"@everyone {member.mention}", allowed_mentions=mentions)
+        """
+
+        # Import here to avoid circular
+        from .user import BaseUser
+        from .role import Role
+
+        # Build our mentionable lists
+        users: List[Snowflake] = [i for i in mentionable if isinstance(i, BaseUser)]
+        roles: List[Snowflake] = [i for i in mentionable if isinstance(i, Role)]
+        if set(mentionable).difference(set(users + roles)):
+            raise TypeError("non-User/Member/Role type given")
+
+        # And done
+        return cls(
+            everyone=False,
+            users=users or False,
+            roles=roles or False,
+            replied_user=False,
+        )
 
     def to_dict(self) -> AllowedMentionsPayload:
         parse = []
@@ -136,7 +197,12 @@ class AllowedMentions:
         users = self.users if other.users is default else other.users
         roles = self.roles if other.roles is default else other.roles
         replied_user = self.replied_user if other.replied_user is default else other.replied_user
-        return AllowedMentions(everyone=everyone, roles=roles, users=users, replied_user=replied_user)
+        return AllowedMentions(
+            everyone=everyone,
+            roles=roles,
+            users=users,
+            replied_user=replied_user,
+        )
 
     def __repr__(self) -> str:
         return (
