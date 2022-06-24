@@ -1,7 +1,9 @@
 import asyncio
-from typing import Union, Callable, Optional
+from typing import Iterable, Union, Callable, Optional
 
 import discord
+
+from .string import Formatter
 
 
 def component_check(
@@ -56,7 +58,7 @@ def component_check(
 
 
 def component_id_check(
-        user: discord.abc.Snowflake,
+        users: Union[discord.abc.Snowflake, Iterable[discord.abc.Snowflake]],
         custom_id: str,
         no_interact_message: Optional[str] = discord.utils.MISSING) -> Callable[[discord.Interaction], bool]:
     """
@@ -67,12 +69,12 @@ def component_id_check(
 
     Parameters
     ----------
-    user : Union[discord.User, discord.Member]
-        The user who's allowed to interact with the message.
+    users : Union[discord.abc.Snowflake, Iterable[discord.abc.Snowflake]]
+        A user or list of users who are allowed to interact with the message.
     custom_id : str
         The custom ID that we're searching for. Will be put into a
         `.startswith` for the interaction's custom ID.
-    no_interact_message : Optional[str]
+    no_interact_message : Optional[str], optional
         The content that's output when a non-valid user interacts
         with the button.
         You can disable a response being sent by passing ``None``
@@ -87,10 +89,16 @@ def component_id_check(
     """
 
     # Set a default interaction message
+    if isinstance(users, discord.abc.Snowflake):
+        users = [users]
+    mentions = [f"<@{user.id}>" for user in users]
     if no_interact_message is discord.utils.MISSING:
-        no_interact_message = (
-            f"Only <@{user.id}> can interact with "
-            "this component."
+        no_interact_message = Formatter().format(
+            (
+                "Only {mentions:humanjoin} can interact with "
+                "this message."
+            ),
+            mentions,
         )
 
     # Set up a check
