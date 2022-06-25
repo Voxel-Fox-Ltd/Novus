@@ -28,7 +28,6 @@ from .mixins import MenuDisplayable
 from .callbacks import MenuCallbacks
 from .converter import Converter
 from ..custom_cog import Cog
-from ..custom_command import Command
 from ..custom_bot import Bot
 
 if TYPE_CHECKING:
@@ -175,7 +174,6 @@ class Menu(MenuDisplayable):
                 super().cog_unload()
 
             @commands.command(
-                cls=Command,
                 name=name,
                 aliases=aliases,
                 application_command_meta=command_kwargs.pop("application_command_meta", meta),
