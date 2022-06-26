@@ -4,7 +4,7 @@ from discord.ext import commands
 bot = commands.Bot(command_prefix='?')  # define our bot
 
 
-@bot.event
+@bot.event #onready event
 async def on_ready():
     print(f'Logged in as {bot.user} (ID: {bot.user.id})')
     print('------')
