@@ -271,6 +271,10 @@ class Interaction(Generic[T]):
         Returns the user locale or the guild locale
 
         .. versionadded:: 0.0.6
+    app_permissions: :class:`Interaction`
+        The permissions for the app in the given guild.
+
+        .. versionadded:: 0.1.5
     """
 
     __slots__: Tuple[str, ...] = (
@@ -291,6 +295,7 @@ class Interaction(Generic[T]):
         'custom_id',
         '_cs_resolved',
         '_permissions',
+        '_app_permissions',
         '_state',
         '_session',
         '_original_message',
@@ -361,6 +366,7 @@ class Interaction(Generic[T]):
         # Parse the user and their permissions
         self.user: Optional[Union[User, Member]] = None  # documented as optional, for whatever reason
         self._permissions: int = 0
+        self._app_permissions: int = 0
 
         # Store the locales
         self.user_locale = payload.get("locale")
@@ -376,6 +382,7 @@ class Interaction(Generic[T]):
             else:
                 self.user = Member(state=self._state, guild=guild, data=member)  # type: ignore
                 self._permissions = int(member.get('permissions', 0))
+            self._app_permissions = int(payload['app_permissions'])
         else:
             try:
                 self.user = User(state=self._state, data=payload['user'])
@@ -438,6 +445,14 @@ class Interaction(Generic[T]):
         In a non-guild context where this doesn't apply, an empty permissions object is returned.
         """
         return Permissions(self._permissions)
+
+    @property
+    def app_permissions(self) -> Permissions:
+        """:class:`Permissions`: The resolved permissions of the bot in the channel, including overwrites.
+
+        In a non-guild context where this doesn't apply, an empty permissions object is returned.
+        """
+        return Permissions(self._app_permissions)
 
     @utils.cached_slot_property('_cs_response')
     def response(self) -> Union[InteractionResponse, HTTPInteractionResponse]:

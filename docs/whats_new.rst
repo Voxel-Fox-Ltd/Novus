@@ -21,6 +21,7 @@ New Features
 
 * Add :func:`Guild.create_forum_channel`.
 * Add :func:`AllowedMentions.only`.
+* Add :attr:`Interaction.app_permissions`.
 * [vbu] Add :func:`vbu.component_id_check`.
 
 Removed Features

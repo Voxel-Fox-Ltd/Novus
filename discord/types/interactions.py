@@ -171,6 +171,7 @@ class _InteractionDataOptional(TypedDict, total=False):
     values: List[str]
     target_id: Snowflake
     components: List[ApplicationCommandInteractionDataOption]
+    app_permissions: str
 
 
 class InteractionData(_InteractionDataOptional):
