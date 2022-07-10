@@ -2466,11 +2466,17 @@ def bot_has_permissions(**perms: bool) -> Callable[[T], T]:
                 v = newperms.pop(p, None)
                 if v is False:
                     newperms[p] = v
+            permissions = ctx.interaction.app_permissions
+        else:
+            permissions = ctx.channel.permissions_for(me)  # type: ignore - messageable channel union
         if not newperms:
             return True
-        permissions = ctx.channel.permissions_for(me)  # type: ignore
 
-        missing = [perm for perm, value in newperms.items() if getattr(permissions, perm) != value]
+        missing = [
+            perm
+            for perm, value in newperms.items()
+            if getattr(permissions, perm) != value
+        ]
 
         if not missing:
             return True
