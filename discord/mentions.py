@@ -34,8 +34,11 @@ if TYPE_CHECKING:
     from .types.message import AllowedMentions as AllowedMentionsPayload
     from .abc import Snowflake
 
-    from .user import BaseUser
+    from .user import BaseUser, User
+    from .member import Member
     from .role import Role
+
+    Mentionable = Union[BaseUser, User, Member, Role]
 
 
 class _FakeBool:
@@ -128,7 +131,7 @@ class AllowedMentions:
     @classmethod
     def only(
             cls: Type[A],
-            *mentionable: Union[BaseUser, Role]) -> A:
+            *mentionable: Mentionable) -> A:
         """
         A factory method that returns a :class:`AllowedMentions` that
         only mentions the provided user/role.
