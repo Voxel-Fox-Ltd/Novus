@@ -361,7 +361,11 @@ class ErrorHandler(vbu.Cog):
         # DM to owners
         if self.bot.config.get('dm_uncaught_errors', False):
             for owner_id in self.bot.owner_ids:
-                owner = self.bot.get_user(owner_id) or await self.bot.fetch_user(owner_id)
+                owner = self.bot.get_user(owner_id)
+                if not owner and self.bot.shard_count < 50:
+                    owner = await self.bot.fetch_user(owner_id)
+                elif not owner:
+                    continue
                 file_handle.seek(0)
                 await owner.send(error_text, file=discord.File(file_handle, filename="error_log.py"))
 
