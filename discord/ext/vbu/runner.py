@@ -496,6 +496,10 @@ def run_interactions(args: argparse.Namespace) -> None:
         logger.info("Connecting bot to gateway")
         websocket_task = loop.create_task(bot.connect())
 
+    # Run the startup task
+    logger.info("Running bot startup task")
+    bot.startup_method = bot.loop.create_task(bot.startup())
+
     # Create the webserver
     app = Application(loop=asyncio.get_event_loop(), debug=args.debug)
     app.router.add_routes(commands.get_interaction_route_table(bot, bot.config.get("pubkey", ""), path=args.path))
