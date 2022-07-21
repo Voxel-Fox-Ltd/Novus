@@ -145,17 +145,34 @@ class InteractionResolved:
 
     @utils.cached_slot_property("_cs_members")
     def members(self) -> Dict[int, Member]:
+        """
+        Get the member objects from an interaction resolved.
+        """
+
+        # Make an initial dict to write to
         members = {}
-        if not self._interaction.guild:
-            return {}
+
+        # Only return if there's a cached guild
+        # if not self._interaction.guild:
+        #     return {}
+
+        # Get the raw data for the user
         user_data = self._data.get("users", dict())
         member_data = self._data.get("members", dict())
+
+        # Put the user data inside the member data
         for uid, d in member_data.items():
             d.update({"user": user_data.pop(uid)})
-        members.update({
-            int(i): Member(data=d, state=self._state, guild=self._interaction.guild)
-            for i, d in member_data.items()
-        })
+
+        # Create the member objects
+        for i, d in member_data.items():
+            members[int(i)] = Member(
+                data=d,
+                state=self._state,
+                guild=self._interaction.guild,
+            )
+
+        # And done
         return members
 
     @utils.cached_slot_property("_cs_roles")
@@ -374,7 +391,7 @@ class Interaction(Generic[T]):
 
         # TODO: there's a potential data loss here
         if self.guild_id:
-            guild = self.guild or Object(id=self.guild_id)
+            guild = self.guild
             try:
                 member = payload['member']  # type: ignore
             except KeyError:
@@ -418,9 +435,14 @@ class Interaction(Generic[T]):
             return command_name
 
     @property
-    def guild(self) -> Optional[Guild]:
-        """Optional[:class:`Guild`]: The guild the interaction was sent from."""
-        return self._state and self._state._get_guild(self.guild_id)
+    def guild(self) -> Optional[Union[Guild, Object]]:
+        """Optional[:class:`Guild` | :class:`Object`]: The guild the interaction was sent from."""
+        v = self._state and self._state._get_guild(self.guild_id)
+        if v:
+            return v
+        if self.guild_id:
+            return Object(self.guild_id)
+        return None
 
     @utils.cached_slot_property('_cs_channel')
     def channel(self) -> Optional[InteractionChannel]:

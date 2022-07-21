@@ -206,6 +206,7 @@ class Interaction(_InteractionOptional):
     version: int
     resolved: InteractionResolved
     locale: str
+    app_permissions: str
 
 
 class InteractionApplicationCommandCallbackData(TypedDict, total=False):
