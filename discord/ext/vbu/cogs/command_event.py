@@ -47,7 +47,7 @@ class CommandEvent(vbu.Cog):
             "command_name": command_stats_name,
             "slash_command": is_slash_command,
             "guild_id": ctx.guild.id if ctx.guild else None,
-            "shard_id": ctx.guild.shard_id if ctx.guild else 0,
+            "shard_id": getattr(ctx.guild, "shard_id", 0) if ctx.guild else 0,
             "cluster": self.bot.cluster,
         }
         if is_slash_command:
