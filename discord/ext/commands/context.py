@@ -339,8 +339,11 @@ class Context(discord.abc.Messageable, Generic[BotT]):
         """Union[:class:`.Member`, :class:`.ClientUser`]:
         Similar to :attr:`.Guild.me` except it may return the :class:`.ClientUser` in private message contexts.
         """
-        # bot.user will never be None at this point.
-        return self.guild.me if self.guild is not None else self.bot.user  # type: ignore
+        try:
+            assert self.guild
+            return self.guild.me
+        except (AttributeError, AssertionError):
+            return self.bot.user  # type: ignore - bot.user will never be None at this point.
 
     @property
     def voice_client(self) -> Optional[VoiceProtocol]:
