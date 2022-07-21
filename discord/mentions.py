@@ -152,14 +152,17 @@ class AllowedMentions:
         """
 
         # Import here to avoid circular
-        from .user import BaseUser
+        from .user import BaseUser, User
+        from .member import Member
         from .role import Role
+        UserType = (BaseUser, User, Member)
 
         # Build our mentionable lists
-        users: List[Snowflake] = [i for i in mentionable if isinstance(i, BaseUser)]
+        users: List[Snowflake] = [i for i in mentionable if isinstance(i, UserType)]
         roles: List[Snowflake] = [i for i in mentionable if isinstance(i, Role)]
-        if set(mentionable).difference(set(users + roles)):
-            raise TypeError("non-User/Member/Role type given")
+        diff = set(mentionable).difference(set(users + roles))
+        if diff:
+            raise TypeError("non-User/Member/Role type given: %r" % diff)
 
         # And done
         return cls(
