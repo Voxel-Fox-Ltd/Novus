@@ -155,7 +155,7 @@ class AllowedMentions:
         from .user import BaseUser, User
         from .member import Member
         from .role import Role
-        UserType = (BaseUser, User, Member)
+        UserType = (BaseUser, User, Member,)
 
         # Build our mentionable lists
         users: List[Snowflake] = [i for i in mentionable if isinstance(i, UserType)]
