@@ -370,8 +370,9 @@ class Bot(MinimalBot):
             await getattr(cog, "cache_setup", fake_cache_setup_method)(db)
 
         # Wait for the bot to cache users before continuing
-        self.logger.debug("Waiting until ready before completing startup method.")
-        await self.wait_until_ready()
+        if not self.is_interactions_only:
+            self.logger.debug("Waiting until ready before completing startup method.")
+            await self.wait_until_ready()
 
         # Close database connection
         await db.disconnect()
