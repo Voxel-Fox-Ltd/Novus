@@ -2458,7 +2458,7 @@ def bot_has_permissions(**perms: bool) -> Callable[[T], T]:
 
     def predicate(ctx: Context) -> bool:
         guild = ctx.guild
-        me = guild.me if guild is not None else ctx.bot.user
+        me = getattr(guild, "me") if guild is not None else ctx.bot.user
 
         newperms = perms.copy()
         if isinstance(ctx, SlashContext):
