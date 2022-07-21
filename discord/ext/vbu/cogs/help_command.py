@@ -36,7 +36,7 @@ class Help(vbu.Cog):
 
 def setup(bot: vbu.Bot):
     x = Help(bot)
-    if not bot.config['default_prefix']:
+    if not bot.config.get('default_prefix'):
         return bot.remove_command("help")
     bot.add_cog(x)
 
