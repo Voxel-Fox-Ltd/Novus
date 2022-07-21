@@ -453,7 +453,9 @@ class Interaction(Generic[T]):
         no data to complete them. These are :class:`PartialMessageable` instead.
         """
         guild = self.guild
-        channel = guild and isinstance(guild, Guild) and guild._resolve_channel(self.channel_id)
+        channel = None
+        if guild and isinstance(guild, Guild):
+            channel = guild._resolve_channel(self.channel_id)
         if channel is None:
             if self.channel_id is not None:
                 type = ChannelType.text if self.guild_id is not None else ChannelType.private
