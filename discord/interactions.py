@@ -39,6 +39,7 @@ from .application_commands import ApplicationCommandInteractionDataOption
 from .enums import try_enum, InteractionType, InteractionResponseType
 from .errors import InteractionResponded, HTTPException, ClientException, InvalidData
 from .channel import PartialMessageable, ChannelType, _threaded_channel_factory
+from .guild import Guild
 from .user import User
 from .member import Member
 from .role import Role
