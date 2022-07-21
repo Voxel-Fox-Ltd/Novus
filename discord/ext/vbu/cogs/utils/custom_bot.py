@@ -295,6 +295,9 @@ class Bot(MinimalBot):
         self.startup_method = None
         self.shard_manager = None
 
+        # Store whether or not we're an interactions only bot
+        self.is_interactions_only = False  # Set elsewhere
+
         # Regardless of whether we start statsd or not, I want to add the log handler
         handler = AnalyticsLogHandler(self)
         handler.setLevel(logging.DEBUG)

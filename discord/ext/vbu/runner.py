@@ -467,6 +467,7 @@ def run_interactions(args: argparse.Namespace) -> None:
 
     # And run file
     bot = Bot(config_file=args.config_file, intents=discord.Intents.none())
+    bot.is_interactions_only = True
     loop = bot.loop
     EventLoopCallbackHandler.bot = bot
 
