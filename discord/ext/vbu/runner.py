@@ -404,7 +404,11 @@ def run_bot(args: argparse.Namespace) -> None:
 
     # And run file
     shard_ids = validate_sharding_information(args)
-    bot = Bot(shard_count=args.shardcount, shard_ids=shard_ids, config_file=args.config_file)
+    bot = Bot(
+        shard_count=args.shardcount,
+        shard_ids=shard_ids,
+        config_file=args.config_file,
+    )
     loop = bot.loop
     EventLoopCallbackHandler.bot = bot
 
@@ -429,7 +433,7 @@ def run_bot(args: argparse.Namespace) -> None:
     # Run the bot
     try:
         logger.info("Running bot")
-        loop.run_until_complete(bot.start())
+        loop.run_until_complete(bot.start(run_startup_method=args.no_startup))
     except KeyboardInterrupt:
         logger.info("Logging out bot")
         loop.run_until_complete(bot.close())

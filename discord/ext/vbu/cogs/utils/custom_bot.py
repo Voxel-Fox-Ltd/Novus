@@ -834,18 +834,24 @@ class Bot(MinimalBot):
                 self.logger.critical(f"Cloudflare rate limit reached - {json.dumps(headers)}")
             raise
 
-    async def start(self, token: str = None, *args, **kwargs):
+    async def start(
+            self,
+            token: typing.Optional[str] = None,
+            *args,
+            run_startup_method: bool = True,
+            **kwargs):
         """:meta private:"""
 
         # Say we're starting
-        self.logger.info(f"Starting bot with {self.shard_count} shards")
+        self.logger.info(f"Starting bot with {self.shard_count} shards.")
 
         # See if we should run the startup method
-        if self.config.get('database', {}).get('enabled', False):
+        if self.config.get('database', {}).get('enabled', False) and run_startup_method:
             self.logger.info("Running startup method")
             self.startup_method = self.loop.create_task(self.startup())
+        elif run_startup_method:
+            self.logger.info("Not running bot startup method due to database being disabled.")
         else:
-            self.logger.info("Not running bot startup method due to database being disabled")
             self.logger.info("Not running bot startup method.")
 
         # # Get the recommended shard count for this bot
@@ -867,7 +873,7 @@ class Bot(MinimalBot):
         #         ))
 
         # And run the original
-        self.logger.info("Running original D.py start method")
+        self.logger.info("Running original D.py start method.")
         await super().start(token or self.config['token'], *args, **kwargs)
 
     async def close(self, *args, **kwargs):
