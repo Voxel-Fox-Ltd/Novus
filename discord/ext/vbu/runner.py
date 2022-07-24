@@ -433,7 +433,7 @@ def run_bot(args: argparse.Namespace) -> None:
     # Run the bot
     try:
         logger.info("Running bot")
-        loop.run_until_complete(bot.start(run_startup_method=args.no_startup))
+        loop.run_until_complete(bot.start(run_startup_method=not args.no_startup))
     except KeyboardInterrupt:
         logger.info("Logging out bot")
         loop.run_until_complete(bot.close())
