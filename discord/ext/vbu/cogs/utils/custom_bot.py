@@ -846,24 +846,25 @@ class Bot(MinimalBot):
             self.startup_method = self.loop.create_task(self.startup())
         else:
             self.logger.info("Not running bot startup method due to database being disabled")
+            self.logger.info("Not running bot startup method.")
 
-        # Get the recommended shard count for this bot
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://discord.com/api/v9/gateway/bot", headers={"Authorization": f"Bot {self.config['token']}"}) as r:
-                data = await r.json()
-        recommended_shard_count = None
-        try:
-            recommended_shard_count = data['shards']
-            self.logger.info(f"Recommended shard count for this bot: {recommended_shard_count}")
-            self.logger.info(f"Max concurrency for this bot: {data['session_start_limit']['max_concurrency']}")
-        except KeyError:
-            self.logger.info("Recommended shard count for this bot could not be retrieved")
-        else:
-            if recommended_shard_count / 2 > self.shard_count:
-                self.logger.warning((
-                    f"The shard count for this bot ({self.shard_count}) is significantly "
-                    f"lower than the recommended number {recommended_shard_count}"
-                ))
+        # # Get the recommended shard count for this bot
+        # async with aiohttp.ClientSession() as session:
+        #     async with session.get("https://discord.com/api/v9/gateway/bot", headers={"Authorization": f"Bot {self.config['token']}"}) as r:
+        #         data = await r.json()
+        # recommended_shard_count = None
+        # try:
+        #     recommended_shard_count = data['shards']
+        #     self.logger.info(f"Recommended shard count for this bot: {recommended_shard_count}")
+        #     self.logger.info(f"Max concurrency for this bot: {data['session_start_limit']['max_concurrency']}")
+        # except KeyError:
+        #     self.logger.info("Recommended shard count for this bot could not be retrieved")
+        # else:
+        #     if recommended_shard_count / 2 > self.shard_count:
+        #         self.logger.warning((
+        #             f"The shard count for this bot ({self.shard_count}) is significantly "
+        #             f"lower than the recommended number {recommended_shard_count}"
+        #         ))
 
         # And run the original
         self.logger.info("Running original D.py start method")
