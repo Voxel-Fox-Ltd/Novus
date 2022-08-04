@@ -257,8 +257,15 @@ class Bot(MinimalBot):
 
         # Run original
         super().__init__(
-            command_prefix=get_prefix, activity=activity, status=status, case_insensitive=case_insensitive, intents=intents,
-            allowed_mentions=allowed_mentions, max_messages=cached_messages, *args, **kwargs,
+            command_prefix=get_prefix,
+            activity=activity,
+            status=status,
+            case_insensitive=case_insensitive,
+            intents=intents,
+            allowed_mentions=allowed_mentions,
+            max_messages=cached_messages,
+            *args,
+            **kwargs,
         )
 
         # Set up our default guild settings
