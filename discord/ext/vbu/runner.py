@@ -404,7 +404,11 @@ def run_bot(args: argparse.Namespace) -> None:
 
     # And run file
     shard_ids = validate_sharding_information(args)
-    bot = Bot(shard_count=args.shardcount, shard_ids=shard_ids, config_file=args.config_file)
+    bot = Bot(
+        shard_count=args.shardcount,
+        shard_ids=shard_ids,
+        config_file=args.config_file,
+    )
     loop = bot.loop
     EventLoopCallbackHandler.bot = bot
 
@@ -429,7 +433,7 @@ def run_bot(args: argparse.Namespace) -> None:
     # Run the bot
     try:
         logger.info("Running bot")
-        loop.run_until_complete(bot.start())
+        loop.run_until_complete(bot.start(run_startup_method=not args.no_startup))
     except KeyboardInterrupt:
         logger.info("Logging out bot")
         loop.run_until_complete(bot.close())
@@ -467,6 +471,7 @@ def run_interactions(args: argparse.Namespace) -> None:
 
     # And run file
     bot = Bot(config_file=args.config_file, intents=discord.Intents.none())
+    bot.is_interactions_only = True
     loop = bot.loop
     EventLoopCallbackHandler.bot = bot
 
@@ -495,6 +500,10 @@ def run_interactions(args: argparse.Namespace) -> None:
     if args.connect:
         logger.info("Connecting bot to gateway")
         websocket_task = loop.create_task(bot.connect())
+
+    # Run the startup task
+    logger.info("Running bot startup task")
+    bot.startup_method = bot.loop.create_task(bot.startup())
 
     # Create the webserver
     app = Application(loop=asyncio.get_event_loop(), debug=args.debug)
@@ -641,6 +650,9 @@ def run_website(args: argparse.Namespace) -> None:
 
     loop = app.loop
 
+    # Set log levels
+    set_default_log_levels(args)
+
     # Connect the database pool
     if app['config'].get('database', {}).get('enabled', False):
         db_connect_task = start_database_pool(app['config'])
@@ -656,8 +668,8 @@ def run_website(args: argparse.Namespace) -> None:
     for index, (bot_name, bot_config_location) in enumerate(config.get('discord_bot_configs', dict()).items()):
         bot = Bot(f"./config/{bot_config_location}")
         app['bots'][bot_name] = bot
-        if index == 0:
-            set_default_log_levels(args)
+        # if index == 0:
+        #     set_default_log_levels(args)
         try:
             loop.run_until_complete(bot.login())
             bot.load_all_extensions()

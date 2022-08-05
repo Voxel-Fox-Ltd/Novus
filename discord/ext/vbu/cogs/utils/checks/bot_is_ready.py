@@ -17,8 +17,12 @@ def bot_is_ready():
         BotNotReady: If the bot isn't yet marked as ready.
     """
 
+    error_text = "The bot isn't marked as ready to process commands yet - please wait a minute or so."
+
     async def predicate(ctx: commands.Context):
-        if ctx.bot.is_ready() and (ctx.bot.startup_method is None or ctx.bot.startup_method.done()):
+        if not (ctx.bot.startup_method is None or ctx.bot.startup_method.done()):
+            raise BotNotReady(error_text)
+        if getattr(ctx.bot, "is_interactions_only", False) or ctx.bot.is_ready():
             return True
-        raise BotNotReady("The bot isn't marked as ready to process commands yet - please wait a minute or so.")
+        raise BotNotReady(error_text)
     return commands.check(predicate)

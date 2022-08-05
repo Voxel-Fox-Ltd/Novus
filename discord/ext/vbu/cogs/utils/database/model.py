@@ -94,7 +94,7 @@ class DatabaseWrapper(object):
     pool: typing.ClassVar[DriverPool] = None  # type: ignore
     logger: logging.Logger = logging.getLogger("vbu.database")
     enabled: typing.ClassVar[bool] = False
-    driver: typing.ClassVar[typing.Type[DriverWrapper]]
+    driver: typing.ClassVar[typing.Type[DriverWrapper]] = None  # type: ignore
 
     def __init__(
             self,

@@ -7,7 +7,7 @@ from .runner import run_bot, run_website, run_sharder, run_shell, run_modify_com
 
 
 def get_path_relative_to_file(
-        path: pathlib.Path
+        path: typing.Union[pathlib.Path, str]
         ) -> pathlib.Path:
     """
     Get the full path for a file relative to a given location.
@@ -73,6 +73,7 @@ def get_default_program_arguments() -> argparse.ArgumentParser:
     bot_subparser.add_argument("--max", nargs="?", type=int, default=None, help="The maximum shard ID that this instance will run with (inclusive).")
     bot_subparser.add_argument("--shardcount", nargs="?", type=int, default=1, help="The amount of shards that the bot should be using.")
     bot_subparser.add_argument("--loglevel", nargs="?", default="INFO", help="Global logging level - probably most useful is INFO and DEBUG.", choices=LOGLEVEL_CHOICES)
+    bot_subparser.add_argument("--no-startup", action="store_true", default=False, help="Whether or not to run the startup method.")
 
     # Set up the website arguments
     website_subparser.add_argument("website_directory", nargs="?", default=".", help="The directory containing a static and templates folder for the website to run.")

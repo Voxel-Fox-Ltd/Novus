@@ -1,8 +1,23 @@
 from __future__ import annotations
 
 import asyncio
-import typing
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Tuple,
+    Type,
+    TypeVar,
+    Awaitable,
+    Union,
+    Optional,
+    List,
+    Iterable,
+    Any,
+    overload,
+)
 import inspect
+import uuid
 
 import discord
 from discord.ext import commands
@@ -13,32 +28,33 @@ from .mixins import MenuDisplayable
 from .callbacks import MenuCallbacks
 from .converter import Converter
 from ..custom_cog import Cog
-from ..custom_command import Command
 from ..custom_bot import Bot
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from ..custom_context import Context, SlashContext
 
-    ContextCallable = typing.Callable[[Context], None]
-    AwaitableContextCallable = typing.Awaitable[ContextCallable]
-    MaybeCoroContextCallable = typing.Union[ContextCallable, AwaitableContextCallable]
+    ContextCallable = Callable[[Context], None]
+    AwaitableContextCallable = Callable[[Context], Awaitable[None]]
+    MaybeCoroContextCallable = Union[ContextCallable, AwaitableContextCallable]
+    AnyContext = Union[Context, SlashContext]
+    AnyBot = Union[discord.Client, commands.Bot, Bot]
 
 
-T = typing.TypeVar("T")
+T = TypeVar("T")
 
 
-@typing.overload
-def _do_nothing(return_value: typing.Type[T]) -> typing.Callable[[], T]:
+@overload
+def _do_nothing(return_value: Type[T]) -> Callable[[], T]:
     ...
 
 
-@typing.overload
-def _do_nothing(return_value=None) -> typing.Callable[[], None]:
+@overload
+def _do_nothing(return_value=None) -> Callable[[], None]:
     ...
 
 
-def _do_nothing(return_value: typing.Optional[typing.Type[T]] = None) -> typing.Callable[[], typing.Optional[T]]:
-    def wrapper(*args, **kwargs) -> typing.Optional[T]:
+def _do_nothing(return_value: Optional[Type[T]] = None) -> Callable[[], Optional[T]]:
+    def wrapper(*args, **kwargs) -> Optional[T]:
         if return_value:
             return return_value()
         return return_value
@@ -55,63 +71,65 @@ class Menu(MenuDisplayable):
     def __init__(
             self,
             *options: Option,
-            display: str = None,
-            component_display: str = None,
-            ):
+            display: Optional[str] = None,
+            component_display: Optional[str] = None):
         """
-        Args:
-            options (typing.List[Option]): A list of options that should be displayed in the menu.
-            display (str, optional): When using a nested submenu, this is the option that should be displayed.
-            component_display (str, optional): When using a nested submenu, this is the option that
-                should be displayed in the component.
+        Parameters
+        ----------
+        *options : Option
+            A list of options that are inside the menu.
+        display : Optional[Optional[str]]
+            When this menu itself is an option, this is the text that is
+            displayed on the parent menu.
+        component_display : Optional[Optional[str]]
+            When this menu itself is an option, this is the text that is
+            displayed for the parent menu's component.
         """
 
-        self.display = display  # Used for nested menus
-        self.component_display = component_display  # Used for nested menus
+        self.display: Optional[str] = display  # Used for nested menus
+        self.component_display: Optional[str] = component_display  # Used for nested menus
         self._options = list(options)
 
-    @typing.overload
+    @overload
     def create_cog(
             self,
-            bot=None,
+            bot: None = None,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
-            aliases: typing.List[str] = ["setup"],
-            permissions: typing.List[str] = None,
-            post_invoke: MaybeCoroContextCallable = None,
+            aliases: List[str] = ["setup"],
+            permissions: Optional[List[str]] = None,
+            post_invoke: Optional[MaybeCoroContextCallable] = None,
             guild_only: bool = True,
-            **command_kwargs
-            ) -> typing.Type[commands.Cog]:
+            **command_kwargs) -> Type[commands.Cog]:
         ...
 
-    @typing.overload
+    @overload
     def create_cog(
             self,
-            bot: Bot,
+            bot: AnyBot = ...,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
-            aliases: typing.List[str] = ["setup"],
-            permissions: typing.List[str] = None,
-            post_invoke: MaybeCoroContextCallable = None,
+            aliases: List[str] = ["setup"],
+            permissions: Optional[List[str]] = None,
+            post_invoke: Optional[MaybeCoroContextCallable] = None,
             guild_only: bool = True,
-            **command_kwargs
-            ) -> commands.Cog:
+            **command_kwargs) -> commands.Cog:
         ...
 
     def create_cog(
             self,
-            bot: typing.Optional[Bot] = None,
+            bot: Optional[AnyBot] = None,
             *,
             cog_name: str = "Bot Settings",
             name: str = "settings",
-            aliases: typing.List[str] = ["setup"],
-            permissions: typing.List[str] = None,
-            post_invoke: MaybeCoroContextCallable = None,
+            aliases: List[str] = ["setup"],
+            permissions: Optional[List[str]] = None,
+            post_invoke: Optional[MaybeCoroContextCallable] = None,
             guild_only: bool = True,
             **command_kwargs
-            ) -> typing.Union[commands.Cog, typing.Type[commands.Cog]]:
+            ) -> Union[commands.Cog, Type[commands.Cog]]:
         """
         Creates a cog that can be loaded into the bot in a setup method.
 
@@ -156,13 +174,12 @@ class Menu(MenuDisplayable):
                 super().cog_unload()
 
             @commands.command(
-                cls=Command,
                 name=name,
                 aliases=aliases,
                 application_command_meta=command_kwargs.pop("application_command_meta", meta),
                 **command_kwargs,
             )
-            @commands.defer()
+            # @commands.defer()
             @commands.has_permissions(**{i: True for i in permissions})
             @commands.bot_has_permissions(send_messages=True, embed_links=True)
             async def settings(nested_self, ctx):
@@ -173,6 +190,7 @@ class Menu(MenuDisplayable):
                 # Make sure it's a slashie
                 if not isinstance(ctx, commands.SlashContext):
                     return await ctx.send("This command can only be run as a slash command.")
+                await ctx.interaction.response.send_message("Loading menu...")
 
                 # Get a guild if we need to
                 if ctx.interaction.guild_id:
@@ -196,7 +214,10 @@ class Menu(MenuDisplayable):
             return NestedCog(bot)
         return NestedCog
 
-    async def get_options(self, ctx: commands.SlashContext, force_regenerate: bool = False) -> typing.List[Option]:
+    async def get_options(
+            self,
+            ctx: commands.SlashContext,
+            force_regenerate: bool = False) -> List[Option]:
         """
         Get all of the options for an instance.
         This method has an open database instance in :code:`ctx.database`.
@@ -204,7 +225,10 @@ class Menu(MenuDisplayable):
 
         return self._options
 
-    async def start(self, ctx: commands.SlashContext, delete_message: bool = False) -> None:
+    async def start(
+            self,
+            ctx: commands.SlashContext,
+            delete_message: bool = False) -> None:
         """
         Run the menu instance.
 
@@ -218,27 +242,27 @@ class Menu(MenuDisplayable):
         """
 
         # Set up our base case
-        sendable_data: dict = await self.get_sendable_data(ctx)
+        component_custom_id: str = str(uuid.uuid4())
+        sendable_data: dict = await self.get_sendable_data(ctx, component_custom_id)
         sent_components: discord.ui.MessageComponents = sendable_data['components']
-        menu_message: discord.Message
+        component_custom_ids: List[str] = []
 
         # Send the initial message
         if not isinstance(ctx, commands.SlashContext):
-            menu_message = await ctx.send(**sendable_data)  # No interaction?
+            await ctx.send(**sendable_data)  # No interaction? Somehow?
         elif ctx.interaction.response.is_done:
-            menu_message = await ctx.interaction.followup.send(**sendable_data)  # Deferred interaction
+            await ctx.interaction.edit_original_message(**sendable_data)
         else:
-            await ctx.interaction.response.defer()
-            menu_message = await ctx.interaction.followup.send(**sendable_data)
+            await ctx.interaction.response.edit_message(**sendable_data)
 
         # Set up a function so as to get
-        def get_button_check(given_message):
-            def button_check(payload):
-                if payload.message.id != given_message.id:
+        def get_button_check(valid_ids: List[str]):
+            def button_check(payload: discord.Interaction):
+                if payload.custom_id not in valid_ids:
                     return False
                 if payload.user.id == ctx.interaction.user.id:
                     return True
-                ctx.bot.loop.create_task(payload.respond(
+                ctx.bot.loop.create_task(payload.response.send_message(
                     f"Only {ctx.interaction.user.mention} can interact with these buttons.",
                     ephemeral=True,
                 ))
@@ -248,15 +272,21 @@ class Menu(MenuDisplayable):
         # Keep looping while we're expecting a user input
         while True:
 
+            # Get the valid custom IDs for this menu
+            component_custom_ids.clear()
+            for ar in sent_components.components:
+                for co in ar.components:
+                    component_custom_ids.append(co.custom_id)
+
             # Wait for the user to click on a button
             try:
                 payload: discord.Interaction = await ctx.bot.wait_for(
                     "component_interaction",
-                    check=get_button_check(menu_message),
+                    check=get_button_check(component_custom_ids),
                     timeout=60.0,
                 )
+                await payload.response.defer_update()
                 ctx.interaction = payload
-                await payload.response.edit_message(components=sent_components.disable_components())
             except asyncio.TimeoutError:
                 break
 
@@ -276,37 +306,31 @@ class Menu(MenuDisplayable):
             # Run the given option
             # This may change the interaction object within the context,
             # but at all points it should be deferred (update)
-            try:
-                if isinstance(clicked_option._callback, Menu):
-                    await clicked_option._callback.start(ctx, delete_message=True)
-                else:
-                    await clicked_option.run(ctx)
-            except ConverterTimeout as e:
-                try:
-                    await ctx.interaction.followup.send(
-                        content=e.message,
-                    )
-                except:
-                    pass
-                break
-            except asyncio.TimeoutError:
-                break
+            if isinstance(clicked_option._callback, Menu):
+                await clicked_option._callback.start(ctx)
+            else:
+                await clicked_option.run(ctx)
 
             # Edit the message with our new buttons
-            sendable_data = await self.get_sendable_data(ctx)
-            sent_components = sendable_data['components']
-            menu_message = await ctx.interaction.followup.send(**sendable_data)
+            sendable_data = await self.get_sendable_data(ctx, component_custom_id)
+            if ctx.interaction.response.is_done:
+                await ctx.interaction.edit_original_message(**sendable_data)
+            else:
+                await ctx.interaction.response.edit_message(**sendable_data)
 
         # Disable the buttons before we leave
         try:
             if delete_message:
                 await ctx.interaction.delete_original_message()
             else:
-                await ctx.interaction.edit_original_message(components=sent_components.disable_components())
+                await ctx.interaction.edit_original_message(components=None)
         except Exception:
             pass
 
-    async def get_sendable_data(self, ctx: commands.SlashContext) -> dict:
+    async def get_sendable_data(
+            self,
+            ctx: commands.SlashContext,
+            component_custom_id: Optional[str] = None) -> dict:
         """
         Gets a dictionary of sendable objects to unpack for the :func:`start` method.
         """
@@ -317,29 +341,40 @@ class Menu(MenuDisplayable):
 
         # Add items to the list
         async with ctx.bot.database() as db:
-            ctx.database = db
+            ctx.database = db  # type: ignore - context doesn't have slots deliberately
             options = await self.get_options(ctx, force_regenerate=True)
             for i in options:
                 output = await i.get_display(ctx)
                 if output:
                     output_strings.append(f"\N{BULLET} {output}")
-                style = (discord.ui.ButtonStyle.secondary if isinstance(i._callback, Menu) else None) or i._button_style or discord.ui.ButtonStyle.primary
+                style = (
+                    discord.ui.ButtonStyle.secondary
+                    if isinstance(i._callback, Menu)
+                    else None
+                ) or i._button_style or discord.ui.ButtonStyle.primary
                 buttons.append(discord.ui.Button(
                     label=i.component_display,
                     custom_id=i._component_custom_id,
                     style=style,
                 ))
-        ctx.database = None
+        ctx.database = None  # type: ignore - context doesn't have slots deliberately
 
         # Add a done button
-        buttons.append(discord.ui.Button(label="Done", custom_id="Done", style=discord.ui.ButtonStyle.success))
+        buttons.append(
+            discord.ui.Button(
+                label="Done",
+                custom_id=component_custom_id,
+                style=discord.ui.ButtonStyle.success,
+            ),
+        )
 
         # Output
         components = discord.ui.MessageComponents.add_buttons_with_rows(*buttons)
         embed = discord.Embed(colour=0xffffff)
         embed.description = "\n".join(output_strings) or "No options added."
         return {
-            "embed": embed,
+            "content": None,
+            "embeds": [embed],
             "components": components,
         }
 
@@ -357,39 +392,61 @@ class MenuIterable(Menu, Option):
             select_sql: str,
             insert_sql: str,
             delete_sql: str,
-            row_text_display: typing.Callable[[Context, dict], str],
-            row_component_display: typing.Callable[[Context, dict], str],
-            converters: typing.List[Converter],
-            select_sql_args: typing.Callable[[Context], typing.Iterable[typing.Any]] = None,
-            insert_sql_args: typing.Callable[[Context, typing.List[typing.Any]], typing.Iterable[typing.Any]] = None,
-            delete_sql_args: typing.Callable[[Context, dict], typing.Iterable[typing.Any]] = None,
-            cache_callback: typing.Optional[typing.Callable[[Context, typing.List[typing.Any]], None]] = None,
-            cache_delete_callback: typing.Optional[typing.Callable[[Context, typing.List[typing.Any]], None]] = None,
-            cache_delete_args: typing.Optional[typing.Callable[[dict], typing.Iterable[typing.Any]]] = None,
-            ):
+            row_text_display: Callable[[AnyContext, Dict[str, Any]], str],
+            row_component_display: Callable[[AnyContext, Dict[str, Any]], Union[str, Tuple[str, str]]],
+            converters: List[Converter],
+            select_sql_args: Callable[[AnyContext], Iterable[Any]],
+            insert_sql_args: Callable[[AnyContext, List[Any]], Iterable[Any]],
+            delete_sql_args: Callable[[AnyContext, Dict[str, Any]], Iterable[Any]],
+            cache_callback: Optional[Callable[[AnyContext, List[Any]], None]] = None,
+            cache_delete_callback: Optional[Callable[[str], Callable[[AnyContext, List[Any]], None]]] = None,
+            cache_delete_args: Optional[Callable[[Dict[str, Any]], Iterable[Any]]] = None):
         """
-        Args:
-            select_sql (str): The SQL that should be used to select the rows to be displayed from the database.
-            select_sql_args (typing.Callable[[commands.Context], typing.List[typing.Any]]): A function returning a
-                list of arguments that should be passed to the database select. The list given is args that are passed
-                to the select statement.
-            insert_sql (str): The SQL that should be used to insert the data into the database.
-            insert_sql_args (typing.Callable[[commands.Context, typing.List[typing.Any]], typing.List[typing.Any]]): A
-                function returning a list of arguments that should be passed to the database insert. The list given is
-                a list of items returned from the option.
-            delete_sql (str): The SQL that should be used to delete a row from the database.
-            delete_sql_args (typing.Callable[[commands.Context, dict], typing.List[typing.Any]]): A function returning a
-                list of arguments that should be passed to the database delete. The dict given is a row from the database.
-            row_text_display (typing.Callable[[commands.Context, dict], str]): A function returning a string which should
-                be showed in the menu. The dict given is the row from the database.
-            row_component_display (typing.Callable[[commands.Context, dict], typing.Union[str, typing.Tuple[str, str]]): A
-                function returning a string which should be shown on the component. The dict given is the row from the database.
-                If one string is returned, it's used for both the button and its custom ID. If two strings are given, the
-                first is used for the button and the second for the custom ID.
-            converters (typing.List[Converter]): A list of converters that the user should be asked for.
-            cache_callback (typing.Optional[typing.Callable[[commands.Context, typing.List[typing.Any]], None]]): Description
-            cache_delete_callback (typing.Optional[typing.Callable[[commands.Context, typing.List[typing.Any]], None]]): Description
-            cache_delete_args (typing.Optional[typing.Callable[[dict], typing.List[typing.Any]]]): Description
+        Parameters
+        ----------
+        select_sql : str
+            The SQL that should be used to select the rows to be displayed from the database.
+        insert_sql : str
+            The SQL that should be used to insert the data into the database.
+        delete_sql : str
+            The SQL that should be used to delete a row from the database.
+        row_text_display : Callable[[AnyContext, Dict[str, Any]], str]
+            A function returning a string which should
+            be showed in the menu. The dict given is the row from the database.
+        row_component_display : Callable[[AnyContext, Dict[str, Any]], Union[str, Tuple[str, str]]]
+            A function returning a string which should be shown on the component.
+            The dict given is the row from the database. If one string is
+            returned, it's used for both the button and its custom ID.
+            If two strings are given, the first is used for the button
+            and the second for the custom ID.
+        converters : List[Converter]
+            A list of converters that the user should be asked for.
+        select_sql_args : Callable[[AnyContext], Iterable[Any]]
+            A function returning a list of arguments that should be
+            passed to the database select. The list given is args
+            that are passed to the select statement.
+        insert_sql_args : Callable[[AnyContext, List[Any]], Iterable[Any]]
+            A function returning a list of arguments that should
+            be passed to the database insert. The list given is
+            a list of items returned from the option.
+        delete_sql_args : Callable[[AnyContext, Dict[str, Any]], Iterable[Any]]
+            A function returning a list of arguments that should
+            be passed to the database delete. The dict given is
+            a row from the database.
+        cache_callback : Optional[Callable[[AnyContext, List[Any]], None]]
+            A function that takes in a context and a list of
+            converted items from the user for you to cache as
+            you please.
+        cache_delete_callback : Optional[Callable[[str], Callable[[AnyContext, List[Any]], None]]]
+            A function that returns a function that takes in
+            a context and a list of  converted items from
+            the user for you to remove from the cache as you please.
+            The initial function takes in the data returned from
+            ``cache_delete_args``.
+        cache_delete_args : Optional[Callable[[Dict[str, Any]], Iterable[Any]]]
+            A function that takes in a row from the database
+            and returns a list of items to be passed into
+            ``cache_delete_callback``.
         """
 
         self.row_text_display = row_text_display
@@ -433,7 +490,10 @@ class MenuIterable(Menu, Option):
                 await db(self.delete_sql, *args)
         return wrapper
 
-    async def get_options(self, ctx: commands.SlashContext, force_regenerate: bool = False):
+    async def get_options(
+            self,
+            ctx: SlashContext,
+            force_regenerate: bool = False):
         """
         Get all of the options for an instance.
         This method has an open database instance in :code:`Context.database`.

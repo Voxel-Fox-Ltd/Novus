@@ -1,9 +1,10 @@
 import inspect
+from typing import Awaitable, Callable
 
 from discord.ext.commands import converter as converters
 
 
-def async_wrap_callback(callback):
+def async_wrap_callback(callback) -> Callable[..., Awaitable]:
     """
     Wraps a function in an async function.
     """

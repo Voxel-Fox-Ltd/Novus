@@ -1,9 +1,13 @@
+from typing import Callable, Union, Optional
+
 from discord.ext import commands
 
 
 class MenuDisplayable(object):
 
-    async def get_display(self, ctx: commands.Context) -> str:
+    display: Union[str, Callable[[Union[commands.Context, commands.SlashContext]], str]]
+
+    async def get_display(self, ctx: commands.Context) -> Optional[str]:
         """
         Get the display string for the given displayable.
         """

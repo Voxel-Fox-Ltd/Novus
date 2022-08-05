@@ -29,7 +29,7 @@ from .embeddify import Embeddify
 from .. import all_packages as all_vfl_package_names
 
 if typing.TYPE_CHECKING:
-    from .types.config import BotConfig
+    from .types.bot_config_file import BotConfig
 
 
 sys.path.append(".")
@@ -224,8 +224,7 @@ class Bot(MinimalBot):
             intents: discord.Intents = None,
             allowed_mentions: discord.AllowedMentions = discord.AllowedMentions(everyone=False),
             *args,
-            **kwargs,
-            ):
+            **kwargs):
         """
         Args:
             config_file (str): The path to the :class:`config file<BotConfig>` for the bot.
@@ -295,6 +294,9 @@ class Bot(MinimalBot):
         # Store the startup method so I can see if it completed successfully
         self.startup_method = None
         self.shard_manager = None
+
+        # Store whether or not we're an interactions only bot
+        self.is_interactions_only = False  # Set elsewhere
 
         # Regardless of whether we start statsd or not, I want to add the log handler
         handler = AnalyticsLogHandler(self)
@@ -368,8 +370,9 @@ class Bot(MinimalBot):
             await getattr(cog, "cache_setup", fake_cache_setup_method)(db)
 
         # Wait for the bot to cache users before continuing
-        self.logger.debug("Waiting until ready before completing startup method.")
-        await self.wait_until_ready()
+        if not self.is_interactions_only:
+            self.logger.debug("Waiting until ready before completing startup method.")
+            await self.wait_until_ready()
 
         # Close database connection
         await db.disconnect()
@@ -488,6 +491,15 @@ class Bot(MinimalBot):
             f"{self.user.name.replace(' ', '-')} (Discord.py discord bot https://github.com/Voxel-Fox-Ltd/Novus) "
             f"Python/{platform.python_version()} aiohttp/{aiohttp.__version__}"
         ))
+
+    @property
+    def cluster(self) -> int:
+        """
+        Gets the bot cluster based on the shard count
+        and an evenly split amount of shards.
+        """
+
+        return (self.shard_ids or [0])[0] // len(self.shard_ids or [0])
 
     @property
     def upgrade_chat(self) -> upgradechat.UpgradeChat:
@@ -822,39 +834,29 @@ class Bot(MinimalBot):
                 self.logger.critical(f"Cloudflare rate limit reached - {json.dumps(headers)}")
             raise
 
-    async def start(self, token: str = None, *args, **kwargs):
+    async def start(
+            self,
+            token: typing.Optional[str] = None,
+            *args,
+            run_startup_method: bool = True,
+            **kwargs):
         """:meta private:"""
 
         # Say we're starting
-        self.logger.info(f"Starting bot with {self.shard_count} shards")
+        self.logger.info(f"Starting bot with {self.shard_count} shards.")
 
         # See if we should run the startup method
-        if self.config.get('database', {}).get('enabled', False):
-            self.logger.info("Running startup method")
-            self.startup_method = self.loop.create_task(self.startup())
+        if run_startup_method:
+            if self.config.get('database', {}).get('enabled', False):
+                self.logger.info("Running startup method")
+                self.startup_method = self.loop.create_task(self.startup())
+            else:
+                self.logger.info("Not running bot startup method due to database being disabled.")
         else:
-            self.logger.info("Not running bot startup method due to database being disabled")
-
-        # Get the recommended shard count for this bot
-        async with aiohttp.ClientSession() as session:
-            async with session.get("https://discord.com/api/v9/gateway/bot", headers={"Authorization": f"Bot {self.config['token']}"}) as r:
-                data = await r.json()
-        recommended_shard_count = None
-        try:
-            recommended_shard_count = data['shards']
-            self.logger.info(f"Recommended shard count for this bot: {recommended_shard_count}")
-            self.logger.info(f"Max concurrency for this bot: {data['session_start_limit']['max_concurrency']}")
-        except KeyError:
-            self.logger.info("Recommended shard count for this bot could not be retrieved")
-        else:
-            if recommended_shard_count / 2 > self.shard_count:
-                self.logger.warning((
-                    f"The shard count for this bot ({self.shard_count}) is significantly "
-                    f"lower than the recommended number {recommended_shard_count}"
-                ))
+            self.logger.info("Not running bot startup method.")
 
         # And run the original
-        self.logger.info("Running original D.py start method")
+        self.logger.info("Running original D.py start method.")
         await super().start(token or self.config['token'], *args, **kwargs)
 
     async def close(self, *args, **kwargs):

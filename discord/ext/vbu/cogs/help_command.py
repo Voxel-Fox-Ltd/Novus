@@ -5,6 +5,8 @@ from . import utils as vbu
 
 class Help(vbu.Cog):
 
+    _original_help_command = None
+
     def __init__(self, bot: vbu.Bot):
         super().__init__(bot)
         self._original_help_command = bot.help_command
@@ -14,7 +16,7 @@ class Help(vbu.Cog):
     def cog_unload(self):
         self.bot.help_command = self._original_help_command
 
-    @vbu.command(name="commands", hidden=True, add_slash_command=False)
+    @commands.command(name="commands", hidden=True, add_slash_command=False)
     async def _commands(self, ctx: vbu.Context, *args):
         """
         An alias for help.
@@ -22,7 +24,7 @@ class Help(vbu.Cog):
 
         return await ctx.send_help(*args)
 
-    @vbu.command(hidden=True, add_slash_command=False)
+    @commands.command(hidden=True, add_slash_command=False)
     @commands.has_permissions(manage_messages=True)
     async def channelhelp(self, ctx: vbu.Context, *args):
         """
@@ -34,4 +36,10 @@ class Help(vbu.Cog):
 
 def setup(bot: vbu.Bot):
     x = Help(bot)
+    if not bot.config.get('default_prefix'):
+        return bot.remove_command("help")
     bot.add_cog(x)
+
+
+def teardown(bot: vbu.Bot):
+    bot.help_command = Help._original_help_command

@@ -67,6 +67,7 @@ class ApplicationCommandOption(TypedDict):
 
 class ApplicationCommandOptionChoice(TypedDict):
     name: str
+    name_localizations: Optional[Dict[str, str]]
     value: Union[str, int]
 
 
@@ -170,6 +171,7 @@ class _InteractionDataOptional(TypedDict, total=False):
     values: List[str]
     target_id: Snowflake
     components: List[ApplicationCommandInteractionDataOption]
+    app_permissions: str
 
 
 class InteractionData(_InteractionDataOptional):
@@ -204,6 +206,7 @@ class Interaction(_InteractionOptional):
     version: int
     resolved: InteractionResolved
     locale: str
+    app_permissions: str
 
 
 class InteractionApplicationCommandCallbackData(TypedDict, total=False):

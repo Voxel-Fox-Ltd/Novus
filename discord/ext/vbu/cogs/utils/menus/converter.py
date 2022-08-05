@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-import typing
+from typing import TYPE_CHECKING, Any, Callable, Dict, Protocol, Union, Type, Optional, List, overload
 
 import discord
 from discord.ext import commands
@@ -10,18 +10,26 @@ from .check import Check, ModalCheck
 from .errors import ConverterFailure, ConverterTimeout
 from .utils import get_discord_converter
 
-if typing.TYPE_CHECKING:
-    AnyConverter = typing.Union[
-        typing.Callable[[typing.Union[str, discord.Interaction[str]]], typing.Any],
-        typing.Type[discord.Role],
-        typing.Type[discord.TextChannel],
-        typing.Type[discord.User],
-        typing.Type[discord.Member],
-        typing.Type[discord.VoiceChannel],
-        typing.Type[str],
-        typing.Type[int],
-        typing.Type[bool],
+if TYPE_CHECKING:
+    TypeConverter = Union[
+        Type[discord.Role],
+        Type[discord.TextChannel],
+        Type[discord.User],
+        Type[discord.Member],
+        Type[discord.VoiceChannel],
+        Type[str],
+        Type[int],
+        Type[bool],
     ]
+    AnyConverter = Union[
+        Callable[[discord.Interaction], bool],
+        TypeConverter,
+    ]
+
+
+class _ConverterProtocol(Protocol):
+    callback: Callable
+    async def convert(self, ctx, value): ...
 
 
 class _FakeConverter(object):
@@ -38,38 +46,73 @@ class Converter(object):
     An object for use in the settings menus for describing things that the user should input.
     """
 
+    @overload
     def __init__(
             self,
             prompt: str,
-            checks: typing.List[Check] = None,
-            converter: AnyConverter = str,
-            components: discord.ui.MessageComponents = None,
-            timeout_message: str = None):
+            checks: Optional[List[Check]] = ...,
+            converter: Optional[Callable[[discord.Interaction], bool]] = ...,
+            components: discord.ui.MessageComponents = ...,
+            timeout_message: Optional[str] = ...,
+            input_text_kwargs: Optional[Dict[str, Any]] = None):
+        ...
+
+    @overload
+    def __init__(
+            self,
+            prompt: str,
+            checks: Optional[List[Check]] = ...,
+            converter: Optional[TypeConverter] = ...,
+            components: Optional[discord.ui.MessageComponents] = None,
+            timeout_message: Optional[str] = ...,
+            input_text_kwargs: Optional[Dict[str, Any]] = None):
+        ...
+
+    def __init__(
+            self,
+            prompt: str,
+            checks: Optional[List[Check]] = None,
+            converter: Optional[AnyConverter] = str,
+            components: Optional[discord.ui.MessageComponents] = None,
+            timeout_message: Optional[str] = None,
+            input_text_kwargs: Optional[Dict[str, Any]] = None):
         """
-        Args:
-            prompt (str): The message that should be sent to the user when asking for the convertable.
-            checks (typing.List[voxelbotutils.menus.Check]): A list of check objects that should be used to make sure the user's
-                input is valid. These will be silently ignored if a :code:`components` parameter is passed.
-            converter (typing.Union[typing.Callable[[str], typing.Any], commands.Converter]): A callable that
-                will be used to convert the user's input. If a converter fails then :code:`None` will be returned,
-                so use the given checks to make sure that this does not happen if this behaviour is undesirable. If you set
-                :code:`components`, then this function should instead take the payload instance that was given back by the
-                user's interaction.
-            components (voxelbotutils.MessageComponents): An instance of message components to be sent by the bot.
-                If components are sent then the bot will not accept a message as a response, only an interaction
-                with the component.
-            timeout_message (str): The message that should get output to the user if this converter times out.
+        Parameters
+        ----------
+        prompt : str
+            The message that should be sent to the user when asking
+            for the convertable.
+        checks : Optional[Optional[List[Check]]]
+            A list of check objects that should be used to make sure the user's
+            input is valid. These will be silently ignored if a :code:`components` parameter is passed.
+        converter : Optional[Optional[AnyConverter]]
+            A callable that
+            will be used to convert the user's input. If a converter fails
+            then :code:`None` will be returned, so use the given checks
+            to make sure that this does not happen if this behaviour
+            is undesirable. If you set :code:`components`, then this
+            function should instead take the payload instance that was
+            given back by the user's interaction.
+        components : Optional[Optional[discord.ui.MessageComponents]]
+            An instance of message components to be sent by the bot.
+            If components are sent then the bot will not accept a message as a response, only an interaction
+            with the component.
+        timeout_message : Optional[Optional[str]]
+            The message that should get output to the user if this converter times out.
+        input_text_kwargs : Optional[Optional[Dict[str, Any]]]
+            Kwargs to be passed directly into the InputText for the modal.
         """
 
-        self.prompt = prompt
-        self.checks = checks or list()
-        self._converter = converter
-        self.converter = self._wrap_converter(converter)
-        self.components = components
-        self.timeout_message = timeout_message
+        self.prompt: str = prompt
+        self.checks: List[Check] = checks or list()
+        self._converter: Optional[AnyConverter] = converter
+        self.converter: _ConverterProtocol = self._wrap_converter(converter)  # type: ignore - reassignment
+        self.components: Optional[discord.ui.MessageComponents] = components
+        self.timeout_message: Optional[str] = timeout_message
+        self.input_text_kwargs: Dict[str, Any] = input_text_kwargs or dict()
 
     @staticmethod
-    def _wrap_converter(converter):
+    def _wrap_converter(converter: AnyConverter):
         """
         Wrap the converter so that it always has a `.convert` method.
         """
@@ -95,128 +138,239 @@ class Converter(object):
 
         # The input will be an interaction - branch off here
         if self.components:
+            return await self._run_with_components(ctx, messages_to_delete)
 
-            # Send message to respond to
-            sent_message = await ctx.interaction.followup.send(self.prompt, components=self.components)
-            messages_to_delete.append(sent_message)
+        # The input is a modal - branch off here
+        try:
+            return await self._run_with_modal(ctx, messages_to_delete)
+        except Exception as e:
+            ctx.bot.logger.error("asdada", exc_info=e)
+            raise
 
-            # Set up checks
-            def get_button_check(given_message):
-                def button_check(payload):
-                    if payload.message.id != given_message.id:
-                        return False
-                    if payload.user.id == ctx.interaction.user.id:
-                        return True
-                    ctx.bot.loop.create_task(payload.respond(
-                        f"Only {ctx.interaction.user.mention} can interact with these buttons.",
-                        ephemeral=True,
-                    ))
-                    return False
-                return button_check
+    async def _run_with_components(
+            self,
+            ctx: commands.SlashContext,
+            messages_to_delete: List[discord.Message]):
+        """
+        Run this converter when this components have been supplied.
+        """
 
-            # Wait for the user to click a button
-            try:
-                payload = await ctx.bot.wait_for(
-                    "component_interaction",
-                    check=get_button_check(sent_message),
-                    timeout=60.0,
-                )
-                ctx.interaction = payload
-                await payload.response.defer_update()
-            except asyncio.TimeoutError:
-                raise ConverterTimeout(self.timeout_message)
+        # We got components baby
+        assert isinstance(self.components, discord.ui.MessageComponents)
 
-            # And convert
-            return await self.converter.convert(ctx, payload)
+        # Get the valid custom IDs
+        valid_ids = []
+        for action_row in self.components.components:
+            for interactable in action_row.components:
+                valid_ids.append(interactable.custom_id)
+
+        # Send message to respond to
+        sent_message = None
+        if ctx.interaction.response.is_done:
+            sent_message = await ctx.interaction.followup.send(
+                self.prompt,
+                components=self.components,
+            )
+            if sent_message:
+                messages_to_delete.append(sent_message)
+        else:
+            await ctx.interaction.response.edit_message(
+                content=self.prompt,
+                components=self.components,
+            )
+
+        # Set up checks
+        def button_check(payload: discord.Interaction):
+            if payload.custom_id not in valid_ids:
+                return False
+            if payload.user.id == ctx.interaction.user.id:
+                return True
+            ctx.bot.loop.create_task(payload.response.send_message(
+                f"Only {ctx.interaction.user.mention} can interact with these buttons.",
+                ephemeral=True,
+            ))
+            return False
+
+        # Wait for the user to click a button
+        try:
+            payload = await ctx.bot.wait_for(
+                "component_interaction",
+                check=button_check,
+                timeout=60.0,
+            )
+            ctx.interaction = payload
+            await payload.response.defer_update()
+        except asyncio.TimeoutError:
+            raise ConverterTimeout(self.timeout_message)
+
+        # And convert
+        return await self.converter.convert(ctx, payload)
+
+    async def _run_with_modal(
+            self,
+            ctx: commands.SlashContext,
+            messages_to_delete: List[discord.Message]):
+        """
+        Run this converter when this no components are supplied - spawn a modal.
+        """
+
+        # Set up a button for them to click that spawns a modal
+        button = discord.ui.Button(label="Input")
+        cancel = discord.ui.Button(label="Cancel", style=discord.ButtonStyle.danger)
+        components = discord.ui.MessageComponents.add_buttons_with_rows(button, cancel)
+        to_send_failure_message = None
+
+        # Send the button
+        sent_message = None
+        if ctx.interaction.response.is_done:
+            await ctx.interaction.edit_original_message(
+                content=to_send_failure_message or self.prompt,
+                embeds=[],
+                components=components,
+            )
+            if sent_message:
+                messages_to_delete.append(sent_message)
+        else:
+            await ctx.interaction.response.edit_message(
+                content=to_send_failure_message or self.prompt,
+                embeds=[],
+                components=components,
+            )
 
         # Loop until a valid input is received
-        to_send_failure_message = None
+        running_modal_task: Optional[asyncio.Task] = None
         while True:
 
-            # Send a clickable button for the data
-            button = discord.ui.Button(label="Set data")
-            components = discord.ui.MessageComponents.add_buttons_with_rows(button)
-            sent_message = await ctx.interaction.followup.send(
-                to_send_failure_message or self.prompt,
-                components=components,
-                allowed_mentions=discord.AllowedMentions.none(),
-                wait=True,
-            )
-
-            # Wait for the button to be clicked
-            button_click: discord.Interaction = await ctx.bot.wait_for(
-                "component_interaction",
-                check=lambda i: i.user.id == ctx.interaction.user.id and i.custom_id == button.custom_id,
-                timeout=60.0,
-            )
-            ctx.interaction = button_click  # Don't defer this one so we can send a modal
-
-            # Wait for an input
-            modal = discord.ui.Modal(
-                title="Menu Data",
-                components=[
-                    discord.ui.ActionRow(
-                        discord.ui.InputText(
-                            label="Set data",
-                        ),
+            # Set up our wait for the button click
+            wait_tasks: List[Union[asyncio.Task, asyncio.Future]] = [
+                ctx.bot.wait_for(
+                    "component_interaction",
+                    check=lambda i: (
+                        i.user.id == ctx.interaction.user.id and
+                        i.custom_id in [button.custom_id, cancel.custom_id]
                     ),
-                ],
-            )
-            await button_click.response.send_modal(modal)
-            modal_submission: discord.Interaction = await ctx.bot.wait_for(
-                "modal_submit",
-                check=lambda i: i.user.id == ctx.interaction.user.id and i.custom_id == modal.custom_id,
-                timeout=60.0,
-            )
-            ctx.interaction = modal_submission
-            await modal_submission.response.defer_update()
+                ),
+            ]
 
-            # Delete the original message, just for fun
+            # Set up our wait for the modal submit, if there is one
+            if running_modal_task and not running_modal_task.done():
+                wait_tasks.append(running_modal_task)
+
+            # Wait for one of those things to happen
+            done, pending = await asyncio.wait(wait_tasks, return_when=asyncio.FIRST_COMPLETED)
+
+            # Cancel waiting for the other task
+            for t in pending:
+                t.cancel()
+
+            # Get the result from the task
+            result = None
+            for t in done:
+                result = t.result()
+            assert result
+
+            # See what the task is; if it's an interaction then we gotta spawn
+            # a new modal
+            if isinstance(result, discord.Interaction):
+                if running_modal_task:
+                    running_modal_task.cancel()
+                ctx.interaction = result  # Don't defer this one so we can send a modal
+                if ctx.interaction.custom_id == cancel.custom_id:
+                    return None
+                running_modal_task = ctx.bot.loop.create_task(self._run_spawn_modal(ctx))
+                continue
+
+            # If it's anything else, it'll be from the modal task
+            if isinstance(result, Check):
+                to_send_failure_message = result.fail_message
+                await ctx.interaction.followup.send(
+                    to_send_failure_message or self.prompt,
+                    ephemeral=True,
+                )
+                continue
+            elif isinstance(result, commands.CommandError):
+                to_send_failure_message = str(result)
+                await ctx.interaction.followup.send(
+                    to_send_failure_message or self.prompt,
+                    ephemeral=True,
+                )
+                continue
+
+            # And if it's anything other than a check then everything
+            # is fine
+            return result
+
+    async def _run_spawn_modal(
+            self,
+            ctx: commands.SlashContext) -> Union[Check, Any]:
+        """
+        Spawn a modal from the button click.
+
+        Parameters
+        ----------
+        ctx : commands.SlashContext
+            The context that brought us to this moment.
+
+        Returns
+        -------
+        Union[Check, Any]
+            Either the check that failed, in the case of a check failure,
+            of the returned response. Could be ``None``.
+
+        Raises
+        ------
+        ConverterFailure
+            If the conversion failed and we aren't prompted
+            to retry.
+        """
+
+        # Send the user a modal
+        modal = discord.ui.Modal(
+            title="Menu Data",
+            components=[
+                discord.ui.ActionRow(
+                    discord.ui.InputText(
+                        label="Input",
+                        **self.input_text_kwargs,
+                    ),
+                ),
+            ],
+        )
+        await ctx.interaction.response.send_modal(modal)
+
+        # Wait for an input
+        modal_submission: discord.Interaction = await ctx.bot.wait_for(
+            "modal_submit",
+            check=lambda i: i.user.id == ctx.interaction.user.id and i.custom_id == modal.custom_id,
+            timeout=60.0 * 30,
+        )
+        ctx.interaction = modal_submission
+        await ctx.interaction.response.defer_update()  # Defer so we can run our checks
+
+        # Run it through our checks
+        checks_failed = False
+        c = None
+        for c in self.checks:
             try:
-                await sent_message.delete()
-            except:
-                pass
+                assert isinstance(c, ModalCheck), "Check is not a modal check"
+                checks_failed = not c.check(modal_submission)
+            except AssertionError as e:
+                ctx.bot.logger.error("Error in menus in check", exc_info=e)
+                checks_failed = True
+            except Exception as e:
+                checks_failed = True
+            if checks_failed:
+                break
 
-            # sent_message = await ctx.send(self.prompt, components=self.components)
-            # messages_to_delete.append(sent_message)
+        # Deal with a check failure
+        if checks_failed and c is not None:
+            return c
 
-            # # Wait for an input
-            # user_message = await ctx.bot.wait_for("message", check=check, timeout=60.0)
-            # messages_to_delete.append(user_message)
-
-            # # Run it through our checks
-            # checks_failed = False
-            # for c in self.checks:
-            #     try:
-            #         checks_failed = not c.check(user_message)
-            #     except Exception:
-            #         checks_failed = True
-            #     if checks_failed:
-            #         break
-
-            # Run it through our checks
-            checks_failed = False
-            c = None
-            for c in self.checks:
-                try:
-                    assert isinstance(c, ModalCheck)
-                    checks_failed = not c.check(modal_submission)
-                except Exception:
-                    checks_failed = True
-                if checks_failed:
-                    break
-
-            # Deal with a check failure
-            if checks_failed and c is not None:
-                to_send_failure_message = c.fail_message
-                if c.on_failure == Check.failures.RETRY:
-                    continue
-                elif c.on_failure == Check.failures.FAIL:
-                    raise ConverterFailure()
-                return None  # We shouldn't reach here but this is just for good luck
-
-            # And we converted properly
+        # And we converted properly
+        try:
             return await self.converter.convert(
                 ctx,
                 modal_submission.components[0].components[0].value,
             )
+        except commands.CommandError as e:
+            return e

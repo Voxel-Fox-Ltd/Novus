@@ -135,6 +135,6 @@ setup(
         ],
     },
     package_data={
-        "voxelbotutils": ["discord/ext/vbu/config/*"]
+        "discord.ext.vbu": ["config/*"]
     },
 )

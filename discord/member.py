@@ -280,10 +280,15 @@ class Member(discord.abc.Messageable, _UserTag):
         accent_color: Optional[Colour]
         accent_colour: Optional[Colour]
 
-    def __init__(self, *, data: MemberWithUserPayload, guild: Guild, state: ConnectionState):
+    def __init__(
+            self,
+            *,
+            data: MemberWithUserPayload,
+            guild: Union[Guild, Object],
+            state: ConnectionState):
         self._state: ConnectionState = state
         self._user: User = state.store_user(data['user'])
-        self.guild: Guild = guild
+        self.guild: Union[Guild, Object] = guild
         self.joined_at: Optional[datetime.datetime] = utils.parse_time(data.get('joined_at'))
         self.premium_since: Optional[datetime.datetime] = utils.parse_time(data.get('premium_since'))
         self._roles: utils.SnowflakeList = utils.SnowflakeList(map(int, data['roles']))
@@ -466,15 +471,29 @@ class Member(discord.abc.Messageable, _UserTag):
         return self.colour
 
     @property
+    def role_ids(self) -> List[int]:
+        """List[:class:`int`]: A :class:`list` of IDs for the
+        roles that the member has."""
+        return list(self._roles)
+
+    @property
     def roles(self) -> List[Role]:
-        """List[:class:`Role`]: A :class:`list` of :class:`Role` that the member belongs to. Note
-        that the first element of this list is always the default '@everyone'
+        """List[:class:`Role`]: A :class:`list` of
+        :class:`Role` that the member belongs to. Note that the first
+        element of this list is always the default '@everyone'
         role.
 
         These roles are sorted by their position in the role hierarchy.
+
+        If a guild associated with the member doesn't exist (such as in
+        a case where the guild is not cached), an empty list will be
+        returned. See :attr:`role_ids` for an alternative.
         """
+
         result = []
         g = self.guild
+        if isinstance(g, Object):
+            return result
         for role_id in self._roles:
             role = g.get_role(role_id)
             if role:

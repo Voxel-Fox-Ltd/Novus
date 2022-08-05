@@ -42,15 +42,29 @@ class InteractedComponent:
     components: Optional[List[:class:`InteractionComponent`]]
         The components that are children of this component.
     value: Optional[:class:`str`]
-        The value that the component was given.
+        The value that the component was given. Generally used with
+        input text components.
     type: Optional[:class:`int`]
         The type of the component.
+    values: Optional[List[:class:`str`]]
+        The values that the component was given. Generally used with
+        select menu components.
+
+        .. versionadded:: 0.1.5
     """
 
-    def __init__(self, *, custom_id: str = None, components: List[InteractedComponent] = None, value: str = None, type: int = None):
+    def __init__(
+            self,
+            *,
+            custom_id: Optional[str] = None,
+            components: Optional[List[InteractedComponent]] = None,
+            value: Optional[str] = None,
+            type: Optional[int] = None,
+            values: Optional[List[str]] = None):
         self.custom_id = custom_id
         self.components = components
         self.value = value
+        self.values = values
         self.type = type
 
     def __repr__(self) -> str:
@@ -58,6 +72,7 @@ class InteractedComponent:
             ('custom_id', self.custom_id),
             ('components', self.components),
             ('value', self.value),
+            ('values', self.values),
         )
         inner = ' '.join('%s=%r' % t for t in attrs)
         return f'{self.__class__.__name__}({inner})'
@@ -72,6 +87,7 @@ class InteractedComponent:
             type=payload.get("type"),
             components=components,
             value=payload.get("value"),
+            values=payload.get("values"),
         )
 
     def get_component(self, custom_id: str) -> Optional[InteractedComponent]:
@@ -99,6 +115,7 @@ class InteractedComponent:
                 if s:
                     return s
         return None
+
 
 class BaseComponent:
     """

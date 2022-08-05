@@ -31,7 +31,6 @@ class Check(object):
             # `fail_message`, and wait for the user to retry again.
             voxelbotutils.menus.Check(
                 check=lambda message: message.content.isdigit() and int(message.content) in range(7, 31),
-                on_failure=voxelbotutils.menus.Check.failures.RETRY,
                 fail_message="You need to give a *number* between **7** and **31**.",
             )
     """
@@ -44,17 +43,27 @@ class Check(object):
             on_failure: CheckFailureAction = CheckFailureAction.FAIL,
             fail_message: str = None):
         """
-        Attributes:
-            check (typing.Callable[[discord.Message], bool]): A method that takes a message instance, returning whether or not
-                this instance has converted properly. This cannot be a coroutine.
-            fail_message (str, optional): If the message doesn't pass the check, this is the message that string that gets output.
-            on_failure (CheckFailure, optional): The action to take upon the check failing.
+        Attributes
+        ----------
+        check : typing.Callable[[discord.Message], bool]
+            A method that takes a message instance, returning whether or not
+            this instance has converted properly. This cannot be a coroutine.
+        fail_message : str, optional
+            If the message doesn't pass the check, this is the
+            message that string that gets output.
+
+        Parameters
+        ----------
+        check : Optional[Callable[[discord.Message], bool]]
+            A method that takes a message instance, returning whether or not
+            this instance has converted properly. This cannot be a coroutine.
+        fail_message : Optional[str]
+            If the message doesn't pass the check, this is the
+            message that string that gets output.
         """
 
         self.check: typing.Callable[[discord.Message], bool] = check
-        self.on_failure: CheckFailureAction = on_failure
         self.fail_message: str = fail_message or "Please provide a valid input."
-
 
 
 class ModalCheck(Check):
@@ -83,13 +92,24 @@ class ModalCheck(Check):
             on_failure: CheckFailureAction = CheckFailureAction.FAIL,
             fail_message: str = None):
         """
-        Attributes:
-            check (typing.Callable[[discord.Message], bool]): A method that takes a message instance, returning whether or not
-                this instance has converted properly. This cannot be a coroutine.
-            fail_message (str, optional): If the message doesn't pass the check, this is the message that string that gets output.
-            on_failure (CheckFailure, optional): The action to take upon the check failing.
+        Attributes
+        ----------
+        check : Callable[[discord.Interaction], bool]
+            A method that takes a message instance, returning whether or not
+            this instance has converted properly. This cannot be a coroutine.
+        fail_message : str
+            If the message doesn't pass the check, this is the message
+            that string that gets output.
+
+        Parameters
+        ----------
+        check : Optional[Callable[[discord.Interaction], bool]]
+            A method that takes an interaction instance, returning whether or not
+            this instance has converted properly. This cannot be a coroutine.
+        fail_message : Optional[str]
+            If the message doesn't pass the check, this is the
+            message that string that gets output.
         """
 
         self.check: typing.Callable[[discord.Interaction], bool] = check
-        self.on_failure: CheckFailureAction = on_failure
         self.fail_message: str = fail_message or "Please provide a valid input."

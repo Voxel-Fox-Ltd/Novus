@@ -14,10 +14,12 @@ import importlib
 import discord
 from discord.ext import commands
 
+from discord.types.user import PartialUser
+
 from . import utils as vbu
 
 
-class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': False}):
+class OwnerOnly(vbu.Cog[vbu.Bot], command_attrs={'hidden': True, 'add_slash_command': False}):
     """
     Handles commands that only the owner should be able to run.
     """
@@ -37,39 +39,61 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         Listens for the redis* commands being run and invokes them.
         """
 
-        # Get the info
-        channel_id = payload['channel_id']
-        message_id = payload['message_id']
-        guild_id = payload['guild_id']
-        author_id = payload['author_id']
-        channel: discord.TextChannel = await self.bot.fetch_channel(channel_id)
-        if guild_id:
-            guild: discord.Guild = await self.bot.fetch_guild(guild_id)
-            channel.guild = guild
-            author: discord.Member = await guild.fetch_member(author_id)
-            bot: discord.Member = await guild.fetch_member(self.bot.user.id)
-            guild._add_member(bot)
-        else:
+        # Type hint time
+        guild: typing.Optional[discord.Guild]
+        channel: typing.Union[discord.TextChannel, discord.DMChannel, discord.PartialMessageable]
+        author: typing.Union[discord.Member, discord.User, PartialUser]
+        bot: typing.Union[discord.Member, discord.User, discord.ClientUser]
+        message: typing.Union[discord.Message, discord.PartialMessage]
+
+        # Unpack our payload
+        channel_id: int = payload['channel_id']
+        message_id: int = payload['message_id']
+        guild_id: int = payload['guild_id']
+        author_id: int = payload['author_id']
+        fetch: bool = payload['fetch']
+
+        # Get the objects
+        if not fetch:
             guild = None
-            author: discord.User = await self.bot.fetch_user(author_id)
-            bot: discord.User = self.bot.user
-        message: discord.Message = await channel.fetch_message(message_id)
+            channel = self.bot.get_partial_messageable(channel_id, type=discord.ChannelType.text)
+            message = channel.get_partial_message(message_id)
+            bot = None
+            author = None
+        elif guild_id:
+            channel = await self.bot.fetch_channel(channel_id)  # type: ignore - it will be a messageable
+            guild = await self.bot.fetch_guild(guild_id)
+            assert guild
+            channel.guild = guild
+            author = await guild.fetch_member(author_id)
+            bot = await guild.fetch_member(self.bot.user.id)
+            guild._add_member(bot)
+            message = await channel.fetch_message(message_id)
+        else:
+            channel = await self.bot.fetch_channel(channel_id)  # type: ignore - it will be a messageable
+            guild = None
+            author = await self.bot.fetch_user(author_id)
+            bot = self.bot.user
+            message = await channel.fetch_message(message_id)
         message.author = author
 
-        # Fix up the content
+        # Fix up the content to a valid @bot command
         new_content = f"<@{self.bot.user.id}> {payload['content']}"
         message.content = new_content
 
-        # And process
+        # Create the context
         ctx: vbu.Context = await self.bot.get_context(message)
         ctx.message = message
         ctx.guild = guild
         ctx.channel = channel
         ctx.author = author
         ctx.me = bot
+        ctx.from_redis = True
+
+        # And run
         await self.bot.invoke(ctx)
 
-    @vbu.command()
+    @commands.command()
     @commands.is_owner()
     @vbu.checks.is_config_set("redis", "enabled")
     @commands.bot_has_permissions(send_messages=True, attach_files=True, add_reactions=True)
@@ -80,16 +104,38 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
 
         if not content:
             raise vbu.errors.MissingRequiredArgumentString("content")
-        async with self.bot.redis() as re:
+        async with vbu.Redis() as re:
             await re.publish("RunRedisEval", {
                 'channel_id': ctx.channel.id,
                 'message_id': ctx.message.id,
                 'guild_id': ctx.guild.id if ctx.guild else None,
                 'author_id': ctx.author.id,
                 'content': content,
+                'fetch': False,
             })
 
-    @vbu.command(aliases=['src'])
+    @commands.command()
+    @commands.is_owner()
+    @vbu.checks.is_config_set("redis", "enabled")
+    @commands.bot_has_permissions(send_messages=True, attach_files=True, add_reactions=True)
+    async def redisfetch(self, ctx: vbu.Context, *, content: str):
+        """
+        Pings a command to be run over redis, fetching all objects.
+        """
+
+        if not content:
+            raise vbu.errors.MissingRequiredArgumentString("content")
+        async with vbu.Redis() as re:
+            await re.publish("RunRedisEval", {
+                'channel_id': ctx.channel.id,
+                'message_id': ctx.message.id,
+                'guild_id': ctx.guild.id if ctx.guild else None,
+                'author_id': ctx.author.id,
+                'content': content,
+                'fetch': True,
+            })
+
+    @commands.command(aliases=['src'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True, attach_files=True, add_reactions=True)
     async def source(self, ctx: vbu.Context, *, command_name: str):
@@ -102,7 +148,10 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
             raise vbu.errors.MissingRequiredArgumentString("command_name")
         command = self.bot.get_command(command_name)
         if command is None:
-            return await ctx.send(f"I couldn't find a command named `{command_name}`.", allowed_mentions=discord.AllowedMentions.none())
+            return await ctx.send(
+                f"I couldn't find a command named `{command_name}`.",
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
 
         # Get its source
         data = textwrap.dedent(inspect.getsource(command.callback))
@@ -123,7 +172,19 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         # Paginate
         await vbu.Paginator(pages, per_page=1).start(ctx)
 
-    @vbu.command(aliases=['pm', 'dm', 'send'])
+    @commands.command()
+    @commands.is_owner()
+    @commands.bot_has_permissions()
+    async def shard(self, ctx: vbu.Context, guild_id: int = 0):
+        """
+        Tells you the shard ID for a given guild.
+        """
+
+        guild_id = guild_id or ctx.guild.id
+        shard_id = (guild_id >> 22) % (self.bot.shard_count or 1)
+        await ctx.send(str(shard_id))
+
+    @commands.command(aliases=['pm', 'dm', 'send'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True, add_reactions=True)
     async def message(self, ctx: vbu.Context, snowflake: int, *, content: str = None):
@@ -205,7 +266,7 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
             index += 1
         return f"Executed in **{time_taken:,.3f}** {precision}."
 
-    @vbu.command(aliases=['evall', 'eval'])
+    @commands.command(aliases=['evall', 'eval'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def ev(self, ctx: vbu.Context, *, content: str = None):
@@ -274,17 +335,22 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         stdout_value = stdout.getvalue() or None
 
         # Give reaction just to show that it ran
-        try:
-            await ctx.okay()
-        except discord.HTTPException:
-            pass
+        if not getattr(ctx, "from_redis", False):
+            try:
+                await ctx.okay()
+            except discord.HTTPException:
+                pass
 
         # If the function returned nothing
         if ret is None:
+
             # It might have printed something
             if stdout_value is not None:
                 if len(stdout_value) >= 1_900:
-                    return await ctx.send(self.get_execution_time(end_time, start_time), file=discord.File(io.StringIO(stdout_value), filename=f"ev.txt"))
+                    return await ctx.send(
+                        self.get_execution_time(end_time, start_time),
+                        file=discord.File(io.StringIO(stdout_value), filename=f"ev.txt")
+                    )
                 await ctx.send(f'```py\n{stdout_value}\n```{self.get_execution_time(end_time, start_time)}')
             return
 
@@ -306,9 +372,12 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         text += self.get_execution_time(end_time, start_time)
 
         # Output to chat
-        return await ctx.send(self.get_execution_time(end_time, start_time), file=discord.File(io.StringIO(result), filename=f"ev.{filetype}"))
+        return await ctx.send(
+            self.get_execution_time(end_time, start_time),
+            file=discord.File(io.StringIO(result), filename=f"ev.{filetype}")
+        )
 
-    @vbu.command(aliases=['rld', 'rl'])
+    @commands.command(aliases=['rld', 'rl'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def reload(self, ctx: vbu.Context, *cog_name: str):
@@ -347,7 +416,7 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
             await ctx.send("Reloaded:\n`" + "`\n`".join(reloaded_cogs) + "`")
         return
 
-    @vbu.command(aliases=['downloadcog', 'dlcog', 'download', 'dl', 'stealcog'])
+    @commands.command(aliases=['downloadcog', 'dlcog', 'download', 'dl', 'stealcog'])
     @commands.is_owner()
     async def downloadfile(self, ctx: vbu.Context, url: str, file_folder: typing.Optional[str]):
         """
@@ -398,7 +467,7 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         # And done
         await ctx.send(f"Downloaded the `{file_name}` cog, saved as `{file_path}`, and loaded successfully into the bot.")
 
-    @vbu.command()
+    @commands.command()
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def runsql(self, ctx: vbu.Context, *, sql: str):
@@ -454,7 +523,7 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         file = discord.File(io.StringIO(string_output), filename="runsql.txt")
         await ctx.send(file=file)
 
-    @vbu.group()
+    @commands.group()
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def botuser(self, ctx: vbu.Context):
@@ -521,7 +590,7 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         status = getattr(discord.Status, status.lower())
         await self.bot.change_presence(activity=self.bot.guilds[0].me.activity, status=status)
 
-    @vbu.command(aliases=['sudo'])
+    @commands.command(aliases=['sudo'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def su(self, ctx, who: discord.User, *, command: str):
@@ -546,7 +615,7 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         # Invoke it dab
         await self.bot.invoke(new_ctx)
 
-    @vbu.command(aliases=['sh'])
+    @commands.command(aliases=['sh'])
     @commands.is_owner()
     @commands.bot_has_permissions(send_messages=True)
     async def shell(self, ctx: vbu.Context, *, command: str):
@@ -588,7 +657,7 @@ class OwnerOnly(vbu.Cog, command_attrs={'hidden': True, 'add_slash_command': Fal
         except discord.HTTPException:
             pass
 
-    @vbu.group()
+    @commands.group()
     @commands.is_owner()
     async def export(self, ctx: vbu.Context):
         """

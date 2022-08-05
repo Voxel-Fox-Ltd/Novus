@@ -11,15 +11,64 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_2_0:
+
+v0.2.0
+--------
+
+This version includes breaking changes around things that are cached/retrieved from cache in regards to slash commands, interactions, and HTTP only clients.
+
+New Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Add :func:`Guild.create_forum_channel`.
+* Add :func:`AllowedMentions.only`.
+* Add :attr:`Interaction.app_permissions`.
+* Add :attr:`Member.role_ids`.
+* [vbu] Add :func:`vbu.component_id_check`.
+* [vbu] Add :attr:`vbu.Bot.is_interactions_only`.
+
+Changed Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* :attr:`Interaction.guild` can now be an instance of :class:`Object`.
+    * :attr:`Member.guild` will return an empty list if the guild is a :class:`Object`. Use :attr:`Member.role_ids` instead.
+* [commands] :func:`commands.bot_has_permissions` will now use :attr:`Interaction.app_permissions` if available.
+* [vbu] Owners will only get DMs for uncaught errors if the shard count is lower than 50.
+* [vbu] :func:`vbu.Bot.startup` will now be run when the interactions webserver is started.
+* [vbu] ``default_prefix`` can now be missing entirely from the config.
+
+
+Removed Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* [vbu] Removed ``vbu.command``,  ``vbu.Command``, ``vbu.group``, and ``vbu.Group``.
+
 .. _vp0_1_4:
 
 v0.1.4
 --------
 
+New Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* [vbu] Add ``shard`` command to owner only cog.
+* [vbu] Add :attr:`ext.vbu.Bot.cluster`.
+* [vbu] Add cluster and shard IDs to the statsd logger.
+
+Changed Features
+~~~~~~~~~~~~~~~~~~~
+
+* [vbu] ``ev`` command runs invoked via the ``redis`` command will no longer try and add a reaction.
+* [vbu] The statsd logger for guild count now runs per cluster for more accurate guild count measurement.
+
 Bugs Fixed
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * Fixed not supporting ``None`` command prefixes.
+* Fix ``InteractionResolved.channels`` not parsing properly.
+* Fix channel kwarg not being optional for ``discord.GuildChannel``.
+* [vbu] Fix package data in the setup files.
 
 .. _vp0_1_3:
 

@@ -36,7 +36,7 @@ class RedisConnection(object):
     lock_manager: aioredlock.Aioredlock = None
     enabled: bool = False
 
-    def __init__(self, connection: aioredis.RedisConnection = None):
+    def __init__(self, connection: typing.Optional[aioredis.RedisConnection] = None):
         """:meta private:"""
 
         self.conn = connection

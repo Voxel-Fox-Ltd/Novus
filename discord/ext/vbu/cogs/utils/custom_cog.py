@@ -4,7 +4,8 @@ import typing
 import logging
 import re
 
-from discord.ext.commands import Cog as OriginalCog
+import discord
+from discord.ext import commands as _commands
 
 from .redis import RedisChannelHandler
 
@@ -16,7 +17,7 @@ if typing.TYPE_CHECKING:
 BotT = typing.TypeVar("BotT", bound="Bot")
 
 
-class Cog(OriginalCog, typing.Generic[BotT]):
+class Cog(_commands.Cog, typing.Generic[BotT]):
     """
     A slightly modified cog class to allow for the ``cache_setup`` method and for the class' ``logger`` instance.
 
@@ -37,14 +38,14 @@ class Cog(OriginalCog, typing.Generic[BotT]):
                 c.qualified_name  # "API Commands"
     """
 
-    def __init__(self, bot: BotT, logger_name: str = None):
+    def __init__(self, bot: BotT, logger_name: typing.Optional[str] = None):
         """
         Args:
             bot (Bot): The bot that should be added to the cog.
         """
 
         self.bot = bot
-        bot_logger = getattr(bot, "logger", logging.getLogger("bot"))
+        bot_logger: logging.Logger = getattr(bot, "logger", logging.getLogger("bot"))
         if logger_name:
             self.logger = bot_logger.getChild(logger_name)
         else:
