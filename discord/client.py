@@ -780,53 +780,42 @@ class Client:
         """
         return PartialMessageable(state=self._connection, id=id, type=type)
 
-    async def get_partial_message(self, *, message_id: Optional[int] = None, channel_id: Optional[int] = None,
-                                  message_url: Optional[str] = None) -> Optional[PartialMessage]:
-        """|coro|
+    def get_partial_message(self, *, message_id: Optional[int] = None, channel_id: Optional[int] = None,
+                            message_url: Optional[str] = None) -> Optional[PartialMessage]:
+        """
 
         Returns a :class:`~discord.PartialMessage` from a ``message_id`` and ``channel_id`` or a message url.
 
         .. note::
 
-            This method may utilize an API call if it cannot retrieve the channel via cache methods.
-
-        .. warning::
-
-            You should not rely on this method to raise an error if the message has been deleted. Instead, when utilizing
-            the return value check for any errors that might be present.
-
-        Raises
-        ------
-        :exc:`~discord.InvalidData`
-            An unknown channel type was received from Discord.
-        :exc:`~discord.HTTPException`
-            Retrieving the channel failed.
-        :exc:`~discord.NotFound`
-            Invalid Channel ID.
-        :exc:`~discord.Forbidden`
-            You do not have permission to fetch this channel.
+            ``message_url`` will override ``channel_id`` and ``message_id`` if provided
 
         Returns
         -------
         Optional[:class:`~discord.PartialMessage`]
             The Partial Message object from the given parameters or ``None`` if the channel cannot be found.
         """
-        if message_url:
+        if message_url is None:
+            if channel_id is None or message_id is None:
+                return None
+        else:
             url_regex = re_compile(
                 r'https?://(?:(ptb|canary|www)\.)?discord(?:app)?\.com/channels/'
                 r'(?P<guild_id>[0-9]{15,20}|@me)'
                 r'/(?P<channel_id>[0-9]{15,20})/(?P<message_id>[0-9]{15,20})/?$'
             )
+
             match = url_regex.match(message_url)
-            data = match.groupdict()
 
-            channel_id = data['channel_id']
-            message_id = data['message_id']
+            if match is None:
+                if channel_id is None and message_id is None:
+                    return None
+            else:
+                data = match.groupdict()
+                channel_id = data['channel_id']
+                message_id = data['message_id']
 
-        channel = self.get_channel(channel_id) or await self.fetch_channel(channel_id)
-
-        if not channel:
-            return None
+        channel = self.get_partial_messageable(channel_id)
         return PartialMessage(channel=channel, id=message_id)
 
     def get_stage_instance(self, id: int, /) -> Optional[StageInstance]:
