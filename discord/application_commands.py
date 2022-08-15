@@ -63,7 +63,9 @@ class ApplicationCommandInteractionDataOption:
         self.from_data(data)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}<name={self.name!r}, value={self.value!r}, type={self.type.name!r}>"
+        a = ('name', 'value', 'type')
+        v = [f"{i}={getattr(self, i)!r}" for i in a]
+        return f"{self.__class__.__name__}<{', '.join(v)}>"
 
     def from_data(self, data: ApplicationCommandInteractionDataOptionPayload):
         self.name: str = data["name"]
@@ -378,8 +380,7 @@ class ApplicationCommand(Snowflake):
             name_localizations: Optional[Dict[Union[Locale, str], str]] = None,
             description_localizations: Optional[Dict[Union[Locale, str], str]] = None,
             dm_permissions: bool = True,
-            default_member_permissions: Optional[Permissions] = None,
-            ):
+            default_member_permissions: Optional[Permissions] = None):
         self.name: str = name
         self.description: str = description or name
         self.type: ApplicationCommandType = type

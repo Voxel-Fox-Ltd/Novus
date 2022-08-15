@@ -189,10 +189,11 @@ class HTTPClient:
     def recreate(self) -> None:
         if self.__session.closed:
             self.__session = aiohttp.ClientSession(
-                connector=self.connector, ws_response_class=DiscordClientWebSocketResponse
+                connector=self.connector,
+                ws_response_class=DiscordClientWebSocketResponse
             )
 
-    async def ws_connect(self, url: str, *, compress: int = 0) -> Any:
+    async def ws_connect(self, url: str, *, compress: int = 0) -> aiohttp.ClientWebSocketResponse:
         kwargs = {
             'proxy_auth': self.proxy_auth,
             'proxy': self.proxy,
@@ -204,17 +205,15 @@ class HTTPClient:
             },
             'compress': compress,
         }
-
         return await self.__session.ws_connect(url, **kwargs)
 
     async def request(
-        self,
-        route: Route,
-        *,
-        files: Optional[Sequence[File]] = None,
-        form: Optional[Iterable[Dict[str, Any]]] = None,
-        **kwargs: Any,
-    ) -> Any:
+            self,
+            route: Route,
+            *,
+            files: Optional[Sequence[File]] = None,
+            form: Optional[Iterable[Dict[str, Any]]] = None,
+            **kwargs: Any) -> Any:
         bucket = route.bucket
         method = route.method
         url = route.url
@@ -1952,7 +1951,11 @@ class HTTPClient:
     def application_info(self) -> Response[appinfo.AppInfo]:
         return self.request(Route('GET', '/oauth2/applications/@me'))
 
-    async def get_gateway(self, *, encoding: str = 'json', zlib: bool = True) -> str:
+    async def get_gateway(
+            self,
+            *,
+            encoding: str = 'json',
+            zlib: bool = True) -> str:
         try:
             data = await self.request(Route('GET', '/gateway'))
         except HTTPException as exc:
