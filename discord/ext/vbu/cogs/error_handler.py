@@ -362,7 +362,7 @@ class ErrorHandler(vbu.Cog):
         if self.bot.config.get('dm_uncaught_errors', False):
             for owner_id in self.bot.owner_ids:
                 owner = self.bot.get_user(owner_id)
-                if not owner and self.bot.shard_count < 50:
+                if not owner and (self.bot.shard_count is None or self.bot.shard_count < 50):
                     owner = await self.bot.fetch_user(owner_id)
                 elif not owner:
                     continue
