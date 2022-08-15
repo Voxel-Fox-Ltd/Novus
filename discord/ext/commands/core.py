@@ -659,7 +659,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             if view:
                 argument = view.read_rest().strip()
             else:
-                argument = getattr(ctx, "given_values", {}).get[param.name]  # Slash context
+                argument = getattr(ctx, "given_values", {}).get(param.name)  # Slash context
 
         # Just a normal argument that we want to grab the value of
         else:
@@ -667,7 +667,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                 if view:
                     argument = view.get_quoted_word()
                 else:
-                    argument = getattr(ctx, "given_values", {}).get[param.name]  # Slash context
+                    argument = getattr(ctx, "given_values", {}).get(param.name)  # Slash context
             except (KeyError, ArgumentParsingError) as exc:
                 if self._is_typing_optional(param.annotation):
                     if view:
