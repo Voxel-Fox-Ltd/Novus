@@ -157,8 +157,8 @@ class ApplicationCommandInteractionDataResolved(TypedDict, total=False):
 class ApplicationCommandInteractionDataOption(TypedDict):
     name: str
     type: int
-    value: Optional[str]  # Optional[ApplicationCommandOptionType]
-    options: Optional[ApplicationCommandInteractionDataOption]
+    value: Optional[str]
+    options: List[ApplicationCommandInteractionDataOption]
     focused: Optional[bool]
     components: Optional[List[ApplicationCommandInteractionDataOption]]
 
