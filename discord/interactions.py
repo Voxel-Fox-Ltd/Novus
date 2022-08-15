@@ -153,10 +153,6 @@ class InteractionResolved:
         # Make an initial dict to write to
         members = {}
 
-        # Only return if there's a cached guild
-        # if not self._interaction.guild:
-        #     return {}
-
         # Get the raw data for the user
         user_data = self._data.get("users", dict())
         member_data = self._data.get("members", dict())
@@ -345,19 +341,27 @@ class Interaction(Generic[T]):
         # Parse the message object
         self.message: Optional[Message]
         try:
-            self.message = Message(state=self._state, channel=self.channel, data=payload['message'])  # type: ignore
+            self.message = Message(
+                state=self._state,
+                channel=self.channel,
+                data=payload['message'],
+            )
         except KeyError:
             self.message = None
 
-        # The data that the interaction gave back to us - not optional, but documented as optional
+        # The data that the interaction gave back to us - not optional, but documented
+        # as optional because it supports pings, but we're just gonna ignore that
         # This contains all the data ABOUT the interaction that's given back to us
-        self.data: Optional[InteractionData] = payload.get('data')
+        self.data: InteractionData = payload.get('data') or {}  # type: ignore - Ignoring so we can keep using a .get
+        assert self.data is not None
 
         # Parse the component that triggered the interaction - this does NOT apply to modals
         self.component: Optional[InteractedComponent] = None
         try:
             if self.message:
-                self.component = self.message.components.get_component(self.data['custom_id'])  # type: ignore
+                self.component = self.message.components.get_component(  # type: ignore - weird typing
+                    self.data['custom_id'],
+                )
         except (KeyError, AttributeError):
             pass
 
@@ -366,23 +370,31 @@ class Interaction(Generic[T]):
         if self.data:
             self.custom_id = self.data.get('custom_id')
 
-        # Parse the given values from the component - this is only used by select components
+        # Parse the given values from the component - this is only used by
+        # select components
         self.values: Optional[List[str]] = None
         if self.data and 'values' in self.data:
             self.values = self.data['values']
 
-        # Parse the returned options from the user - this is used by all application commands (including autocorrect)
+        # Parse the returned options from the user - this is used by all application
+        # commands (including autocorrect)
         self.options: Optional[List[ApplicationCommandInteractionDataOption]] = None
         if self.data and 'options' in self.data:
-            self.options = [ApplicationCommandInteractionDataOption(i) for i in self.data['options']]
+            self.options = [
+                ApplicationCommandInteractionDataOption(i)
+                for i in self.data['options']
+            ]
 
         # Parse the returned components - this is used by modals
         self.components: Optional[List[InteractedComponent]] = None
         if self.data and 'components' in self.data:
-            self.components = [InteractedComponent.from_data(i) for i in self.data['components']]
+            self.components = [
+                InteractedComponent.from_data(i)
+                for i in self.data['components']
+            ]
 
         # Parse the user and their permissions
-        self.user: Optional[Union[User, Member]] = None  # documented as optional, for whatever reason
+        self.user: Union[User, Member]  # documented as optional for pings; we'll ignore that
         self._permissions: int = 0
         self._app_permissions: int = 0
 
@@ -390,7 +402,7 @@ class Interaction(Generic[T]):
         self.user_locale = payload.get("locale")
         self.guild_locale = payload.get("guild_locale")
 
-        # TODO: there's a potential data loss here
+        # Create a user/member object if we can
         if self.guild_id:
             guild = self.guild
             try:
@@ -413,11 +425,18 @@ class Interaction(Generic[T]):
 
     @utils.cached_slot_property('_cs_resolved')
     def resolved(self) -> InteractionResolved:
-        return InteractionResolved(interaction=self, data=(self.data or {}).copy().get("resolved", dict()), state=self._state)
+        return InteractionResolved(
+            interaction=self,
+            data=(self.data or {}).copy().get("resolved", dict()),
+            state=self._state,
+        )
 
     @utils.cached_slot_property('_cs_command_name')
     def command_name(self) -> Optional[str]:
-        """Optional[:class:`str`]: The name of the invoked command. Only valid for slash command interactions."""
+        """
+        Optional[:class:`str`]: The name of the invoked command.
+        Only valid for slash command interactions.
+        """
 
         if self.data is None:
             return
@@ -437,7 +456,11 @@ class Interaction(Generic[T]):
 
     @property
     def guild(self) -> Optional[Union[Guild, Object]]:
-        """Optional[:class:`Guild` | :class:`Object`]: The guild the interaction was sent from."""
+        """
+        Optional[:class:`Guild` | :class:`Object`]:
+        The guild the interaction was sent from.
+        """
+
         v = self._state and self._state._get_guild(self.guild_id)
         if v:
             return v
@@ -447,11 +470,14 @@ class Interaction(Generic[T]):
 
     @utils.cached_slot_property('_cs_channel')
     def channel(self) -> Optional[InteractionChannel]:
-        """Optional[Union[:class:`abc.GuildChannel`, :class:`PartialMessageable`, :class:`Thread`]]: The channel the interaction was sent from.
+        """
+        Optional[Union[:class:`abc.GuildChannel`, :class:`PartialMessageable`, :class:`Thread`]]:
+        The channel the interaction was sent from.
 
         Note that due to a Discord limitation, DM channels are not resolved since there is
         no data to complete them. These are :class:`PartialMessageable` instead.
         """
+
         guild = self.guild
         channel = None
         if guild and isinstance(guild, Guild):
@@ -465,32 +491,47 @@ class Interaction(Generic[T]):
 
     @property
     def permissions(self) -> Permissions:
-        """:class:`Permissions`: The resolved permissions of the member in the channel, including overwrites.
-
-        In a non-guild context where this doesn't apply, an empty permissions object is returned.
         """
+        :class:`Permissions`: The resolved permissions of the member in the
+        channel, including overwrites.
+
+        In a non-guild context where this doesn't apply, an empty
+        permissions object is returned.
+        """
+
         return Permissions(self._permissions)
 
     @property
     def app_permissions(self) -> Permissions:
-        """:class:`Permissions`: The resolved permissions of the bot in the channel, including overwrites.
-
-        In a non-guild context where this doesn't apply, an empty permissions object is returned.
         """
+        :class:`Permissions`: The resolved permissions of the
+        bot in the channel, including overwrites.
+
+        In a non-guild context where this doesn't apply, an empty
+        permissions object is returned.
+        """
+
         return Permissions(self._app_permissions)
 
     @utils.cached_slot_property('_cs_response')
     def response(self) -> Union[InteractionResponse, HTTPInteractionResponse]:
-        """:class:`InteractionResponse`: Returns an object responsible for handling responding to the interaction.
-
-        A response can only be done once. If secondary messages need to be sent, consider using :attr:`followup`
-        instead.
         """
+        :class:`InteractionResponse`: Returns an object responsible for
+        handling responding to the interaction.
+
+        A response can only be done once. If secondary messages need to be
+        sent, consider using :attr:`followup` instead.
+        """
+
         return InteractionResponse(self)
 
     @utils.cached_slot_property('_cs_followup')
     def followup(self) -> Webhook:
-        """:class:`Webhook`: Returns the follow up webhook for follow up interactions."""
+        """
+        :class:`Webhook`: Returns the follow up webhook for
+        follow up interactions.
+        """
+
         payload = {
             'id': self.application_id,
             'type': 3,
@@ -501,7 +542,8 @@ class Interaction(Generic[T]):
         return v
 
     async def original_message(self) -> InteractionMessage:
-        """|coro|
+        """
+        |coro|
 
         Fetches the original interaction response message associated with the interaction.
 
@@ -544,17 +586,17 @@ class Interaction(Generic[T]):
         return message
 
     async def edit_original_message(
-        self,
-        *,
-        content: Optional[str] = MISSING,
-        embeds: List[Embed] = MISSING,
-        embed: Optional[Embed] = MISSING,
-        file: File = MISSING,
-        files: List[File] = MISSING,
-        components: Optional[MessageComponents] = MISSING,
-        allowed_mentions: Optional[AllowedMentions] = None,
-    ) -> InteractionMessage:
-        """|coro|
+            self,
+            *,
+            content: Optional[str] = MISSING,
+            embeds: List[Embed] = MISSING,
+            embed: Optional[Embed] = MISSING,
+            file: File = MISSING,
+            files: List[File] = MISSING,
+            components: Optional[MessageComponents] = MISSING,
+            allowed_mentions: Optional[AllowedMentions] = None) -> InteractionMessage:
+        """
+        |coro|
 
         Edits the original interaction response message.
 
@@ -582,8 +624,8 @@ class Interaction(Generic[T]):
             Controls the mentions being processed in this message.
             See :meth:`.abc.Messageable.send` for more information.
         components: Optional[:class:`~discord.ui.MessageComponents`]
-            The set of message components to update the message with. If ``None`` is passed then
-            the components are removed.
+            The set of message components to update the message with. If
+            ``None`` is passed then the components are removed.
 
         Raises
         -------
@@ -624,11 +666,16 @@ class Interaction(Generic[T]):
         )
 
         # The message channel types should always match
-        message = InteractionMessage(state=self._state, channel=self.channel, data=data)  # type: ignore
+        message = InteractionMessage(
+            state=self._state,
+            channel=self.channel,  # type: ignore
+            data=data,
+        )
         return message
 
     async def delete_original_message(self) -> None:
-        """|coro|
+        """
+        |coro|
 
         Deletes the original interaction response message.
 
@@ -642,6 +689,7 @@ class Interaction(Generic[T]):
         Forbidden
             Deleted a message that is not yours.
         """
+
         adapter = async_context.get()
         await adapter.delete_original_interaction_response(
             self.application_id,
@@ -651,7 +699,8 @@ class Interaction(Generic[T]):
 
 
 class InteractionResponse:
-    """Represents a Discord interaction response.
+    """
+    Represents a Discord interaction response.
 
     This type can be accessed through :attr:`Interaction.response`.
     """
@@ -666,14 +715,18 @@ class InteractionResponse:
         self._responded: bool = False
 
     def is_done(self) -> bool:
-        """:class:`bool`: Indicates whether an interaction response has been done before.
+        """
+        :class:`bool`: Indicates whether an interaction response
+        has been done before.
 
         An interaction can only be responded to once.
         """
+
         return self._responded
 
     async def defer(self, *, ephemeral: bool = False) -> None:
-        """|coro|
+        """
+        |coro|
 
         Defers the interaction response.
 
@@ -683,8 +736,10 @@ class InteractionResponse:
         Parameters
         -----------
         ephemeral: :class:`bool`
-            Indicates whether the deferred message will eventually be ephemeral.
-            This only applies for interactions of type :attr:`InteractionType.application_command`.
+            Indicates whether the deferred message will eventually
+            be ephemeral.
+            This only applies for interactions of type
+            :attr:`InteractionType.application_command`.
 
         Raises
         -------
@@ -693,6 +748,7 @@ class InteractionResponse:
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -716,12 +772,16 @@ class InteractionResponse:
         if defer_type:
             adapter = async_context.get()
             await adapter.create_interaction_response(
-                parent.id, parent.token, session=parent._session, payload=data
+                parent.id,
+                parent.token,
+                session=parent._session,
+                payload=data,
             )
             self._responded = True
 
     async def defer_update(self) -> None:
-        """|coro|
+        """
+        |coro|
 
         Defers the interaction response.
 
@@ -737,6 +797,7 @@ class InteractionResponse:
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -749,12 +810,16 @@ class InteractionResponse:
             payload = {"type": defer_type}
             adapter = async_context.get()
             await adapter.create_interaction_response(
-                parent.id, parent.token, session=parent._session, payload=payload
+                parent.id,
+                parent.token,
+                session=parent._session,
+                payload=payload,
             )
             self._responded = True
 
     async def pong(self) -> None:
-        """|coro|
+        """
+        |coro|
 
         Pongs the ping interaction.
 
@@ -767,6 +832,7 @@ class InteractionResponse:
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -778,15 +844,18 @@ class InteractionResponse:
         if parent.type is InteractionType.ping:
             adapter = async_context.get()
             await adapter.create_interaction_response(
-                parent.id, parent.token, session=parent._session, payload=data,
+                parent.id,
+                parent.token,
+                session=parent._session,
+                payload=data,
             )
             self._responded = True
 
     async def send_autocomplete(
-        self,
-        options: List[ApplicationCommandOptionChoice] = None,
-    ) -> None:
-        """|coro|
+            self,
+            options: List[ApplicationCommandOptionChoice] = None) -> None:
+        """
+        |coro|
 
         Responds to this interaction by sending a message.
 
@@ -806,6 +875,7 @@ class InteractionResponse:
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -828,10 +898,10 @@ class InteractionResponse:
         self._responded = True
 
     async def send_modal(
-        self,
-        modal: Modal,
-    ) -> None:
-        """|coro|
+            self,
+            modal: Modal) -> None:
+        """
+        |coro|
 
         Reponds to the interaction by sending a modal back to the user.
 
@@ -849,6 +919,7 @@ class InteractionResponse:
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -869,19 +940,19 @@ class InteractionResponse:
         self._responded = True
 
     async def send_message(
-        self,
-        content: Optional[Any] = None,
-        *,
-        embed: Embed = MISSING,
-        embeds: List[Embed] = MISSING,
-        file: File = MISSING,
-        files: List[File] = MISSING,
-        components: MessageComponents = MISSING,
-        tts: bool = False,
-        ephemeral: bool = False,
-        allowed_mentions: AllowedMentions = None,
-    ) -> None:
-        """|coro|
+            self,
+            content: Optional[Any] = None,
+            *,
+            embed: Embed = MISSING,
+            embeds: List[Embed] = MISSING,
+            file: File = MISSING,
+            files: List[File] = MISSING,
+            components: MessageComponents = MISSING,
+            tts: bool = False,
+            ephemeral: bool = False,
+            allowed_mentions: AllowedMentions = None) -> None:
+        """
+        |coro|
 
         Responds to this interaction by sending a message.
 
@@ -905,7 +976,8 @@ class InteractionResponse:
         components: :class:`discord.ui.MessageComponents`
             The components to send with the messasge.
         ephemeral: :class:`bool`
-            Indicates if the message should only be visible to the user who started the interaction.
+            Indicates if the message should only be visible to the user who
+            started the interaction.
         allowed_mentions: :class:`AllowedMentions`
             The allowed mentions that should be sent with the message.
 
@@ -920,6 +992,7 @@ class InteractionResponse:
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -951,16 +1024,16 @@ class InteractionResponse:
         self._responded = True
 
     async def edit_message(
-        self,
-        *,
-        content: Optional[Any] = MISSING,
-        embed: Optional[Embed] = MISSING,
-        embeds: List[Embed] = MISSING,
-        attachments: List[Attachment] = MISSING,
-        components: Optional[MessageComponents] = MISSING,
-        allowed_mentions: Optional[AllowedMentions] = MISSING,
-    ) -> None:
-        """|coro|
+            self,
+            *,
+            content: Optional[Any] = MISSING,
+            embed: Optional[Embed] = MISSING,
+            embeds: List[Embed] = MISSING,
+            attachments: List[Attachment] = MISSING,
+            components: Optional[MessageComponents] = MISSING,
+            allowed_mentions: Optional[AllowedMentions] = MISSING) -> None:
+        """
+        |coro|
 
         Responds to this interaction by editing the original message of
         a component interaction.
@@ -990,6 +1063,7 @@ class InteractionResponse:
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -1064,7 +1138,8 @@ class _MultipartWriter(object):
 
 
 class HTTPInteractionResponse(InteractionResponse):
-    """Represents a Discord interaction response.
+    """
+    Represents a Discord interaction response.
 
     This type can be accessed through :attr:`Interaction.response`.
     """
@@ -1082,7 +1157,8 @@ class HTTPInteractionResponse(InteractionResponse):
         self._aiohttp_response: web.StreamResponse = web.StreamResponse()
 
     async def defer(self, *, ephemeral: bool = False) -> None:
-        """|coro|
+        """
+        |coro|
 
         Defers the interaction response.
 
@@ -1102,6 +1178,7 @@ class HTTPInteractionResponse(InteractionResponse):
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -1122,7 +1199,8 @@ class HTTPInteractionResponse(InteractionResponse):
             self._responded = True
 
     async def defer_update(self) -> None:
-        """|coro|
+        """
+        |coro|
 
         Defers the interaction response.
 
@@ -1138,6 +1216,7 @@ class HTTPInteractionResponse(InteractionResponse):
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -1153,7 +1232,8 @@ class HTTPInteractionResponse(InteractionResponse):
             self._responded = True
 
     async def pong(self) -> None:
-        """|coro|
+        """
+        |coro|
 
         Pongs the ping interaction.
 
@@ -1166,6 +1246,7 @@ class HTTPInteractionResponse(InteractionResponse):
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -1179,19 +1260,19 @@ class HTTPInteractionResponse(InteractionResponse):
             self._responded = True
 
     async def send_message(
-        self,
-        content: Optional[Any] = None,
-        *,
-        embed: Embed = MISSING,
-        embeds: List[Embed] = MISSING,
-        file: File = MISSING,
-        files: List[File] = MISSING,
-        components: MessageComponents = MISSING,
-        tts: bool = False,
-        ephemeral: bool = False,
-        allowed_mentions: AllowedMentions = None,
-    ) -> None:
-        """|coro|
+            self,
+            content: Optional[Any] = None,
+            *,
+            embed: Embed = MISSING,
+            embeds: List[Embed] = MISSING,
+            file: File = MISSING,
+            files: List[File] = MISSING,
+            components: MessageComponents = MISSING,
+            tts: bool = False,
+            ephemeral: bool = False,
+            allowed_mentions: AllowedMentions = None) -> None:
+        """
+        |coro|
 
         Responds to this interaction by sending a message.
 
@@ -1230,6 +1311,7 @@ class HTTPInteractionResponse(InteractionResponse):
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -1280,10 +1362,10 @@ class HTTPInteractionResponse(InteractionResponse):
         self._responded = True
 
     async def send_autocomplete(
-        self,
-        options: List[ApplicationCommandOptionChoice] = None,
-    ) -> None:
-        """|coro|
+            self,
+            options: List[ApplicationCommandOptionChoice] = None) -> None:
+        """
+        |coro|
 
         Responds to this interaction by sending a message.
 
@@ -1301,6 +1383,7 @@ class HTTPInteractionResponse(InteractionResponse):
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -1320,10 +1403,10 @@ class HTTPInteractionResponse(InteractionResponse):
         self._responded = True
 
     async def send_modal(
-        self,
-        modal: Modal,
-    ) -> None:
-        """|coro|
+            self,
+            modal: Modal) -> None:
+        """
+        |coro|
 
         Reponds to the interaction by sending a modal back to the user.
 
@@ -1341,6 +1424,7 @@ class HTTPInteractionResponse(InteractionResponse):
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -1358,16 +1442,16 @@ class HTTPInteractionResponse(InteractionResponse):
         self._responded = True
 
     async def edit_message(
-        self,
-        *,
-        content: Optional[Any] = MISSING,
-        embed: Optional[Embed] = MISSING,
-        embeds: List[Embed] = MISSING,
-        attachments: List[Attachment] = MISSING,
-        components: Optional[MessageComponents] = MISSING,
-        allowed_mentions: Optional[AllowedMentions] = MISSING,
-    ) -> None:
-        """|coro|
+            self,
+            *,
+            content: Optional[Any] = MISSING,
+            embed: Optional[Embed] = MISSING,
+            embeds: List[Embed] = MISSING,
+            attachments: List[Attachment] = MISSING,
+            components: Optional[MessageComponents] = MISSING,
+            allowed_mentions: Optional[AllowedMentions] = MISSING) -> None:
+        """
+        |coro|
 
         Responds to this interaction by editing the original message of
         a component interaction.
@@ -1397,6 +1481,7 @@ class HTTPInteractionResponse(InteractionResponse):
         InteractionResponded
             This interaction has already been responded to before.
         """
+
         if self._responded:
             raise InteractionResponded(self._parent)
 
@@ -1458,7 +1543,11 @@ class HTTPInteractionResponse(InteractionResponse):
 
 
 class _InteractionMessageState:
-    __slots__ = ('_parent', '_interaction')
+
+    __slots__ = (
+        '_parent',
+        '_interaction',
+    )
 
     def __init__(self, interaction: Interaction, parent: ConnectionState):
         self._interaction: Interaction = interaction
@@ -1482,10 +1571,12 @@ class _InteractionMessageState:
 
 
 class InteractionMessage(Message):
-    """Represents the original interaction response message.
+    """
+    Represents the original interaction response message.
 
     This allows you to edit or delete the message associated with
-    the interaction response. To retrieve this object see :meth:`Interaction.original_message`.
+    the interaction response. To retrieve this object see
+    :meth:`Interaction.original_message`.
 
     This inherits from :class:`discord.Message` with changes to
     :meth:`edit` and :meth:`delete` to work.
@@ -1495,16 +1586,16 @@ class InteractionMessage(Message):
     _state: _InteractionMessageState
 
     async def edit(
-        self,
-        content: Optional[str] = MISSING,
-        embeds: List[Embed] = MISSING,
-        embed: Optional[Embed] = MISSING,
-        file: File = MISSING,
-        files: List[File] = MISSING,
-        components: Optional[MessageComponents] = MISSING,
-        allowed_mentions: Optional[AllowedMentions] = None,
-    ) -> InteractionMessage:
-        """|coro|
+            self,
+            content: Optional[str] = MISSING,
+            embeds: List[Embed] = MISSING,
+            embed: Optional[Embed] = MISSING,
+            file: File = MISSING,
+            files: List[File] = MISSING,
+            components: Optional[MessageComponents] = MISSING,
+            allowed_mentions: Optional[AllowedMentions] = None) -> InteractionMessage:
+        """
+        |coro|
 
         Edits the message.
 
@@ -1545,6 +1636,7 @@ class InteractionMessage(Message):
         :class:`InteractionMessage`
             The newly edited message.
         """
+
         return await self._state._interaction.edit_original_message(
             content=content,
             embeds=embeds,
@@ -1556,7 +1648,8 @@ class InteractionMessage(Message):
         )
 
     async def delete(self, *, delay: Optional[float] = None) -> None:
-        """|coro|
+        """
+        |coro|
 
         Deletes the message.
 
