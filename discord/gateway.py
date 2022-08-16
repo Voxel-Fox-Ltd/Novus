@@ -22,6 +22,8 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 """
 
+from __future__ import annotations
+
 import asyncio
 from collections import namedtuple, deque
 import concurrent.futures
@@ -31,6 +33,7 @@ import sys
 import time
 import threading
 import traceback
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, List, Dict, Optional
 import zlib
 
 import aiohttp
@@ -40,7 +43,16 @@ from .activity import BaseActivity
 from .enums import SpeakingState
 from .errors import ConnectionClosed, InvalidArgument
 
+if TYPE_CHECKING:
+    from typing_extensions import Self
+
+    from .client import Client
+    from .state import ConnectionState
+    from .http import HTTPClient
+
+
 _log = logging.getLogger(__name__)
+
 
 __all__ = (
     'DiscordWebSocket',
@@ -50,18 +62,29 @@ __all__ = (
     'ReconnectWebSocket',
 )
 
+
 class ReconnectWebSocket(Exception):
     """Signals to safely reconnect the websocket."""
-    def __init__(self, shard_id, *, resume=True):
+
+    def __init__(
+            self,
+            shard_id,
+            *,
+            resume: bool = True,
+            gateway: Optional[str] = None):
         self.shard_id = shard_id
         self.resume = resume
         self.op = 'RESUME' if resume else 'IDENTIFY'
+        self.gateway = gateway
+
 
 class WebSocketClosure(Exception):
     """An exception to make up for the fact that aiohttp doesn't signal closure."""
     pass
 
+
 EventListener = namedtuple('EventListener', 'predicate event result future')
+
 
 class GatewayRatelimiter:
     def __init__(self, count=110, per=60.0):
@@ -106,6 +129,7 @@ class GatewayRatelimiter:
 
 
 class KeepAliveHandler(threading.Thread):
+
     def __init__(self, *args, **kwargs):
         ws = kwargs.pop('ws', None)
         interval = kwargs.pop('interval', None)
@@ -188,6 +212,7 @@ class KeepAliveHandler(threading.Thread):
             _log.warning(self.behind_msg, self.shard_id, self.latency)
 
 class VoiceKeepAliveHandler(KeepAliveHandler):
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.recent_ack_latencies = deque(maxlen=20)
@@ -208,9 +233,12 @@ class VoiceKeepAliveHandler(KeepAliveHandler):
         self.latency = ack_time - self._last_send
         self.recent_ack_latencies.append(self.latency)
 
+
 class DiscordClientWebSocketResponse(aiohttp.ClientWebSocketResponse):
+
     async def close(self, *, code: int = 4000, message: bytes = b'') -> bool:
         return await super().close(code=code, message=message)
+
 
 class DiscordWebSocket:
     """Implements a WebSocket for Discord's gateway v6.
@@ -252,6 +280,7 @@ class DiscordWebSocket:
         The authentication token for discord.
     """
 
+    # Opcodes
     DISPATCH           = 0
     HEARTBEAT          = 1
     IDENTIFY           = 2
@@ -266,25 +295,43 @@ class DiscordWebSocket:
     HEARTBEAT_ACK      = 11
     GUILD_SYNC         = 12
 
-    def __init__(self, socket, *, loop):
+    def __init__(
+            self,
+            socket: aiohttp.ClientWebSocketResponse,
+            *,
+            loop: asyncio.AbstractEventLoop):
         self.socket = socket
         self.loop = loop
 
         # an empty dispatcher to prevent crashes
         self._dispatch = lambda *args: None
         # generic event listeners
-        self._dispatch_listeners = []
+        self._dispatch_listeners: List[EventListener] = []
         # the keep alive
         self._keep_alive = None
-        self.thread_id = threading.get_ident()
+        self.thread_id: int = threading.get_ident()
 
         # ws related stuff
         self.session_id = None
         self.sequence = None
+        self.resume_url: Optional[str] = None
         self._zlib = zlib.decompressobj()
         self._buffer = bytearray()
         self._close_code = None
         self._rate_limiter = GatewayRatelimiter()
+
+        # type hinting stuff
+        self.client: Optional[Client] = None
+        self.token: Optional[str]
+        self._http: HTTPClient
+        self._connection: ConnectionState
+        self._discord_parsers: Dict[str, Callable]
+        self.gateway: str
+        self.call_hooks: Any
+        self._initial_identify: bool
+        self.shard_id: Optional[int]
+        self.shard_count: Optional[int]
+        self._max_heartbeat_timeout: float
 
     @property
     def open(self):
@@ -300,17 +347,29 @@ class DiscordWebSocket:
         pass
 
     @classmethod
-    async def from_client(cls, client, *, initial=False, gateway=None, shard_id=None, session=None, sequence=None, resume=False):
+    async def from_client(
+            cls,
+            client: Client,
+            *,
+            initial: bool = False,
+            gateway: Optional[str] = None,
+            shard_id: Optional[int] = None,
+            session=None,
+            sequence=None,
+            resume: bool = False) -> Self:
         """Creates a main websocket for Discord from a :class:`Client`.
 
         This is for internal use only.
         """
+
         gateway = gateway or await client.http.get_gateway()
         socket = await client.http.ws_connect(gateway)
         ws = cls(socket, loop=client.loop)
 
         # dynamically add attributes needed
+        ws.client = client
         ws.token = client.http.token
+        ws._http = client.http
         ws._connection = client._connection
         ws._discord_parsers = client._connection.parsers
         ws._dispatch = client.dispatch
@@ -323,6 +382,7 @@ class DiscordWebSocket:
         ws.session_id = session
         ws.sequence = sequence
         ws._max_heartbeat_timeout = client._connection.heartbeat_timeout
+        client.ws = ws
 
         if client._enable_debug_events:
             ws.send = ws.debug_send
@@ -363,7 +423,12 @@ class DiscordWebSocket:
         """
 
         future = self.loop.create_future()
-        entry = EventListener(event=event, predicate=predicate, result=result, future=future)
+        entry = EventListener(
+            event=event,
+            predicate=predicate,
+            result=result,
+            future=future,
+        )
         self._dispatch_listeners.append(entry)
         return future
 
@@ -405,6 +470,20 @@ class DiscordWebSocket:
 
     async def resume(self):
         """Sends the RESUME packet."""
+
+        # if we have a new url then close the current connection
+        # and open a new one with the resume url
+        if self.client and self.resume_url:
+            await self.close()
+            await self.from_client(
+                self.client,
+                initial=False,
+                gateway=self.resume_url,
+                shard_id=self.shard_id,
+                resume=True,
+            )
+            return
+
         payload = {
             'op': self.RESUME,
             'd': {
@@ -413,7 +492,6 @@ class DiscordWebSocket:
                 'token': self.token
             }
         }
-
         await self.send_as_json(payload)
         _log.info('Shard ID %s has sent the RESUME payload.', self.shard_id)
 
@@ -451,7 +529,10 @@ class DiscordWebSocket:
                 # internal exception signalling to reconnect.
                 _log.debug('Received RECONNECT opcode.')
                 await self.close()
-                raise ReconnectWebSocket(self.shard_id)
+                raise ReconnectWebSocket(
+                    self.shard_id,
+                    gateway=self.resume_url,
+                )
 
             if op == self.HEARTBEAT_ACK:
                 if self._keep_alive:
@@ -475,7 +556,10 @@ class DiscordWebSocket:
             if op == self.INVALIDATE_SESSION:
                 if data is True:
                     await self.close()
-                    raise ReconnectWebSocket(self.shard_id)
+                    raise ReconnectWebSocket(
+                        self.shard_id,
+                        gateway=self.resume_url,
+                    )
 
                 self.sequence = None
                 self.session_id = None
@@ -490,6 +574,7 @@ class DiscordWebSocket:
             self._trace = trace = data.get('_trace', [])
             self.sequence = msg['s']
             self.session_id = data['session_id']
+            self.resume_url = data['resume_gateway_url']
             # pass back shard ID to ready handler
             data['__shard_id__'] = self.shard_id
             _log.info('Shard ID %s has connected to Gateway: %s (Session ID: %s).',
