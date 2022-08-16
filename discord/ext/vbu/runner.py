@@ -132,7 +132,7 @@ class LogFilter(logging.Filter):
 
     # Props to these folks who I stole all this from
     # https://stackoverflow.com/a/28743317/2224197
-    # http://stackoverflow.com/a/24956305/408556
+    # https://stackoverflow.com/a/24956305/408556
 
     def __init__(self, filter_level: int):
         self.filter_level = filter_level
@@ -517,7 +517,8 @@ def run_interactions(args: argparse.Namespace) -> None:
 
     # Start the webserver
     loop.run_until_complete(webserver.start())
-    logger.info(f"Server started - http://{args.host}:{args.port}/")
+    host = args.host if args.host != '0.0.0.0' else 'localhost'
+    logger.info(f"Server started - http://{host}:{args.port}/")
 
     # This is the forever loop
     try:
@@ -685,7 +686,8 @@ def run_website(args: argparse.Namespace) -> None:
 
     # Start the webserver
     loop.run_until_complete(webserver.start())
-    logger.info(f"Server started - http://{args.host}:{args.port}/")
+    host = args.host if args.host != '0.0.0.0' else 'localhost'
+    logger.info(f"Server started - http://{host}:{args.port}/")
 
     # This is the forever loop
     try:
