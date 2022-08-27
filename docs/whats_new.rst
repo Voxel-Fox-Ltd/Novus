@@ -16,7 +16,10 @@ in specific versions.
 v0.2.0
 --------
 
-This version includes breaking changes around things that are cached/retrieved from cache in regards to slash commands, interactions, and HTTP only clients.
+This version includes breaking changes around things that are cached/retrieved
+from cache in regards to slash commands, interactions, and HTTP only clients.
+
+This version also includes :attr:`Intents.message_content` explicitly.
 
 New Features
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -25,6 +28,8 @@ New Features
 * Add :func:`AllowedMentions.only`.
 * Add :attr:`Interaction.app_permissions`.
 * Add :attr:`Member.role_ids`.
+* Add :attr:`Intents.message_content`.
+* Add support for ``gateway_resume_url``.
 * [vbu] Add :func:`vbu.component_id_check`.
 * [vbu] Add :attr:`vbu.Bot.is_interactions_only`.
 
@@ -32,8 +37,10 @@ Changed Features
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * :attr:`Interaction.guild` can now be an instance of :class:`Object`.
-    * :attr:`Member.guild` will return an empty list if the guild is a :class:`Object`. Use :attr:`Member.role_ids` instead.
-* [commands] :func:`commands.bot_has_permissions` will now use :attr:`Interaction.app_permissions` if available.
+    * :attr:`Member.guild` will return an empty list if the guild is a :class:`Object`.
+    Use :attr:`Member.role_ids` instead.
+* [commands] :func:`commands.bot_has_permissions` will now use :attr:`Interaction.app_permissions`
+if available.
 * [vbu] Owners will only get DMs for uncaught errors if the shard count is lower than 50.
 * [vbu] :func:`vbu.Bot.startup` will now be run when the interactions webserver is started.
 * [vbu] ``default_prefix`` can now be missing entirely from the config.
@@ -43,6 +50,7 @@ Removed Features
 ~~~~~~~~~~~~~~~~~~~~~~
 
 * [vbu] Removed ``vbu.command``,  ``vbu.Command``, ``vbu.group``, and ``vbu.Group``.
+* [vbu] Remove ``vbu.Redis.lock_manager`` and ``aioredlock`` requirement.
 
 .. _vp0_1_4:
 

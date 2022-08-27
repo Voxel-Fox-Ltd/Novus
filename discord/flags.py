@@ -683,6 +683,9 @@ class Intents(BaseFlags):
         - :func:`on_reaction_add` (both guilds and DMs)
         - :func:`on_reaction_remove` (both guilds and DMs)
         - :func:`on_reaction_clear` (both guilds and DMs)
+
+        Note that messages will not have any content attached to them unless you also have the
+        :attr:`message_content` intent.
         """
         return (1 << 9) | (1 << 12)
 
@@ -710,6 +713,9 @@ class Intents(BaseFlags):
         - :func:`on_reaction_add` (only for guilds)
         - :func:`on_reaction_remove` (only for guilds)
         - :func:`on_reaction_clear` (only for guilds)
+
+        Note that messages will not have any content attached to them unless you also have the
+        :attr:`message_content` intent.
         """
         return 1 << 9
 
@@ -737,6 +743,9 @@ class Intents(BaseFlags):
         - :func:`on_reaction_add` (only for DMs)
         - :func:`on_reaction_remove` (only for DMs)
         - :func:`on_reaction_clear` (only for DMs)
+
+        Note that messages will not have any content attached to them unless you also have the
+        :attr:`message_content` intent.
         """
         return 1 << 12
 
@@ -844,6 +853,20 @@ class Intents(BaseFlags):
         This does not correspond to any attributes or classes in the library in terms of cache.
         """
         return 1 << 14
+
+    @flag_value
+    def message_content(self):
+        """:class:`bool`: Whether or not sent messages have their content attached to them or not.
+
+        See also :attr:`messages`.
+
+        .. note::
+
+            Currently, this requires opting in explicitly via the developer portal as well.
+            Bots in over 100 guilds will need to apply to Discord for verification.
+        """
+
+        return 1 << 15
 
 
 @fill_with_flags()

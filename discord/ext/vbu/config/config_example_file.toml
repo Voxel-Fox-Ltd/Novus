@@ -44,6 +44,7 @@ bot_support_role_id = 0  # The ID used to determine whether or not the user is p
     dm_reactions = false  # DM reactions - Used for [raw] reaction add/remove/clear events in DMs.
     guild_typing = false  # Guild typing - Used for the typing event in guilds.
     dm_typing = false  # DM typing - Used for the typing event in DMs.
+    message_content = false  # Message content (privileged intent) - Whether or not you get message content.
 
 # Data used to send API requests to whatever service. If these are set, vote links will be added via the `/vote` command.
 [bot_listing_api_keys]
