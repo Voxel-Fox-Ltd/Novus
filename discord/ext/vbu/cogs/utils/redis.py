@@ -6,7 +6,6 @@ import asyncio
 import json
 
 import aioredis
-import aioredlock
 
 
 class RedisConnection(object):
@@ -33,7 +32,7 @@ class RedisConnection(object):
     config: dict = None
     pool: aioredis.Redis = None
     logger: logging.Logger = logging.getLogger("vbu.redis")
-    lock_manager: aioredlock.Aioredlock = None
+    lock_manager = None
     enabled: bool = False
 
     def __init__(self, connection: typing.Optional[aioredis.RedisConnection] = None):
@@ -57,7 +56,6 @@ class RedisConnection(object):
             raise NotImplementedError("The Redis connection has been disabled.")
         address = modified_config.pop('host'), modified_config.pop('port')
         cls.pool = await aioredis.create_redis_pool(address, **modified_config)
-        cls.lock_manager = aioredlock.Aioredlock([cls.pool])
         cls.enabled = True
 
     @classmethod
