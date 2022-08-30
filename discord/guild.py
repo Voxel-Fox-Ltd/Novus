@@ -158,7 +158,7 @@ class Guild(Hashable):
         The region the guild belongs on. There is a chance that the region
         will be a :class:`str` if the value is not recognised by the enumerator.
     afk_timeout: :class:`int`
-        The timeout to get sent to the AFK channel.
+        The number of seconds until someone is moved to the AFK channel.
     afk_channel: Optional[:class:`VoiceChannel`]
         The channel that denotes the AFK channel. ``None`` if it doesn't exist.
     id: :class:`int`
@@ -219,7 +219,7 @@ class Guild(Hashable):
         - ``TICKETED_EVENTS_ENABLED``: Guild has enabled ticketed events.
         - ``VANITY_URL``: Guild can have a vanity invite URL (e.g. discord.gg/discord-api).
         - ``VERIFIED``: Guild is a verified server.
-        - ``VIP_REGIONS``: Guild has VIP voice regions.
+        - ``VIP_REGIONS``: Guild can have 384kbps bitrate in voice channels.
         - ``WELCOME_SCREEN_ENABLED``: Guild has enabled the welcome screen.
 
     premium_tier: :class:`int`
