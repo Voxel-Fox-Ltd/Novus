@@ -1670,6 +1670,7 @@ class Threadable(GuildChannel):
                 reason=reason,
             )
 
+        from .threads import Thread
         return Thread(guild=self.guild, state=self._state, data=data)
 
 
