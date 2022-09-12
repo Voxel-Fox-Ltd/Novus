@@ -30,6 +30,7 @@ import logging
 import signal
 import sys
 import traceback
+from re import compile as re_compile
 from typing import Any, Callable, Coroutine, Dict, Generator, List, Literal, Optional, Sequence, TYPE_CHECKING, Tuple, TypeVar, Union, overload
 
 import aiohttp
@@ -63,6 +64,7 @@ from .stage_instance import StageInstance
 from .threads import Thread
 from .sticker import GuildSticker, StandardSticker, StickerPack, _sticker_factory
 from .application_commands import ApplicationCommand
+from .message import PartialMessage
 
 if TYPE_CHECKING:
     from .abc import SnowflakeTime, PrivateChannel, GuildChannel, Snowflake as DiscordObject
@@ -777,6 +779,50 @@ class Client:
             The partial messageable
         """
         return PartialMessageable(state=self._connection, id=id, type=type)
+
+    def get_partial_message(self, *, channel_type: Optional[ChannelType] = None, message_id: Optional[int] = None,
+                            channel_id: Optional[int] = None, message_url: Optional[str] = None
+                            ) -> Optional[PartialMessage]:
+        """
+
+        Returns a :class:`~discord.PartialMessage` from a ``message_id`` and ``channel_id`` or a message url.
+
+        ``channel_type`` must be one of :class:`~discord.ChannelType.text`, :class:`~discord.ChannelType.news`,
+        :class:`~discord.ChannelType.private`, :class:`~discord.ChannelType.news_thread`,
+        :class:`~discord.ChannelType.public_thread` or :class:`~discord.ChannelType.private_thread`.
+
+        .. note::
+
+            ``message_url`` will override ``channel_id`` and ``message_id`` if provided
+
+        Returns
+        -------
+        Optional[:class:`~discord.PartialMessage`]
+            The partial message object from the given parameters or ``None`` if the url cannot be matched and
+            ``channel_id`` & ``message_id`` are not specified.
+        """
+        if message_url is None:
+            if channel_id is None or message_id is None:
+                return None
+        else:
+            url_regex = re_compile(
+                r'https?://(?:(ptb|canary|www)\.)?discord(?:app)?\.com/channels/'
+                r'(?P<guild_id>[0-9]{15,20}|@me)'
+                r'/(?P<channel_id>[0-9]{15,20})/(?P<message_id>[0-9]{15,20})/?$'
+            )
+
+            match = url_regex.match(message_url)
+
+            if match is None:
+                if channel_id is None and message_id is None:
+                    return None
+            else:
+                data = match.groupdict()
+                channel_id = data['channel_id']
+                message_id = data['message_id']
+
+        channel = self.get_partial_messageable(channel_id, type=channel_type)
+        return PartialMessage(channel=channel, id=message_id)
 
     def get_stage_instance(self, id: int, /) -> Optional[StageInstance]:
         """Returns a stage instance with the given stage channel ID.

@@ -1557,6 +1557,7 @@ class PartialMessage(Hashable):
     - :meth:`TextChannel.get_partial_message`
     - :meth:`Thread.get_partial_message`
     - :meth:`DMChannel.get_partial_message`
+    - :meth:`Client.get_partial_message`
 
     Note that this class is trimmed down and has no rich attributes.
 
