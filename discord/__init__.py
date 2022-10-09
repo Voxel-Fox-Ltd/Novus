@@ -14,7 +14,7 @@ __title__ = 'discord'
 __author__ = 'Kae Bartlett'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2015-2021 Rapptz, 2021-present Kae Bartlett'
-__version__ = '0.2.0a'
+__version__ = '0.2.1a'
 
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
@@ -72,6 +72,6 @@ class VersionInfo(NamedTuple):
     serial: int
 
 
-version_info: VersionInfo = VersionInfo(major=0, minor=2, micro=0, releaselevel='alpha', serial=0)
+version_info: VersionInfo = VersionInfo(major=0, minor=2, micro=1, releaselevel='alpha', serial=0)
 
 logging.getLogger(__name__).addHandler(logging.NullHandler())

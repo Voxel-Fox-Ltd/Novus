@@ -11,6 +11,16 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_2_1:
+
+v0.2.1
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* [vbu] Add :func:`i8n` wrapper.
+
 .. _vp0_2_0:
 
 v0.2.0
