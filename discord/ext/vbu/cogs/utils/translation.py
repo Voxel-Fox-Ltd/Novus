@@ -9,7 +9,7 @@ from contextvars import ContextVar
 
 __all__ = (
     'translation',
-    'i8n',
+    'i18n',
 )
 
 
@@ -31,6 +31,23 @@ def translation(
     """
     Get a translation table for a given domain with the locale
     stored in a context.
+
+    Translations should be stored a la the following: ::
+
+        root
+        |-> cogs
+        |-> config
+        |-> locales
+            |-> de
+                |-> LC_MESSAGES
+                    |-> foo.po
+                    |-> bar.po
+            |-> ru
+                |-> LC_MESSAGES
+                    |-> foo.po
+                    |-> bar.po
+            |-> foo.pot
+            |-> bar.pot
 
     Examples
     ----------
@@ -76,7 +93,7 @@ def translation(
     )
 
 
-def i8n(i8n_name: str, arg_index: Union[int, str] = 1):
+def i18n(i18n_name: str = "default", arg_index: Union[int, str] = 1):
     """
     Inject a ``_`` variable into a command's locals to allow for translation.
 
@@ -87,14 +104,15 @@ def i8n(i8n_name: str, arg_index: Union[int, str] = 1):
     ::
 
         @commands.command()
-        @vbu.i8n("example_commands")
+        @vbu.i18n("example_commands")
         async def whatever(self, ctx: vbu.Context):
             await ctx.send(_("This text would be translated"))
 
     Parameters
     ----------
-    i8n_name : str
-        The name of the file that you want to grab from.
+    i18n_name : str, optional
+        The name of the file that you want to grab from. Defaults to ``default``
+        if not provided.
     arg_index : Union[int, str], optional
         The index where the interaction or context object is stored.
         If this is a string, then that is used instead.
@@ -112,7 +130,7 @@ def i8n(i8n_name: str, arg_index: Union[int, str] = 1):
                 ctx = arg_index
 
             # Get the gettext function
-            trans_func = translation(ctx, i8n_name).gettext
+            trans_func = translation(ctx, i18n_name).gettext
 
             # Set that in the contextvar
             token = translator.set(trans_func)

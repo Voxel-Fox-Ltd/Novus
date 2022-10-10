@@ -19,7 +19,7 @@ v0.2.1
 New Features
 ~~~~~~~~~~~~~~~~~~~~~~
 
-* [vbu] Add :func:`i8n` wrapper.
+* [vbu] Add :func:`i18n` wrapper.
 
 .. _vp0_2_0:
 
