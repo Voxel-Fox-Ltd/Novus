@@ -67,14 +67,25 @@ from .application_commands import ApplicationCommand
 from .message import PartialMessage
 
 if TYPE_CHECKING:
-    from .abc import SnowflakeTime, PrivateChannel, GuildChannel, Snowflake as DiscordObject
+    from .abc import (
+        SnowflakeTime,
+        PrivateChannel,
+        GuildChannel,
+        Snowflake as DiscordObject,
+    )
     from .channel import DMChannel
     from .message import Message
     from .member import Member
     from .voice_client import VoiceProtocol
     from .reaction import Reaction
     from .raw_models import RawReactionActionEvent
-    from .interactions import Interaction
+    from .interactions import (
+        Interaction,
+        CommandInteraction,
+        AutocompleteInteraction,
+        ModalInteraction,
+        ComponentInteraction,
+    )
     from .types.snowflake import Snowflake
 
 __all__ = (
@@ -959,7 +970,7 @@ class Client:
             self,
             event: Literal["message"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[Message], bool]] = None,
             timeout: Optional[float] = None,
             ) -> Message:
         ...
@@ -969,7 +980,7 @@ class Client:
             self,
             event: Literal["reaction_add"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[Reaction, Union[User, Member]], bool]] = None,
             timeout: Optional[float] = None,
             ) -> Tuple[Reaction, Union[User, Member]]:
         ...
@@ -979,7 +990,7 @@ class Client:
             self,
             event: Literal["raw_reaction_add"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[RawReactionActionEvent], bool]] = None,
             timeout: Optional[float] = None,
             ) -> RawReactionActionEvent:
         ...
@@ -989,7 +1000,7 @@ class Client:
             self,
             event: Literal["reaction_remove"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[Reaction, Union[User, Member]], bool]] = None,
             timeout: Optional[float] = None,
             ) -> Tuple[Reaction, Union[User, Member]]:
         ...
@@ -999,7 +1010,7 @@ class Client:
             self,
             event: Literal["raw_reaction_remove"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[RawReactionActionEvent], bool]] = None,
             timeout: Optional[float] = None,
             ) -> RawReactionActionEvent:
         ...
@@ -1009,9 +1020,9 @@ class Client:
             self,
             event: Literal["slash_command"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[CommandInteraction], bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction[None]:
+            ) -> CommandInteraction:
         ...
 
     @overload
@@ -1019,9 +1030,9 @@ class Client:
             self,
             event: Literal["component_interaction"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[ComponentInteraction], bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction[str]:
+            ) -> ComponentInteraction:
         ...
 
     @overload
@@ -1029,9 +1040,9 @@ class Client:
             self,
             event: Literal["autocomplete_interaction"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[AutocompleteInteraction], bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction[None]:
+            ) -> AutocompleteInteraction:
         ...
 
     @overload
@@ -1039,9 +1050,9 @@ class Client:
             self,
             event: Literal["modal_submit"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[ModalInteraction], bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction[str]:
+            ) -> ModalInteraction:
         ...
 
     @overload
@@ -1049,7 +1060,7 @@ class Client:
             self,
             event: Literal["interaction"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[Interaction], bool]] = None,
             timeout: Optional[float] = None,
             ) -> Interaction:
         ...

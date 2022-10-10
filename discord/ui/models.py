@@ -81,7 +81,10 @@ class InteractedComponent:
     def from_data(cls, payload: dict):
         components = None
         if "components" in payload:
-            components = [InteractedComponent.from_data(i) for i in payload["components"]]
+            components = [
+                InteractedComponent.from_data(i)
+                for i in payload["components"]
+            ]
         return cls(
             custom_id=payload.get("custom_id"),
             type=payload.get("type"),
