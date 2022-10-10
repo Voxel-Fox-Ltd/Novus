@@ -810,6 +810,7 @@ class CommandInteraction(Interaction):
     Type-hint friendly version of the :class:`Interaction` object for
     interaction commands.
     """
+    command_name: str
     custom_id: None
     component: None
     components: None
@@ -822,6 +823,7 @@ class AutocompleteInteraction(Interaction):
     Type-hint friendly version of the :class:`Interaction` object for
     autocomplete interactions.
     """
+    command_name: str
     custom_id: None
     component: None
     components: None
@@ -834,6 +836,7 @@ class ComponentInteraction(Interaction):
     Type-hint friendly version of the :class:`Interaction` object for
     component interactions.
     """
+    command_name: None
     custom_id: str
     component: InteractedComponent
     components: None
@@ -846,6 +849,7 @@ class ModalInteraction(Interaction):
     Type-hint friendly version of the :class:`Interaction` object for
     modal interactions.
     """
+    command_name: None
     custom_id: str
     component: Modal
     components: List[InteractedComponent]
