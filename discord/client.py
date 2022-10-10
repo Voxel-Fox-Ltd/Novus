@@ -970,7 +970,7 @@ class Client:
             self,
             event: Literal["message"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[Message], bool]] = None,
             timeout: Optional[float] = None,
             ) -> Message:
         ...
@@ -980,7 +980,7 @@ class Client:
             self,
             event: Literal["reaction_add"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[Reaction, Union[User, Member]], bool]] = None,
             timeout: Optional[float] = None,
             ) -> Tuple[Reaction, Union[User, Member]]:
         ...
@@ -990,7 +990,7 @@ class Client:
             self,
             event: Literal["raw_reaction_add"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[RawReactionActionEvent], bool]] = None,
             timeout: Optional[float] = None,
             ) -> RawReactionActionEvent:
         ...
@@ -1000,7 +1000,7 @@ class Client:
             self,
             event: Literal["reaction_remove"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[Reaction, Union[User, Member]], bool]] = None,
             timeout: Optional[float] = None,
             ) -> Tuple[Reaction, Union[User, Member]]:
         ...
@@ -1010,7 +1010,7 @@ class Client:
             self,
             event: Literal["raw_reaction_remove"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[RawReactionActionEvent], bool]] = None,
             timeout: Optional[float] = None,
             ) -> RawReactionActionEvent:
         ...
@@ -1020,7 +1020,7 @@ class Client:
             self,
             event: Literal["slash_command"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[CommandInteraction], bool]] = None,
             timeout: Optional[float] = None,
             ) -> CommandInteraction:
         ...
@@ -1030,7 +1030,7 @@ class Client:
             self,
             event: Literal["component_interaction"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[ComponentInteraction], bool]] = None,
             timeout: Optional[float] = None,
             ) -> ComponentInteraction:
         ...
@@ -1040,7 +1040,7 @@ class Client:
             self,
             event: Literal["autocomplete_interaction"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[AutocompleteInteraction], bool]] = None,
             timeout: Optional[float] = None,
             ) -> AutocompleteInteraction:
         ...
@@ -1050,7 +1050,7 @@ class Client:
             self,
             event: Literal["modal_submit"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[ModalInteraction], bool]] = None,
             timeout: Optional[float] = None,
             ) -> ModalInteraction:
         ...
@@ -1060,7 +1060,7 @@ class Client:
             self,
             event: Literal["interaction"],
             *,
-            check: Optional[Callable[..., bool]] = None,
+            check: Optional[Callable[[Interaction], bool]] = None,
             timeout: Optional[float] = None,
             ) -> Interaction:
         ...
