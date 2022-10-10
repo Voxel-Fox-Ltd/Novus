@@ -1,14 +1,24 @@
-from typing import Union
+import functools
+from typing import Callable, Union
 import gettext
 
 import discord
 from discord.ext import commands
+from contextvars import ContextVar
 
 
 __all__ = (
     'translation',
     'i8n',
 )
+
+
+translator: ContextVar[Callable[[str], str]]
+translator = ContextVar("translator", default=lambda s: s)
+
+
+def translate_meta(val: str) -> str:
+    return translator.get()(val)
 
 
 def translation(
@@ -47,7 +57,11 @@ def translation(
     if isinstance(ctx, (commands.Context, discord.Interaction)):
         languages = [ctx.locale, ctx.locale.split("-")[0]]
         if use_guild and ctx.guild and ctx.guild_locale:
-            languages = [ctx.guild_locale, ctx.guild_locale.split("-")[0], *languages]
+            languages = [
+                ctx.guild_locale,
+                ctx.guild_locale.split("-")[0],
+                *languages,
+            ]
     elif isinstance(ctx, discord.Locale):
         languages = [ctx.value, ctx.value.split("-")[0]]
     elif isinstance(ctx, str):
@@ -87,13 +101,32 @@ def i8n(i8n_name: str, arg_index: Union[int, str] = 1):
     """
 
     def inner(func):
+
+        @functools.wraps(func)
         async def wrapper(*args):
+
+            # Get relevant context
             if isinstance(arg_index, int):
-                translator = args[arg_index]
+                ctx = args[arg_index]
             else:
-                translator = arg_index
-            trans = translation(translator, i8n_name)
-            func.__globals__["_"] = trans
-            return await func(*args)
+                ctx = arg_index
+
+            # Get the gettext function
+            trans_func = translation(ctx, i8n_name).gettext
+
+            # Set that in the contextvar
+            token = translator.set(trans_func)
+
+            # Add translate_meta to the globals
+            func.__globals__["_"] = translate_meta
+
+            # Run the function
+            v = await func(*args)
+
+            # Reset the contextvar
+            translator.reset(token)
+
+            # And done
+            return v
         return wrapper
     return inner
