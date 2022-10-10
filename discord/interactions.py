@@ -27,7 +27,16 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Any, Dict, Generic, List, Optional, TYPE_CHECKING, Tuple, Union, TypeVar
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+    TYPE_CHECKING,
+    Tuple,
+    Union,
+    TypeVar,
+)
 import asyncio
 import json
 
@@ -37,7 +46,12 @@ from aiohttp import web
 from . import utils
 from .application_commands import ApplicationCommandInteractionDataOption
 from .enums import try_enum, InteractionType, InteractionResponseType
-from .errors import InteractionResponded, HTTPException, ClientException, InvalidData
+from .errors import (
+    InteractionResponded,
+    HTTPException,
+    ClientException,
+    InvalidData,
+)
 from .channel import PartialMessageable, ChannelType, _threaded_channel_factory
 from .guild import Guild
 from .user import User
@@ -49,12 +63,19 @@ from .permissions import Permissions
 from .webhook.async_ import async_context, Webhook, handle_message_parameters
 from .ui.models import InteractedComponent
 
+
 __all__ = (
     'Interaction',
     'InteractionMessage',
     'InteractionResponse',
     'InteractionResolved',
+
+    'CommandInteraction',
+    'AutocompleteInteraction',
+    'ComponentInteraction',
+    'ModalInteraction',
 )
+
 
 if TYPE_CHECKING:
     from aiohttp import ClientSession
@@ -70,14 +91,30 @@ if TYPE_CHECKING:
     from .file import File
     from .mentions import AllowedMentions
     from .embeds import Embed
-    from .channel import VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, PartialMessageable
+    from .channel import (
+        VoiceChannel,
+        StageChannel,
+        TextChannel,
+        CategoryChannel,
+        StoreChannel,
+        PartialMessageable,
+        ForumChannel,
+    )
     from .threads import Thread
     from .ui.action_row import MessageComponents
     from .ui.modal import Modal
 
     InteractionChannel = Union[
-        VoiceChannel, StageChannel, TextChannel, CategoryChannel, StoreChannel, Thread, PartialMessageable,
+        VoiceChannel,
+        StageChannel,
+        TextChannel,
+        CategoryChannel,
+        StoreChannel,
+        Thread,
+        PartialMessageable,
+        ForumChannel
     ]
+
 
 MISSING: Any = utils.MISSING
 
@@ -125,14 +162,24 @@ class InteractionResolved:
         "_data",
     )
 
-    def __init__(self, *, interaction, data: dict, state: ConnectionState):
-        self._interaction: Interaction = interaction
+    def __init__(
+            self,
+            *,
+            interaction: Interaction,
+            data: dict,
+            state: ConnectionState):
+        self._interaction = interaction
         self._state = state
         self._data = data
 
     @utils.cached_slot_property("_cs_users")
     def users(self) -> Dict[int, Union[User, Member]]:
-        users = self.members.copy()
+        """
+        Parse the user/member objects from the data.
+        """
+
+        users: Dict[int, Union[User, Member]]
+        users = self.members.copy()  # type: ignore - dict update type reassign
         user_data = self._data.get("users", dict())
         member_data = self._data.get("members", dict())
         for uid, d in member_data.items():
@@ -166,7 +213,7 @@ class InteractionResolved:
             members[int(i)] = Member(
                 data=d,
                 state=self._state,
-                guild=self._interaction.guild,
+                guild=self._interaction.guild,  # type: ignore - guild might not exist
             )
 
         # And done
@@ -174,10 +221,18 @@ class InteractionResolved:
 
     @utils.cached_slot_property("_cs_roles")
     def roles(self) -> Dict[int, Role]:
+        """
+        Parse up and cache the roles.
+        """
+
         roles = {}
         if self._interaction.guild:
             for i, d in self._data.get("roles", dict()).items():
-                roles[int(i)] = Role(guild=self._interaction.guild, state=self._state, data=d)
+                roles[int(i)] = Role(
+                    guild=self._interaction.guild,  # type: ignore - guild might not exist
+                    state=self._state,
+                    data=d,
+                )
         return roles
 
     @utils.cached_slot_property("_cs_channels")
@@ -187,11 +242,19 @@ class InteractionResolved:
             factory, ch_type = _threaded_channel_factory(d['type'])
             if factory is None:
                 raise InvalidData('Unknown channel type {type} for channel ID {id}.'.format_map(d))
-            if ch_type in (ChannelType.group, ChannelType.private):
-                channel = factory(me=self.user, data=d, state=self._state)
+            if ch_type in (ChannelType.group, ChannelType.private,):
+                channel = factory(
+                    me=self.user,
+                    data=d,
+                    state=self._state,
+                )
             else:
                 guild = self._interaction.guild
-                channel = factory(guild=guild, state=self._state, data=d)
+                channel = factory(
+                    guild=guild,
+                    state=self._state,
+                    data=d,
+                )
             channels[channel.id] = channel
         return channels
 
@@ -199,19 +262,27 @@ class InteractionResolved:
     def messages(self) -> Dict[int, Message]:
         messages = {}
         for i, d in self._data.get("messages", dict()).items():
-            messages[int(i)] = Message(state=self._state, channel=self._interaction.channel, data=d)
+            messages[int(i)] = Message(
+                state=self._state,
+                channel=self._interaction.channel,
+                data=d,
+            )
         return messages
 
     @utils.cached_slot_property("_cs_attachments")
     def attachments(self) -> Dict[int, Attachment]:
         attachments = {}
         for i, d in self._data.get("attachments", dict()).items():
-            attachments[int(i)] = Attachment(state=self._state, data=d)
+            attachments[int(i)] = Attachment(
+                state=self._state,
+                data=d,
+            )
         return attachments
 
 
-class Interaction(Generic[T]):
-    """Represents a Discord interaction.
+class Interaction:
+    """
+    Represents a Discord interaction.
 
     An interaction happens when a user does an action that needs to
     be notified. Current examples are slash commands and components.
@@ -249,23 +320,25 @@ class Interaction(Generic[T]):
         The token to continue the interaction. These are valid
         for 15 minutes.
     data: :class:`dict`
-        The data from the interaction. You don't need to use this unless you're building your own
-        interaction handler, or dealing with an interaction that isn't yet added to the library.
+        The data from the interaction. You don't need to use this unless
+        you're building your own interaction handler, or dealing with an
+        interaction that isn't yet added to the library.
     resolved: :class:`InteractionResolved`
         The resolved interaction data.
     options: Optional[List[:class:`ApplicationCommandInteractionDataOption`]]
-        A list of options passed in from the interaction. For commands, this will be the options of
-        the command; for autocompletes this will be a list of the options (as filled by the user) for the
-        command.
+        A list of options passed in from the interaction. For commands, this
+        will be the options of the command; for autocompletes this will be a
+        list of the options (as filled by the user) for the command.
 
         .. versionadded:: 0.0.4
 
         .. versionchanged:: 0.0.5
-            Now is a list of :class:`ApplicationCommandInteractionDataOption` objects instead of a
-            raw dictionary.
+            Now is a list of :class:`ApplicationCommandInteractionDataOption`
+            objects instead of a raw dictionary.
     components: Optional[List[:class:`ui.InteractionComponent`]]
-        The components that are returned with the interaction. This is only used with modals so far.
-        This skips the base level component (ie the modal object) and only gives its components.
+        The components that are returned with the interaction. This is only
+        used with modals so far. This skips the base level component
+        (ie the modal object) and only gives its components.
 
         .. versionadded:: 0.0.5
     custom_id: Optional[:class:`str`]
@@ -277,8 +350,8 @@ class Interaction(Generic[T]):
 
         .. versionadded:: 0.0.6
     guild_locale: Optional[:class:`str`]
-        The locale of the guild where the interaction was invoked. Will be ``None`` if the interaction
-        was invoked from a DM.
+        The locale of the guild where the interaction was invoked. Will be
+        ``None`` if the interaction was invoked from a DM.
 
         .. versionadded:: 0.0.6
     locale: :class:`str`
@@ -330,11 +403,20 @@ class Interaction(Generic[T]):
 
     def _from_data(self, payload: InteractionPayload):
         self.id: Snowflake = int(payload['id'])
-        self.type: InteractionType = try_enum(InteractionType, payload['type'])
+        self.type: InteractionType = try_enum(
+            InteractionType,
+            payload['type'],
+        )
         self.token: str = payload['token']
         self.version: int = payload['version']
-        self.channel_id: Optional[int] = utils._get_as_snowflake(payload, 'channel_id')
-        self.guild_id: Optional[int] = utils._get_as_snowflake(payload, 'guild_id')
+        self.channel_id: Optional[int] = utils._get_as_snowflake(
+            payload,
+            'channel_id',
+        )
+        self.guild_id: Optional[int] = utils._get_as_snowflake(
+            payload,
+            'guild_id',
+        )
         self.application_id: int = int(payload['application_id'])
         self.target_id = payload.get("target_id")
 
@@ -349,13 +431,19 @@ class Interaction(Generic[T]):
         except KeyError:
             self.message = None
 
-        # The data that the interaction gave back to us - not optional, but documented
-        # as optional because it supports pings, but we're just gonna ignore that
-        # This contains all the data ABOUT the interaction that's given back to us
-        self.data: InteractionData = payload.get('data') or {}  # type: ignore - Ignoring so we can keep using a .get
-        assert self.data is not None
+        # The data that the interaction gave back to us - not optional,
+        # but documented as optional because it supports pings, but we're
+        # just gonna ignore that.
+        # This contains all the data ABOUT the interaction that's given
+        # back to us
+        self.data: InteractionData
+        try:
+            self.data = payload['data']
+        except KeyError:
+            self.data = {}  # type: ignore
 
-        # Parse the component that triggered the interaction - this does NOT apply to modals
+        # Parse the component that triggered the interaction -
+        # this does NOT apply to modals
         self.component: Optional[InteractedComponent] = None
         try:
             if self.message:
@@ -366,7 +454,7 @@ class Interaction(Generic[T]):
             pass
 
         # Parse the main custom ID
-        self.custom_id: T = None
+        self.custom_id: Union[str, None] = None
         if self.data:
             self.custom_id = self.data.get('custom_id')
 
@@ -378,7 +466,8 @@ class Interaction(Generic[T]):
 
         # Parse the returned options from the user - this is used by all application
         # commands (including autocorrect)
-        self.options: Optional[List[ApplicationCommandInteractionDataOption]] = None
+        self.options: Optional[List[ApplicationCommandInteractionDataOption]]
+        self.options = None
         if self.data and 'options' in self.data:
             self.options = [
                 ApplicationCommandInteractionDataOption(i)
@@ -394,7 +483,7 @@ class Interaction(Generic[T]):
             ]
 
         # Parse the user and their permissions
-        self.user: Union[User, Member]  # documented as optional for pings; we'll ignore that
+        self.user: Union[User, Member]  # documented as optional for pings
         self._permissions: int = 0
         self._app_permissions: int = 0
 
@@ -410,7 +499,11 @@ class Interaction(Generic[T]):
             except KeyError:
                 pass
             else:
-                self.user = Member(state=self._state, guild=guild, data=member)  # type: ignore
+                self.user = Member(
+                    state=self._state,
+                    guild=guild,  # type: ignore - possible data downgrading
+                    data=member,  # type: ignore - possible data downgrading
+                )
                 self._permissions = int(member.get('permissions', 0))
             self._app_permissions = int(payload['app_permissions'])
         else:
@@ -474,8 +567,9 @@ class Interaction(Generic[T]):
         Optional[Union[:class:`abc.GuildChannel`, :class:`PartialMessageable`, :class:`Thread`]]:
         The channel the interaction was sent from.
 
-        Note that due to a Discord limitation, DM channels are not resolved since there is
-        no data to complete them. These are :class:`PartialMessageable` instead.
+        Note that due to a Discord limitation, DM channels are not resolved
+        since there is no data to complete them. These are
+        :class:`PartialMessageable` instead.
         """
 
         guild = self.guild
@@ -484,8 +578,15 @@ class Interaction(Generic[T]):
             channel = guild._resolve_channel(self.channel_id)
         if channel is None:
             if self.channel_id is not None:
-                type = ChannelType.text if self.guild_id is not None else ChannelType.private
-                return PartialMessageable(state=self._state, id=self.channel_id, type=type)
+                if self.guild_id is not None:
+                    type = ChannelType.text
+                else:
+                    type = ChannelType.private
+                return PartialMessageable(
+                    state=self._state,
+                    id=self.channel_id,
+                    type=type,
+                )
             return None
         return channel
 
@@ -545,11 +646,12 @@ class Interaction(Generic[T]):
         """
         |coro|
 
-        Fetches the original interaction response message associated with the interaction.
+        Fetches the original interaction response message associated with
+        the interaction.
 
-        If the interaction response was :meth:`InteractionResponse.send_message` then this would
-        return the message that was sent using that response. Otherwise, this would return
-        the message that triggered the interaction.
+        If the interaction response was :meth:`InteractionResponse.send_message`
+        then this would return the message that was sent using that response.
+        Otherwise, this would return the message that triggered the interaction.
 
         Repeated calls to this will return a cached value.
 
@@ -581,7 +683,11 @@ class Interaction(Generic[T]):
             session=self._session,
         )
         state = _InteractionMessageState(self, self._state)
-        message = InteractionMessage(state=state, channel=channel, data=data)  # type: ignore
+        message = InteractionMessage(
+            state=state,  # type: ignore
+            channel=channel,  # type: ignore
+            data=data,
+        )
         self._original_message = message
         return message
 
@@ -600,8 +706,8 @@ class Interaction(Generic[T]):
 
         Edits the original interaction response message.
 
-        This is a lower level interface to :meth:`InteractionMessage.edit` in case
-        you do not want to fetch the message and save an HTTP request.
+        This is a lower level interface to :meth:`InteractionMessage.edit`
+        in case you do not want to fetch the message and save an HTTP request.
 
         This method is also the only way to edit the original message if
         the message sent was ephemeral.
@@ -618,8 +724,8 @@ class Interaction(Generic[T]):
         file: :class:`File`
             The file to upload. This cannot be mixed with ``files`` parameter.
         files: List[:class:`File`]
-            A list of files to send with the content. This cannot be mixed with the
-            ``file`` parameter.
+            A list of files to send with the content. This cannot be mixed with
+            the ``file`` parameter.
         allowed_mentions: :class:`AllowedMentions`
             Controls the mentions being processed in this message.
             See :meth:`.abc.Messageable.send` for more information.
@@ -644,7 +750,8 @@ class Interaction(Generic[T]):
             The newly edited message.
         """
 
-        previous_mentions: Optional[AllowedMentions] = self._state.allowed_mentions
+        previous_mentions: Optional[AllowedMentions]
+        previous_mentions = self._state.allowed_mentions
         params = handle_message_parameters(
             content=content,
             file=file,
@@ -679,8 +786,8 @@ class Interaction(Generic[T]):
 
         Deletes the original interaction response message.
 
-        This is a lower level interface to :meth:`InteractionMessage.delete` in case
-        you do not want to fetch the message and save an HTTP request.
+        This is a lower level interface to :meth:`InteractionMessage.delete`
+        in case you do not want to fetch the message and save an HTTP request.
 
         Raises
         -------
@@ -696,6 +803,54 @@ class Interaction(Generic[T]):
             self.token,
             session=self._session,
         )
+
+
+class CommandInteraction(Interaction):
+    """
+    Type-hint friendly version of the :class:`Interaction` object for
+    interaction commands.
+    """
+    custom_id: None
+    component: None
+    components: None
+    options: List[ApplicationCommandInteractionDataOption]
+    values: None
+
+
+class AutocompleteInteraction(Interaction):
+    """
+    Type-hint friendly version of the :class:`Interaction` object for
+    autocomplete interactions.
+    """
+    custom_id: None
+    component: None
+    components: None
+    options: List[ApplicationCommandInteractionDataOption]
+    values: None
+
+
+class ComponentInteraction(Interaction):
+    """
+    Type-hint friendly version of the :class:`Interaction` object for
+    component interactions.
+    """
+    custom_id: str
+    component: InteractedComponent
+    components: None
+    options: None
+    values: List[str]
+
+
+class ModalInteraction(Interaction):
+    """
+    Type-hint friendly version of the :class:`Interaction` object for
+    modal interactions.
+    """
+    custom_id: str
+    component: Modal
+    components: List[InteractedComponent]
+    options: None
+    values: None
 
 
 class InteractionResponse:
@@ -1041,7 +1196,8 @@ class InteractionResponse:
         Parameters
         -----------
         content: Optional[:class:`str`]
-            The new content to replace the message with. ``None`` removes the content.
+            The new content to replace the message with. ``None`` removes the
+            content.
         embeds: List[:class:`Embed`]
             A list of embeds to edit the message with.
         embed: Optional[:class:`Embed`]
@@ -1051,8 +1207,8 @@ class InteractionResponse:
             A list of attachments to keep in the message. If ``[]`` is passed
             then all attachments are removed.
         components: Optional[:class:`~discord.ui.MessageComponents`]
-            The updated components to update this message with. If ``None`` is passed then
-            the components are removed.
+            The updated components to update this message with. If ``None`` is
+            passed then the components are removed.
 
         Raises
         -------
@@ -1082,7 +1238,9 @@ class InteractionResponse:
                 payload['content'] = str(content)
 
         if embed is not MISSING and embeds is not MISSING:
-            raise TypeError('cannot mix both embed and embeds keyword arguments')
+            raise TypeError(
+                'cannot mix both embed and embeds keyword arguments',
+            )
 
         if embed is not MISSING:
             if embed is None:
@@ -1106,11 +1264,19 @@ class InteractionResponse:
             parent_state = self._parent._state
             if allowed_mentions:
                 if parent_state.allowed_mentions is not None:
-                    payload['allowed_mentions'] = parent_state.allowed_mentions.merge(allowed_mentions).to_dict()
+                    payload['allowed_mentions'] = (
+                        parent_state
+                        .allowed_mentions
+                        .merge(allowed_mentions).to_dict()
+                    )
                 else:
                     payload['allowed_mentions'] = allowed_mentions.to_dict()
             elif parent_state.allowed_mentions is not None:
-                payload['allowed_mentions'] = parent_state.allowed_mentions.to_dict()
+                payload['allowed_mentions'] = (
+                    parent_state
+                    .allowed_mentions
+                    .to_dict()
+                )
 
         payload = {
             "type": InteractionResponseType.message_update.value,
@@ -1169,7 +1335,8 @@ class HTTPInteractionResponse(InteractionResponse):
         -----------
         ephemeral: :class:`bool`
             Indicates whether the deferred message will eventually be ephemeral.
-            This only applies for interactions of type :attr:`InteractionType.application_command`.
+            This only applies for interactions of type
+            :attr:`InteractionType.application_command`.
 
         Raises
         -------
@@ -1207,7 +1374,8 @@ class HTTPInteractionResponse(InteractionResponse):
         This is typically used when the interaction is acknowledged
         and a secondary action will be done later.
 
-        This is only usable if the interaction spawned from a component interaction.
+        This is only usable if the interaction spawned from a component
+        interaction.
 
         Raises
         -------
@@ -1281,22 +1449,23 @@ class HTTPInteractionResponse(InteractionResponse):
         content: Optional[:class:`str`]
             The content of the message to send.
         embeds: List[:class:`Embed`]
-            A list of embeds to send with the content. Maximum of 10. This cannot
-            be mixed with the ``embed`` parameter.
+            A list of embeds to send with the content. Maximum of 10. This
+            cannot be mixed with the ``embed`` parameter.
         embed: :class:`Embed`
             The rich embed for the content to send. This cannot be mixed with
             ``embeds`` parameter.
         file: :class:`File`
             The file to upload. This cannot be mixed with ``files`` parameter.
         files: List[:class:`File`]
-            A list of files to send with the content. This cannot be mixed with the
-            ``file`` parameter.
+            A list of files to send with the content. This cannot be mixed with
+            the ``file`` parameter.
         tts: :class:`bool`
             Indicates if the message should be sent using text-to-speech.
         components: :class:`discord.ui.MessageComponents`
             The components to send with the messasge.
         ephemeral: :class:`bool`
-            Indicates if the message should only be visible to the user who started the interaction.
+            Indicates if the message should only be visible to the user who
+            started the interaction.
         allowed_mentions: :class:`AllowedMentions`
             The allowed mentions that should be sent with the message.
 
@@ -1459,7 +1628,8 @@ class HTTPInteractionResponse(InteractionResponse):
         Parameters
         -----------
         content: Optional[:class:`str`]
-            The new content to replace the message with. ``None`` removes the content.
+            The new content to replace the message with. ``None`` removes the
+            content.
         embeds: List[:class:`Embed`]
             A list of embeds to edit the message with.
         embed: Optional[:class:`Embed`]
@@ -1469,8 +1639,8 @@ class HTTPInteractionResponse(InteractionResponse):
             A list of attachments to keep in the message. If ``[]`` is passed
             then all attachments are removed.
         components: Optional[:class:`~discord.ui.MessageComponents`]
-            The updated components to update this message with. If ``None`` is passed then
-            the components are removed.
+            The updated components to update this message with. If ``None`` is
+            passed then the components are removed.
 
         Raises
         -------
@@ -1500,7 +1670,9 @@ class HTTPInteractionResponse(InteractionResponse):
                 payload['content'] = str(content)
 
         if embed is not MISSING and embeds is not MISSING:
-            raise TypeError('cannot mix both embed and embeds keyword arguments')
+            raise TypeError(
+                'cannot mix both embed and embeds keyword arguments',
+            )
 
         if embed is not MISSING:
             if embed is None:
@@ -1524,11 +1696,20 @@ class HTTPInteractionResponse(InteractionResponse):
             parent_state = self._parent._state
             if allowed_mentions:
                 if parent_state.allowed_mentions is not None:
-                    payload['allowed_mentions'] = parent_state.allowed_mentions.merge(allowed_mentions).to_dict()
+                    payload['allowed_mentions'] = (
+                        parent_state
+                        .allowed_mentions
+                        .merge(allowed_mentions)
+                        .to_dict()
+                    )
                 else:
                     payload['allowed_mentions'] = allowed_mentions.to_dict()
             elif parent_state.allowed_mentions is not None:
-                payload['allowed_mentions'] = parent_state.allowed_mentions.to_dict()
+                payload['allowed_mentions'] = (
+                    parent_state
+                    .allowed_mentions
+                    .to_dict()
+                )
 
         data = {
             "type": InteractionResponseType.message_update.value,
@@ -1611,14 +1792,14 @@ class InteractionMessage(Message):
         file: :class:`File`
             The file to upload. This cannot be mixed with ``files`` parameter.
         files: List[:class:`File`]
-            A list of files to send with the content. This cannot be mixed with the
-            ``file`` parameter.
+            A list of files to send with the content. This cannot be mixed with
+            the ``file`` parameter.
         allowed_mentions: :class:`AllowedMentions`
             Controls the mentions being processed in this message.
             See :meth:`.abc.Messageable.send` for more information.
         components: Optional[:class:`~discord.ui.MessageComponents`]
-            The updated components to update this message with. If ``None`` is passed then
-            the components are removed.
+            The updated components to update this message with. If ``None`` is
+            passed then the components are removed.
 
         Raises
         -------
@@ -1656,8 +1837,9 @@ class InteractionMessage(Message):
         Parameters
         -----------
         delay: Optional[:class:`float`]
-            If provided, the number of seconds to wait before deleting the message.
-            The waiting is done in the background and deletion failures are ignored.
+            If provided, the number of seconds to wait before deleting the
+            message. The waiting is done in the background and deletion
+            failures are ignored.
 
         Raises
         ------

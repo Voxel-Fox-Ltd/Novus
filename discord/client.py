@@ -67,14 +67,25 @@ from .application_commands import ApplicationCommand
 from .message import PartialMessage
 
 if TYPE_CHECKING:
-    from .abc import SnowflakeTime, PrivateChannel, GuildChannel, Snowflake as DiscordObject
+    from .abc import (
+        SnowflakeTime,
+        PrivateChannel,
+        GuildChannel,
+        Snowflake as DiscordObject,
+    )
     from .channel import DMChannel
     from .message import Message
     from .member import Member
     from .voice_client import VoiceProtocol
     from .reaction import Reaction
     from .raw_models import RawReactionActionEvent
-    from .interactions import Interaction
+    from .interactions import (
+        Interaction,
+        CommandInteraction,
+        AutocompleteInteraction,
+        ModalInteraction,
+        ComponentInteraction,
+    )
     from .types.snowflake import Snowflake
 
 __all__ = (
@@ -1011,7 +1022,7 @@ class Client:
             *,
             check: Optional[Callable[..., bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction[None]:
+            ) -> CommandInteraction:
         ...
 
     @overload
@@ -1021,7 +1032,7 @@ class Client:
             *,
             check: Optional[Callable[..., bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction[str]:
+            ) -> ComponentInteraction:
         ...
 
     @overload
@@ -1031,7 +1042,7 @@ class Client:
             *,
             check: Optional[Callable[..., bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction[None]:
+            ) -> AutocompleteInteraction:
         ...
 
     @overload
@@ -1041,7 +1052,7 @@ class Client:
             *,
             check: Optional[Callable[..., bool]] = None,
             timeout: Optional[float] = None,
-            ) -> Interaction[str]:
+            ) -> ModalInteraction:
         ...
 
     @overload
