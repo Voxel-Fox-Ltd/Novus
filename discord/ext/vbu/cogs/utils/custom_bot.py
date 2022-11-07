@@ -270,7 +270,8 @@ class Bot(MinimalBot):
 
         # Set up our default guild settings
         self.DEFAULT_GUILD_SETTINGS = {
-            self.config.get('guild_settings_prefix_column', 'prefix'): self.config['default_prefix'],
+            self.config.get('guild_settings_prefix_column', 'prefix'):
+                self.config.get('default_prefix'),
         }
         self.DEFAULT_USER_SETTINGS = {
         }
