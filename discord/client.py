@@ -1065,6 +1065,16 @@ class Client:
             ) -> Interaction:
         ...
 
+    @overload
+    async def wait_for(
+            self,
+            event: str,
+            *,
+            check: Optional[Callable[..., bool]] = None,
+            timeout: Optional[float] = None,
+            ) -> Any:
+        ...
+
     def wait_for(
         self,
         event: str,
