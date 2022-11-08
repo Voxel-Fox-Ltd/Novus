@@ -15,7 +15,7 @@ from .string import Formatter
 from .component_check import component_check, component_id_check
 from .embeddify import Embeddify
 from .twitch_stream import TwitchStream
-from .translation import translation, i18n
+from .translation import translation, i18n, i18n_listener
 
 
 __all__ = (
@@ -55,6 +55,7 @@ __all__ = (
     'Stats',
     'translation',
     'i18n',
+    'i18n_listener',
 )
 
 

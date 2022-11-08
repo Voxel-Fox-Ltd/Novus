@@ -1,6 +1,7 @@
 import functools
-from typing import Callable, Union
+from typing import Awaitable, Callable, Union, Coroutine
 import gettext
+import inspect
 
 import discord
 from discord.ext import commands
@@ -120,31 +121,31 @@ def i18n(i18n_name: str = "default", arg_index: Union[int, str] = 1):
 
     def inner(func):
 
-        @functools.wraps(func)
-        async def wrapper(*args):
+        wrapper: Callable | Awaitable | Coroutine  # type: ignore
 
-            # Get relevant context
-            if isinstance(arg_index, int):
-                ctx = args[arg_index]
-            else:
-                ctx = arg_index
+        if inspect.iscoroutinefunction(func):
+            @functools.wraps(func)
+            async def wrapper(*args, **kwargs):
+                if isinstance(arg_index, int):
+                    ctx = args[arg_index]
+                else:
+                    ctx = arg_index
+                trans_func = translation(ctx, i18n_name).gettext
+                translator.set(trans_func)
+                func.__globals__["_"] = translate_meta
+                return await func(*args, **kwargs)
 
-            # Get the gettext function
-            trans_func = translation(ctx, i18n_name).gettext
+        else:
+            @functools.wraps(func)
+            def wrapper(*args, **kwargs):
+                if isinstance(arg_index, int):
+                    ctx = args[arg_index]
+                else:
+                    ctx = arg_index
+                trans_func = translation(ctx, i18n_name).gettext
+                translator.set(trans_func)
+                func.__globals__["_"] = translate_meta
+                return func(*args, **kwargs)
 
-            # Set that in the contextvar
-            token = translator.set(trans_func)
-
-            # Add translate_meta to the globals
-            func.__globals__["_"] = translate_meta
-
-            # Run the function
-            v = await func(*args)
-
-            # Reset the contextvar
-            translator.reset(token)
-
-            # And done
-            return v
         return wrapper
     return inner
