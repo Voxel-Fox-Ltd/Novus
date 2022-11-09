@@ -96,7 +96,7 @@ class Flag:
         Whether multiple given values overrides the previous value.
     """
 
-    name: str = field(default_factory=MISSING)
+    name: str = field(default_factory=lambda: MISSING)
     aliases: List[str] = field(default_factory=list)
     attribute: str = field(default_factory=lambda: MISSING)
     annotation: Any = field(default_factory=lambda: MISSING)
