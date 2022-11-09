@@ -98,11 +98,11 @@ class Flag:
 
     name: str = field(default_factory=MISSING)
     aliases: List[str] = field(default_factory=list)
-    attribute: str = field(default_factory=MISSING)
-    annotation: Any = field(default_factory=MISSING)
-    default: Any = field(default_factory=MISSING)
-    max_args: int = field(default_factory=MISSING)
-    override: bool = field(default_factory=MISSING)
+    attribute: str = field(default_factory=lambda: MISSING)
+    annotation: Any = field(default_factory=lambda: MISSING)
+    default: Any = field(default_factory=lambda: MISSING)
+    max_args: int = field(default_factory=lambda: MISSING)
+    override: bool = field(default_factory=lambda: MISSING)
     cast_to_dict: bool = False
 
     @property
