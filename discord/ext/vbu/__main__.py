@@ -2,8 +2,16 @@ import argparse
 import typing
 import pathlib
 import textwrap
+import asyncio
 
-from .runner import run_bot, run_website, run_sharder, run_shell, run_modify_commands, run_interactions
+from .runner import (
+    run_bot,
+    run_website,
+    run_sharder,
+    run_shell,
+    run_modify_commands,
+    run_interactions,
+)
 
 
 def get_path_relative_to_file(
@@ -162,6 +170,18 @@ def get_next_version(current_version) -> str:
     return f"{release + 1}.0.0"
 
 
+def wrap_asyncio_run(func, *args, **kwargs):
+    """
+    A neat `asyncio.run(func(*args, **kwargs))` function that discards
+    KeyboardInterrupt exceptions quietly.
+    """
+
+    try:
+        asyncio.run(func(*args, **kwargs))
+    except KeyboardInterrupt:
+        pass
+
+
 def main():
     """
     The main method for running all of vbu.
@@ -225,17 +245,17 @@ def main():
 
     # Run things
     elif args.subcommand == "run-bot":
-        run_bot(args)
+        wrap_asyncio_run(run_bot, args)
     elif args.subcommand == "run-interactions":
-        run_interactions(args)
+        wrap_asyncio_run(run_interactions, args)
     elif args.subcommand == "run-website":
-        run_website(args)
+        wrap_asyncio_run(run_website, args)
     elif args.subcommand == "run-sharder":
-        run_sharder(args)
+        wrap_asyncio_run(run_sharder, args)
     elif args.subcommand == "run-shell":
-        run_shell(args)
+        wrap_asyncio_run(run_shell, args)
     elif args.subcommand == "commands":
-        run_modify_commands(args)
+        wrap_asyncio_run(run_modify_commands, args)
 
 
 if __name__ == '__main__':

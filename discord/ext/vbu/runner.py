@@ -389,7 +389,7 @@ def set_event_loop():
     loop.set_task_factory(task_factory)
 
 
-def run_bot(args: argparse.Namespace) -> None:
+async def run_bot(args: argparse.Namespace) -> None:
     """
     Starts the bot, connects the database, runs the async loop forever.
 
@@ -409,7 +409,6 @@ def run_bot(args: argparse.Namespace) -> None:
         shard_ids=shard_ids,
         config_file=args.config_file,
     )
-    loop = bot.loop
     EventLoopCallbackHandler.bot = bot
 
     # Set up loggers
@@ -418,13 +417,11 @@ def run_bot(args: argparse.Namespace) -> None:
 
     # Connect the database pool
     if bot.config.get('database', {}).get('enabled', False):
-        db_connect_task = start_database_pool(bot.config)
-        loop.run_until_complete(db_connect_task)
+        await start_database_pool(bot.config)  # type: ignore
 
     # Connect the redis pool
     if bot.config.get('redis', {}).get('enabled', False):
-        re_connect = start_redis_pool(bot.config)
-        loop.run_until_complete(re_connect)
+        await start_redis_pool(bot.config)  # type: ignore
 
     # Load the bot's extensions
     logger.info('Loading extensions... ')
@@ -433,29 +430,25 @@ def run_bot(args: argparse.Namespace) -> None:
     # Run the bot
     try:
         logger.info("Running bot")
-        loop.run_until_complete(bot.start(run_startup_method=not args.no_startup))
-    except KeyboardInterrupt:
+        await bot.start(run_startup_method=not args.no_startup)
+    except (KeyboardInterrupt, asyncio.CancelledError):
         logger.info("Logging out bot")
-        loop.run_until_complete(bot.close())
+        await bot.close()
 
     # We're now done running the bot, time to clean up and close
     if bot.config.get('database', {}).get('enabled', False):
         logger.info("Closing database pool")
         try:
             if DatabaseWrapper.pool:
-                loop.run_until_complete(asyncio.wait_for(DatabaseWrapper.pool.close(), timeout=30.0))
+                await asyncio.wait_for(DatabaseWrapper.pool.close(), timeout=30.0)
         except asyncio.TimeoutError:
             logger.error("Couldn't gracefully close the database connection pool within 30 seconds")
     if bot.config.get('redis', {}).get('enabled', False):
         logger.info("Closing redis pool")
         RedisConnection.pool.close()
 
-    logger.info("Closing asyncio loop")
-    loop.stop()
-    loop.close()
 
-
-def run_interactions(args: argparse.Namespace) -> None:
+async def run_interactions(args: argparse.Namespace) -> None:
     """
     Starts the bot, connects the database, runs the async loop forever.
 
@@ -472,7 +465,6 @@ def run_interactions(args: argparse.Namespace) -> None:
     # And run file
     bot = Bot(config_file=args.config_file, intents=discord.Intents.none())
     bot.is_interactions_only = True
-    loop = bot.loop
     EventLoopCallbackHandler.bot = bot
 
     # Set up loggers
@@ -481,13 +473,11 @@ def run_interactions(args: argparse.Namespace) -> None:
 
     # Connect the database pool
     if bot.config.get('database', {}).get('enabled', False):
-        db_connect_task = start_database_pool(bot.config)
-        loop.run_until_complete(db_connect_task)
+        await start_database_pool(bot.config)
 
     # Connect the redis pool
     if bot.config.get('redis', {}).get('enabled', False):
-        re_connect = start_redis_pool(bot.config)
-        loop.run_until_complete(re_connect)
+        await start_redis_pool(bot.config)
 
     # Load the bot's extensions
     logger.info('Loading extensions... ')
@@ -495,11 +485,10 @@ def run_interactions(args: argparse.Namespace) -> None:
 
     # Run the bot
     logger.info("Logging in bot")
-    loop.run_until_complete(bot.login())
-    websocket_task = None
+    await bot.login()
     if args.connect:
         logger.info("Connecting bot to gateway")
-        websocket_task = loop.create_task(bot.connect())
+        await bot.connect()
 
     # Run the startup task
     logger.info("Running bot startup task")
@@ -507,48 +496,50 @@ def run_interactions(args: argparse.Namespace) -> None:
 
     # Create the webserver
     app = Application(loop=asyncio.get_event_loop(), debug=args.debug)
-    app.router.add_routes(commands.get_interaction_route_table(bot, bot.config.get("pubkey", ""), path=args.path))
+    app.router.add_routes(
+        commands.get_interaction_route_table(
+            bot,
+            bot.config.get("pubkey", ""),
+            path=args.path,
+        )
+    )
 
     # Start the HTTP server
     logger.info("Creating webserver...")
     application = AppRunner(app)
-    loop.run_until_complete(application.setup())
+    await application.setup()
     webserver = TCPSite(application, host=args.host, port=args.port)
 
     # Start the webserver
-    loop.run_until_complete(webserver.start())
+    await webserver.start()
     host = args.host if args.host != '0.0.0.0' else 'localhost'
     logger.info(f"Server started - http://{host}:{args.port}/")
 
     # This is the forever loop
     try:
         logger.info("Running webserver")
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
+        while True:
+            await asyncio.sleep(0.1)
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        logger.info("Stopping webserver")
 
     # We're now done running the webserver, time to clean up and close
-    if websocket_task:
-        websocket_task.cancel()
     if bot.config.get('database', {}).get('enabled', False):
         logger.info("Closing database pool")
         try:
             if DatabaseWrapper.pool:
-                loop.run_until_complete(asyncio.wait_for(DatabaseWrapper.pool.close(), timeout=30.0))
+                await asyncio.wait_for(DatabaseWrapper.pool.close(), timeout=30.0)
         except asyncio.TimeoutError:
             logger.error("Couldn't gracefully close the database connection pool within 30 seconds")
     if bot.config.get('redis', {}).get('enabled', False):
         logger.info("Closing redis pool")
         RedisConnection.pool.close()
 
-    logger.info("Closing asyncio loop")
-    loop.stop()
-    loop.close()
 
-
-def run_website(args: argparse.Namespace) -> None:
+async def run_website(args: argparse.Namespace) -> None:
     """
-    Starts the website, connects the database, logs in the specified bots, runs the async loop forever.
+    Starts the website, connects the database, logs in the specified bots,
+    runs the async loop forever.
 
     Parameters
     -----------
@@ -575,10 +566,10 @@ def run_website(args: argparse.Namespace) -> None:
         config = toml.load(a)
 
     # Create website object - don't start based on argv
-    app = Application(loop=asyncio.get_event_loop(), debug=args.debug)
+    app = Application(debug=args.debug)
     app['static_root_url'] = '/static'
     for route in config['routes']:
-        module = importlib.import_module(f"website.{route}", "temp")
+        module = importlib.import_module(f"website.{route.replace('/', '.')}", "temp")
         app.router.add_routes(module.routes)
     app.router.add_static('/static', os.getcwd() + '/website/static', append_version=True)
 
@@ -586,7 +577,12 @@ def run_website(args: argparse.Namespace) -> None:
     if args.debug:
         session_setup(app, SimpleCookieStorage(max_age=1_000_000))
     else:
-        session_setup(app, ECS(os.urandom(32), max_age=1_000_000))
+        config_key: str | None = config.get("cookie_encryption_key")
+        if config_key:
+            key = config_key.encode()
+        else:
+            key = os.urandom(32)
+        session_setup(app, ECS(key, max_age=1_000_000))
     jinja_env = jinja_setup(app, loader=FileSystemLoader(os.getcwd() + '/website/templates'))
 
     # Add our jinja env filters
@@ -649,30 +645,24 @@ def run_website(args: argparse.Namespace) -> None:
     # Add our config
     app['config'] = config
 
-    loop = app.loop
-
     # Set log levels
     set_default_log_levels(args)
 
     # Connect the database pool
     if app['config'].get('database', {}).get('enabled', False):
-        db_connect_task = start_database_pool(app['config'])
-        loop.run_until_complete(db_connect_task)
+        await start_database_pool(app['config'])
 
     # Connect the redis pool
     if app['config'].get('redis', {}).get('enabled', False):
-        re_connect = start_redis_pool(app['config'])
-        loop.run_until_complete(re_connect)
+        await start_redis_pool(app['config'])
 
     # Add our bots
     app['bots'] = {}
     for index, (bot_name, bot_config_location) in enumerate(config.get('discord_bot_configs', dict()).items()):
         bot = Bot(f"./config/{bot_config_location}")
         app['bots'][bot_name] = bot
-        # if index == 0:
-        #     set_default_log_levels(args)
         try:
-            loop.run_until_complete(bot.login())
+            await bot.login()
             bot.load_all_extensions()
         except Exception:
             logger.error(f"Failed to start bot {bot_name}", exc_info=True)
@@ -681,40 +671,42 @@ def run_website(args: argparse.Namespace) -> None:
     # Start the HTTP server
     logger.info("Creating webserver...")
     application = AppRunner(app)
-    loop.run_until_complete(application.setup())
+    await application.setup()
     webserver = TCPSite(application, host=args.host, port=args.port)
 
     # Start the webserver
-    loop.run_until_complete(webserver.start())
+    await webserver.start()
     host = args.host if args.host != '0.0.0.0' else 'localhost'
     logger.info(f"Server started - http://{host}:{args.port}/")
 
     # This is the forever loop
     try:
         logger.info("Running webserver")
-        loop.run_forever()
-    except KeyboardInterrupt:
-        pass
+        while True:
+            await asyncio.sleep(0.1)
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        logger.info("Stopping webserver")
 
     # We're now done running the bot, time to clean up and close
-    loop.run_until_complete(application.cleanup())
+    logger.info("Running application cleanup")
+    await application.cleanup()
+    logger.info("Running application shutdown")
+    await application.shutdown()
+
+    # Close db and redis
     if config.get('database', {}).get('enabled', False):
         logger.info("Closing database pool")
         try:
             if DatabaseWrapper.pool:
-                loop.run_until_complete(asyncio.wait_for(DatabaseWrapper.pool.close(), timeout=30.0))
+                await asyncio.wait_for(DatabaseWrapper.pool.close(), timeout=30.0)
         except asyncio.TimeoutError:
             logger.error("Couldn't gracefully close the database connection pool within 30 seconds")
     if config.get('redis', {}).get('enabled', False):
         logger.info("Closing redis pool")
         RedisConnection.pool.close()
 
-    logger.info("Closing asyncio loop")
-    loop.stop()
-    loop.close()
 
-
-def run_sharder(args: argparse.Namespace) -> None:
+async def run_sharder(args: argparse.Namespace) -> None:
     """
     Starts the sharder, connects the redis, runs the async loop forever.
 
@@ -725,23 +717,19 @@ def run_sharder(args: argparse.Namespace) -> None:
     """
 
     set_event_loop()
-    loop = asyncio.get_event_loop()
     set_default_log_levels(args)
 
     # Run the bot
     logger.info(f"Running sharder with {args.concurrency} shards")
-    loop.create_task(ShardManagerServer(args.host, args.port, args.concurrency).run())
+    await ShardManagerServer(args.host, args.port, args.concurrency).run()
     try:
-        loop.run_forever()
-    except KeyboardInterrupt:
+        while True:
+            await asyncio.sleep(0.1)
+    except (KeyboardInterrupt, asyncio.CancelledError):
         logger.info("Logging out sharder")
 
-    logger.info("Closing asyncio loop")
-    loop.stop()
-    loop.close()
 
-
-def run_shell(args: argparse.Namespace) -> None:
+async def run_shell(args: argparse.Namespace) -> None:
     """
     Starts the shell for you.
 
@@ -756,7 +744,6 @@ def run_shell(args: argparse.Namespace) -> None:
 
     # And run file
     bot = Bot(config_file=args.config_file)
-    loop = bot.loop
 
     # Set up loggers
     bot.logger = logger.getChild("bot")
@@ -764,13 +751,11 @@ def run_shell(args: argparse.Namespace) -> None:
 
     # Connect the database pool
     if bot.config.get('database', {}).get('enabled', False):
-        db_connect_task = start_database_pool(bot.config)
-        loop.run_until_complete(db_connect_task)
+        await start_database_pool(bot.config)
 
     # Connect the redis pool
     if bot.config.get('redis', {}).get('enabled', False):
-        re_connect = start_redis_pool(bot.config)
-        loop.run_until_complete(re_connect)
+        await start_redis_pool(bot.config)
 
     # Load the bot's extensions
     logger.info('Loading extensions... ')
@@ -794,7 +779,7 @@ def run_shell(args: argparse.Namespace) -> None:
     # Run the bot
     try:
         logger.info("Running bot")
-        loop.run_until_complete(bot.login())
+        await bot.login()
 
         # Run our shell loop
         while True:
@@ -825,7 +810,7 @@ def run_shell(args: argparse.Namespace) -> None:
                 exec(code, env)
                 func = env['_func']
                 try:
-                    ret = loop.run_until_complete(func())
+                    ret = await func()
 
                 # Catch any errors
                 except Exception:
@@ -840,28 +825,24 @@ def run_shell(args: argparse.Namespace) -> None:
             except Exception:
                 print(traceback.format_exc().rstrip())
 
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, asyncio.CancelledError):
         logger.info("Logging out bot")
-        loop.run_until_complete(bot.close())
+        await bot.close()
 
     # We're now done running the bot, time to clean up and close
     if bot.config.get('database', {}).get('enabled', False):
         logger.info("Closing database pool")
         try:
             if DatabaseWrapper.pool:
-                loop.run_until_complete(asyncio.wait_for(DatabaseWrapper.pool.close(), timeout=30.0))
+                await asyncio.wait_for(DatabaseWrapper.pool.close(), timeout=30.0)
         except asyncio.TimeoutError:
             logger.error("Couldn't gracefully close the database connection pool within 30 seconds")
     if bot.config.get('redis', {}).get('enabled', False):
         logger.info("Closing redis pool")
         RedisConnection.pool.close()
 
-    logger.info("Closing asyncio loop")
-    loop.stop()
-    loop.close()
 
-
-def run_modify_commands(args: argparse.Namespace) -> None:
+async def run_modify_commands(args: argparse.Namespace) -> None:
     """
     Modifies the commands available for the slash command instance
 
@@ -876,7 +857,6 @@ def run_modify_commands(args: argparse.Namespace) -> None:
 
     # And run file
     bot = Bot(config_file=args.config_file)
-    loop = bot.loop
 
     # Set up loggers
     bot.logger = logger.getChild("bot")
@@ -888,7 +868,7 @@ def run_modify_commands(args: argparse.Namespace) -> None:
 
     # Run the bot
     logger.info("Running bot")
-    loop.run_until_complete(bot.login())
+    await bot.login()
 
     # Perform our action
     ctx = PrintContext(bot)
@@ -896,18 +876,14 @@ def run_modify_commands(args: argparse.Namespace) -> None:
         command = bot.get_command("addapplicationcommands")
         assert command is not None
         ctx.command = command
-        coro = ctx.invoke(ctx.command, args.guild)
+        coro = ctx.invoke(ctx.command, args.guild)  # type: ignore
     else:
         command = bot.get_command("removeapplicationcommands")
         assert command is not None
         ctx.command = command
-        coro = ctx.invoke(ctx.command, args.guild)
-    loop.run_until_complete(coro)
+        coro = ctx.invoke(ctx.command, args.guild)  # type: ignore
+    await coro
 
     # Logout the bot
     logger.info("Logging out bot")
-    loop.run_until_complete(bot.close())
-
-    logger.info("Closing asyncio loop")
-    loop.stop()
-    loop.close()
+    await bot.close()
