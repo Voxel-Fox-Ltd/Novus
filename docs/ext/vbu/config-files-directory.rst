@@ -68,16 +68,21 @@ Bot Config File
    .. attribute:: ephemeral_error_messages
       :type: bool
 
-      .. versionadded:: 0.3.1
-
       Whether or not error messages triggered by slash commands should be ephemeral or not.
 
    .. attribute:: owners_ignore_check_failures
       :type: bool
 
-      .. versionadded:: 0.4.1
-
       Whether or not check failures are ignored for owners.
+
+   .. attribute:: cookie_encryption_key
+      :type: bool
+
+      .. versionadded:: 0.2.1
+
+      The encryption key to use for the web runner's encrypted cookie storage.
+      32 bytes is necessary.
+      If left blank then a random set of 32 bytes will be used.
 
    .. class:: event_webhook
 

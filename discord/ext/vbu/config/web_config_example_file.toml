@@ -2,6 +2,7 @@ website_base_url = "http://localhost:8080"  # This will be used to dynamically m
 login_url = "/login"  # The url or route used to prompt the user to login.
 routes = [ "frontend", "backend", ]  # These routes `/website/<filename>` will have their `routes` variable imported which will be loaded into the bot's route table.
 oauth_scopes = [ "identify", "guilds", ]  # The scopes that should be added to the automatic login url.
+cookie_encryption_key = ""  # The key used to encrypt the cookie. This should be a random string of characters of length 32.
 
 # A mapping of bot instances that will be logged in for you.
 # They'll be loaded into your app instance under `app['bots'][BOT_NAME]`.
