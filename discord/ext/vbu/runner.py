@@ -871,17 +871,10 @@ async def run_modify_commands(args: argparse.Namespace) -> None:
     await bot.login()
 
     # Perform our action
-    ctx = PrintContext(bot)
     if args.action == "add":
-        command = bot.get_command("addapplicationcommands")
-        assert command is not None
-        ctx.command = command
-        coro = ctx.invoke(ctx.command, args.guild)  # type: ignore
+        coro = bot.register_application_commands()
     else:
-        command = bot.get_command("removeapplicationcommands")
-        assert command is not None
-        ctx.command = command
-        coro = ctx.invoke(ctx.command, args.guild)  # type: ignore
+        coro = bot.register_application_commands([])
     await coro
 
     # Logout the bot

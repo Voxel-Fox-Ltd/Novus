@@ -11,6 +11,17 @@ Changelog
 This page keeps a detailed human friendly rendering of what's new and changed
 in specific versions.
 
+.. _vp0_2_2:
+
+v0.2.2
+--------
+
+New Features
+~~~~~~~~~~~~~~~~~~~~~~
+
+* Add :attr:`commands.ApplicationCommandMeta.guild_ids`.
+* [vbu] Add ``cookie_encryption_key`` to bot config.
+
 .. _vp0_2_1:
 
 v0.2.1

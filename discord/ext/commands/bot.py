@@ -1156,24 +1156,48 @@ class BotBase(GroupMixin):
         """
 
         # Infer commands
-        new_commands: List[ApplicationCommand] = []
+        new_commands: Dict[Optional[int], Any]
+        new_commands = collections.defaultdict(list)
         if commands is MISSING:
-            new_commands = []
             for command in self.commands:
                 if not command.application_command_meta and not isinstance(command, ContextMenuCommand):
                     continue
-                new_commands.append(command.to_application_command())
+                if command.application_command_meta:
+                    if command.application_command_meta.guild_ids is None:
+                        new_commands[None].append(command.to_application_command())
+                    else:
+                        for g in command.application_command_meta.guild_ids:
+                            new_commands[g].append(command.to_application_command())
+                else:
+                    new_commands[None].append(command.to_application_command())
 
         # Convert commands
         elif commands:
             for command in commands:
                 if isinstance(command, ApplicationCommand):
-                    new_commands.append(command)
+                    new_commands[None].append(command)
                 else:
-                    new_commands.append(command.to_application_command())
+                    new_commands[None].append(command.to_application_command())
 
         # Upsert
-        return await super().register_application_commands(new_commands, guild=guild)
+        added = []
+        for g, cmds in new_commands.items():
+            if g is None:
+                added.extend(
+                    await super()
+                    .register_application_commands(
+                        new_commands[None],
+                        guild=None
+                    )
+                )
+            else:
+                added.extend(
+                    await super()
+                    .register_application_commands(
+                        cmds,
+                        guild=discord.Object(g)
+                    )
+                )
 
 
 class Bot(BotBase, discord.Client):

@@ -242,8 +242,8 @@ class ApplicationCommandMeta:
             name_localizations: Optional[Dict[Union[Locale, str], str]] = None,
             description_localizations: Optional[Dict[Union[Locale, str], str]] = None,
             guild_only: bool = False,
-            permissions: Optional[discord.Permissions] = None
-            ):
+            permissions: Optional[discord.Permissions] = None,
+            guild_ids: Optional[List[int]] = None):
         """
         Parameters
         ----------
@@ -258,6 +258,9 @@ class ApplicationCommandMeta:
             Whether or not the command is only runnable in a guild.
         permissions : Optional[discord.Permissions]
             The permissions required by default to run the command.
+        guild_ids : Optional[List[int]]
+            The guild IDs that the command should be registered in. If ``None``,
+            then the command will be registered globally.
         """
 
         self.options: List[discord.ApplicationCommandOption] = options or list()
@@ -265,6 +268,7 @@ class ApplicationCommandMeta:
         self.description_localizations: Dict[Union[Locale, str], str] = description_localizations or dict()
         self.guild_only: bool = guild_only
         self.permissions: Optional[discord.Permissions] = permissions
+        self.guild_ids: Optional[List[int]] = guild_ids
 
 
 class Command(_BaseCommand, Generic[CogT, P, T]):

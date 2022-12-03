@@ -103,7 +103,7 @@ class Flag:
     default: Any = field(default_factory=lambda: MISSING)
     max_args: int = field(default_factory=lambda: MISSING)
     override: bool = field(default_factory=lambda: MISSING)
-    cast_to_dict: bool = False
+    cast_to_dict: bool = field(default_factory=lambda: False)
 
     @property
     def required(self) -> bool:
