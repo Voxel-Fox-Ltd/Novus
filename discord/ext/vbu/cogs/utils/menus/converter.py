@@ -84,7 +84,8 @@ class Converter(object):
             for the convertable.
         checks : Optional[Optional[List[Check]]]
             A list of check objects that should be used to make sure the user's
-            input is valid. These will be silently ignored if a :code:`components` parameter is passed.
+            input is valid. These will be silently ignored if a
+            :code:`components` parameter is passed.
         converter : Optional[Optional[AnyConverter]]
             A callable that
             will be used to convert the user's input. If a converter fails
@@ -95,8 +96,8 @@ class Converter(object):
             given back by the user's interaction.
         components : Optional[Optional[discord.ui.MessageComponents]]
             An instance of message components to be sent by the bot.
-            If components are sent then the bot will not accept a message as a response, only an interaction
-            with the component.
+            If components are sent then the bot will not accept a message
+            as a response, only an interaction with the component.
         timeout_message : Optional[Optional[str]]
             The message that should get output to the user if this converter times out.
         input_text_kwargs : Optional[Optional[Dict[str, Any]]]
@@ -125,16 +126,24 @@ class Converter(object):
                 return converter
         return _FakeConverter(converter)
 
-    async def run(self, ctx: commands.SlashContext, messages_to_delete: list = None):
+    async def run(
+            self,
+            ctx: commands.SlashContext,
+            messages_to_delete: Optional[list] = None):
         """
-        Ask the user for an input, run the checks, run the converter, and return. Timeout errors
-        *will* be raised here, but they'll propogate all the way back up to the main menu instance,
-        which allows the bot to handle those much more gracefully instead of on a converter-by-converter
-        basis.
+        Ask the user for an input, run the checks, run the converter, and
+        return. Timeout errors *will* be raised here, but they'll propogate all
+        the way back up to the main menu instance, which allows the bot to
+        handle those much more gracefully instead of on a
+        converter-by-converter basis.
         """
 
         # Ask the user for an input
-        messages_to_delete = messages_to_delete if messages_to_delete is not None else list()
+        messages_to_delete = (
+            messages_to_delete
+            if messages_to_delete is not None
+            else list()
+        )
 
         # The input will be an interaction - branch off here
         if self.components:
@@ -166,7 +175,7 @@ class Converter(object):
 
         # Send message to respond to
         sent_message = None
-        if ctx.interaction.response.is_done:
+        if ctx.interaction.response.is_done():
             sent_message = await ctx.interaction.followup.send(
                 self.prompt,
                 components=self.components,
