@@ -816,6 +816,7 @@ class CommandInteraction(Interaction):
     components: None
     options: List[ApplicationCommandInteractionDataOption]
     values: None
+    message: None
 
 
 class AutocompleteInteraction(Interaction):
@@ -829,6 +830,7 @@ class AutocompleteInteraction(Interaction):
     components: None
     options: List[ApplicationCommandInteractionDataOption]
     values: None
+    message: None
 
 
 class ComponentInteraction(Interaction):
@@ -842,6 +844,7 @@ class ComponentInteraction(Interaction):
     components: None
     options: None
     values: List[str]
+    message: Message
 
 
 class ModalInteraction(Interaction):
