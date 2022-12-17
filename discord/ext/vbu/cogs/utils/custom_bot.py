@@ -420,67 +420,6 @@ class Bot(MinimalBot):
         except Exception:
             return None
 
-    def get_invite_link(
-            self,
-            *,
-            client_id: int = None,
-            scope: str = None,
-            response_type: str = None,
-            redirect_uri: str = None,
-            guild_id: int = None,
-            permissions: discord.Permissions = None,
-            **kwargs,
-            ) -> str:
-        """
-        Generate an invite link for the bot.
-
-        Args:
-            client_id (int, optional): The client ID that the invite command should use. Uses the passed
-                argument, then :attr:`the config's<BotConfig.oauth.client_id>` set client ID, and then the bot's
-                ID if nothing is found.
-            scope (str, optional): The scope for the invite link.
-            response_type (str, optional): The response type of the invite link.
-            redirect_uri (str, optional): The redirect URI for the invite link.
-            guild_id (int, optional): The guild ID that the invite link should default to.
-            permissions (discord.Permissions, optional): A permissions object that should be used to make
-                the permissions on the invite.
-
-        Returns:
-            str: The URL for the invite.
-        """
-
-        # Base and enabled are silently ignored
-
-        # Make sure our permissions is a valid object
-        permissions_object = discord.Permissions()
-        if permissions is None:
-            permissions = self.config.get("oauth", dict()).get("permissions", list())
-        if isinstance(permissions, (list, set, tuple)):
-            for p in permissions:
-                setattr(permissions_object, p, True)
-            permissions = permissions_object
-
-        # Danny uses scopes instead of scope
-        # Which makes _sense_
-        # But is mildly annoying
-        scopes = scope or kwargs.get('scopes') or self.config.get('oauth', {}).get('scope', None) or 'bot'
-
-        # Make the params for the url
-        data = {
-            'client_id': client_id or self.config.get('oauth', {}).get('client_id', None) or self.user.id,
-            'scopes': scopes.split(),
-            'permissions': permissions,
-        }
-        if redirect_uri:
-            data['redirect_uri'] = redirect_uri
-        if guild_id:
-            data['guild'] = discord.Object(guild_id)
-        if response_type:
-            data['response_type'] = response_type
-
-        # Return url
-        return discord.utils.oauth_url(**data)
-
     @property
     def user_agent(self):
         """:meta private:"""

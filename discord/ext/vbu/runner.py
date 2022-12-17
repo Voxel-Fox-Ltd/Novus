@@ -340,9 +340,7 @@ class EventLoopCallbackHandler:
         try:
             username = cls.bot.user.name
         except Exception:
-            username = cls.bot.application_id
-            if username is None:
-                username = cls.bot.config.get("oauth", {}).get("client_id", None) or "Application ID not found"
+            username = cls.bot.application_id or "Bot"
         if event_webhook:
             file_handle.seek(0)
             try:

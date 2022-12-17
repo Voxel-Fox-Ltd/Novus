@@ -11,7 +11,6 @@ __all__ = (
     "_CommandData",
     "_BotInfoLinks",
     "_BotInfo",
-    "_Oauth",
     "_Database",
     "_Redis",
     "_ShardManager",
@@ -83,13 +82,13 @@ class _BotInfo(TypedDict):
     links: Dict[str, _BotInfoLinks]
 
 
-class _Oauth(TypedDict):
-    enabled: bool
-    response_type: str
-    redirect_uri: str
-    client_id: str
-    scope: str
-    permissions: List[str]
+# class _Oauth(TypedDict):
+#     enabled: bool
+#     response_type: str
+#     redirect_uri: str
+#     client_id: str
+#     scope: str
+#     permissions: List[str]
 
 
 class _Database(TypedDict):
@@ -179,8 +178,7 @@ class BotConfig(TypedDict):
     intents: _Intents
     bot_listing_api_keys: _BotListingApiKeys
     command_data: _CommandData
-    bot_into: _BotInfo
-    oauth: _Oauth
+    bot_info: _BotInfo
     database: _Database
     reids: _Redis
     shard_manager: _ShardManager

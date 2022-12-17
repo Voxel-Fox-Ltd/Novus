@@ -39,14 +39,6 @@ class BotStats(vbu.Cog):
         # Make up our buttons
         links = bot_info.get("links", dict())
         buttons = []
-        if (invite_link := self.get_invite_link()):
-            buttons.append(
-                discord.ui.Button(
-                    label="Invite",
-                    url=invite_link,
-                    style=discord.ui.ButtonStyle.link,
-                )
-            )
         for label, info in links.items():
             buttons.append(
                 discord.ui.Button(
@@ -65,30 +57,6 @@ class BotStats(vbu.Cog):
 
         # And send
         return await ctx.send(embeds=embeds, components=components)
-
-    def get_invite_link(self):
-        """
-        Get the invite link for the bot.
-        """
-
-        if not self.bot.config.get("oauth", {}).get("enabled", True):
-            return None
-        oauth = self.bot.config.get("oauth", {}).copy()
-        permissions = discord.Permissions.none()
-        for i in oauth.pop('permissions', list()):
-            setattr(permissions, i, True)
-        oauth['permissions'] = permissions
-        return self.bot.get_invite_link(**oauth)
-
-    @commands.command()
-    @commands.bot_has_permissions(send_messages=True)
-    @vbu.checks.is_config_set('oauth', 'enabled')
-    async def invite(self, ctx: vbu.Context):
-        """
-        Gives you the bot's invite link.
-        """
-
-        await ctx.send(f"<{self.get_invite_link()}>")
 
     @commands.command()
     @commands.bot_has_permissions(send_messages=True)
@@ -207,3 +175,5 @@ class BotStats(vbu.Cog):
 def setup(bot: vbu.Bot):
     x = BotStats(bot)
     bot.add_cog(x)
+    if bot.config.get('bot_info', {}).get('enabled', False) is False:
+        bot.remove_command('info')
