@@ -13,15 +13,22 @@ class BotSettings(vbu.Cog):
     @commands.bot_has_permissions(send_messages=True)
     @commands.guild_only()
     @vbu.checks.is_config_set('database', 'enabled')
+    @vbu.checks.is_config_set('default_prefix')
     async def prefix(self, ctx: vbu.Context, *, new_prefix: str = None):
         """
         Changes the prefix that the bot uses.
         """
 
         # See if the prefix was actually specified
-        prefix_column = self.bot.config.get('guild_settings_prefix_column', 'prefix')
+        prefix_column: str = self.bot.config.get(
+            'guild_settings_prefix_column',
+            'prefix',
+        )
         if new_prefix is None:
-            current_prefix = self.bot.guild_settings[ctx.guild.id][prefix_column] or self.bot.config['default_prefix']
+            current_prefix: str = (
+                self.bot.guild_settings[ctx.guild.id][prefix_column]
+                or self.bot.config.get('default_prefix', '/')
+            )
             return await ctx.send(
                 _(ctx, "bot_settings").gettext(f"The current prefix is `{current_prefix}`."),
                 allowed_mentions=discord.AllowedMentions.none(),

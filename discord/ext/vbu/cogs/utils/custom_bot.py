@@ -654,7 +654,7 @@ class Bot(MinimalBot):
 
     @property
     def clean_prefix(self):
-        v = self.config['default_prefix']
+        v = self.config.get('default_prefix', '/')
         if isinstance(v, str):
             return v
         return v[0]
