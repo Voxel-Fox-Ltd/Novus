@@ -8,7 +8,6 @@ __all__ = (
     "_EventWebhook",
     "_Intents",
     "_BotListingApiKeys",
-    "_CommandData",
     "_BotInfoLinks",
     "_BotInfo",
     "_Database",
