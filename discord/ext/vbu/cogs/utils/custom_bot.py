@@ -59,7 +59,7 @@ def get_prefix(bot, message: discord.Message):
         prefix = ["'", "‘"]
 
     # Listify it
-    prefix = [prefix] if isinstance(prefix, str) else prefix
+    prefix = [prefix] if isinstance(prefix, str) else prefix if prefix else []
     prefix = [i for i in prefix if i]
 
     # Make it slightly more case insensitive
