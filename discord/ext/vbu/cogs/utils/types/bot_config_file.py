@@ -152,7 +152,7 @@ class _Statsd(TypedDict):
     constant_tags: Dict[str, str]
 
 
-class _BotConfigOptional(TypedDict, final=False):
+class _BotConfigOptional(TypedDict, total=False):
     guild_settings_prefix_column: str
     default_prefix: str
 
