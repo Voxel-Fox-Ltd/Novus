@@ -34,6 +34,7 @@ from .statsd import StatsdConnection
 from .analytics_log_handler import AnalyticsLogHandler, AnalyticsClientSession
 from .shard_manager import ShardManagerClient
 from .embeddify import Embeddify
+from .constants import Constants
 from .. import all_packages as all_vfl_package_names
 
 if TYPE_CHECKING:
@@ -59,7 +60,11 @@ def get_prefix(bot, message: discord.Message):
 
     # Custom prefix or default prefix
     else:
-        guild_prefix = bot.guild_settings[message.guild.id][bot.config.get('guild_settings_prefix_column', 'prefix')]
+        guild_prefix = (
+            bot.guild_settings
+            [message.guild.id]
+            [bot.config.get('guild_settings_prefix_column', 'prefix')]
+        )
         prefix = guild_prefix or config_prefix
 
     # Fuck iOS devices
@@ -77,13 +82,23 @@ def get_prefix(bot, message: discord.Message):
     prefix = list(set(prefix))  # Remove those duplicates
 
     # Add spaces for words
-    possible_word_prefixes = [i for i in prefix if i and not any([o in i for o in string.punctuation])]
+    possible_word_prefixes = [
+        i
+        for i in prefix
+        if i
+        and not any([o in i for o in string.punctuation])
+    ]
     prefix.extend([f"{i.strip()} " for i in possible_word_prefixes])
 
     # Add the bot's managed role
     if message.guild:
         try:
-            managed_role = [i for i in message.guild.roles if i.tags and i.tags.bot_id == bot.user.id]
+            managed_role = [
+                i
+                for i in message.guild.roles
+                if i.tags
+                and i.tags.bot_id == bot.user.id
+            ]
         except Exception:
             managed_role = None
         if managed_role:
@@ -104,8 +119,8 @@ class MinimalBot(commands.AutoShardedBot):
             messages: Union[List[discord.Message], HistoryIterator],
             ) -> str:
         """
-        Creates and returns an HTML log of all of the messages provided. This is an API method, and may
-        raise an asyncio HTTP error.
+        Creates and returns an HTML log of all of the messages provided.
+        This is an API method, and may raise an asyncio HTTP error.
 
         Args:
             messages (Union[List[discord.Message], discord.iterators.HistoryIterator]):
@@ -285,6 +300,10 @@ class Bot(MinimalBot):
         }
         self.DEFAULT_USER_SETTINGS = {
         }
+
+        # Set support guild ID in the utils
+        global SUPPORT_GUILD_ID
+        SUPPORT_GUILD_ID = self.config.get('support_guild_id')
 
         # Aiohttp session
         self.session: aiohttp.ClientSession = AnalyticsClientSession(
@@ -872,6 +891,7 @@ class Bot(MinimalBot):
 
         # Reset cache items that might need updating
         self._upgrade_chat = None
+        Constants.SUPPORT_GUILD_ID = self.config.get('support_guild_id')
 
     async def log_command(
             self,
