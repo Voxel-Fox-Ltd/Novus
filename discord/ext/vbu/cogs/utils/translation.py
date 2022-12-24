@@ -65,6 +65,7 @@ def translation(
         The domain of the translation.
     use_guild: :class:`bool`
         Whether or not to prioritize the guild locale over the user locale.
+        Defaults to ``False``.
 
     Returns
     --------
@@ -73,6 +74,8 @@ def translation(
     """
 
     if isinstance(ctx, (commands.Context, discord.Interaction)):
+        if isinstance(ctx, commands.SlashContext):
+            ctx = ctx.interaction
         languages = [ctx.locale, ctx.locale.split("-")[0]]
         if use_guild and ctx.guild and ctx.guild_locale:
             languages = [
@@ -94,7 +97,10 @@ def translation(
     )
 
 
-def i18n(i18n_name: str = "default", arg_index: Union[int, str] = 1):
+def i18n(
+        i18n_name: str = "default",
+        arg_index: Union[int, str] = 1,
+        use_guild: bool = False):
     """
     Inject a ``_`` variable into a command's locals to allow for translation.
 
@@ -117,6 +123,9 @@ def i18n(i18n_name: str = "default", arg_index: Union[int, str] = 1):
     arg_index : Union[int, str], optional
         The index where the interaction or context object is stored.
         If this is a string, then that is used instead.
+    use_guild : bool
+        Whether or not we want to give preference to the guild locale over the
+        user locale. Defaults to ``False``.
     """
 
     def inner(func):
@@ -130,7 +139,7 @@ def i18n(i18n_name: str = "default", arg_index: Union[int, str] = 1):
                     ctx = args[arg_index]
                 else:
                     ctx = arg_index
-                trans_func = translation(ctx, i18n_name).gettext
+                trans_func = translation(ctx, i18n_name, use_guild=use_guild).gettext
                 translator.set(trans_func)
                 func.__globals__["_"] = translate_meta
                 return await func(*args, **kwargs)
@@ -142,7 +151,7 @@ def i18n(i18n_name: str = "default", arg_index: Union[int, str] = 1):
                     ctx = args[arg_index]
                 else:
                     ctx = arg_index
-                trans_func = translation(ctx, i18n_name).gettext
+                trans_func = translation(ctx, i18n_name, use_guild=use_guild).gettext
                 translator.set(trans_func)
                 func.__globals__["_"] = translate_meta
                 return func(*args, **kwargs)
