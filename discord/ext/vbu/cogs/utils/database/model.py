@@ -231,28 +231,28 @@ class DatabaseWrapper(object):
         ---------
         >>> # This will commit automatically on exit
         >>> async with db.transaction() as transaction:
-        >>>     await transaction("DROP TABLE example")
+        >>>     await transaction.call("DROP TABLE example")
 
         >>> # This needs to be committed manually
         >>> async with db.transaction(commit_on_exit=False) as transaction:
-        >>>     await transaction("DROP TABLE example")
+        >>>     await transaction.call("DROP TABLE example")
         >>>     await transaction.commit()
 
         >>> # You can rollback a transaction with `.rollback()`
         >>> async with db.transaction() as transaction:
-        >>>     await transaction("DROP TABLE example")
+        >>>     await transaction.call("DROP TABLE example")
         >>>     await transaction.rollback()
 
         >>> # Rollbacks will happen automatically if any error is hit in the
         >>> # transaction context
         >>> async with db.transaction() as transaction:
-        >>>     await transaction("DROP TABLE example")
+        >>>     await transaction.call("DROP TABLE example")
         >>>     raise Exception()
 
         >>> # If you have `commit_on_exit` set to `False` and you don't commit then
         >>> # your changes will be automatically rolled back on exiting the context
         >>> async with db.transaction(commit_on_exit=False) as transaction:
-        >>>     await transaction("DROP TABLE example")
+        >>>     await transaction.call("DROP TABLE example")
 
         Returns
         -------
