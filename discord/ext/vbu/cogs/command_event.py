@@ -1,5 +1,3 @@
-import discord
-
 from . import utils as vbu
 
 
@@ -15,7 +13,11 @@ class CommandEvent(vbu.Cog):
 
         if ctx.command is None:
             return
-        logger = getattr(getattr(ctx, 'cog', self), 'logger', self.logger)
+        logger = getattr(
+            getattr(ctx, 'cog', self),
+            'logger',
+            self.logger,
+        )
         try:
             content = ctx.message.content.replace('\n', '\\n')[:self.CONTENT_LIMIT]
         except AttributeError:
@@ -39,25 +41,7 @@ class CommandEvent(vbu.Cog):
         Ping statsd.
         """
 
-        if not ctx.command:
-            return
-        command_stats_name = ctx.command.qualified_name.replace(' ', '_')
-        is_slash_command = hasattr(ctx, "interaction")
-        command_stats_tags = {
-            "command_name": command_stats_name,
-            "slash_command": is_slash_command,
-            "guild_id": ctx.guild.id if ctx.guild else None,
-            "shard_id": getattr(ctx.guild, "shard_id", 0) if ctx.guild else 0,
-            "cluster": self.bot.cluster,
-        }
-        if is_slash_command:
-            interaction: discord.Interaction = ctx.interaction  # type: ignore
-            command_stats_tags.update({
-                "user_locale": interaction.user_locale,
-                "guild_locale": interaction.guild_locale,
-            })
-        async with vbu.Stats() as stats:
-            stats.increment("discord.bot.commands", tags=command_stats_tags)
+        await self.bot.log_command(ctx)
 
 
 def setup(bot: vbu.Bot):

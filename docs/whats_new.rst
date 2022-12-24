@@ -23,6 +23,7 @@ New Features
 * Add a ``message`` attribute to the interaction subclasses.
 * [vbu] Add ``cookie_encryption_key`` to bot config.
 * [vbu] Add parameters to :func:`vbu.checks.bot_is_ready`.
+* [vbu] Add :func:`vbu.Bot.log_command` function.
 
 Removed Features
 ~~~~~~~~~~~~~~~~~~~~~~

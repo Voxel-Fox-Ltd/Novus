@@ -4,7 +4,15 @@ import asyncio
 import collections
 import glob
 import logging
-import typing
+from typing import (
+    TYPE_CHECKING,
+    Union,
+    List,
+    Optional,
+    Type,
+    Iterable,
+    Tuple,
+)
 import copy
 import string
 import platform
@@ -28,7 +36,7 @@ from .shard_manager import ShardManagerClient
 from .embeddify import Embeddify
 from .. import all_packages as all_vfl_package_names
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from .types.bot_config_file import BotConfig
 
 
@@ -93,7 +101,7 @@ class MinimalBot(commands.AutoShardedBot):
 
     async def create_message_log(
             self,
-            messages: typing.Union[typing.List[discord.Message], HistoryIterator],
+            messages: Union[List[discord.Message], HistoryIterator],
             ) -> str:
         """
         Creates and returns an HTML log of all of the messages provided. This is an API method, and may
@@ -185,13 +193,15 @@ class MinimalBot(commands.AutoShardedBot):
 
 class Bot(MinimalBot):
     """
-    A bot class that inherits from :class:`voxelbotutils.MinimalBot`, detailing more VoxelBotUtils
-    functions, as well as changing some of the default Discord.py library behaviour.
+    A bot class that inherits from :class:`voxelbotutils.MinimalBot`,
+    detailing more VoxelBotUtils functions, as well as changing some of the
+    default Discord.py library behaviour.
 
     Attributes:
         logger (logging.Logger): A logger instance for the bot.
         config (dict): The :class:`config<BotConfig>` for the bot.
-        session (aiohttp.ClientSession): A session instance that you can use to make web requests.
+        session (aiohttp.ClientSession): A session instance that you can use
+        to make web requests.
         application_id (int): The ID of this bot application.
         database (DatabaseWrapper): The database connector, as connected using the data
             from your :class:`config file<BotConfig.database>`.
@@ -209,7 +219,7 @@ class Bot(MinimalBot):
         upgrade_chat (upgradechat.UpgradeChat): An UpgradeChat connector instance using the oauth information
             provided in your :class:`config file<BotConfig.upgrade_chat>`.
         clean_prefix (str): The default prefix for the bot.
-        owner_ids (typing.List[int]): A list of the owners from the :attr:`config file<BotConfig.owners>`.
+        owner_ids (List[int]): A list of the owners from the :attr:`config file<BotConfig.owners>`.
         embeddify (bool): Whether or not messages should be embedded by default, as set in the
             :attr:`config file<BotConfig.embed.enabled>`.
     """
@@ -217,11 +227,11 @@ class Bot(MinimalBot):
     def __init__(
             self,
             config_file: str = 'config/config.toml',
-            logger: logging.Logger = None,
+            logger: Optional[logging.Logger] = None,
             activity: discord.BaseActivity = discord.Game(name="Reconnecting..."),
             status: discord.Status = discord.Status.dnd,
             case_insensitive: bool = True,
-            intents: discord.Intents = None,
+            intents: Optional[discord.Intents] = None,
             allowed_mentions: discord.AllowedMentions = discord.AllowedMentions(everyone=False),
             *args,
             **kwargs):
@@ -283,13 +293,13 @@ class Bot(MinimalBot):
         )
 
         # Allow database connections like this
-        self.database: typing.Type[DatabaseWrapper] = DatabaseWrapper
+        self.database: Type[DatabaseWrapper] = DatabaseWrapper
 
         # Allow redis connections like this
-        self.redis: typing.Type[RedisConnection] = RedisConnection
+        self.redis: Type[RedisConnection] = RedisConnection
 
         # Allow Statsd connections like this
-        self.stats: typing.Type[StatsdConnection] = StatsdConnection
+        self.stats: Type[StatsdConnection] = StatsdConnection
         self.stats.config = self.config.get('statsd', {})
 
         # Set embeddify attrs
@@ -314,14 +324,19 @@ class Bot(MinimalBot):
         logging.getLogger('discord.webhook.sync').addHandler(handler)
 
         # Here's the storage for cached stuff
-        self.guild_settings = collections.defaultdict(lambda: copy.deepcopy(self.DEFAULT_GUILD_SETTINGS))
-        self.user_settings = collections.defaultdict(lambda: copy.deepcopy(self.DEFAULT_USER_SETTINGS))
+        self.guild_settings = collections.defaultdict(
+            lambda: copy.deepcopy(self.DEFAULT_GUILD_SETTINGS)
+        )
+        self.user_settings = collections.defaultdict(
+            lambda: copy.deepcopy(self.DEFAULT_USER_SETTINGS)
+        )
 
     async def startup(self):
         """
-        Clears the custom caches for the bot (:attr:`guild_settings` and :attr:`user_settings`),
-        re-reads the database tables for each of those items, and calls the
-        :func:`voxelbotutils.Cog.cache_setup` method in each of the cogs again.
+        Clears the custom caches for the bot (:attr:`guild_settings`
+        and :attr:`user_settings`), re-reads the database tables for each of
+        those items, and calls the :func:`voxelbotutils.Cog.cache_setup`
+        method in each of the cogs again.
         """
 
         try:
@@ -344,10 +359,16 @@ class Bot(MinimalBot):
         db = await self.database.get_connection()
 
         # Get default guild settings
-        default_guild_settings = await db("SELECT * FROM guild_settings WHERE guild_id=0")
+        default_guild_settings = await db.call(
+            "SELECT * FROM guild_settings WHERE guild_id=0"
+        )
         if not default_guild_settings:
-            await db("INSERT INTO guild_settings (guild_id) VALUES (0)")
-            default_guild_settings = await db("SELECT * FROM guild_settings WHERE guild_id=0")
+            await db.call(
+                "INSERT INTO guild_settings (guild_id) VALUES (0)"
+            )
+            default_guild_settings = await db.call(
+                "SELECT * FROM guild_settings WHERE guild_id=0"
+            )
         for i, o in default_guild_settings[0].items():
             self.DEFAULT_GUILD_SETTINGS.setdefault(i, o)
 
@@ -358,10 +379,16 @@ class Bot(MinimalBot):
                 self.guild_settings[row['guild_id']][key] = value
 
         # Get default user settings
-        default_user_settings = await db("SELECT * FROM user_settings WHERE user_id=0")
+        default_user_settings = await db.call(
+            "SELECT * FROM user_settings WHERE user_id=0",
+        )
         if not default_user_settings:
-            await db("INSERT INTO user_settings (user_id) VALUES (0)")
-            default_user_settings = await db("SELECT * FROM user_settings WHERE user_id=0")
+            await db.call(
+                "INSERT INTO user_settings (user_id) VALUES (0)",
+            )
+            default_user_settings = await db.call(
+                "SELECT * FROM user_settings WHERE user_id=0",
+            )
         for i, o in default_user_settings[0].items():
             self.DEFAULT_USER_SETTINGS.setdefault(i, o)
 
@@ -380,43 +407,65 @@ class Bot(MinimalBot):
         # Close database connection
         await db.disconnect()
 
-    async def _run_sql_exit_on_error(self, db, sql, *args):
+    async def _run_sql_exit_on_error(
+            self,
+            db: DatabaseWrapper,
+            sql: str,
+            *args) -> Iterable:
         """
         Get data from a table, and exit if we get an error.
         """
 
         try:
-            return await db(sql, *args)
+            return await db.call(sql, *args)
         except Exception as e:
             self.logger.critical(f"Error selecting from table - {e}")
             exit(1)
 
-    async def _get_all_table_data(self, db, table_name):
+    async def _get_all_table_data(self, db, table_name) -> Iterable:
         """
         Select all from a table given its name.
         """
 
-        return await self._run_sql_exit_on_error(db, "SELECT * FROM {0}".format(table_name))
+        v = await self._run_sql_exit_on_error(
+            db,
+            "SELECT * FROM {0}".format(table_name),
+        )
+        return v
 
-    async def _get_list_table_data(self, db, table_name, key):
+    async def _get_list_table_data(
+            self,
+            db: DatabaseWrapper,
+            table_name: str,
+            key: str) -> Iterable:
         """
         Select all from a table given its name and a `key=key` check.
         """
 
-        return await self._run_sql_exit_on_error(db, "SELECT * FROM {0} WHERE key=$1".format(table_name), key)
+        return await self._run_sql_exit_on_error(
+            db,
+            "SELECT * FROM {0} WHERE key=$1".format(table_name),
+            key,
+        )
 
-    async def fetch_support_guild(self) -> typing.Optional[discord.Guild]:
+    async def fetch_support_guild(self) -> Optional[discord.Guild]:
         """
-        Get the support guild as set in the bot's :attr:`config file<BotConfig.support_guild_id>`.
+        Get the support guild as set in the bot's
+        :attr:`config file<BotConfig.support_guild_id>`.
 
-        Returns:
-            typing.Optional[discord.Guild]: The guild instance. Will be `None` if a guild ID has not been
-                provided, or cannot be found.
+        Returns
+        -------
+        Optional[discord.Guild]
+            The guild instance. Will be `None` if a guild ID has not been
+            provided, or cannot be found.
         """
 
         try:
             assert self.config['support_guild_id']
-            return self.get_guild(self.config['support_guild_id']) or await self.fetch_guild(self.config['support_guild_id'])
+            return (
+                self.get_guild(self.config['support_guild_id'])
+                or await self.fetch_guild(self.config['support_guild_id'])
+            )
         except Exception:
             return None
 
@@ -425,14 +474,22 @@ class Bot(MinimalBot):
         """:meta private:"""
 
         if self.user is None:
-            return self.config.get("user_agent", (
-                f"DiscordBot (Discord.py discord bot https://github.com/Voxel-Fox-Ltd/Novus) "
-                f"Python/{platform.python_version()} aiohttp/{aiohttp.__version__}"
-            ))
-        return self.config.get("user_agent", (
-            f"{self.user.name.replace(' ', '-')} (Discord.py discord bot https://github.com/Voxel-Fox-Ltd/Novus) "
-            f"Python/{platform.python_version()} aiohttp/{aiohttp.__version__}"
-        ))
+            return self.config.get(
+                "user_agent",
+                (
+                    f"DiscordBot (Discord.py discord bot https://github.com/"
+                    f"Voxel-Fox-Ltd/Novus) Python/{platform.python_version()} "
+                    f"aiohttp/{aiohttp.__version__}"
+                ),
+            )
+        return self.config.get(
+            "user_agent",
+            (
+                f"{self.user.name.replace(' ', '-')} (Discord.py discord "
+                f"bot https://github.com/Voxel-Fox-Ltd/Novus) Python/"
+                f"{platform.python_version()} aiohttp/{aiohttp.__version__}"
+            ),
+        )
 
     @property
     def cluster(self) -> int:
@@ -458,10 +515,12 @@ class Bot(MinimalBot):
 
     async def get_user_topgg_vote(self, user_id: int) -> bool:
         """
-        Returns whether or not the user has voted on Top.gg. If there's no Top.gg token
-        provided in your :attr:`config file<BotConfig.bot_listing_api_keys.topgg_token>`
-        then this will always return `False`. This method doesn't handle timeouts or
-        errors in their API (such as outages); you are expected to handle them yourself.
+        Returns whether or not the user has voted on Top.gg. If there's no
+        Top.gg token provided in your
+        :attr:`config file<BotConfig.bot_listing_api_keys.topgg_token>`
+        then this will always return `False`. This method doesn't handle
+        timeouts or errors in their API (such as outages); you are expected
+        to handle them yourself.
 
         Args:
             user_id (int): The ID of the user you want to check.
@@ -471,13 +530,19 @@ class Bot(MinimalBot):
         """
 
         # Make sure there's a token provided
-        topgg_token = self.config.get('bot_listing_api_keys', {}).get('topgg_token')
+        topgg_token = (
+            self.config.get('bot_listing_api_keys', {})
+            .get('topgg_token')
+        )
         if not topgg_token:
             return False
 
         # Try and see whether the user has voted
         url = "https://top.gg/api/bots/{bot.user.id}/check".format(bot=self)
-        async with self.session.get(url, params={"userId": user_id}, headers={"Authorization": topgg_token}) as r:
+        async with self.session.get(
+                url,
+                params={"userId": user_id},
+                headers={"Authorization": topgg_token}) as r:
             try:
                 data = await r.json()
             except Exception:
@@ -488,19 +553,24 @@ class Bot(MinimalBot):
         # Return
         return data.get("voted", False)
 
-    def get_event_webhook(self, event_name: str) -> typing.Optional[discord.Webhook]:
+    def get_event_webhook(self, event_name: str) -> Optional[discord.Webhook]:
         """
         Get a :class:`discord.Webhook` object based on the keys in the
         :class:`bot's config<BotSettings.event_webhooks>`.
 
-        Args:
-            event_name (str): The name of the event you want to get a webhook for.
+        Parameters
+        ----------
+        event_name : str
+            The name of the event you want to get a webhook for.
 
-        Returns:
-            typing.Optional[discord.Webhook]: A webhook instance pointing to the URL as given.
+        Returns
+        -------
+        Optional[discord.Webhook]
+            A webhook instance pointing to the URL as given.
         """
 
-        # First we're gonna use the legacy way of event webhooking, which is to say: it's just in the config
+        # First we're gonna use the legacy way of event webhooking, which is
+        # to say: it's just in the config
         url = self.config.get("event_webhook_url")
         if url:
             try:
@@ -509,7 +579,12 @@ class Bot(MinimalBot):
                 w._state = self._connection
                 return w
             except discord.InvalidArgument:
-                self.logger.error("The webhook set in your config is not a valid Discord webhook")
+                self.logger.error(
+                    (
+                        "The webhook set in your config is not a valid "
+                        "Discord webhook"
+                    )
+                )
                 return None
         if url is not None:
             return None
@@ -528,48 +603,67 @@ class Bot(MinimalBot):
         else:
             url = webhook_picker.get("event_webhook_url", "")
         try:
-            self.logger.debug(f"Grabbed event webhook for event {event_name} from config")
+            self.logger.debug(
+                f"Grabbed event webhook for event {event_name} from config"
+            )
             w = discord.Webhook.from_url(url, session=self.session)
             w._state = self._connection
             return w
         except discord.InvalidArgument:
-            self.logger.error(f"The webhook set in your config for the event {event_name} is not a valid Discord webhook")
+            self.logger.error(
+                f"The webhook set in your config for the event {event_name} "
+                "is not a valid Discord webhook"
+            )
             return None
 
     async def add_delete_reaction(
             self,
             message: discord.Message,
-            valid_users: typing.Tuple[typing.Union[discord.User, discord.Member]] = None,
+            valid_users: Tuple[discord.Snowflake] | None = None,
             *,
-            delete: typing.Tuple[discord.Message] = None,
+            delete: Tuple[discord.Message] | None = None,
             timeout: float = 60.0,
-            wait: bool = False,
-            ) -> None:
+            wait: bool = False) -> None:
         """
         Adds a delete reaction to the given message.
 
-        Args:
-            message (discord.Message): The message you want to add a delete reaction to.
-            valid_users (typing.List[discord.User], optional): The users who have permission to use the message's delete reaction.
-            delete (typing.List[discord.Message], optional): The messages that should be deleted on clicking the delete reaction.
-            timeout (float, optional): How long the delete reaction should persist for.
-            wait (bool, optional): Whether or not to block (via async) until the delete reaction is pressed.
+        Parameters
+        ----------
+        message : discord.Message
+            The message you want to add a delete reaction to.
+        valid_users : Tuple[discord.Snowflake] | None, optional
+            The users who have permission to use the message's delete reaction.
+        delete : Tuple[discord.Message] | None, optional
+            The messages that should be deleted on clicking the delete reaction.
+        timeout : float, optional
+            How long the delete reaction should persist for.
+        wait : bool, optional
+            Whether or not to block (via async) until the delete reaction
+            is pressed.
 
-        Raises:
-            discord.HTTPException: The bot was unable to add a delete reaction to the message.
+        Raises
+        ------
+        e
+            Description
         """
 
         # See if we want to make this as a task or not
         if wait is False:
-            self.loop.create_task(self.add_delete_reaction(
-                message=message, valid_users=valid_users, delete=delete, timeout=timeout, wait=True,
-            ))
+            self.loop.create_task(
+                self.add_delete_reaction(
+                    message=message,
+                    valid_users=valid_users,
+                    delete=delete,
+                    timeout=timeout,
+                    wait=True,
+                )
+            )
             return None
 
         # See if we were given a list of authors
         # This is an explicit check for None rather than just a falsy value;
-        # this way users can still provide an empty list for only manage_messages users to be
-        # able to delete the message.
+        # this way users can still provide an empty list for only
+        # manage_messages users to be able to delete the message.
         if valid_users is None:
             valid_users = (message.author,)
 
@@ -617,10 +711,14 @@ class Bot(MinimalBot):
         # Try and bulk delete
         bulk = False
         if message.guild:
-            permissions: discord.Permissions = message.channel.permissions_for(message.guild.me)
+            permissions: discord.Permissions
+            permissions = message.channel.permissions_for(message.guild.me)
             bulk = permissions.manage_messages and permissions.read_message_history
         try:
-            await message.channel.purge(check=lambda m: m.id in [i.id for i in delete], bulk=bulk)
+            await message.channel.purge(
+                check=lambda m: m.id in [i.id for i in delete],
+                bulk=bulk,
+            )
         except Exception:
             return  # Ah well
 
@@ -674,12 +772,12 @@ class Bot(MinimalBot):
         except Exception:
             return False
 
-    def get_extensions(self) -> typing.List[str]:
+    def get_extensions(self) -> List[str]:
         """
         Gets a list of filenames of all the loadable cogs.
 
         Returns:
-            typing.List[str]: A list of the extensions found in the cogs/ folder,
+            List[str]: A list of the extensions found in the cogs/ folder,
                 as well as the cogs included with VoxelBotUtils.
         """
 
@@ -716,9 +814,12 @@ class Bot(MinimalBot):
             else:
                 self.logger.info(f' * {i}... success')
 
-    async def set_default_presence(self, shard_id: int = None) -> None:
+    async def set_default_presence(
+            self,
+            shard_id: Optional[int] = None) -> None:
         """
-        Sets the default presence for the bot as appears in the :class:`config file<BotConfig.presence>`.
+        Sets the default presence for the bot as appears in the
+        :class:`config file<BotConfig.presence>`.
         """
 
         # Update presence
@@ -741,12 +842,19 @@ class Bot(MinimalBot):
 
             # Make an activity object
             if config_text:
-                activity = discord.Activity(name=config_text, type=activity_type)
+                activity = discord.Activity(
+                    name=config_text,
+                    type=activity_type,
+                )
             else:
                 activity = None
 
             # Update the presence
-            await self.change_presence(activity=activity, status=status, shard_id=i)
+            await self.change_presence(
+                activity=activity,
+                status=status,
+                shard_id=i,
+            )
 
     def reload_config(self) -> None:
         """
@@ -756,7 +864,7 @@ class Bot(MinimalBot):
         self.logger.info("Reloading config")
         try:
             with open(self.config_file) as a:
-                self.config = toml.load(a)
+                self.config = toml.load(a)  # pyright: ignore
             self._event_webhook = None
         except Exception as e:
             self.logger.critical(f"Couldn't read config file - {e}")
@@ -765,20 +873,102 @@ class Bot(MinimalBot):
         # Reset cache items that might need updating
         self._upgrade_chat = None
 
-    async def login(self, token: str = None, *args, **kwargs):
+    async def log_command(
+            self,
+            context: Context | SlashContext | discord.Interaction | commands.Command,
+            *,
+            guild: Optional[discord.Guild] = None,
+            **kwargs: dict[str, str | int]):
+        """
+        Log a command into statsd.
+        """
+
+        # Get a valid name
+        name: str | None = None
+        if isinstance(context, commands.Command):
+            name = context.qualified_name
+        elif isinstance(context, Context):
+            if context.command:
+                name = context.command.qualified_name
+        elif isinstance(context, discord.Interaction):
+            name = context.command_name
+        if name is None and "name" not in kwargs:
+            return
+
+        # Get a valid guild object
+        valid_guild: discord.Guild | discord.Object | None = None
+        if guild:
+            valid_guild = guild
+        elif isinstance(context, commands.Command):
+            valid_guild = None
+        elif isinstance(context, (Context, discord.Interaction)):
+            valid_guild = context.guild
+
+        # Work out what we wanna tell statsd
+        command_stats_tags = {
+            "command_name": name,
+            "slash_command": isinstance(
+                context,
+                (commands.SlashContext, discord.Interaction),
+            ),
+            "guild_id": (
+                valid_guild.id
+                if valid_guild
+                else None
+            ),
+            "shard_id": (
+                valid_guild.shard_id
+                if isinstance(valid_guild, discord.Guild)
+                else 0
+            ),
+            "cluster": self.cluster,
+        }
+
+        # See if we can add the locale
+        interaction: discord.Interaction | None = None
+        if isinstance(context, discord.Interaction):
+            interaction = context
+        elif isinstance(context, SlashContext):
+            interaction = context.interaction
+        if interaction:
+            command_stats_tags.update({
+                "user_locale": interaction.user_locale,
+                "guild_locale": interaction.guild_locale,
+            })
+
+        # Add whatever custom args we have
+        command_stats_tags.update(kwargs)
+
+        # Actually send the update
+        async with self.stats() as stats:
+            stats.increment(
+                "discord.bot.commands",
+                tags=command_stats_tags,
+            )
+
+    async def login(
+            self,
+            token: Optional[str] = None,
+            *args,
+            **kwargs,
+        ):
         """:meta private:"""
 
         try:
             await super().login(token or self.config['token'], *args, **kwargs)
         except discord.HTTPException as e:
             if str(e).startswith("429 Too Many Requests"):
-                headers = {i: o for i, o in dict(e.response.headers).items() if "rate" in i.lower()}
+                headers = {
+                    i: o
+                    for i, o in dict(e.response.headers).items()
+                    if "rate" in i.lower()
+                }
                 self.logger.critical(f"Cloudflare rate limit reached - {json.dumps(headers)}")
             raise
 
     async def start(
             self,
-            token: typing.Optional[str] = None,
+            token: Optional[str] = None,
             *args,
             run_startup_method: bool = True,
             **kwargs):
@@ -852,7 +1042,10 @@ class Bot(MinimalBot):
         """
 
         # If we don't have redis, let's just ignore the shard manager
-        shard_manager_enabled = self.config.get('shard_manager', {}).get('enabled', False)
+        shard_manager_enabled = (
+            self.config.get('shard_manager', {})
+            .get('enabled', False)
+        )
         if not shard_manager_enabled:
             return await super().launch_shards()
 
@@ -873,7 +1066,9 @@ class Bot(MinimalBot):
         shard_launch_tasks = []
         for shard_id in shard_ids:
             initial = shard_id == shard_ids[0]
-            shard_launch_tasks.append(self.loop.create_task(self.launch_shard(gateway, shard_id, initial=initial)))
+            shard_launch_tasks.append(self.loop.create_task(
+                self.launch_shard(gateway, shard_id, initial=initial)
+            ))
 
         # Wait for them all to connect
         await asyncio.wait(shard_launch_tasks)
@@ -898,7 +1093,7 @@ class Bot(MinimalBot):
         queue = self._AutoShardedClient__queue  # I'm sorry Danny
 
         # Make a shard manager instance if we need to
-        async def get_shard_manager() -> typing.Optional[ShardManagerClient]:
+        async def get_shard_manager() -> Optional[ShardManagerClient]:
             if not shard_manager_enabled:
                 return
             return await ShardManagerClient.open_connection(host, port)
