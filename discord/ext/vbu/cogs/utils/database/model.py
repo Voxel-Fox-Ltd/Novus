@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import logging
-import typing
+from typing import TYPE_CHECKING, Literal, Optional, Type, ClassVar, List, Any, Iterable, TypeVar, overload
 
-if typing.TYPE_CHECKING:
+if TYPE_CHECKING:
     from .types import (
         UserDatabaseConfig, DatabaseConfig, DriverWrapper,
         DriverPool, DriverConnection,
     )
+
+
+RT = TypeVar("RT")
 
 
 class DatabaseTransaction(object):
@@ -26,7 +29,12 @@ class DatabaseTransaction(object):
         The connection that spawned this transaction.
     """
 
-    def __init__(self, driver: typing.Type[DriverWrapper], parent: DatabaseWrapper, *, commit_on_exit: bool = True):
+    def __init__(
+            self,
+            driver: Type[DriverWrapper],
+            parent: DatabaseWrapper,
+            *,
+            commit_on_exit: bool = True):
         """:meta private:"""
         self._driver = driver
         self.parent = parent
@@ -90,11 +98,11 @@ class DatabaseWrapper(object):
 
     __slots__ = ("conn", "is_active", "cursor",)
 
-    config: typing.ClassVar[DatabaseConfig] = None  # type: ignore
-    pool: typing.ClassVar[DriverPool] = None  # type: ignore
+    config: ClassVar[DatabaseConfig] = None  # type: ignore
+    pool: ClassVar[DriverPool] = None  # type: ignore
     logger: logging.Logger = logging.getLogger("vbu.database")
-    enabled: typing.ClassVar[bool] = False
-    driver: typing.ClassVar[typing.Type[DriverWrapper]] = None  # type: ignore
+    enabled: ClassVar[bool] = False
+    driver: ClassVar[Type[DriverWrapper]] = None  # type: ignore
 
     def __init__(
             self,
@@ -126,7 +134,11 @@ class DatabaseWrapper(object):
 
         # Grab the args that are valid
         config_args = ("host", "port", "database", "user", "password",)
-        stripped_config: DatabaseConfig = {i: o for i, o in config.items() if i in config_args}  # type: ignore
+        stripped_config: DatabaseConfig = {
+            i: o
+            for i, o in config.items()
+            if i in config_args
+        }  # type: ignore
         cls.config = stripped_config
 
         # See if we want to even enable the database
@@ -156,8 +168,9 @@ class DatabaseWrapper(object):
         """
         Acquires a connection to the database from the pool.
 
-        Using this method does not automatically call the ``.disconnect()`` method - if you
-        want this to be handled automaticall you can use this class in a context manager.
+        Using this method does not automatically call the ``.disconnect()``
+        method - if you want this to be handled automaticall you can use this
+        class in a context manager.
 
         Examples
         ---------
@@ -186,7 +199,8 @@ class DatabaseWrapper(object):
 
     async def __aenter__(self) -> DatabaseWrapper:
         """
-        Get a connection from your database and close it automatically when you're done.
+        Get a connection from your database and close it automatically when
+        you're done.
 
         Examples
         ---------
@@ -249,10 +263,14 @@ class DatabaseWrapper(object):
         assert self.conn, "No connection has been established"
         return self.driver.transaction(self, *args, **kwargs)
 
-    async def __call__(self, sql: str, *args) -> typing.List[typing.Any]:
+    async def __call__(self, sql: str, *args):
         return await self.call(sql, *args)
 
-    async def call(self, sql: str, *args) -> typing.List[typing.Any]:
+    async def call(
+            self,
+            sql: str,
+            *args,
+            type: Type[RT] = dict) -> List[RT]:
         """
         Run a line of SQL against your database driver.
 
@@ -261,13 +279,18 @@ class DatabaseWrapper(object):
         Parameters
         ----------
         sql: :class:`str`
-            The SQL that you want to run. This will be parsed as a prepared or parameterized statement.
-            For PostgreSQL, arguments will be in form ``$1`` numbered for each of your arguments;
-            in SQLite they'll be ``?`` and inserted in the order of your given arguments; and
-            in MySQL they'll be in format ``%s`` and inserted in the order of your given
-            arguments.
-        *args: typing.Any
+            The SQL that you want to run. This will be parsed as a prepared or
+            parameterized statement. For PostgreSQL, arguments will be in form
+            ``$1`` numbered for each of your arguments; in SQLite they'll be
+            ``?`` and inserted in the order of your given arguments; and
+            in MySQL they'll be in format ``%s`` and inserted in the order
+            of your given arguments.
+        *args: Any
             The arguments that are passed to your database call.
+        type
+            The return type of the database call dictionary. This should
+            be a subclass of :class:`dict`, but will not be used in any way.
+            This is just used for your type checking.
 
         Examples
         ---------
@@ -276,7 +299,7 @@ class DatabaseWrapper(object):
 
         Returns
         --------
-        typing.List[:class:`dict`]
+        List[:class:`dict`]
             The list of rows that were returned from the database.
         """
 
@@ -284,30 +307,26 @@ class DatabaseWrapper(object):
         self.logger.debug(f"Running SQL: {sql} {args!s}")
         return await self.driver.fetch(self, sql, *args)
 
-    async def executemany(self, sql: str, *args_list: typing.Iterable[typing.Any]) -> None:
+    async def executemany(self, sql: str, *args_list: Iterable[Any]) -> None:
         """
         Run a line of SQL with a multitude of arguments.
 
         Parameters
         ----------
         sql: :class:`str`
-            The SQL that you want to run. This will be parsed as a prepared or parameterized statement.
-            For PostgreSQL, arguments will be in form ``$1`` numbered for each of your arguments;
-            in SQLite they'll be ``?`` and inserted in the order of your given arguments; and
-            in MySQL they'll be in format ``%s`` and inserted in the order of your given
-            arguments.
-        *args_list: typing.Iterable[typing.Any]
+            The SQL that you want to run. This will be parsed as a prepared or
+            parameterized statement. For PostgreSQL, arguments will be in
+            form ``$1`` numbered for each of your arguments; in SQLite they'll
+            be ``?`` and inserted in the order of your given arguments; and
+            in MySQL they'll be in format ``%s`` and inserted in the order of
+            your given arguments.
+        *args_list: Iterable[Any]
             A list of arguments that should be passed into your database call.
 
         Examples
         ---------
         >>> sql = "INSERT INTO example (a, b) VALUES ($1, $2)"
         >>> await db.executemany(sql, (1, 2), (3, 4), (5, 6), (7, 8))
-
-        Returns
-        --------
-        typing.List[:class:`dict`]
-            The list of rows that were returned from the database.
         """
 
         assert self.conn, "No connection has been established"
