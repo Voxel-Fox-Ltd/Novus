@@ -39,7 +39,6 @@ from .. import all_packages as all_vfl_package_names
 
 if TYPE_CHECKING:
     from .types.bot_config_file import BotConfig
-    from .types.log_command_func import LogCommandFunc
 
 
 sys.path.append(".")
@@ -899,7 +898,7 @@ class Bot(MinimalBot):
             context: commands.Context | commands.SlashContext | discord.Interaction | commands.Command,
             *,
             guild: Optional[discord.Guild] = None,
-            **kwargs: LogCommandFunc):
+            **kwargs: dict[str, str | int]):
         """
         Log a command into statsd.
         """
