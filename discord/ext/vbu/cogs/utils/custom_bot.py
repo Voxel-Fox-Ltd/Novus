@@ -898,23 +898,23 @@ class Bot(MinimalBot):
             context: commands.Context | commands.SlashContext | discord.Interaction | commands.Command,
             *,
             guild: Optional[discord.Guild] = None,
-            **kwargs: dict[str, str | int]):
+            **kwargs):
         """
         Log a command into statsd.
         """
 
         # Get a valid name
-        name: str | None = None
+        command_name: str | None = None
         if isinstance(context, commands.Command):
-            name = context.qualified_name
+            command_name = context.qualified_name
         elif isinstance(context, commands.Context):
             if isinstance(context, commands.SlashContext):
-                name = context.interaction.command_name
+                command_name = context.interaction.command_name
             elif context.command:
-                name = context.command.qualified_name
+                command_name = context.command.qualified_name
         elif isinstance(context, discord.Interaction):
-            name = context.command_name
-        if name is None and "name" not in kwargs:
+            command_name = context.command_name
+        if command_name is None and "command_name" not in kwargs:
             return
 
         # Get a valid guild object
@@ -940,22 +940,7 @@ class Bot(MinimalBot):
 
         # Work out what we wanna tell statsd
         command_stats_tags = {
-            "command_name": name,
-            "command_type": (
-                    "application"
-                if
-                    isinstance(context, commands.SlashContext)
-                else
-                    "text"
-                if
-                    isinstance(context, commands.Context)
-                else
-                    "component"
-                if
-                    isinstance(context, discord.Interaction)
-                else
-                    "unknown"
-            ),
+            "command_name": command_name,
             "guild_id": valid_guild_id,
             "channel_id": valid_channel_id,
             "user_id": valid_user_id,
@@ -974,6 +959,21 @@ class Bot(MinimalBot):
                 "user_locale": interaction.user_locale,
                 "guild_locale": interaction.guild_locale,
             })
+
+        # See if we can add the command type
+        command_type: str = "unknown"
+        if interaction:
+            if interaction.data and interaction.data.get("type"):
+                command_type = {
+                    discord.ApplicationCommandType.chat_input: "slash",
+                    discord.ApplicationCommandType.message: "user_context",
+                    discord.ApplicationCommandType.message: "message_context",
+                }[discord.ApplicationCommandType(interaction.data['type'])]
+            else:
+                command_type = "component"
+        elif isinstance(context, commands.Context):
+            command_type = "text"
+        command_stats_tags["command_type"] = command_type
 
         # Add whatever custom args we have
         command_stats_tags.update(kwargs)
