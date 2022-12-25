@@ -100,6 +100,7 @@ def translation(
 def i18n(
         i18n_name: str = "default",
         arg_index: Union[int, str] = 1,
+        *,
         use_guild: bool = False):
     """
     Inject a ``_`` variable into a command's locals to allow for translation.

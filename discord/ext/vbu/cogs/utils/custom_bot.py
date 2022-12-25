@@ -895,7 +895,7 @@ class Bot(MinimalBot):
 
     async def log_command(
             self,
-            context: Context | SlashContext | discord.Interaction | commands.Command,
+            context: commands.Context | commands.SlashContext | discord.Interaction | commands.Command,
             *,
             guild: Optional[discord.Guild] = None,
             **kwargs: dict[str, str | int]):
@@ -907,8 +907,10 @@ class Bot(MinimalBot):
         name: str | None = None
         if isinstance(context, commands.Command):
             name = context.qualified_name
-        elif isinstance(context, Context):
-            if context.command:
+        elif isinstance(context, commands.Context):
+            if isinstance(context, commands.SlashContext):
+                name = context.interaction.command_name
+            elif context.command:
                 name = context.command.qualified_name
         elif isinstance(context, discord.Interaction):
             name = context.command_name
@@ -916,23 +918,25 @@ class Bot(MinimalBot):
             return
 
         # Get a valid guild object
-        valid_guild: discord.Guild | discord.abc.Snowflake | None = None
+        valid_guild_id: int | None = None
         if guild:
-            valid_guild = guild
-        elif isinstance(context, commands.Command):
-            valid_guild = None
-        elif isinstance(context, (Context, discord.Interaction)):
-            valid_guild = context.guild
-
-        # Get valid channel and user IDs
-        valid_channel: discord.abc.Snowflake | None = None
-        if isinstance(context, (Context, discord.Interaction)):
-            valid_channel = context.channel
-        valid_user: discord.abc.Snowflake | None = None
-        if isinstance(context, Context):
-            valid_user = context.author
+            valid_guild_id = guild.id
+        elif isinstance(context, commands.Context):
+            valid_guild_id = context.guild.id if context.guild else None
         elif isinstance(context, discord.Interaction):
-            valid_user = context.user
+            valid_guild_id = context.guild_id
+
+        # Get valid channel
+        valid_channel_id: int | None = None
+        if isinstance(context, (commands.Context, discord.Interaction)):
+            valid_channel_id = context.channel.id if context.channel else None
+
+        # Get valid user
+        valid_user_id: int | None = None
+        if isinstance(context, commands.Context):
+            valid_user_id = context.author.id
+        elif isinstance(context, discord.Interaction):
+            valid_user_id = context.user.id
 
         # Work out what we wanna tell statsd
         command_stats_tags = {
@@ -940,11 +944,11 @@ class Bot(MinimalBot):
             "command_type": (
                     "application"
                 if
-                    isinstance(context, SlashContext)
+                    isinstance(context, commands.SlashContext)
                 else
                     "text"
                 if
-                    isinstance(context, Context)
+                    isinstance(context, commands.Context)
                 else
                     "component"
                 if
@@ -952,26 +956,10 @@ class Bot(MinimalBot):
                 else
                     "unknown"
             ),
-            "guild_id": (
-                valid_guild.id
-                if valid_guild
-                else valid_guild
-            ),
-            "channel_id": (
-                valid_channel.id
-                if valid_channel
-                else valid_channel
-            ),
-            "user_id": (
-                valid_user.id
-                if valid_user
-                else valid_user
-            ),
-            "shard_id": (
-                valid_guild.shard_id
-                if isinstance(valid_guild, discord.Guild)
-                else 0
-            ),
+            "guild_id": valid_guild_id,
+            "channel_id": valid_channel_id,
+            "user_id": valid_user_id,
+            "shard_id": ((valid_guild_id or 0) >> 22) % (self.shard_count or 1),
             "cluster": self.cluster,
         }
 
@@ -979,7 +967,7 @@ class Bot(MinimalBot):
         interaction: discord.Interaction | None = None
         if isinstance(context, discord.Interaction):
             interaction = context
-        elif isinstance(context, SlashContext):
+        elif isinstance(context, commands.SlashContext):
             interaction = context.interaction
         if interaction:
             command_stats_tags.update({
