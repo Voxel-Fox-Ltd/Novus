@@ -916,7 +916,7 @@ class Bot(MinimalBot):
             return
 
         # Get a valid guild object
-        valid_guild: discord.Guild | discord.Object | None = None
+        valid_guild: discord.Guild | discord.abc.Snowflake | None = None
         if guild:
             valid_guild = guild
         elif isinstance(context, commands.Command):
@@ -924,17 +924,48 @@ class Bot(MinimalBot):
         elif isinstance(context, (Context, discord.Interaction)):
             valid_guild = context.guild
 
+        # Get valid channel and user IDs
+        valid_channel: discord.abc.Snowflake | None = None
+        if isinstance(context, (Context, discord.Interaction)):
+            valid_channel = context.channel
+        valid_user: discord.abc.Snowflake | None = None
+        if isinstance(context, Context):
+            valid_user = context.author
+        elif isinstance(context, discord.Interaction):
+            valid_user = context.user
+
         # Work out what we wanna tell statsd
         command_stats_tags = {
             "command_name": name,
-            "slash_command": isinstance(
-                context,
-                (commands.SlashContext, discord.Interaction),
+            "command_type": (
+                    "application"
+                if
+                    isinstance(context, SlashContext)
+                else
+                    "text"
+                if
+                    isinstance(context, Context)
+                else
+                    "component"
+                if
+                    isinstance(context, discord.Interaction)
+                else
+                    "unknown"
             ),
             "guild_id": (
                 valid_guild.id
                 if valid_guild
-                else None
+                else valid_guild
+            ),
+            "channel_id": (
+                valid_channel.id
+                if valid_channel
+                else valid_channel
+            ),
+            "user_id": (
+                valid_user.id
+                if valid_user
+                else valid_user
             ),
             "shard_id": (
                 valid_guild.shard_id
