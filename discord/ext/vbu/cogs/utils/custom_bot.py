@@ -957,8 +957,13 @@ class Bot(MinimalBot):
         if interaction:
             command_stats_tags.update({
                 "user_locale": interaction.user_locale,
+                "user_language": interaction.user_locale.split("-")[0],
                 "guild_locale": interaction.guild_locale,
             })
+            if interaction.guild_locale:
+                command_stats_tags.update({
+                    "guild_language": interaction.guild_locale.split("-")[0],
+                })
 
         # See if we can add the command type
         command_type: str = "unknown"
