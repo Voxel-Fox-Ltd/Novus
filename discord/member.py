@@ -726,7 +726,10 @@ class Member(discord.abc.Messageable, _UserTag):
             communication_disabled_until=communication_disabled_until,
             reason=reason
         )
-        assert member
+
+        if not member:
+            raise AssertionError
+
         return member
 
     async def disable_communication_for(
@@ -788,7 +791,10 @@ class Member(discord.abc.Messageable, _UserTag):
             communication_disabled_until=utils.utcnow() + additional_time,
             reason=reason
         )
-        assert member
+
+        if not member:
+            raise AssertionError
+
         return member
 
     async def enable_communication(

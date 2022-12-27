@@ -802,7 +802,8 @@ class ThreadMember(Hashable):
         try:
             self.id = int(data['user_id'])
         except KeyError:
-            assert self._state.self_id is not None
+            if self._state.self_id is None:
+                raise AssertionError
             self.id = self._state.self_id
 
         try:

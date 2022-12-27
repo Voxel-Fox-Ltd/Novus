@@ -340,7 +340,8 @@ class Context(discord.abc.Messageable, Generic[BotT]):
         Similar to :attr:`.Guild.me` except it may return the :class:`.ClientUser` in private message contexts.
         """
         try:
-            assert self.guild
+            if not self.guild:
+                raise AssertionError
             return self.guild.me
         except (AttributeError, AssertionError):
             return self.bot.user  # type: ignore - bot.user will never be None at this point.
