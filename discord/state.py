@@ -1109,9 +1109,19 @@ class ConnectionState:
 
         # do a cleanup of the messages cache
         if self._messages is not None:
-            self._messages: Optional[Deque[Message]] = deque(
-                (msg for msg in self._messages if msg.guild != guild), maxlen=self.max_messages
-            )
+            to_delete: List[int] = []
+
+            idx: int
+            msg: Message
+
+            for idx, msg in enumerate(self._messages):
+                if msg.guild == guild:
+                    to_delete.append(idx)
+
+            del_idx: int
+
+            for del_idx in reversed(to_delete):
+                del self._messages[del_idx]
 
         self._remove_guild(guild)
         self.dispatch('guild_remove', guild)
