@@ -984,7 +984,9 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
                     break  # Just get the first param - deliberately shadow "name"
             else:
                 sig = self.clean_params[name]
-            assert sig
+
+            if not sig:
+                raise AssertionError
 
             # Get the converter
             converter = get_converter(sig)
@@ -1879,7 +1881,10 @@ class Group(GroupMixin[CogT], Command[CogT, P, T]):
             if not c.application_command_meta:
                 continue
             a = c.to_application_command()
-            assert isinstance(a, discord.ApplicationCommandOption)
+
+            if not isinstance(a, discord.ApplicationCommandOption):
+                raise AssertionError
+
             command.add_option(a)
         return command
 

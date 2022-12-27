@@ -82,7 +82,10 @@ class BucketType(Enum):
             return (msg.channel if isinstance(msg.channel, PrivateChannel) else msg.author.top_role).id  # type: ignore
 
     def _get_key_interaction(self, msg: Interaction) -> Any:
-        assert msg.user  # The user has to exist for slashies
+        # The user has to exist for slashies
+        if not msg.user:
+            raise AssertionError
+
         if self is BucketType.user:
             return msg.user.id
         elif self is BucketType.guild:

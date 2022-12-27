@@ -1528,7 +1528,8 @@ class HTTPInteractionResponse(InteractionResponse):
             to_send = writer.buffer
             headers = payload.headers
 
-        assert to_send
+        if not to_send:
+            raise AssertionError
 
         self._aiohttp_response.headers.update(headers)
         await self._aiohttp_response.prepare(self._aiohttp_request)

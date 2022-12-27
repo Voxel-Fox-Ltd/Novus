@@ -54,7 +54,10 @@ def decode(data):
     # should always have 200-204 as their second byte, while RTP
     # packet are (probably) always 73 (or at least not 200-204).
 
-    assert data[0] >> 6 == 2 # check version bits
+    # check version bits
+    if not data[0] >> 6 == 2:
+        raise AssertionError
+
     return _rtcp_map.get(data[1], RTPPacket)(data)
 
 def is_rtcp(data):

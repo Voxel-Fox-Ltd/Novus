@@ -137,9 +137,11 @@ def get_interaction_route_table(bot: BotBase, application_public_key: str, *, pa
             bot.dispatch('modal_submit', interaction)
         bot.dispatch("interaction", interaction)
 
+        if not isinstance(interaction.response, HTTPInteractionResponse):
+            raise AssertionError
+
         # Sleep for a couple seconds, just so we don't try and return without
         # sending a response from inside the bot
-        assert isinstance(interaction.response, HTTPInteractionResponse)
         t0 = time.time()
         while interaction.response._aiohttp_response._eof_sent is False and time.time() - t0 < SLEEP_TIME:
             await asyncio.sleep(0.01)
