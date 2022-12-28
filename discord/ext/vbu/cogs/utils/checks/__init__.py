@@ -3,7 +3,11 @@ from .meta_command import meta_command
 from .bot_is_ready import bot_is_ready
 from .is_bot_support import is_bot_support
 from .is_voter import is_voter
-from .is_upgrade_chat_subscriber import is_upgrade_chat_subscriber, is_upgrade_chat_purchaser
+from .is_upgrade_chat_subscriber import (
+    is_upgrade_chat_subscriber,
+    is_upgrade_chat_purchaser,
+)
+from .interaction_filter import interaction_filter
 
 
 __all__ = (
@@ -14,4 +18,5 @@ __all__ = (
     'is_voter',
     'is_upgrade_chat_subscriber',
     'is_upgrade_chat_purchaser',
+    'interaction_filter',
 )

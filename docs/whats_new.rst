@@ -24,6 +24,7 @@ New Features
 * [vbu] Add ``cookie_encryption_key`` to bot config.
 * [vbu] Add parameters to :func:`vbu.checks.bot_is_ready`.
 * [vbu] Add :func:`vbu.Bot.log_command` function.
+* [vbu] Add :func:`vbu.checks.interaction_filter` function.
 
 Removed Features
 ~~~~~~~~~~~~~~~~~~~~~~
