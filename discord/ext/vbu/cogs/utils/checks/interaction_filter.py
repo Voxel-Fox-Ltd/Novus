@@ -58,7 +58,10 @@ def interaction_filter(
 
     def inner(func):
         @functools.wraps(func)
-        async def wrapper(interaction: discord.ComponentInteraction):
+        async def wrapper(*args):
+            interaction: discord.Interaction = args[-1]
+            if not interaction.custom_id:
+                return
             custom_id_list = interaction.custom_id.split(" ")
             if start and not custom_id_list[0] == start:
                 return
@@ -68,6 +71,6 @@ def interaction_filter(
                 return
             elif end:
                 custom_id_list.pop(-1)
-            return await func(interaction, *custom_id_list)
+            return await func(*args, *custom_id_list)
         return wrapper
     return inner
