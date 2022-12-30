@@ -971,7 +971,7 @@ class Bot(MinimalBot):
             if interaction.data and interaction.data.get("type"):
                 command_type = {
                     discord.ApplicationCommandType.chat_input: "slash",
-                    discord.ApplicationCommandType.message: "user_context",
+                    discord.ApplicationCommandType.user: "user_context",
                     discord.ApplicationCommandType.message: "message_context",
                 }[discord.ApplicationCommandType(interaction.data['type'])]
             else:
