@@ -376,6 +376,7 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
         if not isinstance(name, str):
             raise TypeError('Name of a command must be a string.')
         self.name: str = name
+        self.id: Optional[int] = None
 
         self.callback = func
         self.enabled: bool = kwargs.get('enabled', True)
@@ -456,6 +457,17 @@ class Command(_BaseCommand, Generic[CogT, P, T]):
             pass
         else:
             self.after_invoke(after_invoke)
+
+    @property
+    def mention(self) -> str:
+        """:class:`str`: The command's name."""
+        search = self
+        while search.parent:
+            search = search.parent
+        comm_id = search.id
+        if comm_id is None:
+            return f"`/{self.qualified_name}`"
+        return f"</{self.qualified_name}:{comm_id}>"
 
     @property
     def callback(self) -> Union[

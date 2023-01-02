@@ -172,6 +172,18 @@ class BotBase(GroupMixin):
         else:
             self.help_command = help_command
 
+    async def load_application_command_ids(self):
+        """
+        Ask the API for your added commands and load them into the command
+        cache.
+        """
+
+        for app_command in await self.fetch_global_application_commands():
+            local_command = self.get_command(app_command.name)
+            if not local_command:
+                continue
+            local_command.id = app_command.id
+
     # internal helpers
 
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
