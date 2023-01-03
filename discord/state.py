@@ -612,8 +612,15 @@ class ConnectionState:
     def parse_message_reaction_add(self, data) -> None:
         emoji = data['emoji']
         emoji_id = utils._get_as_snowflake(emoji, 'id')
-        emoji = PartialEmoji.with_state(self, id=emoji_id, animated=emoji.get('animated', False), name=emoji['name'])
+        emoji = PartialEmoji.with_state(
+            self,
+            id=emoji_id,
+            name=emoji['name'],
+            animated=emoji.get('animated', False),
+        )
         raw = RawReactionActionEvent(data, emoji, 'REACTION_ADD')
+        message = self._get_message(raw.message_id)
+        raw.cached_message = message
 
         member_data = data.get('member')
         if member_data:
@@ -627,20 +634,21 @@ class ConnectionState:
         self.dispatch('raw_reaction_add', raw)
 
         # rich interface here
-        message = self._get_message(raw.message_id)
         if message is not None:
             emoji = self._upgrade_partial_emoji(emoji)
             reaction = message._add_reaction(data, emoji, raw.user_id)
-            user = raw.member or self._get_reaction_user(message.channel, raw.user_id)
-
+            user = raw.member or self._get_reaction_user(
+                message.channel,
+                raw.user_id,
+            )
             if user:
                 self.dispatch('reaction_add', reaction, user)
 
     def parse_message_reaction_remove_all(self, data) -> None:
         raw = RawReactionClearEvent(data)
-        self.dispatch('raw_reaction_clear', raw)
-
         message = self._get_message(raw.message_id)
+        raw.cached_message = message
+        self.dispatch('raw_reaction_clear', raw)
         if message is not None:
             old_reactions = message.reactions.copy()
             message.reactions.clear()
@@ -649,11 +657,17 @@ class ConnectionState:
     def parse_message_reaction_remove(self, data) -> None:
         emoji = data['emoji']
         emoji_id = utils._get_as_snowflake(emoji, 'id')
-        emoji = PartialEmoji.with_state(self, id=emoji_id, name=emoji['name'])
+        emoji = PartialEmoji.with_state(
+            self,
+            id=emoji_id,
+            name=emoji['name'],
+            animated=emoji.get('animated', False),
+        )
         raw = RawReactionActionEvent(data, emoji, 'REACTION_REMOVE')
+        message = self._get_message(raw.message_id)
+        raw.cached_message = message
         self.dispatch('raw_reaction_remove', raw)
 
-        message = self._get_message(raw.message_id)
         if message is not None:
             emoji = self._upgrade_partial_emoji(emoji)
             try:
@@ -670,9 +684,9 @@ class ConnectionState:
         emoji_id = utils._get_as_snowflake(emoji, 'id')
         emoji = PartialEmoji.with_state(self, id=emoji_id, name=emoji['name'])
         raw = RawReactionClearEmojiEvent(data, emoji)
-        self.dispatch('raw_reaction_clear_emoji', raw)
-
         message = self._get_message(raw.message_id)
+        raw.cached_message = message
+        self.dispatch('raw_reaction_clear_emoji', raw)
         if message is not None:
             try:
                 reaction = message._clear_emoji(emoji)

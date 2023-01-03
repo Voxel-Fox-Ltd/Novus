@@ -163,24 +163,41 @@ class RawReactionActionEvent(_RawReprMixin):
     emoji: :class:`PartialEmoji`
         The custom or unicode emoji being used.
     member: Optional[:class:`Member`]
-        The member who added the reaction. Only available if `event_type` is `REACTION_ADD` and the reaction is inside a guild.
-
+        The member who added the reaction. Only available if `event_type` is
+        `REACTION_ADD` and the reaction is inside a guild.
     event_type: :class:`str`
         The event type that triggered this action. Can be
         ``REACTION_ADD`` for reaction addition or
         ``REACTION_REMOVE`` for reaction removal.
+    cached_message: Optional[:class:`Message`]
+        The cached message, if found in the internal message cache.
+
+        .. versionadded:: 0.2.4
     """
 
-    __slots__ = ('message_id', 'user_id', 'channel_id', 'guild_id', 'emoji',
-                 'event_type', 'member')
+    __slots__ = (
+        'message_id',
+        'user_id',
+        'channel_id',
+        'guild_id',
+        'emoji',
+        'event_type',
+        'member',
+        'cached_message',
+    )
 
-    def __init__(self, data: ReactionActionEvent, emoji: PartialEmoji, event_type: str) -> None:
+    def __init__(
+            self,
+            data: ReactionActionEvent,
+            emoji: PartialEmoji,
+            event_type: str) -> None:
         self.message_id: int = int(data['message_id'])
         self.channel_id: int = int(data['channel_id'])
         self.user_id: int = int(data['user_id'])
         self.emoji: PartialEmoji = emoji
         self.event_type: str = event_type
         self.member: Optional[Member] = None
+        self.cached_message: Optional[Message] = None
 
         try:
             self.guild_id: Optional[int] = int(data['guild_id'])
@@ -199,13 +216,23 @@ class RawReactionClearEvent(_RawReprMixin):
         The channel ID where the reactions got cleared.
     guild_id: Optional[:class:`int`]
         The guild ID where the reactions got cleared.
+    cached_message: Optional[:class:`Message`]
+        The cached message, if found in the internal message cache.
+
+        .. versionadded:: 0.2.4
     """
 
-    __slots__ = ('message_id', 'channel_id', 'guild_id')
+    __slots__ = (
+        'message_id',
+        'channel_id',
+        'guild_id',
+        'cached_message',
+    )
 
     def __init__(self, data: ReactionClearEvent) -> None:
         self.message_id: int = int(data['message_id'])
         self.channel_id: int = int(data['channel_id'])
+        self.cached_message: Optional[Message] = None
 
         try:
             self.guild_id: Optional[int] = int(data['guild_id'])
@@ -226,14 +253,24 @@ class RawReactionClearEmojiEvent(_RawReprMixin):
         The guild ID where the reactions got cleared.
     emoji: :class:`PartialEmoji`
         The custom or unicode emoji being removed.
+    cached_message: Optional[:class:`Message`]
+        The cached message, if found in the internal message cache.
+
+        .. versionadded:: 0.2.4
     """
 
-    __slots__ = ('message_id', 'channel_id', 'guild_id', 'emoji')
+    __slots__ = (
+        'message_id',
+        'channel_id',
+        'guild_id',
+        'emoji',
+    )
 
     def __init__(self, data: ReactionClearEmojiEvent, emoji: PartialEmoji) -> None:
         self.emoji: PartialEmoji = emoji
         self.message_id: int = int(data['message_id'])
         self.channel_id: int = int(data['channel_id'])
+        self.cached_message: Optional[Message] = None
 
         try:
             self.guild_id: Optional[int] = int(data['guild_id'])

@@ -19,8 +19,12 @@ v0.2.4
 New Features
 ~~~~~~~~~~~~~~~~~~~~~~
 
-* Add :attr:`commands.ApplicationCommandMeta.guild_ids`.
-* Add a ``message`` attribute to the interaction subclasses.
+* Add a ``message`` attribute to the interaction subclasses for typing.
+* Add new attributes to some of the raw classes:
+    * :attr:`discord.RawReactionActionEvent.cached_message`
+    * :attr:`discord.RawReactionClearEvent.cached_message`
+    * :attr:`discord.RawReactionClearEmoji.cached_message`
+* [commands] Add :attr:`commands.ApplicationCommandMeta.guild_ids`.
 * [vbu] Add ``cookie_encryption_key`` to bot config.
 * [vbu] Add parameters to :func:`vbu.checks.bot_is_ready`.
 * [vbu] Add :func:`vbu.Bot.log_command` function.
