@@ -17,10 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict, Optional
+from typing import TYPE_CHECKING, Literal, TypedDict, Optional
 
 if TYPE_CHECKING:
     from .user import PartialUser
+    from .locale import Locale
 
 __all__ = (
     'ApplicationTeamMember',
@@ -65,7 +66,28 @@ class Application(TypedDict):
     primary_sku_id: Optional[str]
     slug: Optional[str]
     cover_image: Optional[str]
-    flags: Optional[int]
+    flags: Optional[int]  # Added as novus.flags.ApplicationFlags
     install_params: Optional[InstallParams]
     custom_install_url: Optional[str]
     role_connections_verification_url: Optional[str]
+
+
+ApplicationRoleConnectionMetadataType = Literal[
+    1,  # INTEGER_LESS_THAN_OR_EQUAL
+    2,  # INTEGER_GREATER_THAN_OR_EQUAL
+    3,  # INTEGER_EQUAL
+    4,  # INTEGER_NOT_EQUAL
+    5,  # DATETIME_LESS_THAN_OR_EQUAL
+    6,  # DATETIME_GREATER_THAN_OR_EQUAL
+    7,  # BOOLEAN_EQUAL
+    8,  # BOOLEAN_NOT_EQUAL
+]
+
+
+class ApplicationRoleCommandMetadata(TypedDict):
+    type: ApplicationRoleConnectionMetadataType
+    key: str
+    name: str
+    name_localizations: Optional[dict[Locale, str]]
+    description: str
+    description_localizations: Optional[dict[Locale, str]]

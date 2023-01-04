@@ -20,6 +20,8 @@ from enum import Enum
 from .helpers import enum_docstrings
 
 __all__ = (
+    'ApplicationFlags',
+    'Locale',
 )
 
 
@@ -67,3 +69,42 @@ class ApplicationFlags(Enum):
     GATEWAY_MESSAGE_CONTENT = 1 << 18
     GATEWAY_MESSAGE_CONTENT_LIMITED = 1 << 19
     APPLICATION_COMMAND_BADGE = 1 << 23
+
+
+class Locale(Enum):
+    INDONESIAN = "id"
+    DANISH = "da"
+    GERMAN = "de"
+    UK_ENGLISH = "en-GB"
+    US_ENGLISH = "en-US"
+    SPANISH = "es-ES"
+    FRENCH = "fr"
+    CROATIAN = "hr"
+    ITALIAN = "it"
+    LITHUANIAN = "lt"
+    HUNGARIAN = "hu"
+    DUTCH = "nl"
+    NORWEGIAN = "no"
+    POLISH = "pl"
+    BRAZILIAN_PORTUGUESE = "pt-BR"
+    ROMANIAN = "ro"
+    FINNISH = "fi"
+    SWEDISH = "sv-SE"
+    VIETNAMESE = "vi"
+    TURKISH = "tr"
+    CZECH = "cs"
+    GREEK = "el"
+    BULGARIAN = "bg"
+    RUSSIAN = "ru"
+    UKRAINIAN = "uk"
+    HINDI = "hi"
+    THAI = "th"
+    CHINA_CHINESE = "zh-CN"
+    JAPANESE = "ja"
+    TAIWAN_CHINESE = "zh-TW"
+    KOREAN = "ko"
+
+    # Non-Discord aliases
+    ENGLISH = "en-US"
+    CHINESE = "zh-CN"
+    PORTUGUESE = "pt-BR"
