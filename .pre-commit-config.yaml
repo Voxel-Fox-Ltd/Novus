@@ -1,7 +1,5 @@
 repos:
--   repo: https://github.com/PyCQA/prospector
-    rev: 1.7.5
+-   repo: https://github.com/pycqa/flake8
+    rev: '6.0.0'  # pick a git hash / tag to point to
     hooks:
-    -   id: prospector
-        additional_dependencies:
-        - ".[with_mypy]"
+    -   id: flake8
