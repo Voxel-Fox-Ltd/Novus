@@ -36,7 +36,7 @@ __all__ = (
     'Reaction',
     'MessageActivity',
     'MessageReference',
-    'StickerItem',
+    'PartialSticker',
     'Message',
 )
 
@@ -92,7 +92,7 @@ class MessageReference(TypedDict, total=False):
     fail_if_not_exists: bool
 
 
-class StickerItem(TypedDict):
+class PartialSticker(TypedDict):  # Called "StickerItem" in the API
     id: Snowflake
     name: str
     format_type: str
@@ -112,7 +112,7 @@ class _MessageOptional(TypedDict, total=False):
     interaction: MessageInteraction
     thread: Channel
     components: list[MessageComponent]
-    sticker_items: list[StickerItem]
+    sticker_items: list[PartialSticker]
     position: int
 
 
