@@ -50,27 +50,30 @@ class InstallParams(TypedDict):
     scopes: list[str]
 
 
-class Application(TypedDict):
+class _ApplicationOptional(TypedDict, total=False):
+    terms_of_service_url: str
+    privacy_policy_url: str
+    owner: PartialUser
+    guild_id: Snowflake
+    primary_sku_id: str
+    slug: str
+    cover_image: str
+    flags: int  # Added as novus.flags.ApplicationFlags
+    install_params: InstallParams
+    custom_install_url: str
+    role_connections_verification_url: str
+
+
+class Application(_ApplicationOptional):
     id: Snowflake
     name: str
-    icon: str
+    icon: Optional[str]
     description: str
     rpc_origins: list[str]
     bot_public: bool
     bot_require_code_grant: bool
-    terms_of_service_url: Optional[str]
-    privacy_policy_url: Optional[str]
-    owner: PartialUser
     verify_key: str
-    team: ApplicationTeam
-    guild_id: Optional[Snowflake]
-    primary_sku_id: Optional[str]
-    slug: Optional[str]
-    cover_image: Optional[str]
-    flags: Optional[int]  # Added as novus.flags.ApplicationFlags
-    install_params: Optional[InstallParams]
-    custom_install_url: Optional[str]
-    role_connections_verification_url: Optional[str]
+    team: Optional[ApplicationTeam]
 
 
 ApplicationRoleConnectionMetadataType = Literal[
@@ -85,10 +88,13 @@ ApplicationRoleConnectionMetadataType = Literal[
 ]
 
 
-class ApplicationRoleCommandMetadata(TypedDict):
+class _ApplicationRoleCommandMetadataOptional(TypedDict, total=False):
+    name_localizations: dict[Locale, str]
+    description_localizations: dict[Locale, str]
+
+
+class ApplicationRoleCommandMetadata(_ApplicationRoleCommandMetadataOptional):
     type: ApplicationRoleConnectionMetadataType
     key: str
     name: str
-    name_localizations: Optional[dict[Locale, str]]
     description: str
-    description_localizations: Optional[dict[Locale, str]]

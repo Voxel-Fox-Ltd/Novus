@@ -104,20 +104,26 @@ class AuditEntryInfo(TypedDict):
     type: Literal["0", "1"]
 
 
-class AuditLogChange(TypedDict):
+class _AuditLogChangeOptional(TypedDict, total=False):
     new_value: Any
     old_value: Any
+
+
+class AuditLogChange(_AuditLogChangeOptional):
     key: str
 
 
-class AuditLogEntry(TypedDict):
+class _AuditLogEntryOptional(TypedDict, total=False):
+    changes: list[AuditLogChange]
+    options: AuditEntryInfo
+    reason: str
+
+
+class AuditLogEntry(_AuditLogEntryOptional):
     id: Snowflake
     target_id: Snowflake
-    changes: list[AuditLogChange]
     user_id: Optional[Snowflake]
     action_type: AuditLogEvent
-    options: Optional[AuditEntryInfo]
-    reason: Optional[str]
 
 
 # TODO needs proper typing

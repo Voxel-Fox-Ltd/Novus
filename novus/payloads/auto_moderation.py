@@ -74,9 +74,12 @@ class AutoModerationTriggerMetadata(TypedDict):
     mention_total_limit: int
 
 
-class AutoModerationAction(TypedDict):
-    type: AutoModerationActionType
+class _AutoModerationActionOptional(TypedDict, total=False):
     metadata: Optional[AutoModerationActionMetadata]
+
+
+class AutoModerationAction(_AutoModerationActionOptional):
+    type: AutoModerationActionType
 
 
 class AutoModerationRule(TypedDict):
