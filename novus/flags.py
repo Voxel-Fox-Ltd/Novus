@@ -30,7 +30,6 @@ class ApplicationFlags(Enum):
     """
     The public flags for an application.
 
-
     Attributes
     ----------
     APPLICATION_COMMAND_BADGE

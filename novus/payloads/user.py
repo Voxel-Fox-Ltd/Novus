@@ -15,14 +15,16 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import TYPE_CHECKING, TypedDict, Optional
+from typing import TYPE_CHECKING, TypedDict, Optional, Literal
 
 if TYPE_CHECKING:
     from ._snowflake import Snowflake
+    from .locale import Locale
 
 __all__ = (
     'PartialUser',
     'User',
+    'GuildMember',
 )
 
 
@@ -34,18 +36,39 @@ class PartialUser(TypedDict):
     username: str
 
 
-class User(PartialUser):
-    # id: str
-    # username: str
-    # discriminator: int
-    # avatar: Optional[str]
-    # bot: bool
-    # system: bool
-    # mfa_enabled: bool
-    # locale: str
-    # verified: bool
-    # email: str
-    # flags: int
-    # premium_type: int
-    # public_flags: int
-    ...
+class _UserOptional(TypedDict, total=False):
+    bot: bool
+    system: bool
+    mfa_enabled: bool
+    banner: Optional[str]
+    accent_color: Optional[int]
+    locale: Locale
+    verified: bool
+    email: Optional[str]
+    flags: int
+    premium_type: Literal[0, 1, 2, 3]
+    public_flags: int
+
+
+class User(_UserOptional):
+    id: Snowflake
+    username: str
+    discriminator: int
+    avatar: Optional[str]
+
+
+class _GuildMemberOptional(TypedDict, total=False):
+    user: User
+    nick: Optional[str]
+    avatar: Optional[str]
+    premium_since: Optional[str]
+    pending: bool
+    permissions: str
+    communication_disabled_until: Optional[str]
+
+
+class GuildMember(_GuildMemberOptional):
+    roles: list[Snowflake]
+    joined_at: str
+    deaf: bool
+    mute: bool
