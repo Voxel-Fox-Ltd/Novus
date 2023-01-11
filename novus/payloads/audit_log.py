@@ -23,6 +23,14 @@ if TYPE_CHECKING:
     from ._snowflake import Snowflake
     from .user import User
 
+__all__ = (
+    'AuditLogEvent',
+    'AuditEntryInfo',
+    'AuditLogChange',
+    'AuditLogEntry',
+    'AuditLog',
+)
+
 
 AuditLogEvent = Literal[
     1,  # Server settings were updated
