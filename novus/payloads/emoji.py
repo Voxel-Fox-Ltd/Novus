@@ -29,8 +29,8 @@ __all__ = (
 )
 
 
-class PartialEmoji(TypedDict):
-    id: Optional[Snowflake]
+class PartialEmoji(TypedDict, total=False):
+    id: Snowflake
     name: str
     animated: bool
 
