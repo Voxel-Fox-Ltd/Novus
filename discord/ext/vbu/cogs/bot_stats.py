@@ -26,6 +26,7 @@ class BotStats(vbu.Cog):
         bot_info = self.bot.config.get("bot_info", {})
         info_embed = vbu.Embed(
             description=textwrap.dedent(bot_info.get("content", "")).format(bot=self.bot),
+            use_random_colour=True,
         ).set_author_to_user(
             self.bot.user,
         )
