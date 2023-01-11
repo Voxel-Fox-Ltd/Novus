@@ -15,8 +15,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import TypedDict, Optional
+from typing import TYPE_CHECKING, TypedDict, Optional
 
+if TYPE_CHECKING:
+    from ._snowflake import Snowflake
 
 __all__ = (
     'PartialUser',
@@ -25,10 +27,10 @@ __all__ = (
 
 
 class PartialUser(TypedDict):
+    id: Snowflake
     avatar: Optional[str]
     discriminator: int
     flags: int
-    id: str
     username: str
 
 

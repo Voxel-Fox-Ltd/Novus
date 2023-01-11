@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, TypedDict, Optional
 
 if TYPE_CHECKING:
+    from ._snowflake import Snowflake
     from .user import PartialUser
     from .locale import Locale
 
@@ -32,15 +33,15 @@ __all__ = (
 
 
 class ApplicationTeamMember(TypedDict):
+    team_id: Snowflake
     membership_state: int
     permissions: list[str]
-    team_id: str
     user: PartialUser
 
 
 class ApplicationTeam(TypedDict):
+    id: Snowflake
     icon: Optional[str]
-    id: str
     members: list[ApplicationTeamMember]
 
 
@@ -50,7 +51,7 @@ class InstallParams(TypedDict):
 
 
 class Application(TypedDict):
-    id: str
+    id: Snowflake
     name: str
     icon: str
     description: str
@@ -62,7 +63,7 @@ class Application(TypedDict):
     owner: PartialUser
     verify_key: str
     team: ApplicationTeam
-    guild_id: Optional[str]
+    guild_id: Optional[Snowflake]
     primary_sku_id: Optional[str]
     slug: Optional[str]
     cover_image: Optional[str]
