@@ -29,6 +29,7 @@ __all__ = (
     'SelectMenu',
     'TextInput',
     'ActionRow',
+    'MessageComponent',
 )
 
 
@@ -106,3 +107,6 @@ ActionRowComponents = Union[
 class ActionRow(TypedDict):
     type: Literal[1]
     components: list[ActionRowComponents]
+
+
+MessageComponent = ActionRow
