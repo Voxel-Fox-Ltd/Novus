@@ -34,8 +34,8 @@ If you're coming here from Rapptz's Discord.py, you can see :ref:`the migration 
 Common queries
 ---------------
 
-* :ref:`Using slash commands <send_components>`
-* :ref:`Using components <application_command_faq>`
+* :ref:`Using slash commands <application_command_faq>`
+* :ref:`Using components <send_components>`
 
 Getting help
 --------------
