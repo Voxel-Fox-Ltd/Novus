@@ -19,7 +19,9 @@ from typing import NewType
 
 __all__ = (
     'Snowflake',
+    'Timestamp',
 )
 
 
 Snowflake = NewType("Snowflake", str)
+Timestamp = NewType("Timestamp", str)

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from typing import TYPE_CHECKING, TypedDict, Optional, Literal
 
 if TYPE_CHECKING:
-    from ._snowflake import Snowflake
+    from ._snowflake import Snowflake, Timestamp
     from .locale import Locale
 
 __all__ = (
@@ -61,14 +61,14 @@ class _GuildMemberOptional(TypedDict, total=False):
     user: User
     nick: Optional[str]
     avatar: Optional[str]
-    premium_since: Optional[str]
+    premium_since: Optional[Timestamp]
     pending: bool
     permissions: str
-    communication_disabled_until: Optional[str]
+    communication_disabled_until: Optional[Timestamp]
 
 
 class GuildMember(_GuildMemberOptional):
     roles: list[Snowflake]
-    joined_at: str
+    joined_at: Timestamp
     deaf: bool
     mute: bool

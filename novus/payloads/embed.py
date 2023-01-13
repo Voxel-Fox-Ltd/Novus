@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import Literal, TypedDict
+from typing import TYPE_CHECKING, Literal, TypedDict
+
+if TYPE_CHECKING:
+    from ._snowflake import Timestamp
 
 __all__ = (
     'Embed',
@@ -87,7 +90,7 @@ class Embed(TypedDict, total=False):
     type: EmbedType
     description: str
     url: str
-    timestamp: str
+    timestamp: Timestamp
     color: int
     footer: _EmbedFooter
     image: _EmbedMedia

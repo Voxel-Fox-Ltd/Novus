@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
-    from ._snowflake import Snowflake
+    from ._snowflake import Snowflake, Timestamp
     from .user import User, GuildMember
 
 __all__ = (
@@ -41,13 +41,13 @@ class ChannelOverwrite(TypedDict):
 
 class _ThreadMetadataOptional(TypedDict, total=False):
     invitable: bool
-    create_timestamp: Optional[str]  # Only for creation after 2022-01-09
+    create_timestamp: Optional[Timestamp]  # Only for creation after 2022-01-09
 
 
 class ThreadMetadata(_ThreadMetadataOptional):
     archived: bool
     auto_archive_duration: Literal[60, 1440, 4320, 10080]
-    archive_timestamp: str  # Timestamp of when archive status was last changed
+    archive_timestamp: Timestamp  # Timestamp of when archive status was last changed
     locked: bool
 
 
@@ -58,7 +58,7 @@ class _ThreadMemberOptional(TypedDict, total=False):
 
 
 class ThreadMember(_ThreadMemberOptional):
-    join_timestamp: str
+    join_timestamp: Timestamp
     flags: int
 
 
@@ -91,7 +91,7 @@ class _ChannelOptional(TypedDict, total=False):
     owner_id: Snowflake
     application_id: Snowflake
     parent_id: Optional[Snowflake]
-    last_pin_timestamp: Optional[str]
+    last_pin_timestamp: Optional[Timestamp]
     rtc_region: Optional[str]
     video_quality_mode: Literal[1, 2]
     message_count: int
