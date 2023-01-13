@@ -22,11 +22,11 @@ if TYPE_CHECKING:
     from ._snowflake import Snowflake
     from .emoji import Emoji
     from .user import User
+    from .sticker import Sticker
 
 __all__ = (
     'RoleTags',
     'Role',
-    'Sticker',
     'GuildWidget',
     'GuildPreview',
     'UnavailableGuild',
@@ -65,23 +65,6 @@ class Role(_RoleOptional):
     permissions: str
     managed: bool
     mentionable: bool
-
-
-class _StickerOptional(TypedDict, total=False):
-    pack_id: Snowflake
-    available: bool
-    guild_id: Snowflake
-    user: User
-    sort_value: int
-
-
-class Sticker(_StickerOptional):
-    id: Snowflake
-    name: str
-    description: Optional[str]
-    tags: str
-    type: Literal[1, 2]
-    format_type: Literal[1, 2, 3, 4]
 
 
 class GuildWidget(TypedDict):

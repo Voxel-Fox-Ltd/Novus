@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from .interaction import MessageInteraction
     from .components import MessageComponent
     from .emoji import Emoji
+    from .sticker import PartialSticker
 
 __all__ = (
     'Attachment',
@@ -36,7 +37,6 @@ __all__ = (
     'Reaction',
     'MessageActivity',
     'MessageReference',
-    'PartialSticker',
     'Message',
 )
 
@@ -90,12 +90,6 @@ class MessageReference(TypedDict, total=False):
     channel_id: Snowflake
     guild_id: Snowflake
     fail_if_not_exists: bool
-
-
-class PartialSticker(TypedDict):  # Called "StickerItem" in the API
-    id: Snowflake
-    name: str
-    format_type: str
 
 
 class _MessageOptional(TypedDict, total=False):
