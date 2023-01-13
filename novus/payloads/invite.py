@@ -42,7 +42,6 @@ class _InviteOptional(TypedDict, total=False):
     approximate_presence_count: int
     approximate_member_count: int
     expires_at: Optional[Timestamp]
-    # stage_instance: InviteStageInstance - documented but deprecated
     guild_scheduled_event: GuildScheduledEvent
 
 
