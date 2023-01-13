@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,35 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags
-from .models import *
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, TypedDict
+
+if TYPE_CHECKING:
+    from ._util import Snowflake
+    from .user import User
 
 __all__ = (
-    # Modules
-    'payloads',
-    'enums',
-    'flags',
-
-    # Models
-    'abc',
-    'Guild',
     'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
-    'Locale',
+    'PartialEmoji',
 )
 
 
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale
+class PartialEmoji(TypedDict, total=False):
+    id: Snowflake
+    name: str
+    animated: bool
+
+
+class _EmojiOptional(TypedDict, total=False):
+    roles: list[Snowflake]
+    user: User
+    require_colons: bool
+    managed: bool
+    animated: bool
+    available: bool
+
+
+class Emoji(_EmojiOptional):
+    id: Optional[Snowflake]
+    name: Optional[str]

@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,29 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags
-from .models import *
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Optional, TypedDict
+
+if TYPE_CHECKING:
+    from ._util import Snowflake, Timestamp
+    from .user import User
+    from .guild import Guild
 
 __all__ = (
-    # Modules
-    'payloads',
-    'enums',
-    'flags',
-
-    # Models
-    'abc',
-    'Guild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
-    'Locale',
+    'GuildTemplate',
 )
 
 
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale
+class GuildTemplate(TypedDict):
+    code: str
+    name: str
+    description: Optional[str]
+    usage_count: int
+    creator_id: Snowflake
+    creator: User
+    created_at: Timestamp
+    updated_at: Timestamp
+    source_guild_id: Snowflake
+    serialized_source_guild: Guild
+    is_dirty: Optional[bool]

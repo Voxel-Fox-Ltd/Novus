@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,19 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags
-from .models import *
+from typing import TypeAlias, TypedDict
 
 __all__ = (
-    # Modules
-    'payloads',
-    'enums',
-    'flags',
-
-    # Models
-    'abc',
-    'Guild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
-    'Locale',
+    'Snowflake',
+    'Timestamp',
+    'HasLocalizations',
 )
 
 
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale
+Snowflake: TypeAlias = str
+Timestamp: TypeAlias = str
+
+
+class HasLocalizations(TypedDict, total=False):
+    name_localizations: dict
+    description_localizations: dict

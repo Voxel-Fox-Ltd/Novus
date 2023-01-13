@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,35 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags
-from .models import *
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal, TypedDict
+
+if TYPE_CHECKING:
+    from ._util import Snowflake
+    from .user import User, GuildMember
 
 __all__ = (
-    # Modules
-    'payloads',
-    'enums',
-    'flags',
-
-    # Models
-    'abc',
-    'Guild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
-    'Locale',
+    'InteractionType',
+    'MessageInteraction',
 )
 
 
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale
+InteractionType = Literal[
+    1,  # PING
+    2,  # APPLICATION_COMMAND
+    3,  # MESSAGE_COMPONENT
+    4,  # APPLICATION_COMMAND_AUTOCOMPLETE
+    5,  # MODAL_SUBMIT
+]
+
+
+class _MessageInteractionOptional(TypedDict, total=False):
+    member: GuildMember
+
+
+class MessageInteraction(_MessageInteractionOptional):
+    id: Snowflake
+    type: InteractionType
+    name: str
+    user: User

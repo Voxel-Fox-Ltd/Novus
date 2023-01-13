@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags
-from .models import *
+from . import guild
+from .locale import Locale
 
 __all__ = (
-    # Modules
-    'payloads',
-    'enums',
-    'flags',
-
-    # Models
-    'abc',
-    'Guild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
+    'guild',
     'Locale',
 )
-
-
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale

@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,24 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags
-from .models import *
+from typing import overload
 
 __all__ = (
-    # Modules
-    'payloads',
-    'enums',
-    'flags',
-
-    # Models
-    'abc',
-    'Guild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
-    'Locale',
+    'try_snowflake',
 )
 
 
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale
+@overload
+def try_snowflake(given: str) -> int:
+    ...
+
+
+@overload
+def try_snowflake(given: None) -> None:
+    ...
+
+
+def try_snowflake(given: str | None) -> int | None:
+    if given is None:
+        return None
+    return int(given)

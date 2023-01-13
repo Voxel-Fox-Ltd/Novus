@@ -1,5 +1,12 @@
 repos:
 -   repo: https://github.com/pycqa/flake8
-    rev: '6.0.0'  # pick a git hash / tag to point to
+    rev: '6.0.0'
     hooks:
     -   id: flake8
+        # E501 - line length
+        # W503 - line break before binary operator
+        args: ["--ignore=E501,W503"]
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+    -   id: trailing-whitespace

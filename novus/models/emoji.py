@@ -1,0 +1,3 @@
+class Emoji:
+    def __init__(self, *args, **kwargs):
+        ...

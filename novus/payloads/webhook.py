@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,34 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags
-from .models import *
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal, Optional, TypedDict
+
+if TYPE_CHECKING:
+    from ._util import Snowflake
+    from .user import User
+    from .guild import Guild
+    from .channel import Channel
 
 __all__ = (
-    # Modules
-    'payloads',
-    'enums',
-    'flags',
-
-    # Models
-    'abc',
-    'Guild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
-    'Locale',
+    'Webhook',
 )
 
 
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale
+class _WebhookOptional(TypedDict, total=False):
+    guild_id: Optional[Snowflake]
+    user: User  # Created by
+    token: str
+    source_guild: Guild
+    source_channel: Channel
+    url: str
+
+
+class Webhook(_WebhookOptional):
+    id: Snowflake
+    type: Literal[1, 2, 3]
+    channel_id: Optional[Snowflake]
+    name: Optional[str]
+    avatar: Optional[str]
+    application_id: Optional[Snowflake]

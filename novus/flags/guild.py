@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,18 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags
-from .models import *
+from flags import Flags
 
 __all__ = (
-    # Modules
-    'payloads',
-    'enums',
-    'flags',
-
-    # Models
-    'abc',
-    'Guild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
-    'Locale',
+    'SystemChannelFlags',
 )
 
 
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale
+class SystemChannelFlags(Flags):
+
+    CREATE_FLAGS = {
+        "suppress_join_notifications": 1 << 0,
+        "suppress_premium_subscriptions": 1 << 1,
+        "suppress_guild_reminder_notifications": 1 << 2,
+        "suppress_join_notification_replies": 1 << 3,
+    }
