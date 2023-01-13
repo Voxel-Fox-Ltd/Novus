@@ -19,6 +19,7 @@ from flags import Flags
 
 __all__ = (
     'Permissions',
+    'ApplicationFlags',
 )
 
 
@@ -69,4 +70,50 @@ class Permissions(Flags):
         "send_messages_in_threads": 1 << 38,
         "use_embedded_activites": 1 << 39,
         "moderate_members": 1 << 40,
+    }
+
+
+class ApplicationFlags(Flags):
+    """
+    The public flags for an application.
+
+    Attributes
+    ----------
+    application_command_badge : bool
+        Indicates if an app has registered global application commands.
+    embedded : bool
+        Indicates if an app is embedded within the Discord client (currently
+        unavailable publicly).
+    gateway_guild_members : bool
+        Intent required for bots in 100 or more servers to receive
+        member-related events like ``guild_member_add``.
+    gateway_guild_members_limited : bool
+        Intent required for bots in under 100 servers to receive member-related
+        events like ``guild_member_add``.
+    gateway_message_content : bool
+        Intent required for bots in 100 or more servers to receive message
+        content.
+    gateway_message_content_limited : bool
+        Intent required for bots in under 100 servers to receive message
+        content.
+    gateway_presence : bool
+        Intent required for bots in 100 or more servers to receive
+        ``presence_update`` events.
+    gateway_presence_limited : bool
+        Intent required for bots in under 100 servers to receive
+        ``presence_update`` events.
+    verification_pending_guild_limit : bool
+        Indicates unusual growth of an app that prevents verification.
+    """
+
+    CREATE_FLAGS = {
+        "gateway_presence": 1 << 12,
+        "gateway_presence_limited": 1 << 13,
+        "gateway_guild_members": 1 << 14,
+        "gateway_guild_members_limited": 1 << 15,
+        "verification_pending_guild_limit": 1 << 16,
+        "embedded": 1 << 17,
+        "gateway_message_content": 1 << 18,
+        "gateway_message_content_limited": 1 << 19,
+        "application_command_badge": 1 << 23,
     }
