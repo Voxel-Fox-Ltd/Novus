@@ -78,7 +78,7 @@ class Reaction(TypedDict):
 
 
 class _MessageActivityOptional(TypedDict, total=False):
-    party_id: str  # This is probably a snowflake, but it's documented as a str
+    party_id: str  # Probably a snowflake, but typed as a string in the docs
 
 
 class MessageActivity(_MessageActivityOptional):

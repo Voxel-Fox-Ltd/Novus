@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
-
 if TYPE_CHECKING:
     from ._snowflake import Snowflake
     from .emoji import Emoji
@@ -35,6 +34,10 @@ __all__ = (
     'GuildWelcomeScreen',
     'GuildFeature',
     'Guild',
+    'IntegrationApplication',
+    'IntegrationAccount',
+    'Integration',
+    'Ban',
 )
 
 
@@ -190,3 +193,46 @@ class Guild(_GuildOptional):
     public_updates_channel_id: Optional[Snowflake]
     nsfw_level: Literal[0, 1, 2, 3]
     premium_progress_bar_enabled: bool
+
+
+class _IntegrationApplicationOptional(TypedDict, total=False):
+    bot: User
+
+
+class IntegrationApplication(_IntegrationApplicationOptional):
+    id: Snowflake
+    name: str
+    icon: Optional[str]
+    description: str
+
+
+class _IntegrationOptional(TypedDict, total=False):
+    syncing: bool
+    role_id: Snowflake
+    enable_emoticons: bool
+    expire_behavior: Literal[0, 1]
+    expire_grace_period: int
+    user: User
+    synced_at: str
+    subscriber_count: int
+    revoked: bool
+    application: IntegrationApplication
+    scopes: list[str]
+
+
+class IntegrationAccount(TypedDict):
+    id: str  # Probably a snowflake, but typed as a string in the docs
+    name: str
+
+
+class Integration(_IntegrationOptional):
+    id: Snowflake
+    name: str
+    type: Literal["twitch", "youtube", "discord", "guild_subscription"]
+    enabled: bool
+    account: IntegrationAccount
+
+
+class Ban(TypedDict):
+    reason: Optional[str]
+    user: User
