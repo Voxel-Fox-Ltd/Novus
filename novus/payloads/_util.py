@@ -15,21 +15,19 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import NewType, TypedDict
+from typing import TypeAlias, TypedDict
 
 __all__ = (
     'Snowflake',
     'Timestamp',
-    'Localization',
     'HasLocalizations',
 )
 
 
-Snowflake = NewType("Snowflake", str)
-Timestamp = NewType("Timestamp", str)
-Localization = NewType("Localization", dict)
+Snowflake: TypeAlias = str
+Timestamp: TypeAlias = str
 
 
 class HasLocalizations(TypedDict, total=False):
-    name_localizations: Localization
-    description_localizations: Localization
+    name_localizations: dict
+    description_localizations: dict
