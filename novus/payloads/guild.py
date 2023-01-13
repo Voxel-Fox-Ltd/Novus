@@ -162,7 +162,7 @@ class Guild(_GuildOptional):
     explicit_content_filter: Literal[0, 1, 2]
     roles: list[Role]
     emojis: list[Emoji]
-    featres: list[GuildFeature]
+    features: list[GuildFeature]
     mfa_level: Literal[0, 1]
     application_id: Optional[Snowflake]
     system_channel_id: Optional[Snowflake]
@@ -170,7 +170,7 @@ class Guild(_GuildOptional):
     rules_channel_id: Optional[Snowflake]
     vainity_url_code: Optional[str]
     description: Optional[str]
-    banned: Optional[str]
+    banner: Optional[str]
     premium_tier: Literal[0, 1, 2, 3]
     preferred_locale: str
     public_updates_channel_id: Optional[Snowflake]
