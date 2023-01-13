@@ -15,6 +15,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Type
 
 if TYPE_CHECKING:
@@ -63,7 +65,6 @@ def enum_docstrings(enum: Type[Enum]) -> Type[Enum]:
             continue
         if attribute_name is None:
             attribute_name = line.strip().split(":")[0]
-            print(attribute_name)
             if not attribute_name.isupper():
                 builder = []
                 break
