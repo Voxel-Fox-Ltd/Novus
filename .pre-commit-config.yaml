@@ -4,7 +4,8 @@ repos:
     hooks:
     -   id: flake8
         # E501 - line length
-        args: ["--ignore=E501"]
+        # W503 - line break before binary operator
+        args: ["--ignore=E501,W503"]
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.3.0
     hooks:

@@ -1,0 +1,3 @@
+class Sticker:
+    def __init__(self, *args, **kwargs):
+        ...

@@ -168,7 +168,7 @@ class Guild(_GuildOptional):
     system_channel_id: Optional[Snowflake]
     system_channel_flags: int
     rules_channel_id: Optional[Snowflake]
-    vainity_url_code: Optional[str]
+    vanity_url_code: Optional[str]
     description: Optional[str]
     banner: Optional[str]
     premium_tier: Literal[0, 1, 2, 3]

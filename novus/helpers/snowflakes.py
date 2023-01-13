@@ -15,10 +15,24 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import guild
-from .locale import Locale
+from typing import overload
 
 __all__ = (
-    'guild',
-    'Locale',
+    'try_snowflake',
 )
+
+
+@overload
+def try_snowflake(given: str) -> int:
+    ...
+
+
+@overload
+def try_snowflake(given: None) -> None:
+    ...
+
+
+def try_snowflake(given: str | None) -> int | None:
+    if given is None:
+        return None
+    return int(given)

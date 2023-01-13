@@ -15,10 +15,33 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import guild
-from .locale import Locale
-
 __all__ = (
-    'guild',
-    'Locale',
+    'EqualityComparable',
+    'Hashable',
 )
+
+
+class EqualityComparable:
+
+    __slots__ = ()
+
+    id: int
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, self.__class__)
+            and other.id == self.id
+        )
+
+    def __ne__(self, other: object) -> bool:
+        if isinstance(other, self.__class__):
+            return other.id != self.id
+        return True
+
+
+class Hashable(EqualityComparable):
+
+    __slots__ = ()
+
+    def __hash__(self) -> int:
+        return self.id >> 22

@@ -16,9 +16,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from . import guild
-from .locale import Locale
+from .application import ApplicationFlags
+from .permissions import Permissions
 
 __all__ = (
     'guild',
-    'Locale',
+    'ApplicationFlags',
+    'Permissions',
 )

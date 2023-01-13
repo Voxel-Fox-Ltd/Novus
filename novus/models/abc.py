@@ -15,10 +15,25 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import guild
-from .locale import Locale
+from __future__ import annotations
+
+from typing import Protocol, runtime_checkable
 
 __all__ = (
-    'guild',
-    'Locale',
+    'Snowflake',
 )
+
+
+@runtime_checkable
+class Snowflake(Protocol):
+    """
+    An ABC that almost all Discord models implement.
+
+    Attributes
+    ----------
+    id : int
+        The model's unique ID.
+    """
+
+    __slots__ = tuple()
+    id: int
