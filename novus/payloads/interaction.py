@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, TypedDict
 
 if TYPE_CHECKING:
-    from ._snowflake import Snowflake
+    from ._util import Snowflake
     from .user import User, GuildMember
 
 __all__ = (

@@ -19,7 +19,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
-    from ._snowflake import Snowflake
+    from ._util import Snowflake
     from .emoji import Emoji
     from .user import User
     from .sticker import Sticker

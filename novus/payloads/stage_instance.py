@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, TypedDict, Literal
 
 if TYPE_CHECKING:
-    from ._snowflake import Snowflake
+    from ._util import Snowflake
 
 __all__ = (
     'StageInstance',

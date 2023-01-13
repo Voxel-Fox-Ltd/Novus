@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional, TypedDict, Literal
 
 if TYPE_CHECKING:
-    from ._snowflake import Timestamp
+    from ._util import Timestamp
     from .user import User
     from .guild import Guild
     from .guild_scheduled_event import GuildScheduledEvent

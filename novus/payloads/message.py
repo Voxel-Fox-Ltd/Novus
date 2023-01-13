@@ -20,7 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
-    from ._snowflake import Snowflake, Timestamp
+    from ._util import Snowflake, Timestamp
     from .user import User, PartialUser
     from .channel import Channel, ChannelType
     from .embed import Embed
