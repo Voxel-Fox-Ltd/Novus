@@ -15,7 +15,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from flags import Flags
+from typing import TYPE_CHECKING
+
+from vfflags import Flags
 
 __all__ = (
     'ApplicationFlags',
@@ -23,37 +25,21 @@ __all__ = (
 
 
 class ApplicationFlags(Flags):
-    """
-    The public flags for an application.
 
-    Attributes
-    ----------
-    application_command_badge : bool
-        Indicates if an app has registered global application commands.
-    embedded : bool
-        Indicates if an app is embedded within the Discord client (currently
-        unavailable publicly).
-    gateway_guild_members : bool
-        Intent required for bots in 100 or more servers to receive
-        member-related events like ``guild_member_add``.
-    gateway_guild_members_limited : bool
-        Intent required for bots in under 100 servers to receive member-related
-        events like ``guild_member_add``.
-    gateway_message_content : bool
-        Intent required for bots in 100 or more servers to receive message
-        content.
-    gateway_message_content_limited : bool
-        Intent required for bots in under 100 servers to receive message
-        content.
-    gateway_presence : bool
-        Intent required for bots in 100 or more servers to receive
-        ``presence_update`` events.
-    gateway_presence_limited : bool
-        Intent required for bots in under 100 servers to receive
-        ``presence_update`` events.
-    verification_pending_guild_limit : bool
-        Indicates unusual growth of an app that prevents verification.
-    """
+    if TYPE_CHECKING:
+
+        def __init__(self, value: int = 0, **kwargs):
+            ...
+
+        gateway_presence: bool
+        gateway_presence_limited: bool
+        gateway_guild_members: bool
+        gateway_guild_members_limited: bool
+        verification_pending_guild_limit: bool
+        embedded: bool
+        gateway_message_content: bool
+        gateway_message_content_limited: bool
+        application_command_badge: bool
 
     CREATE_FLAGS = {
         "gateway_presence": 1 << 12,

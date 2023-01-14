@@ -15,7 +15,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from flags import Flags
+from typing import TYPE_CHECKING
+
+from vfflags import Flags
 
 __all__ = (
     'SystemChannelFlags',
@@ -23,6 +25,16 @@ __all__ = (
 
 
 class SystemChannelFlags(Flags):
+
+    if TYPE_CHECKING:
+
+        def __init__(self, value: int = 0, **kwargs):
+            ...
+
+        suppress_join_notifications: bool
+        suppress_premium_subscriptions: bool
+        suppress_guild_reminder_notifications: bool
+        suppress_join_notification_replies: bool
 
     CREATE_FLAGS = {
         "suppress_join_notifications": 1 << 0,

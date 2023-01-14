@@ -53,23 +53,6 @@ class ContentFilterLevel(Enum):
 
 
 class VerificationLevel(Enum):
-    """
-    A representation of a guild's verification level.
-
-    Attributes
-    ----------
-    none
-        Unrestricted.
-    low
-        Must have a verified email on account.
-    medium
-        Must be registered on Discord for longer than 5 minutes.
-    high
-        Must be a member of the guild for longer than 10 minutes.
-    very_high
-        Must have a verified phone number.
-    """
-
     none = 0
     low = 1
     medium = 2
