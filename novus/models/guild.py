@@ -27,7 +27,7 @@ from .welcome_screen import WelcomeScreen
 from .sticker import Sticker
 from ..flags import Permissions, guild as guild_flags
 from ..enums import Locale, guild as guild_enums
-from ..helpers.snowflakes import try_snowflake
+from ..utils import try_snowflake
 
 if TYPE_CHECKING:
     from ..payloads import Guild as GuildPayload

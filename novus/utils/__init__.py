@@ -15,25 +15,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from __future__ import annotations
-
-from typing import Protocol, runtime_checkable
+from .snowflakes import try_snowflake
 
 __all__ = (
-    'Snowflake',
+    'try_snowflake',
 )
-
-
-@runtime_checkable
-class Snowflake(Protocol):
-    """
-    An ABC that almost all Discord models implement.
-
-    Attributes
-    ----------
-    id : int
-        The model's unique ID.
-    """
-
-    __slots__ = ()
-    id: int
