@@ -233,18 +233,29 @@ Models
 
 .. autoclass:: Guild
     :members:
+    :no-members: __init__
+
+.. autoclass:: oauth.OauthGuild
+    :members:
+    :inherited-members:
+    :no-members: __init__
 
 .. autoclass:: Sticker
     :members:
+    :no-members: __init__
 
 .. autoclass:: Emoji
     :members:
+    :no-members: __init__
 
 .. autoclass:: Role
     :members:
+    :no-members: __init__
 
 .. autoclass:: Asset
     :members:
+    :no-members: __init__
 
 .. autoclass:: WelcomeScreen
     :members:
+    :no-members: __init__
