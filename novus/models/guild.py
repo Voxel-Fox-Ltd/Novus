@@ -275,7 +275,9 @@ class Guild(Hashable):
     @property
     @functools.cache
     def welcome_screen(self) -> WelcomeScreen | None:
-        raise NotImplementedError()
+        if self._welcome_screen is None:
+            return None
+        return WelcomeScreen(data=self._welcome_screen)
 
     @property
     @functools.cache

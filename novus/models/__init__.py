@@ -20,7 +20,7 @@ from .guild import Guild, OauthGuild, GuildPreview
 from .emoji import Emoji
 from .role import Role
 from .asset import Asset
-from .welcome_screen import WelcomeScreen
+from .welcome_screen import WelcomeScreen, WelcomeScreenChannel
 from .sticker import Sticker
 
 __all__ = (
@@ -43,6 +43,7 @@ __all__ = (
 
     # welcome_screen
     'WelcomeScreen',
+    'WelcomeScreenChannel',
 
     # sticker
     'Sticker',
