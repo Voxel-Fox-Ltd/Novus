@@ -17,9 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, TypeAlias
 import functools
 
+from .abc import Snowflake
 from .mixins import Hashable
 from .role import Role
 from .asset import Asset
@@ -28,14 +29,18 @@ from .welcome_screen import WelcomeScreen
 from .sticker import Sticker
 from ..flags import Permissions, guild as guild_flags
 from ..enums import Locale, guild as guild_enums
-from ..utils import try_snowflake, generate_repr
+from ..utils import MISSING, try_snowflake, generate_repr
 
 if TYPE_CHECKING:
+    import io
+
     from ..api import HTTPConnection
     from ..payloads import (
         Guild as GuildPayload,
         GuildPreview as GuildPreviewPayload,
     )
+
+    File: TypeAlias = str | bytes | io.IOBase
 
 __all__ = (
     'Guild',
@@ -280,6 +285,133 @@ class Guild(Hashable):
             for i in
             self._stickers.values()
         ]
+
+    async def edit(
+            self,
+            *,
+            name: str = MISSING,
+            verification_level: guild_enums.VerificationLevel | None = MISSING,
+            default_message_notifications: guild_enums.NotificationLevel | None = MISSING,
+            explicit_content_filter: guild_enums.ContentFilterLevel | None = MISSING,
+            afk_channel: Snowflake | None = MISSING,
+            icon: File | None = MISSING,
+            owner: Snowflake = MISSING,
+            splash: File | None = MISSING,
+            discovery_splash: File | None = MISSING,
+            banner: File | None = MISSING,
+            system_channel: Snowflake | None = MISSING,
+            system_channel_flags: guild_flags.SystemChannelFlags | None = MISSING,
+            rules_channel: Snowflake | None = MISSING,
+            preferred_locale: Locale | None = MISSING,
+            public_updates_channel: Snowflake = MISSING,
+            features: list[str] = MISSING,
+            description: str | None = MISSING,
+            premium_progress_bar_enabled: bool = MISSING,
+            reason: str | None = None) -> Guild:
+        """
+        Edit the guild parameters.
+
+        .. note::
+
+            The updated guild is not immediately put into cache - the bot
+            waits for the guild update notification to be sent over the
+            gateway before updating (which will not happen if you don't have
+            the correct gateway intents).
+
+        Parameters
+        ----------
+        name : str
+            The name you want to set the guild to.
+        verification_level : novus.enums.guild.VerificationLevel | None
+            The verification level you want to set the guild to.
+        default_message_notifications : novus.enums.guild.NotificationLevel | None
+            The default message notification level you want to set the guild to.
+        explicit_content_filter : novus.enums.guild.ContentFilterLevel | None
+            The content filter level you want to set the guild to.
+        afk_channel : novus.abc.Snowflake | None
+            The channel you want to set as the guild's AFK channel.
+        icon : str | bytes | io.IOBase | None
+            The icon that you want to set for the guild. Can be its bytes, a
+            file path, or a file object.
+        owner : novus.abc.Snowflake
+            The person you want to set as owner of the guild. Can only be run
+            if the current user is the existing owner.
+        splash : str | bytes | io.IOBase | None
+            The splash that you want to set for the guild. Can be its bytes, a
+            file path, or a file object.
+        discovery_splash : str | bytes | io.IOBase | None
+            The discovery splash for the guild. Can be its bytes, a file path,
+            or a file object.
+        banner : str | bytes | io.IOBase | None
+            The banner for the guild. Can be its bytes, a file path, or a file
+            object.
+        system_channel : novus.abc.Snowflake | None
+            The system channel you want to set for the guild.
+        system_channel_flags : novus.flags.guild.SystemChannelFlags | None
+            The system channel flags you want to set.
+        rules_channel : novus.abc.Snowflake | None
+            The channel you want to set as the rules channel.
+        preferred_locale : Locale | None
+            The locale you want to set as the guild's preferred.
+        public_updates_channel : novus.abc.Snowflake
+            The channel you want to set as the updates channel for the guild.
+        features : list[str]
+            A list of features for the guild.
+        description : str | None
+            A description for the guild.
+        premium_progress_bar_enabled : bool
+            Whether or not to enable the premium progress bar for the guild.
+        reason : str | None
+            A reason for modifying the guild (shown in the audit log).
+
+        Returns
+        -------
+        novus.Guild
+            The updated guild.
+        """
+
+        updates: dict[str, Any] = {}
+        if name is not None:
+            updates["name"] = name
+        if verification_level is not None:
+            updates["verification_level"] = verification_level
+        if default_message_notifications is not None:
+            updates["default_message_notifications"] = default_message_notifications
+        if explicit_content_filter is not None:
+            updates["explicit_content_filter"] = explicit_content_filter
+        if afk_channel is not None:
+            updates["afk_channel"] = afk_channel
+        if icon is not None:
+            updates["icon"] = icon
+        if owner is not None:
+            updates["owner"] = owner
+        if splash is not None:
+            updates["splash"] = splash
+        if discovery_splash is not None:
+            updates["discovery_splash"] = discovery_splash
+        if banner is not None:
+            updates["banner"] = banner
+        if system_channel is not None:
+            updates["system_channel"] = system_channel
+        if system_channel_flags is not None:
+            updates["system_channel_flags"] = system_channel_flags
+        if rules_channel is not None:
+            updates["rules_channel"] = rules_channel
+        if preferred_locale is not None:
+            updates["preferred_locale"] = preferred_locale
+        if public_updates_channel is not None:
+            updates["public_updates_channel"] = public_updates_channel
+        if features is not None:
+            updates["features"] = features
+        if description is not None:
+            updates["description"] = description
+        if premium_progress_bar_enabled is not None:
+            updates["premium_progress_bar_enabled"] = premium_progress_bar_enabled
+        return await self._state.guild.modify_guild(
+            self.id,
+            reason=reason,
+            **updates,
+        )
 
 
 class OauthGuild(Guild):
