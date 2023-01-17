@@ -286,6 +286,26 @@ class Guild(Hashable):
             self._stickers.values()
         ]
 
+    @classmethod
+    async def fetch(cls, state: HTTPConnection, id: int) -> Guild:
+        """
+        Get an instance of a guild.
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        id : int
+            The ID associated with the guild you want to get.
+
+        Returns
+        -------
+        novus.Guild
+            The guild associated with the given ID.
+        """
+
+        return await state.guild.get_guild(id)
+
     async def edit(
             self,
             *,
@@ -412,6 +432,15 @@ class Guild(Hashable):
             reason=reason,
             **updates,
         )
+
+    async def delete(self) -> None:
+        """
+        Delete the current guild permanently. You must be the owner of the
+        guild to run this successfully.
+        """
+
+        await self._state.guild.delete_guild(self.id)
+        return None
 
 
 class OauthGuild(Guild):
