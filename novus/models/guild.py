@@ -427,6 +427,8 @@ class Guild(Hashable):
             updates["description"] = description
         if premium_progress_bar_enabled is not None:
             updates["premium_progress_bar_enabled"] = premium_progress_bar_enabled
+        if not updates:
+            return self
         return await self._state.guild.modify_guild(
             self.id,
             reason=reason,
