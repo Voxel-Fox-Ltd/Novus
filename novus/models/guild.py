@@ -301,7 +301,7 @@ class OauthGuild(Guild):
         The authenticated user's permissions in the guild.
     """
 
-    def __init__(self, *, state=None, data: GuildPayload):
+    def __init__(self, *, state, data: GuildPayload):
         self.owner: bool = data.get('owner', False)
         self.permissions: Permissions = Permissions(int(data.get('permissions', 0)))
         super().__init__(state=state, data=data)
@@ -343,14 +343,30 @@ class GuildPreview(Hashable):
         A list of the stickers in the guild.
     """
 
-    def __init__(self, *, data: GuildPreviewPayload):
+    __slots__ = (
+        '_state',
+        'id',
+        'name',
+        'icon_hash',
+        'splash_hash',
+        'discovery_splash_hash',
+        'emojis',
+        'features',
+        'approximate_member_count',
+        'approximate_presence_count',
+        'description',
+        'stickers',
+    )
+
+    def __init__(self, *, state: HTTPConnection, data: GuildPreviewPayload):
+        self._state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
         self.icon_hash = data.get('icon')
         self.splash_hash = data.get('splash')
         self.discovery_splash_hash = data.get('discovery_splash')
         self.emojis = [
-            Emoji(i)
+            Emoji(state=self._state, data=i)
             for i in data.get('emojis', list())
         ]
         self.features = data.get('features', list())
@@ -358,18 +374,18 @@ class GuildPreview(Hashable):
         self.approximate_presence_count = data['approximate_presence_count']
         self.description = data.get('description')
         self.stickers = [
-            Sticker(i)
+            Sticker(state=self._state, data=i)
             for i in data.get('stickers', list())
         ]
 
     @property
     def icon(self) -> Asset:
-        raise NotImplementedError()
+        return Asset.from_guild_icon(self)
 
     @property
     def splash(self) -> Asset:
-        raise NotImplementedError()
+        return Asset.from_guild_splash(self)
 
     @property
     def discovery_splash(self) -> Asset:
-        raise NotImplementedError()
+        return Asset.from_guild_discovery_splash(self)

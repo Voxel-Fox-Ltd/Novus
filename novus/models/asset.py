@@ -25,8 +25,11 @@ import dotenv
 from ..utils import MISSING
 
 if TYPE_CHECKING:
-    from .guild import Guild
+    from .guild import Guild, OauthGuild, GuildPreview
     from .emoji import Emoji
+
+    AnyFullGuild = Guild | OauthGuild
+    AnyGuild = AnyFullGuild | GuildPreview
 
 __all__ = (
     'Asset',
@@ -84,19 +87,19 @@ class Asset:
         return f"{self.BASE}{self.resource}.{format}?size={size}"
 
     @classmethod
-    def from_guild_icon(cls, guild: Guild) -> Self:
+    def from_guild_icon(cls, guild: AnyGuild) -> Self:
         return cls(f"/icons/{guild.id}/{guild.icon_hash}")
 
     @classmethod
-    def from_guild_splash(cls, guild: Guild) -> Self:
+    def from_guild_splash(cls, guild: AnyGuild) -> Self:
         return cls(f"/splashes/{guild.id}/{guild.splash_hash}")
 
     @classmethod
-    def from_guild_discovery_splash(cls, guild: Guild) -> Self:
+    def from_guild_discovery_splash(cls, guild: AnyGuild) -> Self:
         return cls(f"/discovery-splashes/{guild.id}/{guild.discovery_splash_hash}")
 
     @classmethod
-    def from_guild_banner(cls, guild: Guild) -> Self:
+    def from_guild_banner(cls, guild: AnyFullGuild) -> Self:
         return cls(f"/banners/{guild.id}/{guild.banner_hash}")
 
     @classmethod
