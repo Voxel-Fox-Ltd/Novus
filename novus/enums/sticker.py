@@ -15,27 +15,21 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any
-
-from .snowflakes import try_snowflake
-from .repr import generate_repr
-from .files import bytes_to_base64_data, get_mime_type_for_image
+from enum import Enum
 
 __all__ = (
-    'try_snowflake',
-    'generate_repr',
-    'bytes_to_base64_data',
-    'get_mime_type_for_image',
-    'MISSING',
+    'StickerType',
+    'StickerFormat',
 )
 
 
-class MissingObject:
-
-    __slots__ = ()
-
-    def __bool__(self):
-        return False
+class StickerType(Enum):
+    standard = 1
+    guild = 2
 
 
-MISSING: Any = MissingObject()
+class StickerFormat(Enum):
+    png = 1
+    apng = 2
+    lottie = 3
+    gif = 4

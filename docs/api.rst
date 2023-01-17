@@ -120,6 +120,29 @@ Guild
         * - ``all_messages``
         * - ``only_mentions``
 
+Sticker
+~~~~~~~
+
+.. class:: novus.enums.sticker.StickerType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``standard``
+        * - ``guild``
+
+.. class:: novus.enums.sticker.StickerFormat
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``png``
+        * - ``apng``
+        * - ``lottie``
+        * - ``gif``
+
 Flags
 ------
 

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from .guild import Guild, OauthGuild, GuildPreview
     from .emoji import Emoji
     from .role import Role
+    from .sticker import Sticker
 
     AnyFullGuild: TypeAlias = Guild | OauthGuild
     AnyGuild: TypeAlias = AnyFullGuild | GuildPreview
@@ -61,13 +62,19 @@ class Asset:
     __slots__ = (
         'resource',
         'animated',
+        'default_format',
     )
 
-    def __init__(self, resource: str, animated: bool = MISSING):
+    def __init__(
+            self,
+            resource: str,
+            animated: bool = MISSING,
+            default_format: str | None = None):
         self.resource: str = resource
         if animated is MISSING:
             animated = self.resource.split("/")[-1].startswith("a_")
         self.animated: bool = animated
+        self.default_format = default_format or "webp"
 
     def __str__(self) -> str:
         return self.get_url()
@@ -76,8 +83,8 @@ class Asset:
 
     def get_url(
             self,
-            format: Literal["webp", "jpg", "jpeg", "png", "gif", "json"] = "webp",
-            size: int = 1024) -> str:
+            format: Literal["webp", "jpg", "jpeg", "png", "gif", "json"] = MISSING,
+            size: int = MISSING) -> str:
         """
         Get the URL for the image with different formatting and size than the
         CDN default.
@@ -88,7 +95,11 @@ class Asset:
             The format that you want to get the URL as.
         """
 
-        return f"{self.BASE}{self.resource}.{format}?size={size}"
+        return (
+            f"{self.BASE}{self.resource}."
+            f"{format or self.default_format}"
+            f"?size={size or 1024}"
+        )
 
     @classmethod
     def from_guild_icon(cls, guild: AnyGuild) -> Asset:
@@ -113,3 +124,7 @@ class Asset:
     @classmethod
     def from_role(cls, role: Role) -> Asset:
         return cls(f"/role-icons/{role.id}/{role.icon_hash}")
+
+    @classmethod
+    def from_sticker(cls, sticker: Sticker) -> Asset:
+        return cls(f"/stickers/{sticker.id}")
