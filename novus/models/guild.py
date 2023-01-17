@@ -31,6 +31,7 @@ from ..enums import Locale, guild as guild_enums
 from ..utils import try_snowflake
 
 if TYPE_CHECKING:
+    from ..api import HTTPConnection
     from ..payloads import (
         Guild as GuildPayload,
         GuildPreview as GuildPreviewPayload,
@@ -137,6 +138,7 @@ class Guild(Hashable):
     """
 
     __slots__ = (
+        '_state',
         'id',
         'name',
         'icon_hash',
@@ -175,7 +177,8 @@ class Guild(Hashable):
         '_stickers',
     )
 
-    def __init__(self, *, state=None, data: GuildPayload):
+    def __init__(self, *, state: HTTPConnection, data: GuildPayload):
+        self._state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
         self.icon_hash = data['icon'] or data.get('icon_hash')
@@ -188,11 +191,11 @@ class Guild(Hashable):
         self.default_message_notifications = guild_enums.NotificationLevel(data['default_message_notifications'])
         self.explicit_content_filter = guild_enums.ContentFilterLevel(data['explicit_content_filter'])
         self._roles = {
-            d['id']: Role(state=state, data=d)
+            d['id']: Role(state=self._state, data=d)
             for d in data['roles']
         }
         self._emojis = {
-            d['id']: Emoji(state=state, data=d)
+            d['id']: Emoji(state=self._state, data=d)
             for d in data['emojis']
         }
         self.features = data['features']
@@ -220,7 +223,7 @@ class Guild(Hashable):
         self.approximate_member_count = data.get('approximate_member_count')
         self._welcome_screen = data.get('welcome_screen')
         self._stickers = {
-            d['id']: Sticker(state=state, data=d)
+            d['id']: Sticker(state=self._state, data=d)
             for d in data.get('stickers', list())
         }
 

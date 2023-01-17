@@ -15,7 +15,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 from typing_extensions import Self
 
 import os
@@ -26,6 +26,7 @@ from ..utils import MISSING
 
 if TYPE_CHECKING:
     from .guild import Guild
+    from .emoji import Emoji
 
 __all__ = (
     'Asset',
@@ -52,6 +53,11 @@ class Asset:
         "https://cdn.discordapp.com"
     )
 
+    __slots__ = (
+        'resource',
+        'animated',
+    )
+
     def __init__(self, resource: str, animated: bool = MISSING):
         self.resource: str = resource
         if animated is MISSING:
@@ -61,7 +67,10 @@ class Asset:
     def __str__(self) -> str:
         return self.get_url()
 
-    def get_url(self, format: str = "webp", size: int = 1024) -> str:
+    def get_url(
+            self,
+            format: Literal["webp", "jpg", "jpeg", "png", "gif", "json"] = "webp",
+            size: int = 1024) -> str:
         """
         Get the URL for the image with different formatting and size than the
         CDN default.
@@ -89,3 +98,7 @@ class Asset:
     @classmethod
     def from_guild_banner(cls, guild: Guild) -> Self:
         return cls(f"/banners/{guild.id}/{guild.banner_hash}")
+
+    @classmethod
+    def from_emoji(cls, emoji: Emoji) -> Self:
+        return cls(f"/emojis/{emoji.id}", animated=emoji.animated)
