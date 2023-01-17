@@ -82,6 +82,11 @@ class Emoji(Hashable):
         self.animated = data.get('animated', False)
         self.available = data.get('available', True)
 
+    def __str__(self) -> str:
+        if self.animated:
+            return f"<a:{self.name}:{self.id}>"
+        return f"<:{self.name}:{self.id}>"
+
     __repr__ = generate_repr(('id', 'name', 'animated',))
 
     @property
