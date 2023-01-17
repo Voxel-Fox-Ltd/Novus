@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING
 
 import functools
 
-from .mixins import Hashable
 from .asset import Asset
 from ..utils import try_snowflake, generate_repr
 
@@ -34,7 +33,7 @@ __all__ = (
 )
 
 
-class Emoji(Hashable):
+class Emoji:
     """
     A custom emoji in a guild.
 

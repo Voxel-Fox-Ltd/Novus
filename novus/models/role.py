@@ -20,7 +20,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import functools
 
-from .mixins import Hashable
 from .asset import Asset
 from ..utils import try_snowflake
 from ..flags import Permissions
@@ -34,7 +33,7 @@ __all__ = (
 )
 
 
-class Role(Hashable):
+class Role:
     """
     A model for a guild role.
 

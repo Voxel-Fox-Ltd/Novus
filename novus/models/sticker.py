@@ -20,7 +20,6 @@ import functools
 
 from typing import TYPE_CHECKING
 
-from .mixins import Hashable
 from .asset import Asset
 from ..enums import sticker as sticker_enums
 from ..utils import try_snowflake
@@ -34,7 +33,7 @@ __all__ = (
 )
 
 
-class Sticker(Hashable):
+class Sticker:
     """
     A model for a sticker.
 
