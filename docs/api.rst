@@ -1,12 +1,15 @@
-.. currentmodule:: novus
-
 API Reference
 ==============
+
+Abstract Base Classes
+---------------------
+
+.. autoclass:: novus.abc.Snowflake
 
 Enums
 ------
 
-.. class:: Locale
+.. class:: novus.Locale
 
     .. list-table::
         :header-rows: 1
@@ -47,7 +50,7 @@ Enums
 Guild
 ~~~~~~
 
-.. class:: enums.guild.NSFWLevel
+.. class:: novus.enums.guild.NSFWLevel
 
     .. list-table::
         :header-rows: 1
@@ -58,7 +61,7 @@ Guild
         * - ``safe``
         * - ``age_restricted``
 
-.. class:: enums.guild.PremiumTier
+.. class:: novus.enums.guild.PremiumTier
 
     .. list-table::
         :header-rows: 1
@@ -69,7 +72,7 @@ Guild
         * - ``tier_2``
         * - ``tier_3``
 
-.. class:: enums.guild.MFALevel
+.. class:: novus.enums.guild.MFALevel
 
     .. list-table::
         :header-rows: 1
@@ -78,7 +81,7 @@ Guild
         * - ``none``
         * - ``elevated``
 
-.. class:: enums.guild.ContentFilterLevel
+.. class:: novus.enums.guild.ContentFilterLevel
 
     .. list-table::
         :header-rows: 1
@@ -88,7 +91,7 @@ Guild
         * - ``members_without_roles``
         * - ``all_members``
 
-.. class:: enums.guild.VerificationLevel
+.. class:: novus.enums.guild.VerificationLevel
 
     A representation of a guild's verification level.
 
@@ -108,7 +111,7 @@ Guild
         * - ``very_high``
           - Must have a verified phone number.
 
-.. class:: enums.guild.NotificationLevel
+.. class:: novus.enums.guild.NotificationLevel
 
     .. list-table::
         :header-rows: 1
@@ -120,7 +123,7 @@ Guild
 Flags
 ------
 
-.. class:: Permissions
+.. class:: novus.Permissions
 
     A permission set from Discord's API.
 
@@ -173,7 +176,7 @@ Flags
 Application
 ~~~~~~~~~~~~
 
-.. class:: flags.application.ApplicationFlags
+.. class:: novus.flags.application.ApplicationFlags
 
     The public flags for an application.
 
@@ -212,7 +215,7 @@ Application
 Guild
 ~~~~~~
 
-.. class:: flags.guild.SystemChannelFlags
+.. class:: novus.flags.guild.SystemChannelFlags
 
     Flags for a system channel within a guild.
 
@@ -231,31 +234,31 @@ Utils
 Models
 -------
 
-.. autoclass:: Guild
+.. autoclass:: novus.Guild
     :members:
     :no-members: __init__
 
-.. autoclass:: oauth.OauthGuild
+.. autoclass:: novus.oauth.OauthGuild
     :members:
     :inherited-members:
     :no-members: __init__
 
-.. autoclass:: Sticker
+.. autoclass:: novus.Sticker
     :members:
     :no-members: __init__
 
-.. autoclass:: Emoji
+.. autoclass:: novus.Emoji
     :members:
     :no-members: __init__
 
-.. autoclass:: Role
+.. autoclass:: novus.Role
     :members:
     :no-members: __init__
 
-.. autoclass:: Asset
+.. autoclass:: novus.Asset
     :members:
     :no-members: __init__
 
-.. autoclass:: WelcomeScreen
+.. autoclass:: novus.WelcomeScreen
     :members:
     :no-members: __init__
