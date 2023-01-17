@@ -39,7 +39,7 @@ class Emoji(Hashable):
     Attributes
     ----------
     id : int | None
-        The ID of the emoji. Could be ``None`` in the case of a Unicode emoji.
+        The ID of the emoji.
     name : str | None
         The name of the emoji. Could be ``None`` in the case that the emoji
         came from a reaction payload.
@@ -72,7 +72,9 @@ class Emoji(Hashable):
 
     def __init__(self, *, state: HTTPConnection, data: EmojiPayload):
         self._state = state
-        self.id: int | None = try_snowflake(data['id'])
+        if data['id'] is None:
+            raise ValueError("Emoji ID cannot be None")
+        self.id: int = try_snowflake(data['id'])
         self.name = data['name']
         self.role_ids = data.get('roles', list())
         self.requires_colons = data.get('require_colons', True)
