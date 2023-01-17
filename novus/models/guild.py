@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import functools
 
 from .mixins import Hashable
 from .role import Role
@@ -218,7 +219,10 @@ class Guild(Hashable):
         self.max_video_channel_users = data.get('max_video_channel_users')
         self.approximate_member_count = data.get('approximate_member_count')
         self._welcome_screen = data.get('welcome_screen')
-        self._stickers = data.get('stickers', list())
+        self._stickers = {
+            d['id']: Sticker(state=state, data=d)
+            for d in data.get('stickers', list())
+        }
 
     def __repr__(self) -> str:
         attrs = (
@@ -229,36 +233,56 @@ class Guild(Hashable):
         return f'<Guild {inner}>'
 
     @property
+    @functools.cache
     def icon(self) -> Asset:
-        raise NotImplementedError()
+        return Asset.from_guild_icon(self)
 
     @property
+    @functools.cache
     def splash(self) -> Asset:
-        raise NotImplementedError()
+        return Asset.from_guild_splash(self)
 
     @property
+    @functools.cache
     def discovery_splash(self) -> Asset:
-        raise NotImplementedError()
+        return Asset.from_guild_discovery_splash(self)
 
     @property
+    @functools.cache
     def banner(self) -> Asset:
-        raise NotImplementedError()
+        return Asset.from_guild_banner(self)
 
     @property
+    @functools.cache
     def roles(self) -> list[Role]:
-        raise NotImplementedError()
+        return [
+            i
+            for i in
+            self._roles.values()
+        ]
 
     @property
+    @functools.cache
     def emojis(self) -> list[Emoji]:
-        raise NotImplementedError()
+        return [
+            i
+            for i in
+            self._emojis.values()
+        ]
 
     @property
+    @functools.cache
     def welcome_screen(self) -> WelcomeScreen | None:
         raise NotImplementedError()
 
     @property
+    @functools.cache
     def stickers(self) -> list[Sticker]:
-        raise NotImplementedError()
+        return [
+            i
+            for i in
+            self._stickers.values()
+        ]
 
 
 class OauthGuild(Guild):

@@ -15,6 +15,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from typing import Any
+
 from .snowflakes import try_snowflake
 from .repr import generate_repr
 from .files import bytes_to_base64_data, get_mime_type_for_image
@@ -32,4 +34,4 @@ class MissingObject:
     __slots__ = ()
 
 
-MISSING = MissingObject()
+MISSING: Any = MissingObject()

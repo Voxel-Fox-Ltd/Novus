@@ -19,8 +19,6 @@ import os
 
 import dotenv
 
-from ..utils import generate_repr
-
 __all__ = (
     'Route',
 )
@@ -47,20 +45,19 @@ class Route:
         self.resource = resource
         self.kwargs = kwargs
 
-    @property
-    def path(self):
-        return self.resource.format_map(self.kwargs)
-
-    @property
-    def url(self):
-        return self.BASE + self.path
-
     def __str__(self) -> str:
         return self.url
 
-    __repr__ = generate_repr(
-        (
-            "method",
-            ("resource", "path",),
+    def __repr__(self) -> str:
+        return (
+            "{0.__class__.__name__}(method={0.method}, resource={0.path})"
+            .format(self)
         )
-    )
+
+    @property
+    def path(self) -> str:
+        return self.resource.format_map(self.kwargs)
+
+    @property
+    def url(self) -> str:
+        return self.BASE + self.path

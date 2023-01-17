@@ -23,7 +23,7 @@ __all__ = (
 
 
 def generate_repr(
-        args: Iterable[str | tuple[str, str]]) -> Callable[[Any], str]:
+        args: Iterable[str | tuple[str, str]]) -> Callable[..., str]:
     """
     Easily add a __repr__ to a class.
     """
@@ -36,5 +36,5 @@ def generate_repr(
             else:
                 kwarg_name, self_name = pair, pair
             generated_args.append(f"{kwarg_name}={getattr(instance, self_name)!r}")
-        return f"{instance.__class__.__name__}({', '.join(generated_args)})"
+        return f"<{instance.__class__.__name__} {' '.join(generated_args)}>"
     return wrapper

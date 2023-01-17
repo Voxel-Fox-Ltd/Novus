@@ -28,5 +28,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "python-dotenv",
     "vf-flags>=0.2.0,<0.3",
+    "typing_extensions",
 ]
