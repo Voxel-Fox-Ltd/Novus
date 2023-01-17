@@ -28,6 +28,31 @@ dotenv.load_dotenv()
 
 
 class Route:
+    """
+    A route to access the API with.
+
+    Parameters
+    ----------
+    method : str
+        The HTTP method to use.
+    resource : str
+        The resource that you want to access.
+    **kwargs
+        Any additional kwargs to be formatted into the resource.
+
+    Attributes
+    ----------
+    method : str
+        The HTTP method to use.
+    resource : str
+        The resource that you want to access.
+    path : str
+        The resource with the kwargs mapped onto it.
+    url : str
+        The fully built route path.
+    kwargs : dict
+        Any additional kwargs to be formatted into the resource.
+    """
 
     __slots__ = (
         'method',

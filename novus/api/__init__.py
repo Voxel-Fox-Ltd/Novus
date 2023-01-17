@@ -15,10 +15,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from ._http import HTTPConnection
 from ._route import Route
+from ._http import HTTPConnection
+from .guild import GuildHTTPConnection
 
 __all__ = (
-    'HTTPConnection',
     'Route',
+    'HTTPConnection',
+    'GuildHTTPConnection',
 )

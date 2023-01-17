@@ -262,3 +262,16 @@ Models
 .. autoclass:: novus.WelcomeScreen
     :members:
     :no-members: __init__
+
+API
+----
+
+.. autoclass:: novus.api.Route
+
+.. autoclass:: novus.api.HTTPConnection
+    :no-members:
+
+.. autoclass:: novus.api.GuildHTTPConnection
+    :members:
+    :no-members: __init__
+

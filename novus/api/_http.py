@@ -37,10 +37,25 @@ log = logging.getLogger("novus.api")
 
 
 class HTTPConnection:
+    """
+    A wrapper around the API for HTTP handling.
 
-    def __init__(self, token: str):
+    Parameters
+    ----------
+    token : str
+        The token to use.
+    auth_prefix : str
+        The prefix for the token to use in the authentication header. Defaults
+        to `"Bot"`.
+
+    Attributes
+    ----------
+    guild : GuildHTTPConnection
+    """
+
+    def __init__(self, token: str, auth_prefix: str = 'Bot'):
         self._session: aiohttp.ClientSession | None = None
-        self._token = f"Bot {token}"
+        self._token = f"{auth_prefix} {token}"
 
         # Specific routes
         self.guild = GuildHTTPConnection(self)
