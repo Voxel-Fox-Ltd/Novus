@@ -15,8 +15,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import TYPE_CHECKING, Literal
-from typing_extensions import Self
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Literal, TypeAlias
 
 import os
 
@@ -28,8 +29,8 @@ if TYPE_CHECKING:
     from .guild import Guild, OauthGuild, GuildPreview
     from .emoji import Emoji
 
-    AnyFullGuild = Guild | OauthGuild
-    AnyGuild = AnyFullGuild | GuildPreview
+    AnyFullGuild: TypeAlias = Guild | OauthGuild
+    AnyGuild: TypeAlias = AnyFullGuild | GuildPreview
 
 __all__ = (
     'Asset',
@@ -89,21 +90,21 @@ class Asset:
         return f"{self.BASE}{self.resource}.{format}?size={size}"
 
     @classmethod
-    def from_guild_icon(cls, guild: AnyGuild) -> Self:
+    def from_guild_icon(cls, guild: AnyGuild) -> Asset:
         return cls(f"/icons/{guild.id}/{guild.icon_hash}")
 
     @classmethod
-    def from_guild_splash(cls, guild: AnyGuild) -> Self:
+    def from_guild_splash(cls, guild: AnyGuild) -> Asset:
         return cls(f"/splashes/{guild.id}/{guild.splash_hash}")
 
     @classmethod
-    def from_guild_discovery_splash(cls, guild: AnyGuild) -> Self:
+    def from_guild_discovery_splash(cls, guild: AnyGuild) -> Asset:
         return cls(f"/discovery-splashes/{guild.id}/{guild.discovery_splash_hash}")
 
     @classmethod
-    def from_guild_banner(cls, guild: AnyFullGuild) -> Self:
+    def from_guild_banner(cls, guild: AnyFullGuild) -> Asset:
         return cls(f"/banners/{guild.id}/{guild.banner_hash}")
 
     @classmethod
-    def from_emoji(cls, emoji: Emoji) -> Self:
+    def from_emoji(cls, emoji: Emoji) -> Asset:
         return cls(f"/emojis/{emoji.id}", animated=emoji.animated)
