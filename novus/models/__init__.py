@@ -16,7 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from . import abc
-from .guild import Guild, OauthGuild
+from .guild import Guild, OauthGuild, GuildPreview
 from .emoji import Emoji
 from .role import Role
 from .asset import Asset
@@ -24,12 +24,26 @@ from .welcome_screen import WelcomeScreen
 from .sticker import Sticker
 
 __all__ = (
+    # abc
     'abc',
+
+    # guild
     'Guild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
+    'GuildPreview',
     'OauthGuild',
+
+    # emoji
+    'Emoji',
+
+    # role
+    'Role',
+
+    # asset
+    'Asset',
+
+    # welcome_screen
+    'WelcomeScreen',
+
+    # sticker
+    'Sticker',
 )

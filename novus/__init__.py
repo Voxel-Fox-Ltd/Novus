@@ -31,6 +31,8 @@ __all__ = (
     # Models
     'abc',
     'Guild',
+    'GuildPreview',
+    'OauthGuild',
     'Emoji',
     'Role',
     'Asset',

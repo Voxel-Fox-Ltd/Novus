@@ -30,11 +30,15 @@ from ..enums import Locale, guild as guild_enums
 from ..utils import try_snowflake
 
 if TYPE_CHECKING:
-    from ..payloads import Guild as GuildPayload
+    from ..payloads import (
+        Guild as GuildPayload,
+        GuildPreview as GuildPreviewPayload,
+    )
 
 __all__ = (
     'Guild',
     'OauthGuild',
+    'GuildPreview',
 )
 
 
@@ -261,9 +265,84 @@ class OauthGuild(Guild):
     """
     A model for a Discord guild when fetched by an authenticated user through
     the API.
+
+    Attributes
+    ----------
+    owner : bool
+        Whether the authenticated user owns the guild.
+    permissions : novus.Permissions
+        The authenticated user's permissions in the guild.
     """
 
     def __init__(self, *, state=None, data: GuildPayload):
         self.owner: bool = data.get('owner', False)
         self.permissions: Permissions = Permissions(int(data.get('permissions', 0)))
         super().__init__(state=state, data=data)
+
+
+class GuildPreview(Hashable):
+    """
+    A model for the preview of a guild.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the guild.
+    name : str
+        The name of the guild.
+    icon_hash : str | None
+        The icon hash for the guild.
+    icon : novus.Asset | None
+        The icon asset associated with the guild.
+    splash_hash : str | None
+        The splash hash for the guild.
+    splash : novus.Asset | None
+        The splash asset associated with the guild.
+    discovery_splash_hash : str | None
+        The discovery splash hash for the guild.
+    discovery_splash : novus.Asset | None
+        The discovery splash asset associated with the guild.
+    emojis : list[novus.Emoji]
+        A list of emojis in the guild.
+    features : list[str]
+        A list of features that the guild has.
+    approximate_member_count : int
+        The approximate member count for the guild.
+    approximate_presence_count : int
+        The approximate online member count for the guild.
+    description : str
+        The description of the guild.
+    stickers : list[novus.Sticker]
+        A list of the stickers in the guild.
+    """
+
+    def __init__(self, *, data: GuildPreviewPayload):
+        self.id = try_snowflake(data['id'])
+        self.name = data['name']
+        self.icon_hash = data.get('icon')
+        self.splash_hash = data.get('splash')
+        self.discovery_splash_hash = data.get('discovery_splash')
+        self.emojis = [
+            Emoji(i)
+            for i in data.get('emojis', list())
+        ]
+        self.features = data.get('features', list())
+        self.approximate_member_count = data['approximate_member_count']
+        self.approximate_presence_count = data['approximate_presence_count']
+        self.description = data.get('description')
+        self.stickers = [
+            Sticker(i)
+            for i in data.get('stickers', list())
+        ]
+
+    @property
+    def icon(self) -> Asset:
+        raise NotImplementedError()
+
+    @property
+    def splash(self) -> Asset:
+        raise NotImplementedError()
+
+    @property
+    def discovery_splash(self) -> Asset:
+        raise NotImplementedError()
