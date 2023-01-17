@@ -28,6 +28,7 @@ from ..utils import MISSING, generate_repr
 if TYPE_CHECKING:
     from .guild import Guild, OauthGuild, GuildPreview
     from .emoji import Emoji
+    from .role import Role
 
     AnyFullGuild: TypeAlias = Guild | OauthGuild
     AnyGuild: TypeAlias = AnyFullGuild | GuildPreview
@@ -108,3 +109,7 @@ class Asset:
     @classmethod
     def from_emoji(cls, emoji: Emoji) -> Asset:
         return cls(f"/emojis/{emoji.id}", animated=emoji.animated)
+
+    @classmethod
+    def from_role(cls, role: Role) -> Asset:
+        return cls(f"/role-icons/{role.id}/{role.icon_hash}")
