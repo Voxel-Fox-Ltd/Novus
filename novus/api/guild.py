@@ -80,6 +80,7 @@ class GuildHTTPConnection:
             route,
         )
         return models.GuildPreview(
+            state=self.parent,
             data=data,
         )
 
