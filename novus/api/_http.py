@@ -39,7 +39,7 @@ log = logging.getLogger("novus.api")
 class HTTPConnection:
 
     def __init__(self, token: str):
-        self._session = None
+        self._session: aiohttp.ClientSession | None = None
         self._token = f"Bot {token}"
 
         # Specific routes
@@ -108,7 +108,7 @@ class HTTPConnection:
     @staticmethod
     def _get_snowflake_kwargs(
             args: Iterable[tuple[str, str] | str],
-            kwargs: dict) -> dict[str, int]:
+            kwargs: dict) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is a snowflake, so returns its ``.id``.
@@ -127,7 +127,7 @@ class HTTPConnection:
     @staticmethod
     def _get_enum_kwargs(
             args: Iterable[tuple[str, str] | str],
-            kwargs: dict) -> dict[str, str | int]:
+            kwargs: dict) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is an enum, so returns its ``.value``.
@@ -146,7 +146,7 @@ class HTTPConnection:
     @staticmethod
     def _get_image_kwargs(
             args: Iterable[tuple[str, str] | str],
-            kwargs: dict) -> dict[str, str]:
+            kwargs: dict) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is a binary string or `io.BytesIO` object.
