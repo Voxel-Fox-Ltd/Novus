@@ -15,21 +15,26 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .snowflakes import try_snowflake
-from .repr import generate_repr
-from .files import bytes_to_base64_data, get_mime_type_for_image
+from typing import Callable, Any, Iterable
 
 __all__ = (
-    'try_snowflake',
-    'generate_repr',
-    'bytes_to_base64_data',
-    'get_mime_type_for_image',
-    'MISSING',
+    "generate_repr",
 )
 
 
-class MissingObject:
-    __slots__ = ()
+def generate_repr(
+        args: Iterable[str | tuple[str, str]]) -> Callable[[Any], str]:
+    """
+    Easily add a __repr__ to a class.
+    """
 
-
-MISSING = MissingObject()
+    def wrapper(instance: Any):
+        generated_args = []
+        for pair in args:
+            if isinstance(pair, tuple):
+                kwarg_name, self_name = pair
+            else:
+                kwarg_name, self_name = pair, pair
+            generated_args.append(f"{kwarg_name}={getattr(instance, self_name)!r}")
+        return f"{instance.__class__.__name__}({', '.join(generated_args)})"
+    return wrapper

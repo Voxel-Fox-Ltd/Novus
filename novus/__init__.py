@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags, utils, oauth
+from . import payloads, enums, flags, utils, oauth, api
 from .models import *
 
 __all__ = (
@@ -27,6 +27,7 @@ __all__ = (
     'flags',
     'utils',
     'oauth',
+    'api',
 
     # Models
     'abc',
