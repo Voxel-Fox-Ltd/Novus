@@ -22,7 +22,7 @@ import os
 
 import dotenv
 
-from ..utils import MISSING
+from ..utils import MISSING, generate_repr
 
 if TYPE_CHECKING:
     from .guild import Guild, OauthGuild, GuildPreview
@@ -69,6 +69,8 @@ class Asset:
 
     def __str__(self) -> str:
         return self.get_url()
+
+    __repr__ = generate_repr(('resource', 'animated',))
 
     def get_url(
             self,

@@ -28,7 +28,7 @@ from .welcome_screen import WelcomeScreen
 from .sticker import Sticker
 from ..flags import Permissions, guild as guild_flags
 from ..enums import Locale, guild as guild_enums
-from ..utils import try_snowflake
+from ..utils import try_snowflake, generate_repr
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
@@ -227,13 +227,7 @@ class Guild(Hashable):
             for d in data.get('stickers', list())
         }
 
-    def __repr__(self) -> str:
-        attrs = (
-            ('id', self.id),
-            ('name', self.name),
-        )
-        inner = ' '.join('%s=%r' % t for t in attrs)
-        return f'<Guild {inner}>'
+    __repr__ = generate_repr(('id', 'name',))
 
     @property
     @functools.cache

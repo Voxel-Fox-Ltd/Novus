@@ -21,7 +21,7 @@ import functools
 
 from .mixins import Hashable
 from .asset import Asset
-from ..utils import try_snowflake
+from ..utils import try_snowflake, generate_repr
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
@@ -79,6 +79,8 @@ class Emoji(Hashable):
         self.managed = data.get('managed', False)
         self.animated = data.get('animated', False)
         self.available = data.get('available', True)
+
+    __repr__ = generate_repr(('id', 'name', 'animated',))
 
     @property
     @functools.cache
