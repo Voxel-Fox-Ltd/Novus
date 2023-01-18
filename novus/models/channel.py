@@ -17,6 +17,238 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-__all__ = (
+from typing import TYPE_CHECKING, Type
+import logging
 
+from .mixins import Hashable, Messageable
+from ..enums import ChannelType, PermissionOverwriteType
+from ..flags import Permissions
+from ..utils import try_snowflake, generate_repr
+
+if TYPE_CHECKING:
+    from ..api import HTTPConnection
+    from ..payloads import Channel as ChannelPayload
+
+__all__ = (
+    'PermissionOverwrite',
+    'Channel',
+    'GuildTextChannel',
+    'DMChannel',
+    'GroupDMChannel',
 )
+
+
+log = logging.getLogger("novus.models.channel")
+
+
+def channel_factory(
+        channel_type: int) -> Type[Channel]:
+    match channel_type:
+        case ChannelType.guild_text.value:
+            return GuildTextChannel
+        case ChannelType.dm.value:
+            return DMChannel
+        # case ChannelType.guild_voice.value:
+        #     return MessageableChannel
+        case ChannelType.group_dm.value:
+            return GroupDMChannel
+        # case ChannelType.guild_category.value:
+        #     return Channel
+        # case ChannelType.guild_announcement.value:
+        #     return GuildTextChannel
+        # case ChannelType.announcement_thread.value:
+        #     return GuildTextChannel
+        # case ChannelType.public_thread.value:
+        #     return Channel
+        # case ChannelType.private_thread.value:
+        #     return Channel
+        # case ChannelType.guild_stage_voice.value:
+        #     return Channel
+        # case ChannelType.guild_directory.value:
+        #     return Channel
+        # case ChannelType.guild_forum.value:
+        #     return Channel
+        case _:
+            log.warning(
+                "Unknown channel type %s"
+                % channel_type
+            )
+            return MessageableChannel
+
+
+class PermissionOverwrite:
+    """
+    A class representing a permission overwrite for a guild channel.
+
+    Parameters
+    ----------
+    id : int
+        The ID of the target.
+    type : novus.enums.PermissionOverwriteType
+        The type of the target.
+    allow : novus.flags.Permissions
+        The permissions that the target is explicitly allowed.
+    deny : novus.flags.Permissions
+        The permissions that the target is explicitly denied.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the target.
+    type : novus.enums.PermissionOverwriteType
+        The type of the target.
+    allow : novus.flags.Permissions
+        The permissions that the target is explicitly allowed.
+    deny : novus.flags.Permissions
+        The permissions that the target is explicitly denied.
+    """
+
+    __slots__ = (
+        'id',
+        'type',
+        'allow',
+        'deny',
+    )
+
+    def __init__(
+            self,
+            id: int,
+            type: PermissionOverwriteType,
+            *,
+            allow: Permissions,
+            deny: Permissions):
+        self.id = id
+        self.type = type
+        self.allow = allow
+        self.deny = deny
+
+    __repr__ = generate_repr(('id', 'type', 'allow', 'deny',))
+
+
+class Channel(Hashable):
+    """
+    The base channel object that all other channels inherit from. This is also
+    the object that will be returned if there is an unknown channel type.
+    """
+
+    __slots__ = (
+        '_state',
+        'id',
+        'type',
+        'raw',
+    )
+
+    def __init__(self, *, state: HTTPConnection, data: ChannelPayload):
+        self._state = state
+        self.id = try_snowflake(data['id'])
+        self.type = ChannelType(data['type'])
+        self.raw = data
+
+    __repr__ = generate_repr(('id', 'type',))
+
+
+class MessageableChannel(Channel, Messageable):
+
+    __slots__ = Channel.__slots__
+
+    async def _get_channel(self) -> int:
+        return self.id
+
+
+class DMChannel(MessageableChannel):
+    """
+    A channel associated with a user's DMs.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the channel.
+    """
+
+
+class GroupDMChannel(MessageableChannel):
+    """
+    A channel associated with a group DM.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the channel.
+    """
+
+
+class GuildChannel(Channel):
+
+    __slots__ = (
+        *Channel.__slots__[:-1],  # get all apart from ``raw``
+        'guild_id',
+        'position',
+        'permissions_overwrites',
+        'name',
+        'topic',
+        'nsfw',
+        'last_message_id',
+        'parent_id',
+    )
+
+    def __init__(self, *, state: HTTPConnection, data: ChannelPayload):
+        super().__init__(state=state, data=data)
+        del self.raw  # Not needed for known types)
+        self.guild_id = try_snowflake(data.get('guild_id'))
+        self.position = data.get('position', 0)
+        self.permissions_overwrites = [
+            PermissionOverwrite(
+                id=int(d['id']),
+                type=PermissionOverwriteType(d['type']),
+                allow=Permissions(int(d['allow'])),
+                deny=Permissions(int(d['deny'])),
+            )
+            for d in data.get('permission_overwrites', list())
+        ]
+        if 'name' not in data:
+            raise TypeError(
+                "Missing channel name from channel payload %s"
+                % data
+            )
+        self.name = data['name']
+        self.topic = data.get('topic', None)
+        self.nsfw = data.get('nsfw', False)
+        self.last_message_id = try_snowflake(data.get('last_message_id'))
+        self.parent_id = try_snowflake(data.get('parent_id'))
+        self.rate_limit_per_user: int | None = data.get('rate_limit_per_user')
+
+    __repr__ = generate_repr(('id', 'guild_id', 'name',))
+
+
+class GuildTextChannel(GuildChannel, MessageableChannel):
+    """
+    A text channel inside of a guild.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the channel.
+    type : novus.enums.ChannelType
+        The type of the channel.
+    guild_id : int | None
+        The ID of the guild associated with the channel. May be ``None`` for
+        some channel objects received over gateway guild dispatches.
+    position: int
+        The sorting position of the channel (relative to its parent container).
+    permissions_overwrites: list[novus.models.PermissionOverwrite]
+        The overwrites assoicated with this channel.
+    name : str
+        The name of the channel.
+    topic : str | None
+        The topic set in the channel.
+    nsfw : bool
+        Whether or not the channel is marked as NSFW.
+    last_message_id : int | None
+        The ID of the last message sent in the channel. May or may not point to
+        an existing or valid message or thread.
+    parent_id : int | None
+        The ID of the parent container channel.
+    rate_limit_per_user: int | None
+        The amount of seconds a user has to wait before sending another
+        message.
+    """

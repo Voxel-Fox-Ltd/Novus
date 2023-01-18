@@ -19,6 +19,7 @@ from enum import Enum
 
 __all__ = (
     'ChannelType',
+    'PermissionOverwriteType',
 )
 
 
@@ -35,3 +36,8 @@ class ChannelType(Enum):
     guild_stage_voice = 13
     guild_directory = 14
     guild_forum = 15
+
+
+class PermissionOverwriteType(Enum):
+    role = 0
+    member = 1
