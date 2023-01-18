@@ -59,6 +59,7 @@ class HTTPConnection:
 
         # Specific routes
         self.guild = GuildHTTPConnection(self)
+        self.channel: Any
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self._session:

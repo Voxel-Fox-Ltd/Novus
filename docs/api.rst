@@ -12,7 +12,7 @@ Abstract Base Classes
 Enums
 ------
 
-.. class:: novus.Locale
+.. autoclass:: novus.enums.Locale
 
     .. list-table::
         :header-rows: 1
@@ -53,7 +53,7 @@ Enums
 Guild
 ~~~~~~
 
-.. class:: novus.enums.guild.NSFWLevel
+.. autoclass:: novus.enums.NSFWLevel
 
     .. list-table::
         :header-rows: 1
@@ -64,7 +64,7 @@ Guild
         * - ``safe``
         * - ``age_restricted``
 
-.. class:: novus.enums.guild.PremiumTier
+.. autoclass:: novus.enums.PremiumTier
 
     .. list-table::
         :header-rows: 1
@@ -75,7 +75,7 @@ Guild
         * - ``tier_2``
         * - ``tier_3``
 
-.. class:: novus.enums.guild.MFALevel
+.. autoclass:: novus.enums.MFALevel
 
     .. list-table::
         :header-rows: 1
@@ -84,7 +84,7 @@ Guild
         * - ``none``
         * - ``elevated``
 
-.. class:: novus.enums.guild.ContentFilterLevel
+.. autoclass:: novus.enums.ContentFilterLevel
 
     .. list-table::
         :header-rows: 1
@@ -94,9 +94,7 @@ Guild
         * - ``members_without_roles``
         * - ``all_members``
 
-.. class:: novus.enums.guild.VerificationLevel
-
-    A representation of a guild's verification level.
+.. autoclass:: novus.enums.VerificationLevel
 
     .. list-table::
         :header-rows: 1
@@ -114,7 +112,7 @@ Guild
         * - ``very_high``
           - Must have a verified phone number.
 
-.. class:: novus.enums.guild.NotificationLevel
+.. autoclass:: novus.enums.NotificationLevel
 
     .. list-table::
         :header-rows: 1
@@ -126,7 +124,7 @@ Guild
 Sticker
 ~~~~~~~
 
-.. class:: novus.enums.sticker.StickerType
+.. autoclass:: novus.enums.StickerType
 
     .. list-table::
         :header-rows: 1
@@ -135,7 +133,7 @@ Sticker
         * - ``standard``
         * - ``guild``
 
-.. class:: novus.enums.sticker.StickerFormat
+.. autoclass:: novus.enums.StickerFormat
 
     .. list-table::
         :header-rows: 1

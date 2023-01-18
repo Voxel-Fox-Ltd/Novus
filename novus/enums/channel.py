@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,27 +15,23 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .guild import *
-from .sticker import *
-from .channel import *
-from .locale import *
+from enum import Enum
 
 __all__ = (
-    # guild
-    'NSFWLevel',
-    'PremiumTier',
-    'MFALevel',
-    'ContentFilterLevel',
-    'VerificationLevel',
-    'NotificationLevel',
-
-    # sticker
-    'StickerType',
-    'StickerFormat',
-
-    # channel
     'ChannelType',
-
-    # locale
-    'Locale',
 )
+
+
+class ChannelType(Enum):
+    guild_text = 0
+    dm = 1
+    guild_voice = 2
+    group_dm = 3
+    guild_category = 4
+    guild_announcement = 5
+    announcement_thread = 10
+    public_thread = 11
+    private_thread = 12
+    guild_stage_voice = 13
+    guild_directory = 14
+    guild_forum = 15

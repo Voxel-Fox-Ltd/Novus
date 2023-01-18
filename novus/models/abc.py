@@ -91,7 +91,7 @@ class Messageable:
             The flags to be sent with the message.
         """
 
-        channel_id = await self._get_channel()
+        channel = await self._get_channel()
         data: dict[str, Any] = {}
         if content is not MISSING:
             data["content"] = content
@@ -110,6 +110,6 @@ class Messageable:
         if flags is not MISSING:
             data["flags"] = flags
         return await self._state.channel.create_message(
-            channel_id,
+            channel.id,
             data,
         )

@@ -28,6 +28,8 @@ __all__ = (
 
 
 class NSFWLevel(Enum):
+    """The NSFW level associated with a guild."""
+
     default = 0
     explicit = 1
     safe = 2
@@ -35,6 +37,8 @@ class NSFWLevel(Enum):
 
 
 class PremiumTier(Enum):
+    """The premium tier that a guild is currently at."""
+
     none = 0
     tier_1 = 1
     tier_2 = 2
@@ -42,17 +46,23 @@ class PremiumTier(Enum):
 
 
 class MFALevel(Enum):
+    """The MFA level set for a guild."""
+
     none = 0
     elevated = 1
 
 
 class ContentFilterLevel(Enum):
+    """The content filter set for a guild."""
+
     disabled = 0
     members_without_roles = 1
     all_members = 2
 
 
 class VerificationLevel(Enum):
+    """The verification level set for a guild."""
+
     none = 0
     low = 1
     medium = 2
@@ -61,5 +71,7 @@ class VerificationLevel(Enum):
 
 
 class NotificationLevel(Enum):
+    """The default notification level set for a guild."""
+
     all_messages = 0
     only_mentions = 1
