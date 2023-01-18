@@ -6,6 +6,8 @@ ABCs and Mixins
 
 .. autoclass:: novus.models.abc.Snowflake
 
+.. autoclass:: novus.models.abc.StateSnowflake
+
 .. autoclass:: novus.models.mixins.Messageable
     :members:
 

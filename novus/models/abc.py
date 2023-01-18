@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from ..api import HTTPConnection
 
 __all__ = (
     'Snowflake',
@@ -37,3 +40,21 @@ class Snowflake(Protocol):
 
     __slots__ = ()
     id: int
+
+
+@runtime_checkable
+class StateSnowflake(Protocol):
+    """
+    An ABC for Discord models that has a state attached.
+
+    Attributes
+    ----------
+    id : int
+        The model's unique ID.
+    _state : novus.api.HTTPConection
+        The HTTP connection state.
+    """
+
+    __slots__ = ()
+    id: int
+    _state: HTTPConnection

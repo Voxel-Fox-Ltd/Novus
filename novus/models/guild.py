@@ -19,7 +19,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypeAlias
 
-from .abc import Snowflake
 from .mixins import Hashable
 from .role import Role
 from .asset import Asset
@@ -41,6 +40,7 @@ from ..utils import MISSING, try_snowflake, generate_repr, cached_slot_property
 if TYPE_CHECKING:
     import io
 
+    from .abc import Snowflake, StateSnowflake
     from ..api import HTTPConnection
     from ..payloads import (
         Guild as APIGuildPayload,
@@ -323,7 +323,7 @@ class Guild(Hashable):
         return await state.guild.get_guild(id)
 
     async def edit(
-            self,
+            self: StateSnowflake,
             *,
             name: str = MISSING,
             verification_level: VerificationLevel | None = MISSING,
@@ -443,15 +443,13 @@ class Guild(Hashable):
             updates["description"] = description
         if premium_progress_bar_enabled is not None:
             updates["premium_progress_bar_enabled"] = premium_progress_bar_enabled
-        if not updates:
-            return self
         return await self._state.guild.modify_guild(
             self.id,
             reason=reason,
             **updates,
         )
 
-    async def delete(self) -> None:
+    async def delete(self: StateSnowflake) -> None:
         """
         Delete the current guild permanently. You must be the owner of the
         guild to run this successfully.
