@@ -56,7 +56,7 @@ class Emoji:
     available : bool
         If the emoji is available. May be ``False`` in the case that the guild
         has lost nitro boosts.
-    asset : novus.Asset | None
+    asset : novus.models.Asset | None
         The asset associated with the emoji, if it's a custom emoji.
     """
 

@@ -49,7 +49,7 @@ class Role:
         Whether the role is pinned in the user listing.
     icon_hash : str | None
         The hash associated with the role icon.
-    icon : novus.Asset | None
+    icon : novus.models.Asset | None
         The asset associated with the role icon.
     unicode_emoji : str | None
         The role unicode emoji.
@@ -61,7 +61,7 @@ class Role:
             The position of the role is calculated as a pair of the role's
             position attribute and it's ID attribute. Positions in a guild can
             be shared by multiple roles, or skipped entirely.
-    permissions : novus.Permissions
+    permissions : novus.flags.Permissions
         The permissions for the role.
     managed : bool
         Whether the role is managed by an integration.

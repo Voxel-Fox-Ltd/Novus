@@ -47,16 +47,16 @@ class Sticker:
         The name of the sticker.
     description : str
         The description of the sticker.
-    type : novus.enums.sticker.StickerType
+    type : novus.enums.StickerType
         The type of the sticker.
-    format_type : novus.enums.sticker.StickerFormat
+    format_type : novus.enums.StickerFormat
         The format for the sticker.
     available : bool
         Whether or not the sticker can be used. May be ``False`` due to loss of
         nitro boosts.
     guild_id : int | None
         The ID of the guild associated with the sticker.
-    asset : novus.Asset
+    asset : novus.models.Asset
         The asset associated with the sticker.
     """
 

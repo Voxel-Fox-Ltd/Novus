@@ -69,15 +69,15 @@ class Guild(Hashable):
         The name of the guild.
     icon_hash : str | None
         The hash associated with the guild's icon.
-    icon : novus.Asset | None
+    icon : novus.models.Asset | None
         The asset associated with the guild's icon hash.
     splash_hash : str | None
         The hash associated with the guild's splash.
-    splash : novus.Asset | None
+    splash : novus.models.Asset | None
         The asset associated with the guild's splash hash.
     discovery_splash_hash : str | None
         The hash associated with the guild's discovery splash.
-    discovery_splash : novus.Asset | None
+    discovery_splash : novus.models.Asset | None
         The asset associated with the guild's discovery splash hash.
     owner_id : int
         The ID of the user that owns the guild.
@@ -93,9 +93,9 @@ class Guild(Hashable):
         The default message notification level.
     explicit_content_filter : novus.enums.ContentFilterLevel
         The explicit content filter level.
-    roles : list[novus.Role]
+    roles : list[novus.models.Role]
         The roles associated with the guild, as returned from the cache.
-    emojis : list[novus.Emoji]
+    emojis : list[novus.models.Emoji]
         The emojis associated with the guild, as returned from the cache.
     features : list[str]
         A list of guild features.
@@ -121,13 +121,13 @@ class Guild(Hashable):
         The guild's description.
     banner_hash : str | None
         The hash associated with the guild's banner splash.
-    banner : novus.Asset | None
+    banner : novus.models.Asset | None
         The asset associated with the guild's banner splash hash.
     premium_tier : novus.enums.PremiumTier
         The premium tier of the guild.
     premium_subscription_count : int
         The number of boosts the guild currently has.
-    preferred_locale : novus.Locale
+    preferred_locale : novus.enums.Locale
         The locale for the guild, if set. Defaults to US English.
     public_updates_channel_id : int | None
         The ID of the channel when admins and moderators of community guilds
@@ -140,11 +140,11 @@ class Guild(Hashable):
     approximate_presence_count : int | None
         The approximate number of non-offline members in the guild. Present
         in guild GET requests when ``with_counts`` is ``True``.
-    welcome_screen : novus.WelcomeScreen | None
+    welcome_screen : novus.models.WelcomeScreen | None
         The welcome screen of a community guild.
     nsfw_level : novus.enums.NSFWLevel
         The guild NSFW level.
-    stickers : list[novus.Sticker]
+    stickers : list[novus.models.Sticker]
         The list of stickers added to the guild.
     premium_progress_bar_enabled : bool
         Whether or not the progress bar is enabled.
@@ -310,7 +310,7 @@ class Guild(Hashable):
 
         Returns
         -------
-        novus.Guild
+        novus.models.Guild
             The guild associated with the given ID.
         """
 
@@ -396,7 +396,7 @@ class Guild(Hashable):
 
         Returns
         -------
-        novus.Guild
+        novus.models.Guild
             The updated guild.
         """
 
@@ -464,7 +464,7 @@ class OauthGuild(Guild):
     ----------
     owner : bool
         Whether the authenticated user owns the guild.
-    permissions : novus.Permissions
+    permissions : novus.flags.Permissions
         The authenticated user's permissions in the guild.
     """
 
@@ -486,17 +486,17 @@ class GuildPreview(Hashable):
         The name of the guild.
     icon_hash : str | None
         The icon hash for the guild.
-    icon : novus.Asset | None
+    icon : novus.models.Asset | None
         The icon asset associated with the guild.
     splash_hash : str | None
         The splash hash for the guild.
-    splash : novus.Asset | None
+    splash : novus.models.Asset | None
         The splash asset associated with the guild.
     discovery_splash_hash : str | None
         The discovery splash hash for the guild.
-    discovery_splash : novus.Asset | None
+    discovery_splash : novus.models.Asset | None
         The discovery splash asset associated with the guild.
-    emojis : list[novus.Emoji]
+    emojis : list[novus.models.Emoji]
         A list of emojis in the guild.
     features : list[str]
         A list of features that the guild has.
@@ -506,7 +506,7 @@ class GuildPreview(Hashable):
         The approximate online member count for the guild.
     description : str
         The description of the guild.
-    stickers : list[novus.Sticker]
+    stickers : list[novus.models.Sticker]
         A list of the stickers in the guild.
     """
 

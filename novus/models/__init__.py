@@ -1,3 +1,5 @@
+# flake8: noqa
+
 """
 Copyright (c) Kae Bartlett
 
@@ -15,44 +17,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import abc
-from .guild import Guild, OauthGuild, GuildPreview
-from .emoji import Emoji
-from .role import Role
-from .asset import Asset
-from .welcome_screen import WelcomeScreen, WelcomeScreenChannel
-from .sticker import Sticker
-from .message import AllowedMentions, Embed, File, Message, MessageReference
-
-__all__ = (
-    # abc
-    'abc',
-
-    # guild
-    'Guild',
-    'GuildPreview',
-    'OauthGuild',
-
-    # emoji
-    'Emoji',
-
-    # role
-    'Role',
-
-    # asset
-    'Asset',
-
-    # welcome_screen
-    'WelcomeScreen',
-    'WelcomeScreenChannel',
-
-    # sticker
-    'Sticker',
-
-    # message
-    'AllowedMentions',
-    'Embed',
-    'File',
-    'Message',
-    'MessageReference',
-)
+from . import abc, mixins
+from .guild import *
+from .emoji import *
+from .role import *
+from .asset import *
+from .welcome_screen import *
+from .sticker import *
+from .message import *
+from .channel import *

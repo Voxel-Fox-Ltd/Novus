@@ -1,12 +1,12 @@
 API Reference
 ==============
 
-Abstract Base Classes
+ABCs and Mixins
 ---------------------
 
 .. autoclass:: novus.abc.Snowflake
 
-.. autoclass:: novus.abc.Messageable
+.. autoclass:: novus.mixins.Messageable
     :members:
 
 Enums
@@ -147,7 +147,7 @@ Sticker
 Flags
 ------
 
-.. class:: novus.Permissions
+.. class:: novus.flags.Permissions
 
     A permission set from Discord's API.
 
@@ -272,38 +272,38 @@ Utils
 Discord Models
 --------------
 
-.. autoclass:: novus.Guild
+.. autoclass:: novus.models.Guild
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.Sticker
+.. autoclass:: novus.models.Sticker
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.Emoji
+.. autoclass:: novus.models.Emoji
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.Role
+.. autoclass:: novus.models.Role
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.Asset
+.. autoclass:: novus.models.Asset
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.Message
+.. autoclass:: novus.models.Message
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.WelcomeScreen
+.. autoclass:: novus.models.WelcomeScreen
     :members:
     :no-members: __init__
 
 Discord Oauth Containers
 ------------------------
 
-.. autoclass:: novus.oauth.OauthGuild
+.. autoclass:: novus.models.OauthGuild
     :members:
     :inherited-members:
     :no-members: __init__
@@ -311,19 +311,23 @@ Discord Oauth Containers
 Discord Data Containers
 -----------------------
 
-.. autoclass:: novus.AllowedMentions
+.. autoclass:: novus.models.AllowedMentions
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.Embed
+.. autoclass:: novus.models.Embed
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.File
+.. autoclass:: novus.models.File
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.MessageReference
+.. autoclass:: novus.models.MessageReference
+    :special-members: __init__
+    :members:
+
+.. autoclass:: novus.models.PermissionOverwrite
     :special-members: __init__
     :members:
 

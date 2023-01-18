@@ -17,36 +17,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, enums, flags, utils, oauth, api
-from .models import *
-
-__all__ = (
-    # Modules
-    'abc',
-    'payloads',
-    'enums',
-    'flags',
-    'utils',
-    'oauth',
-    'api',
-
-    # Models
-    'abc',
-    'Guild',
-    'GuildPreview',
-    'OauthGuild',
-    'Emoji',
-    'Role',
-    'Asset',
-    'WelcomeScreen',
-    'Sticker',
-
-    # Aliases
-    'Permissions',
-    'Locale',
+from . import (
+    payloads,
+    enums,
+    flags,
+    utils,
+    oauth,
+    api,
+    models,
 )
-
-
-# Alias commonly used types
-Permissions = flags.Permissions
-Locale = enums.Locale
