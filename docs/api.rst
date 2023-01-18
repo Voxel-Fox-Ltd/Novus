@@ -6,6 +6,9 @@ Abstract Base Classes
 
 .. autoclass:: novus.abc.Snowflake
 
+.. autoclass:: novus.abc.Messageable
+    :members:
+
 Enums
 ------
 
@@ -199,7 +202,7 @@ Flags
 Application
 ~~~~~~~~~~~~
 
-.. class:: novus.flags.application.ApplicationFlags
+.. class:: novus.flags.ApplicationFlags
 
     The public flags for an application.
 
@@ -235,10 +238,24 @@ Application
         * - ``verification_pending_guild_limit``
           - Indicates unusual growth of an app that prevents verification.
 
+Message
+~~~~~~~
+
+.. class:: novus.flags.MessageFlags
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``suppress_join_notifications``
+        * - ``suppress_premium_subscriptions``
+        * - ``suppress_guild_reminder_notifications``
+        * - ``suppress_join_notification_replies``
+
 Guild
 ~~~~~~
 
-.. class:: novus.flags.guild.SystemChannelFlags
+.. class:: novus.flags.SystemChannelFlags
 
     Flags for a system channel within a guild.
 
@@ -254,16 +271,11 @@ Guild
 Utils
 --------
 
-Models
--------
+Discord Models
+--------------
 
 .. autoclass:: novus.Guild
     :members:
-    :no-members: __init__
-
-.. autoclass:: novus.oauth.OauthGuild
-    :members:
-    :inherited-members:
     :no-members: __init__
 
 .. autoclass:: novus.Sticker
@@ -282,9 +294,40 @@ Models
     :members:
     :no-members: __init__
 
+.. autoclass:: novus.Message
+    :members:
+    :no-members: __init__
+
 .. autoclass:: novus.WelcomeScreen
     :members:
     :no-members: __init__
+
+Discord Oauth Containers
+------------------------
+
+.. autoclass:: novus.oauth.OauthGuild
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
+Discord Data Containers
+-----------------------
+
+.. autoclass:: novus.AllowedMentions
+    :special-members: __init__
+    :members:
+
+.. autoclass:: novus.Embed
+    :special-members: __init__
+    :members:
+
+.. autoclass:: novus.File
+    :special-members: __init__
+    :members:
+
+.. autoclass:: novus.MessageReference
+    :special-members: __init__
+    :members:
 
 API
 ----

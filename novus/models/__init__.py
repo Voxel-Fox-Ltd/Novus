@@ -22,6 +22,7 @@ from .role import Role
 from .asset import Asset
 from .welcome_screen import WelcomeScreen, WelcomeScreenChannel
 from .sticker import Sticker
+from .message import AllowedMentions, Embed, File, Message, MessageReference
 
 __all__ = (
     # abc
@@ -47,4 +48,11 @@ __all__ = (
 
     # sticker
     'Sticker',
+
+    # message
+    'AllowedMentions',
+    'Embed',
+    'File',
+    'Message',
+    'MessageReference',
 )
