@@ -20,12 +20,14 @@ from typing import Any
 from .snowflakes import try_snowflake
 from .repr import generate_repr
 from .files import bytes_to_base64_data, get_mime_type_for_image
+from .cached_slots import cached_slot_property
 
 __all__ = (
     'try_snowflake',
     'generate_repr',
     'bytes_to_base64_data',
     'get_mime_type_for_image',
+    'cached_slot_property',
     'MISSING',
 )
 
