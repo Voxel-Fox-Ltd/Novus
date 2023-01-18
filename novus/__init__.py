@@ -22,7 +22,6 @@ from . import (
     enums,
     flags,
     utils,
-    oauth,
     api,
     models,
 )
