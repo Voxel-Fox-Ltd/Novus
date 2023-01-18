@@ -241,17 +241,17 @@ class Guild(Hashable):
         if 'welcome_screen' in data:
             self.welcome_screen = WelcomeScreen(data=data['welcome_screen'])
         self.emojis = [
-            Emoji(state=self._state, data=d)
+            Emoji(state=self._state, data=d, guild=self)
             for d in data['emojis']
         ]
         self.stickers = [
-            Sticker(state=self._state, data=d)
+            Sticker(state=self._state, data=d, guild=self)
             for d in data.get('stickers', list())
         ]
 
         # Gateway attributes
         self._roles = {
-            d['id']: Role(state=self._state, data=d)
+            d['id']: Role(state=self._state, data=d, guild=self)
             for d in data['roles']
         }  # Guild role crate/update/delete
         self._members = {
@@ -480,7 +480,7 @@ class OauthGuild(Guild):
         super().__init__(state=state, data=data)
 
 
-class GuildPreview(Hashable):
+class GuildPreview:
     """
     A model for the preview of a guild.
 
@@ -529,6 +529,10 @@ class GuildPreview(Hashable):
         'approximate_presence_count',
         'description',
         'stickers',
+
+        '_cs_icon',
+        '_cs_splash',
+        '_cs_discovery_splash',
     )
 
     def __init__(self, *, state: HTTPConnection, data: GuildPreviewPayload):
@@ -539,7 +543,7 @@ class GuildPreview(Hashable):
         self.splash_hash = data.get('splash')
         self.discovery_splash_hash = data.get('discovery_splash')
         self.emojis = [
-            Emoji(state=self._state, data=i)
+            Emoji(state=self._state, data=i, guild=self)
             for i in data.get('emojis', list())
         ]
         self.features = data.get('features', list())
@@ -547,18 +551,18 @@ class GuildPreview(Hashable):
         self.approximate_presence_count = data['approximate_presence_count']
         self.description = data.get('description')
         self.stickers = [
-            Sticker(state=self._state, data=i)
+            Sticker(state=self._state, data=i, guild=self)
             for i in data.get('stickers', list())
         ]
 
-    @property
+    @cached_slot_property('_cs_icon')
     def icon(self) -> Asset:
         return Asset.from_guild_icon(self)
 
-    @property
+    @cached_slot_property('_cs_splash')
     def splash(self) -> Asset:
         return Asset.from_guild_splash(self)
 
-    @property
+    @cached_slot_property('_cs_discovery_splash')
     def discovery_splash(self) -> Asset:
         return Asset.from_guild_discovery_splash(self)

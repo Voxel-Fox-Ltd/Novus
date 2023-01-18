@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'HTTPConnection',
+    'OauthHTTPConnection',
 )
 
 log = logging.getLogger("novus.api")
@@ -53,9 +54,11 @@ class HTTPConnection:
     guild : GuildHTTPConnection
     """
 
-    def __init__(self, token: str, auth_prefix: str = 'Bot'):
+    AUTH_PREFIX: str = "Bot"
+
+    def __init__(self, token: str):
         self._session: aiohttp.ClientSession | None = None
-        self._token = f"{auth_prefix} {token}"
+        self._token = f"{self.AUTH_PREFIX} {token}"
 
         # Specific routes
         self.guild = GuildHTTPConnection(self)
@@ -189,3 +192,7 @@ class HTTPConnection:
                     raise ValueError("Unsupported type %s" % type(given_arg))
                 updated[updated_key] = encoded
         return updated
+
+
+class OauthHTTPConnection(HTTPConnection):
+    AUTH_PREFIX: str = "Bearer"

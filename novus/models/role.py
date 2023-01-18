@@ -18,13 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-import functools
 
 from .asset import Asset
-from ..utils import try_snowflake
+from ..utils import try_snowflake, cached_slot_property
 from ..flags import Permissions
 
 if TYPE_CHECKING:
+    from .abc import Snowflake
     from ..api import HTTPConnection
     from ..payloads import Role as RolePayload
 
@@ -69,6 +69,8 @@ class Role:
         Whether the role is mentionable.
     tags : list[dict]
         The tags associated with the role.
+    guild : novus.models.abc.Snowflake
+        The guild (or a data container for the ID) that the emoji came from.
     """
 
     __slots__ = (
@@ -84,9 +86,12 @@ class Role:
         'managed',
         'mentionable',
         'tags',
+        'guild',
+
+        '_cs_icon',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: RolePayload):
+    def __init__(self, *, state: HTTPConnection, data: RolePayload, guild: Snowflake):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
@@ -99,9 +104,9 @@ class Role:
         self.managed = data['managed']
         self.mentionable = data['mentionable']
         self.tags = data.get('role_tags', list())
+        self.guild: Snowflake = guild
 
-    @property
-    @functools.cache
+    @cached_slot_property('_cs_icon')
     def icon(self) -> Asset | None:
         if self.icon_hash is None:
             return None

@@ -23,6 +23,7 @@ from .asset import Asset
 from ..utils import try_snowflake, generate_repr, cached_slot_property
 
 if TYPE_CHECKING:
+    from .abc import Snowflake
     from ..api import HTTPConnection
     from ..payloads import Emoji as EmojiPayload
 
@@ -56,6 +57,8 @@ class Emoji:
         has lost nitro boosts.
     asset : novus.models.Asset | None
         The asset associated with the emoji, if it's a custom emoji.
+    guild : novus.models.abc.Snowflake
+        The guild (or a data container for the ID) that the emoji came from.
     """
 
     __slots__ = (
@@ -67,10 +70,12 @@ class Emoji:
         'managed',
         'animated',
         'available',
+        'guild',
+
         '_cs_asset',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: EmojiPayload):
+    def __init__(self, *, state: HTTPConnection, data: EmojiPayload, guild: Snowflake):
         self._state = state
         if data['id'] is None:
             raise ValueError("Emoji ID cannot be None")
@@ -81,6 +86,7 @@ class Emoji:
         self.managed = data.get('managed', False)
         self.animated = data.get('animated', False)
         self.available = data.get('available', True)
+        self.guild: Snowflake = guild
 
     def __str__(self) -> str:
         if self.animated:

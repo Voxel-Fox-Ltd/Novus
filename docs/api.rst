@@ -296,12 +296,11 @@ Discord Models
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.models.WelcomeScreen
-    :members:
-    :no-members: __init__
-
-Discord Oauth Containers
+Discord Oauth Models
 ------------------------
+
+Oauth models are much the same as other models, but returned when you're
+authenticated via an Oauth access token.
 
 .. autoclass:: novus.models.OauthGuild
     :members:
@@ -330,6 +329,14 @@ Discord Data Containers
 .. autoclass:: novus.models.PermissionOverwrite
     :special-members: __init__
     :members:
+
+.. autoclass:: novus.models.WelcomeScreen
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.models.GuildPreview
+    :members:
+    :no-members: __init__
 
 API
 ----

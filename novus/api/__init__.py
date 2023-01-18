@@ -16,11 +16,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from ._route import Route
-from ._http import HTTPConnection
+from ._http import HTTPConnection, OauthHTTPConnection
 from .guild import GuildHTTPConnection
 
 __all__ = (
     'Route',
     'HTTPConnection',
+    'OauthHTTPConnection',
     'GuildHTTPConnection',
 )

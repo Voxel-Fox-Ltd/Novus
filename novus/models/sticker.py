@@ -16,17 +16,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from __future__ import annotations
-import functools
 
 from typing import TYPE_CHECKING
 
 from .asset import Asset
 from ..enums import sticker as sticker_enums
-from ..utils import try_snowflake
+from ..utils import try_snowflake, cached_slot_property
 
 if TYPE_CHECKING:
-    from ..api import HTTPConnection
+    from .abc import Snowflake
     from ..payloads import Sticker as StickerPayload
+    from ..api import HTTPConnection
 
 __all__ = (
     'Sticker',
@@ -58,6 +58,8 @@ class Sticker:
         The ID of the guild associated with the sticker.
     asset : novus.models.Asset
         The asset associated with the sticker.
+    guild : novus.models.abc.Snowflake
+        The guild (or a data container for the ID) that the emoji came from.
     """
 
     __slots__ = (
@@ -69,10 +71,12 @@ class Sticker:
         'type',
         'format_type',
         'available',
-        'guild_id',
+        'guild',
+
+        '_cs_asset',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: StickerPayload):
+    def __init__(self, *, state: HTTPConnection, data: StickerPayload, guild: Snowflake):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.pack_id = try_snowflake(data.get('pack_id'))
@@ -81,9 +85,8 @@ class Sticker:
         self.type = sticker_enums.StickerType(data['type'])
         self.format_type = sticker_enums.StickerFormat(data['format_type'])
         self.available = data.get('available', True)
-        self.guild_id = data.get('guild_id')
+        self.guild = guild
 
-    @property
-    @functools.cache
+    @cached_slot_property('_cs_asset')
     def asset(self) -> Asset:
         return Asset.from_sticker(self)
