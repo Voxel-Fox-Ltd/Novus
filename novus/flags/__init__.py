@@ -15,14 +15,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import guild
 from .application import ApplicationFlags
 from .permissions import Permissions
 from .message import MessageFlags
 from .guild import SystemChannelFlags
 
 __all__ = (
-    'guild',
     'ApplicationFlags',
     'Permissions',
     'MessageFlags',

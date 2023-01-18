@@ -27,8 +27,16 @@ from .asset import Asset
 from .emoji import Emoji
 from .welcome_screen import WelcomeScreen
 from .sticker import Sticker
-from ..flags import Permissions, guild as guild_flags
-from ..enums import Locale, guild as guild_enums
+from ..flags import Permissions, SystemChannelFlags
+from ..enums import (
+    Locale,
+    VerificationLevel,
+    NotificationLevel,
+    ContentFilterLevel,
+    MFALevel,
+    PremiumTier,
+    NSFWLevel,
+)
 from ..utils import MISSING, try_snowflake, generate_repr
 
 if TYPE_CHECKING:
@@ -79,11 +87,11 @@ class Guild(Hashable):
         Whether or not the widget for the guild is enabled.
     widget_channel_id : int | None
         If the widget is enabled, this will be the ID of the widget's channel.
-    verification_level : novus.enums.guild.VerificationLevel
+    verification_level : novus.enums.VerificationLevel
         The verification level required for the guild.
-    default_message_notifications : novus.enums.guild.NotificationLevel
+    default_message_notifications : novus.enums.NotificationLevel
         The default message notification level.
-    explicit_content_filter : novus.enums.guild.ContentFilterLevel
+    explicit_content_filter : novus.enums.ContentFilterLevel
         The explicit content filter level.
     roles : list[novus.Role]
         The roles associated with the guild, as returned from the cache.
@@ -91,14 +99,14 @@ class Guild(Hashable):
         The emojis associated with the guild, as returned from the cache.
     features : list[str]
         A list of guild features.
-    mfa_level : novus.enums.guild.MFALevel
+    mfa_level : novus.enums.MFALevel
         The required MFA level for the guild.
     application_id : int | None
         The application ID of the guild creator, if the guild is bot-created.
     system_channel_id: int | None
         The ID of the channel where guild notices (such as welcome messages
         and boost events) are posted.
-    system_channel_flags : novus.flags.guild.SystemChannelFlags
+    system_channel_flags : novus.flags.SystemChannelFlags
         The flags associated with the guild's system channel.
     rules_channel_id : int | None
         The ID of the guild's rules channel.
@@ -115,7 +123,7 @@ class Guild(Hashable):
         The hash associated with the guild's banner splash.
     banner : novus.Asset | None
         The asset associated with the guild's banner splash hash.
-    premium_tier : novus.enums.guild.PremiumTier
+    premium_tier : novus.enums.PremiumTier
         The premium tier of the guild.
     premium_subscription_count : int
         The number of boosts the guild currently has.
@@ -134,7 +142,7 @@ class Guild(Hashable):
         in guild GET requests when ``with_counts`` is ``True``.
     welcome_screen : novus.WelcomeScreen | None
         The welcome screen of a community guild.
-    nsfw_level : novus.enums.guild.NSFWLevel
+    nsfw_level : novus.enums.NSFWLevel
         The guild NSFW level.
     stickers : list[novus.Sticker]
         The list of stickers added to the guild.
@@ -192,9 +200,9 @@ class Guild(Hashable):
         self.owner_id = try_snowflake(data['owner_id'])
         self.afk_channel_id = try_snowflake(data['afk_channel_id'])
         self.afk_timeout = data['afk_timeout']
-        self.verification_level = guild_enums.VerificationLevel(data['verification_level'])
-        self.default_message_notifications = guild_enums.NotificationLevel(data['default_message_notifications'])
-        self.explicit_content_filter = guild_enums.ContentFilterLevel(data['explicit_content_filter'])
+        self.verification_level = VerificationLevel(data['verification_level'])
+        self.default_message_notifications = NotificationLevel(data['default_message_notifications'])
+        self.explicit_content_filter = ContentFilterLevel(data['explicit_content_filter'])
         self._roles = {
             d['id']: Role(state=self._state, data=d)
             for d in data['roles']
@@ -204,18 +212,18 @@ class Guild(Hashable):
             for d in data['emojis']
         }
         self.features = data['features']
-        self.mfa_level = guild_enums.MFALevel(data['mfa_level'])
+        self.mfa_level = MFALevel(data['mfa_level'])
         self.application_id = try_snowflake(data['application_id'])
         self.system_channel_id = try_snowflake(data['system_channel_id'])
-        self.system_channel_flags = guild_flags.SystemChannelFlags(data['system_channel_flags'])
+        self.system_channel_flags = SystemChannelFlags(data['system_channel_flags'])
         self.rules_channel_id = try_snowflake(data['rules_channel_id'])
         self.vanity_url_code = data['vanity_url_code']
         self.description = data['description']
         self.banner_hash = data['banner']
-        self.premium_tier = guild_enums.PremiumTier(data['premium_tier'])
+        self.premium_tier = PremiumTier(data['premium_tier'])
         self.preferred_locale = Locale(data['preferred_locale'])
         self.public_updates_channel_id = try_snowflake(data['public_updates_channel_id'])
-        self.nsfw_level = guild_enums.NSFWLevel(data.get('nsfw_level', 0))
+        self.nsfw_level = NSFWLevel(data.get('nsfw_level', 0))
         self.premium_progress_bar_enabled = data.get('premium_progress_bar_enabled', False)
 
         # Now onto the optional attrs
@@ -312,9 +320,9 @@ class Guild(Hashable):
             self,
             *,
             name: str = MISSING,
-            verification_level: guild_enums.VerificationLevel | None = MISSING,
-            default_message_notifications: guild_enums.NotificationLevel | None = MISSING,
-            explicit_content_filter: guild_enums.ContentFilterLevel | None = MISSING,
+            verification_level: VerificationLevel | None = MISSING,
+            default_message_notifications: NotificationLevel | None = MISSING,
+            explicit_content_filter: ContentFilterLevel | None = MISSING,
             afk_channel: Snowflake | None = MISSING,
             icon: File | None = MISSING,
             owner: Snowflake = MISSING,
@@ -322,7 +330,7 @@ class Guild(Hashable):
             discovery_splash: File | None = MISSING,
             banner: File | None = MISSING,
             system_channel: Snowflake | None = MISSING,
-            system_channel_flags: guild_flags.SystemChannelFlags | None = MISSING,
+            system_channel_flags: SystemChannelFlags | None = MISSING,
             rules_channel: Snowflake | None = MISSING,
             preferred_locale: Locale | None = MISSING,
             public_updates_channel: Snowflake = MISSING,
