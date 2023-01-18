@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypeAlias
-import functools
 
 from .abc import Snowflake
 from .mixins import Hashable
@@ -37,7 +36,7 @@ from ..enums import (
     PremiumTier,
     NSFWLevel,
 )
-from ..utils import MISSING, try_snowflake, generate_repr
+from ..utils import MISSING, try_snowflake, generate_repr, cached_slot_property
 
 if TYPE_CHECKING:
     import io
@@ -186,8 +185,21 @@ class Guild(Hashable):
         'premium_subscription_count',
         'max_video_channel_users',
         'approximate_member_count',
-        '_welcome_screen',
-        '_stickers',
+        'welcome_screen',
+        'emojis',
+        'stickers',
+
+        '_roles',
+        '_members',
+        '_guild_scheduled_events',
+        '_threads',
+        '_voice_states',
+        '_channels',
+
+        '_cs_icon',
+        '_cs_splash',
+        '_cs_discovery_splash',
+        '_cs_banner',
     )
 
     def __init__(self, *, state: HTTPConnection, data: GuildPayload):
@@ -203,14 +215,6 @@ class Guild(Hashable):
         self.verification_level = VerificationLevel(data['verification_level'])
         self.default_message_notifications = NotificationLevel(data['default_message_notifications'])
         self.explicit_content_filter = ContentFilterLevel(data['explicit_content_filter'])
-        self._roles = {
-            d['id']: Role(state=self._state, data=d)
-            for d in data['roles']
-        }
-        self._emojis = {
-            d['id']: Emoji(state=self._state, data=d)
-            for d in data['emojis']
-        }
         self.features = data['features']
         self.mfa_level = MFALevel(data['mfa_level'])
         self.application_id = try_snowflake(data['application_id'])
@@ -226,7 +230,7 @@ class Guild(Hashable):
         self.nsfw_level = NSFWLevel(data.get('nsfw_level', 0))
         self.premium_progress_bar_enabled = data.get('premium_progress_bar_enabled', False)
 
-        # Now onto the optional attrs
+        # Optional attrs
         self.widget_enabled = data.get('widget_enabled', False)
         self.widget_channel_id = try_snowflake(data.get('widget_channel_id'))
         self.max_presences = data.get('max_presences')
@@ -234,36 +238,62 @@ class Guild(Hashable):
         self.premium_subscription_count = data.get('premium_subscription_count', 0)
         self.max_video_channel_users = data.get('max_video_channel_users')
         self.approximate_member_count = data.get('approximate_member_count')
-        self._welcome_screen = data.get('welcome_screen')
-        self._stickers = {
-            d['id']: Sticker(state=self._state, data=d)
+        self.welcome_screen = None
+        if 'welcome_screen' in data:
+            self.welcome_screen = WelcomeScreen(data=data['welcome_screen'])
+        self.emojis = [
+            Emoji(state=self._state, data=d)
+            for d in data['emojis']
+        ]
+        self.stickers = [
+            Sticker(state=self._state, data=d)
             for d in data.get('stickers', list())
+        ]
+
+        # Gateway attributes
+        self._roles = {
+            d['id']: Role(state=self._state, data=d)
+            for d in data['roles']
+        }  # Guild role crate/update/delete
+        self._members = {
+            d['id']: None
+            for d in data.get('members', list())
+        }  # Guild member add/remove/update/chunk
+        self._guild_scheduled_events = {
+            d['id']: None
+            for d in data.get('guild_scheduled_events', list())
+        }  # Guild scheduled event create/update/delete/useradd/userremove
+        self._threads = {
+            d['id']: None
+            for d in data.get('threads', list())
+        }  # Thread create/update/delete/listsync
+        self._voice_states = {
+            d['id']: None
+            for d in data.get('voice_states', list())
         }
+        self._channels = {
+            d['id']: None
+            for d in data.get('channels', list())
+        }  # Channel create/update/delete/pinsupdate
 
     __repr__ = generate_repr(('id', 'name',))
 
-    @property
-    @functools.cache
+    @cached_slot_property('_cs_icon')
     def icon(self) -> Asset:
         return Asset.from_guild_icon(self)
 
-    @property
-    @functools.cache
+    @cached_slot_property('_cs_splash')
     def splash(self) -> Asset:
         return Asset.from_guild_splash(self)
 
-    @property
-    @functools.cache
+    @cached_slot_property('_cs_discovery_splash')
     def discovery_splash(self) -> Asset:
         return Asset.from_guild_discovery_splash(self)
 
-    @property
-    @functools.cache
+    @cached_slot_property('_cs_banner')
     def banner(self) -> Asset:
         return Asset.from_guild_banner(self)
 
-    @property
-    @functools.cache
     def roles(self) -> list[Role]:
         return [
             i
@@ -271,35 +301,12 @@ class Guild(Hashable):
             self._roles.values()
         ]
 
-    @property
-    @functools.cache
-    def emojis(self) -> list[Emoji]:
-        return [
-            i
-            for i in
-            self._emojis.values()
-        ]
-
-    @property
-    @functools.cache
-    def welcome_screen(self) -> WelcomeScreen | None:
-        if self._welcome_screen is None:
-            return None
-        return WelcomeScreen(data=self._welcome_screen)
-
-    @property
-    @functools.cache
-    def stickers(self) -> list[Sticker]:
-        return [
-            i
-            for i in
-            self._stickers.values()
-        ]
-
     @classmethod
     async def fetch(cls, state: HTTPConnection, id: int) -> Guild:
         """
-        Get an instance of a guild.
+        Get an instance of a guild from the API. Unlike the gateway's
+        ``GUILD_CREATE`` payload, this method does not return members, channels,
+        or voice states.
 
         Parameters
         ----------

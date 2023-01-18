@@ -19,10 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import functools
-
 from .asset import Asset
-from ..utils import try_snowflake, generate_repr
+from ..utils import try_snowflake, generate_repr, cached_slot_property
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
@@ -69,6 +67,7 @@ class Emoji:
         'managed',
         'animated',
         'available',
+        '_cs_asset',
     )
 
     def __init__(self, *, state: HTTPConnection, data: EmojiPayload):
@@ -90,8 +89,7 @@ class Emoji:
 
     __repr__ = generate_repr(('id', 'name', 'animated',))
 
-    @property
-    @functools.cache
+    @cached_slot_property('_cs_asset')
     def asset(self) -> Asset | None:
         if self.id is not None:
             return Asset.from_emoji(self)
