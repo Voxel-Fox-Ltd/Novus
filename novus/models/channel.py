@@ -149,7 +149,7 @@ class Channel(Hashable):
 
 class MessageableChannel(Channel, Messageable):
 
-    __slots__ = Channel.__slots__
+    __init__ = Channel.__init__
 
     async def _get_channel(self) -> int:
         return self.id

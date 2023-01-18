@@ -4,9 +4,9 @@ API Reference
 ABCs and Mixins
 ---------------------
 
-.. autoclass:: novus.abc.Snowflake
+.. autoclass:: novus.models.abc.Snowflake
 
-.. autoclass:: novus.mixins.Messageable
+.. autoclass:: novus.models.mixins.Messageable
     :members:
 
 Enums

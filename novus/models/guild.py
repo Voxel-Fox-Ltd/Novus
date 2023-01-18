@@ -358,12 +358,12 @@ class Guild(Hashable):
             The default message notification level you want to set the guild to.
         explicit_content_filter : novus.enums.guild.ContentFilterLevel | None
             The content filter level you want to set the guild to.
-        afk_channel : novus.abc.Snowflake | None
+        afk_channel : novus.models.abc.Snowflake | None
             The channel you want to set as the guild's AFK channel.
         icon : str | bytes | io.IOBase | None
             The icon that you want to set for the guild. Can be its bytes, a
             file path, or a file object.
-        owner : novus.abc.Snowflake
+        owner : novus.models.abc.Snowflake
             The person you want to set as owner of the guild. Can only be run
             if the current user is the existing owner.
         splash : str | bytes | io.IOBase | None
@@ -375,15 +375,15 @@ class Guild(Hashable):
         banner : str | bytes | io.IOBase | None
             The banner for the guild. Can be its bytes, a file path, or a file
             object.
-        system_channel : novus.abc.Snowflake | None
+        system_channel : novus.models.abc.Snowflake | None
             The system channel you want to set for the guild.
         system_channel_flags : novus.flags.guild.SystemChannelFlags | None
             The system channel flags you want to set.
-        rules_channel : novus.abc.Snowflake | None
+        rules_channel : novus.models.abc.Snowflake | None
             The channel you want to set as the rules channel.
         preferred_locale : Locale | None
             The locale you want to set as the guild's preferred.
-        public_updates_channel : novus.abc.Snowflake
+        public_updates_channel : novus.models.abc.Snowflake
             The channel you want to set as the updates channel for the guild.
         features : list[str]
             A list of features for the guild.
