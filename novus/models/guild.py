@@ -43,7 +43,8 @@ if TYPE_CHECKING:
 
     from ..api import HTTPConnection
     from ..payloads import (
-        Guild as GuildPayload,
+        Guild as APIGuildPayload,
+        GatewayGuild as GatewayGuildPayload,
         GuildPreview as GuildPreviewPayload,
     )
 
@@ -162,8 +163,6 @@ class Guild(Hashable):
         'verification_level',
         'default_message_notifications',
         'explicit_content_filter',
-        '_roles',
-        '_emojis',
         'features',
         'mfa_level',
         'application_id',
@@ -202,7 +201,7 @@ class Guild(Hashable):
         '_cs_banner',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: GuildPayload):
+    def __init__(self, *, state: HTTPConnection, data: APIGuildPayload | GatewayGuildPayload):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
@@ -475,7 +474,7 @@ class OauthGuild(Guild):
         The authenticated user's permissions in the guild.
     """
 
-    def __init__(self, *, state, data: GuildPayload):
+    def __init__(self, *, state, data: APIGuildPayload):
         self.owner: bool = data.get('owner', False)
         self.permissions: Permissions = Permissions(int(data.get('permissions', 0)))
         super().__init__(state=state, data=data)

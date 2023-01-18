@@ -33,6 +33,8 @@ __all__ = (
     'UserConnection',
     'ApplicationRoleConnectionMetadata',
     'ApplicationRoleConnection',
+    'Activity',
+    'Presence',
 )
 
 
@@ -109,3 +111,23 @@ class ApplicationRoleConnection(TypedDict):
     platform_name: Optional[str]
     platform_username: Optional[str]
     metadata: dict
+
+
+class _ActivityOptional(TypedDict, total=False):
+    url: Optional[str]
+
+
+class Activity(_ActivityOptional):
+    name: str
+    type: int
+
+
+class _PresenceUser(TypedDict):
+    id: Snowflake
+
+
+class Presence(TypedDict):
+    user: _PresenceUser
+    guild_id: Snowflake
+    status: Literal["idle", "dnd", "online", "offline"]
+    activities: list[Activity]

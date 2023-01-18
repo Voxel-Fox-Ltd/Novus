@@ -18,11 +18,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
+from novus.payloads.stage_instance import StageInstance
+
 if TYPE_CHECKING:
-    from ._util import Snowflake
+    from ._util import Snowflake, Timestamp
     from .emoji import Emoji
-    from .user import User
+    from .user import User, GuildMember, Presence
+    from .voice import VoiceState
     from .sticker import Sticker
+    from .guild_scheduled_event import GuildScheduledEvent
+    from .channel import Channel
 
 __all__ = (
     'RoleTags',
@@ -34,6 +39,7 @@ __all__ = (
     'GuildWelcomeScreen',
     'GuildFeature',
     'Guild',
+    'GatewayGuild',
     'IntegrationApplication',
     'IntegrationAccount',
     'Integration',
@@ -176,6 +182,23 @@ class Guild(_GuildOptional):
     public_updates_channel_id: Optional[Snowflake]
     nsfw_level: Literal[0, 1, 2, 3]
     premium_progress_bar_enabled: bool
+
+
+class _GatewayGuildOptional(TypedDict, total=False):
+    unavailable: bool
+
+
+class GatewayGuild(Guild, _GatewayGuildOptional):
+    joined_at: Timestamp
+    large: bool
+    member_count: int
+    voice_states: list[VoiceState]
+    members: list[GuildMember]
+    channels: list[Channel]
+    threads: list[Channel]
+    presences: list[Presence]
+    stage_instances: list[StageInstance]
+    guild_scheduled_events: list[GuildScheduledEvent]
 
 
 class _IntegrationApplicationOptional(TypedDict, total=False):
