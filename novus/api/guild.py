@@ -20,7 +20,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from ._route import Route
-from .. import models
+from ..models import (
+    Guild,
+    GuildPreview,
+    Channel,
+    Thread,
+    GuildMember,
+    Object,
+    GuildBan,
+    User,
+    Role,
+    Invite,
+)
 
 
 if TYPE_CHECKING:
@@ -39,7 +50,7 @@ class GuildHTTPConnection:
 
     async def create_guild(
             self,
-            **kwargs) -> models.Guild:
+            **kwargs) -> Guild:
         """
         Create a guild.
         """
@@ -52,7 +63,7 @@ class GuildHTTPConnection:
             route,
             data=kwargs,
         )
-        return models.Guild(
+        return Guild(
             state=self.parent,
             data=data,
         )
@@ -61,7 +72,7 @@ class GuildHTTPConnection:
             self,
             guild_id: int,
             /,
-            with_counts: bool = False) -> models.Guild:
+            with_counts: bool = False) -> Guild:
         """
         Get a guild.
         """
@@ -80,14 +91,14 @@ class GuildHTTPConnection:
                 ),
             }
         )
-        return models.Guild(
+        return Guild(
             state=self.parent,
             data=data,
         )
 
     async def get_guild_preview(
             self,
-            guild_id: int, /) -> models.GuildPreview:
+            guild_id: int, /) -> GuildPreview:
         """
         Get a guild preview.
         """
@@ -100,7 +111,7 @@ class GuildHTTPConnection:
         data: payloads.GuildPreview = await self.parent.request(
             route,
         )
-        return models.GuildPreview(
+        return GuildPreview(
             state=self.parent,
             data=data,
         )
@@ -110,7 +121,7 @@ class GuildHTTPConnection:
             guild_id: int,
             /,
             reason: str | None = None,
-            **kwargs) -> models.Guild:
+            **kwargs) -> Guild:
         """
         Edit a guild.
         """
@@ -157,7 +168,7 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        return models.Guild(
+        return Guild(
             state=self.parent,
             data=data,
         )
@@ -179,7 +190,7 @@ class GuildHTTPConnection:
 
     async def get_guild_channels(
             self,
-            guild_id: int, /) -> list[models.Channel]:
+            guild_id: int, /) -> list[Channel]:
         """
         Get guild channels.
         """
@@ -193,7 +204,7 @@ class GuildHTTPConnection:
             route,
         )
         return [
-            models.Channel._from_data(state=self.parent, data=d)
+            Channel._from_data(state=self.parent, data=d)
             for d in data
         ]
 
@@ -202,7 +213,7 @@ class GuildHTTPConnection:
             guild_id: int,
             /,
             reason: str | None = None,
-            **kwargs) -> models.Channel:
+            **kwargs) -> Channel:
         """
         Create a guild channel.
         """
@@ -242,12 +253,12 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        return models.Channel._from_data(state=self.parent, data=data)
+        return Channel._from_data(state=self.parent, data=data)
 
     async def move_guild_channels(self, guild_id: int):
         raise NotImplementedError()
 
-    async def get_active_guild_threads(self, guild_id: int) -> list[models.Thread]:
+    async def get_active_guild_threads(self, guild_id: int) -> list[Thread]:
         """
         Get the threads from the guild.
         """
@@ -261,14 +272,14 @@ class GuildHTTPConnection:
             route,
         )
         return [
-            models.Thread(state=self.parent, data=d)
+            Thread(state=self.parent, data=d)
             for d in data
         ]
 
     async def get_guild_member(
             self,
             guild_id: int,
-            member_id: int) -> models.GuildMember:
+            member_id: int) -> GuildMember:
         """
         Get a guild member.
         """
@@ -282,15 +293,15 @@ class GuildHTTPConnection:
         data: payloads.GuildMember = await self.parent.request(
             route,
         )
-        guild = models.Object(guild_id, state=self.parent)
-        return models.GuildMember(state=self.parent, data=data, guild=guild)
+        guild = Object(guild_id, state=self.parent)
+        return GuildMember(state=self.parent, data=data, guild=guild)
 
     async def get_guild_members(
             self,
             guild_id: int,
             *,
             limit: int = 1,
-            after: int = 0) -> list[models.GuildMember]:
+            after: int = 0) -> list[GuildMember]:
         """
         Get a guild member.
         """
@@ -307,9 +318,9 @@ class GuildHTTPConnection:
                 "after": after,
             }
         )
-        guild = models.Object(guild_id, state=self.parent)
+        guild = Object(guild_id, state=self.parent)
         return [
-            models.GuildMember(state=self.parent, data=d, guild=guild)
+            GuildMember(state=self.parent, data=d, guild=guild)
             for d in data
         ]
 
@@ -318,7 +329,7 @@ class GuildHTTPConnection:
             guild_id: int,
             *,
             query: str,
-            limit: int = 1) -> list[models.GuildMember]:
+            limit: int = 1) -> list[GuildMember]:
         """
         Get a guild member.
         """
@@ -335,9 +346,9 @@ class GuildHTTPConnection:
                 "limit": limit,
             }
         )
-        guild = models.Object(guild_id, state=self.parent)
+        guild = Object(guild_id, state=self.parent)
         return [
-            models.GuildMember(state=self.parent, data=d, guild=guild)
+            GuildMember(state=self.parent, data=d, guild=guild)
             for d in data
         ]
 
@@ -347,7 +358,7 @@ class GuildHTTPConnection:
             user_id: int,
             *,
             access_token: str,
-            **kwargs) -> models.GuildMember | None:
+            **kwargs) -> GuildMember | None:
         """
         Add a member to the guild. Only works if you have a valid Oauth2 access
         token with the guild.join scope.
@@ -375,8 +386,8 @@ class GuildHTTPConnection:
             data=post_data,
         )
         if data:
-            guild = models.Object(guild_id, state=self.parent)
-            return models.GuildMember(state=self.parent, data=data, guild=guild)
+            guild = Object(guild_id, state=self.parent)
+            return GuildMember(state=self.parent, data=data, guild=guild)
         return None
 
     async def modify_guild_member(
@@ -385,7 +396,7 @@ class GuildHTTPConnection:
             user_id: int,
             *,
             reason: str | None = None,
-            **kwargs) -> models.GuildMember:
+            **kwargs) -> GuildMember:
         """
         Update a guild member.
         """
@@ -418,8 +429,8 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        guild = models.Object(guild_id, state=self.parent)
-        return models.GuildMember(state=self.parent, data=data, guild=guild)
+        guild = Object(guild_id, state=self.parent)
+        return GuildMember(state=self.parent, data=data, guild=guild)
 
     async def modify_current_guild_member(self, guild_id: int):
         raise NotImplementedError()
@@ -499,7 +510,7 @@ class GuildHTTPConnection:
             guild_id: int,
             limit: int | None = None,
             before: int | None = None,
-            after: int | None = None) -> list[models.GuildBan]:
+            after: int | None = None) -> list[GuildBan]:
         """
         Get the bans from a guild.
         """
@@ -521,9 +532,9 @@ class GuildHTTPConnection:
             params=params,
         )
         return [
-            models.GuildBan(
+            GuildBan(
                 reason=d.get('reason'),
-                user=models.User(state=self.parent, data=d['user'])
+                user=User(state=self.parent, data=d['user'])
             )
             for d in data
         ]
@@ -531,7 +542,7 @@ class GuildHTTPConnection:
     async def get_guild_ban(
             self,
             guild_id: int,
-            user_id: int) -> models.GuildBan:
+            user_id: int) -> GuildBan:
         """
         Get a ban for a particular member.
         """
@@ -545,9 +556,9 @@ class GuildHTTPConnection:
         data: dict = await self.parent.request(
             route,
         )
-        return models.GuildBan(
+        return GuildBan(
             reason=data.get('reason'),
-            user=models.User(state=self.parent, data=data['user'])
+            user=User(state=self.parent, data=data['user'])
         )
 
     async def create_guild_ban(
@@ -605,7 +616,7 @@ class GuildHTTPConnection:
         )
         return
 
-    async def get_guild_roles(self, guild_id: int) -> list[models.Role]:
+    async def get_guild_roles(self, guild_id: int) -> list[Role]:
         """
         List the roles for the guild.
         """
@@ -618,9 +629,9 @@ class GuildHTTPConnection:
         data: list[payloads.Role] = await self.parent.request(
             route,
         )
-        guild = models.Object(guild_id, state=self.parent)
+        guild = Object(guild_id, state=self.parent)
         return [
-            models.Role(state=self.parent, data=d, guild=guild)
+            Role(state=self.parent, data=d, guild=guild)
             for d in data
         ]
 
@@ -629,7 +640,7 @@ class GuildHTTPConnection:
             guild_id: int,
             *,
             reason: str | None = None,
-            **kwargs) -> models.Role:
+            **kwargs) -> Role:
         """
         Create a role in the guild.
         """
@@ -663,8 +674,8 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        guild = models.Object(guild_id, state=self.parent)
-        return models.Role(state=self.parent, data=data, guild=guild)
+        guild = Object(guild_id, state=self.parent)
+        return Role(state=self.parent, data=data, guild=guild)
 
     async def modify_guild_role_positions(self, guild_id: int):
         raise NotImplementedError()
@@ -675,7 +686,7 @@ class GuildHTTPConnection:
             role_id: int,
             *,
             reason: str | None = None,
-            **kwargs) -> models.Role:
+            **kwargs) -> Role:
         """
         Edit a guild role.
         """
@@ -710,8 +721,8 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        guild = models.Object(guild_id, state=self.parent)
-        return models.Role(state=self.parent, data=data, guild=guild)
+        guild = Object(guild_id, state=self.parent)
+        return Role(state=self.parent, data=data, guild=guild)
 
     async def modify_guild_mfa_level(self, guild_id: int):
         raise NotImplementedError()
@@ -749,7 +760,7 @@ class GuildHTTPConnection:
 
     async def get_guild_invites(
             self,
-            guild_id: int) -> list[models.Invite]:
+            guild_id: int) -> list[Invite]:
         """
         Get the invites for a guild.
         """
@@ -763,7 +774,7 @@ class GuildHTTPConnection:
             route,
         )
         return [
-            models.Invite(state=self.parent, data=d)
+            Invite(state=self.parent, data=d)
             for d in data
         ]
 

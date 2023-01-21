@@ -69,7 +69,7 @@ class Role:
         Whether the role is mentionable.
     tags : list[dict]
         The tags associated with the role.
-    guild : novus.models.abc.Snowflake
+    guild : novus.models.abc.Snowflake | novus.models.Guild
         The guild (or a data container for the ID) that the emoji came from.
     """
 

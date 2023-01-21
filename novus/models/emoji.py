@@ -58,7 +58,7 @@ class Emoji:
         has lost nitro boosts.
     asset : novus.models.Asset | None
         The asset associated with the emoji, if it's a custom emoji.
-    guild : novus.models.abc.Snowflake
+    guild : novus.models.abc.Snowflake | novus.models.Guild
         The guild (or a data container for the ID) that the emoji came from.
     """
 

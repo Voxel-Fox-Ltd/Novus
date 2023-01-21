@@ -58,7 +58,7 @@ class Sticker:
         The ID of the guild associated with the sticker.
     asset : novus.models.Asset
         The asset associated with the sticker.
-    guild : novus.models.abc.Snowflake
+    guild : novus.models.abc.Snowflake | novus.models.Guild
         The guild (or a data container for the ID) that the emoji came from.
     """
 

@@ -302,7 +302,7 @@ Discord Models
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.models.Member
+.. autoclass:: novus.models.GuildMember
     :members:
     :no-members: __init__
 
