@@ -158,16 +158,16 @@ class GuildAPIMixin:
 
     @overload
     @classmethod
-    async def fetch(cls, state: OauthHTTPConnection, id: int) -> OauthGuild:
+    async def fetch(cls, state: OauthHTTPConnection, guild_id: int) -> OauthGuild:
         ...
 
     @overload
     @classmethod
-    async def fetch(cls, state: HTTPConnection, id: int) -> Guild:
+    async def fetch(cls, state: HTTPConnection, guild_id: int) -> Guild:
         ...
 
     @classmethod
-    async def fetch(cls, state: HTTPConnection, id: int) -> Guild | OauthGuild:
+    async def fetch(cls, state: HTTPConnection, guild_id: int) -> Guild | OauthGuild:
         """
         Get an instance of a guild from the API. Unlike the gateway's
         ``GUILD_CREATE`` payload, this method does not return members,
@@ -177,7 +177,7 @@ class GuildAPIMixin:
         ----------
         state : HTTPConnection
             The API connection.
-        id : int
+        guild_id : int
             The ID associated with the guild you want to get.
 
         Returns
@@ -186,7 +186,7 @@ class GuildAPIMixin:
             The guild associated with the given ID.
         """
 
-        return await state.guild.get_guild(id)
+        return await state.guild.get_guild(guild_id)
 
     async def fetch_preview(self: StateSnowflake):
         raise NotImplementedError()

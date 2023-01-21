@@ -1,9 +1,31 @@
 # Novus
 
-Novus is a newly-built Discord Python library, designed with you in mind.
+Novus is an asyncio Discord Python library, designed with scale in mind.
 
-This is a work in progress, and is not yet ready for use. Most of this document
-will just be development notes, updates, and changelog.
+This is a work in progress, and is not yet ready for use.
+
+## Overview
+
+```py
+TOKEN: str
+GUILD_ID: int
+USER_ID: int
+
+# In Novus, a client is a secondary citizen, whereas the HTTP
+# connection is who we love - you can just put down your token
+# and pass that around the classes like me at a party
+state = novus.api.HTTPConnection(TOKEN)
+
+# As such, models now have classmethods using their state in order
+# to get instances
+guild = await novus.models.Guild.fetch(state, GUILD_ID)
+
+# Things that logically inherit (such as Guild -> GuildMember)
+# do also have helper methods
+user1 = await guild.fetch_member(USER_ID)
+user2 = await novus.models.GuildMember.fetch(state, GUILD_ID, USER_ID)
+assert user1 == user2
+```
 
 ## Environment Variables
 
