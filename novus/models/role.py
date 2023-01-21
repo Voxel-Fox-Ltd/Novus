@@ -24,7 +24,7 @@ from ..utils import try_snowflake, cached_slot_property
 from ..flags import Permissions
 
 if TYPE_CHECKING:
-    from .abc import Snowflake
+    from .abc import StateSnowflake
     from ..api import HTTPConnection
     from ..payloads import Role as RolePayload
 
@@ -44,7 +44,7 @@ class Role:
     name : str
         The name associated with the role.
     color : int
-        The colour associated with the role, as a hex code.
+        The color associated with the role, as a hex code.
     hoist : bool
         Whether the role is pinned in the user listing.
     icon_hash : str | None
@@ -91,7 +91,7 @@ class Role:
         '_cs_icon',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: RolePayload, guild: Snowflake):
+    def __init__(self, *, state: HTTPConnection, data: RolePayload, guild: StateSnowflake):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
@@ -104,10 +104,61 @@ class Role:
         self.managed = data['managed']
         self.mentionable = data['mentionable']
         self.tags = data.get('role_tags', list())
-        self.guild: Snowflake = guild
+        self.guild: StateSnowflake = guild
 
     @cached_slot_property('_cs_icon')
     def icon(self) -> Asset | None:
         if self.icon_hash is None:
             return None
         return Asset.from_role(self)
+
+    async def delete(self, *, reason: str | None = None) -> None:
+        """
+        Delete the role from the guild.
+
+        Parameters
+        ----------
+        reason : str | None
+            The reason shown in the audit log.
+        """
+
+        from .guild import Guild
+        return await Guild.delete_role(
+            self.guild,
+            self.id,
+            reason=reason,
+        )
+
+    async def edit(self, *, reason: str | None = None, **kwargs) -> Role:
+        """
+        Edit a role.
+
+        Parameters
+        ----------
+        name : str
+            The new name of the role.
+        permissions : novus.flags.Permissions
+            The permissions to be applied to the role.
+        color : int
+            The color to apply to the role.
+        hoist : bool
+            If the role should be displayed seperately in the sidebar.
+        icon : str | bytes | io.IOBase | None
+            The role's icon image. Only usable if the guild has the
+            ``ROLE_ICONS`` feature.
+        unicode_emoji : str
+            The role's unicode emoji. Only usable if the guild has the
+            ``ROLE_ICONS`` feature.
+        mentionable : bool
+            If the role is mentionable.
+        reason : str | None
+            The reason to be shown in the audit log.
+        """
+
+        from .guild import Guild
+        return await Guild.edit_role(
+            self.guild,
+            self.id,
+            reason=reason,
+            **kwargs,
+        )

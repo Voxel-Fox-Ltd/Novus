@@ -20,10 +20,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from ..api import HTTPConnection
+    from ..api import HTTPConnection, OauthHTTPConnection
 
 __all__ = (
     'Snowflake',
+    'StateSnowflake',
+    'OauthStateSnowflake',
 )
 
 
@@ -38,7 +40,6 @@ class Snowflake(Protocol):
         The model's unique ID.
     """
 
-    __slots__ = ()
     id: int
 
 
@@ -55,6 +56,22 @@ class StateSnowflake(Protocol):
         The HTTP connection state.
     """
 
-    __slots__ = ()
     id: int
     _state: HTTPConnection
+
+
+@runtime_checkable
+class OauthStateSnowflake(Protocol):
+    """
+    An ABC for Discord models that has an oauth state attached.
+
+    Attributes
+    ----------
+    id : int
+        The model's unique ID.
+    _state : novus.api.HTTPConection
+        The HTTP connection state.
+    """
+
+    id: int
+    _state: OauthHTTPConnection

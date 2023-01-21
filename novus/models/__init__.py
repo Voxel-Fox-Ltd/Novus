@@ -26,3 +26,5 @@ from .welcome_screen import *
 from .sticker import *
 from .message import *
 from .channel import *
+from .user import *
+from .object import *

@@ -298,6 +298,14 @@ Discord Models
     :members:
     :no-members: __init__
 
+.. autoclass:: novus.models.User
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.models.Member
+    :members:
+    :no-members: __init__
+
 Discord Oauth Models
 ------------------------
 
@@ -311,6 +319,10 @@ authenticated via an Oauth access token.
 
 Discord Data Containers
 -----------------------
+
+.. autoclass:: novus.models.Object
+    :special-members: __init__
+    :members:
 
 .. autoclass:: novus.models.AllowedMentions
     :special-members: __init__
@@ -337,6 +349,14 @@ Discord Data Containers
     :no-members: __init__
 
 .. autoclass:: novus.models.GuildPreview
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.models.GuildBan
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.models.Invite
     :members:
     :no-members: __init__
 

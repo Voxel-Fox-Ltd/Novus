@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from .emoji import Emoji
     from .role import Role
     from .sticker import Sticker
+    from .user import User, GuildMember
 
     AnyFullGuild: TypeAlias = Guild | OauthGuild
     AnyGuild: TypeAlias = AnyFullGuild | GuildPreview
@@ -128,3 +129,19 @@ class Asset:
     @classmethod
     def from_sticker(cls, sticker: Sticker) -> Asset:
         return cls(f"/stickers/{sticker.id}")
+
+    @classmethod
+    def from_user_avatar(cls, user: User) -> Asset:
+        return cls(f"/avatars/{user.id}/{user.avatar_hash}")
+
+    @classmethod
+    def from_user_banner(cls, user: User) -> Asset:
+        return cls(f"/banners/{user.id}/{user.avatar_hash}")
+
+    @classmethod
+    def from_guild_member_avatar(cls, user: GuildMember) -> Asset:
+        return cls(f"/guilds/{user.guild.id}/users/{user.id}/avatars/{user.guild_avatar_hash}")
+
+    # @classmethod
+    # def from_guild_member_banner(cls, user: GuildMember) -> Asset:
+    #     return cls(f"/guilds/{user.guild.id}/users/{user.id}/banners/{user.guild_banner_hash}")

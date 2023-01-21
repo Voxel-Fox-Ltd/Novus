@@ -68,7 +68,6 @@ class User(_UserOptional):
 
 
 class _GuildMemberOptional(TypedDict, total=False):
-    user: User
     nick: Optional[str]
     avatar: Optional[str]
     premium_since: Optional[Timestamp]
@@ -78,6 +77,7 @@ class _GuildMemberOptional(TypedDict, total=False):
 
 
 class GuildMember(_GuildMemberOptional):
+    user: User  # Not actually required! Not sent with message payloads.
     roles: list[Snowflake]
     joined_at: Timestamp
     deaf: bool

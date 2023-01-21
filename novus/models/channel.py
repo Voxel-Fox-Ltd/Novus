@@ -21,20 +21,25 @@ from typing import TYPE_CHECKING, Type
 import logging
 
 from .mixins import Hashable, Messageable
+from .object import Object
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import Permissions
 from ..utils import try_snowflake, generate_repr
 
 if TYPE_CHECKING:
+    from .abc import StateSnowflake
     from ..api import HTTPConnection
     from ..payloads import Channel as ChannelPayload
 
 __all__ = (
     'PermissionOverwrite',
     'Channel',
+    'GuildChannel',
     'GuildTextChannel',
     'DMChannel',
     'GroupDMChannel',
+    'Thread',
+    'ForumTag',
 )
 
 
@@ -58,10 +63,10 @@ def channel_factory(
         #     return GuildTextChannel
         # case ChannelType.announcement_thread.value:
         #     return GuildTextChannel
-        # case ChannelType.public_thread.value:
-        #     return Channel
-        # case ChannelType.private_thread.value:
-        #     return Channel
+        case ChannelType.public_thread.value:
+            return Thread
+        case ChannelType.private_thread.value:
+            return Thread
         # case ChannelType.guild_stage_voice.value:
         #     return Channel
         # case ChannelType.guild_directory.value:
@@ -135,6 +140,8 @@ class Channel(Hashable):
         '_state',
         'id',
         'type',
+        'guild',
+
         'raw',
     )
 
@@ -143,13 +150,17 @@ class Channel(Hashable):
         self.id = try_snowflake(data['id'])
         self.type = ChannelType(data['type'])
         self.raw = data
+        self.guild: StateSnowflake | None = None
 
     __repr__ = generate_repr(('id', 'type',))
 
+    @staticmethod
+    def _from_data(*, state: HTTPConnection, data: ChannelPayload) -> Channel:
+        factory = channel_factory(data['type'])
+        return factory(state=state, data=data)
+
 
 class MessageableChannel(Channel, Messageable):
-
-    __init__ = Channel.__init__
 
     async def _get_channel(self) -> int:
         return self.id
@@ -191,10 +202,14 @@ class GuildChannel(Channel):
         'parent_id',
     )
 
+    guild: StateSnowflake
+
     def __init__(self, *, state: HTTPConnection, data: ChannelPayload):
         super().__init__(state=state, data=data)
         del self.raw  # Not needed for known types)
         self.guild_id = try_snowflake(data.get('guild_id'))
+        if self.guild_id is None:
+            raise ValueError("Missing guild ID from guild channel %s" % data)
         self.position = data.get('position', 0)
         self.permissions_overwrites = [
             PermissionOverwrite(
@@ -216,6 +231,7 @@ class GuildChannel(Channel):
         self.last_message_id = try_snowflake(data.get('last_message_id'))
         self.parent_id = try_snowflake(data.get('parent_id'))
         self.rate_limit_per_user: int | None = data.get('rate_limit_per_user')
+        self.guild = Object(self.guild_id, state=self._state)
 
     __repr__ = generate_repr(('id', 'guild_id', 'name',))
 
@@ -252,3 +268,13 @@ class GuildTextChannel(GuildChannel, MessageableChannel):
         The amount of seconds a user has to wait before sending another
         message.
     """
+
+
+class Thread(GuildTextChannel):
+    """
+    A model representing a thread.
+    """
+
+
+class ForumTag:
+    ...  # TODO

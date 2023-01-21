@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,30 +15,24 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any, Type, TypeVar, overload
-from enum import Enum
+from __future__ import annotations
 
-from .guild import *
-from .sticker import *
-from .channel import *
-from .locale import *
-from .user import *
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from ..api import HTTPConnection
 
-E = TypeVar('E', bound=Enum)
-
-
-@overload
-def try_enum(enum: Type[E], value: Any) -> E:
-    ...
+__all__ = (
+    'Object',
+)
 
 
-@overload
-def try_enum(enum, value: None) -> None:
-    ...
+class Object:
+    """
+    An abstract class that you can pass around to other classes requiring
+    IDs and a state.
+    """
 
-
-def try_enum(enum: Type[E], value: Any | None = None) -> E | None:
-    if value is None:
-        return None
-    return enum(value)
+    def __init__(self, id: int, *, state: HTTPConnection):
+        self.id = id
+        self._state = state

@@ -17,10 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ._route import Route
 from .. import models
+
 
 if TYPE_CHECKING:
     from ._http import HTTPConnection
@@ -36,19 +37,39 @@ class GuildHTTPConnection:
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
 
+    async def create_guild(
+            self,
+            **kwargs) -> models.Guild:
+        """
+        Create a guild.
+        """
+
+        route = Route(
+            "POST",
+            "/guilds",
+        )
+        data: payloads.Guild = await self.parent.request(
+            route,
+            data=kwargs,
+        )
+        return models.Guild(
+            state=self.parent,
+            data=data,
+        )
+
     async def get_guild(
             self,
-            id: int,
+            guild_id: int,
             /,
             with_counts: bool = False) -> models.Guild:
         """
-        Get a guild from the API.
+        Get a guild.
         """
 
         route = Route(
             "GET",
             "/guilds/{guild_id}",
-            guild_id=id,
+            guild_id=guild_id,
         )
         data: payloads.Guild = await self.parent.request(
             route,
@@ -66,15 +87,15 @@ class GuildHTTPConnection:
 
     async def get_guild_preview(
             self,
-            id: int, /) -> models.GuildPreview:
+            guild_id: int, /) -> models.GuildPreview:
         """
-        Get a guild preview from the API.
+        Get a guild preview.
         """
 
         route = Route(
             "GET",
             "/guilds/{guild_id}/preview",
-            guild_id=id,
+            guild_id=guild_id,
         )
         data: payloads.GuildPreview = await self.parent.request(
             route,
@@ -86,60 +107,50 @@ class GuildHTTPConnection:
 
     async def modify_guild(
             self,
-            id: int,
+            guild_id: int,
             /,
             reason: str | None = None,
             **kwargs) -> models.Guild:
         """
-        Edit the guild.
+        Edit a guild.
         """
 
-        post_data = {
-            **self.parent._get_type_kwargs(
-                (
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
                     'name',
                     'region',
                     'afk_timeout',
                     'description',
                     'premium_progress_bar_enabled',
                 ),
-                kwargs,
-            ),
-            **self.parent._get_enum_kwargs(
-                (
+                "enum": (
                     'verification_level',
                     'default_message_notifications',
                     'explicit_content_filter',
                     'preferred_locale',
                     'system_channel_flags',
                 ),
-                kwargs,
-            ),
-            **self.parent._get_snowflake_kwargs(
-                (
+                "snowflake": (
                     ('afk_channel_id', 'afk_channel',),
                     ('owner_id', 'owner',),
                     ('system_channel_id', 'system_channel',),
                     ('rules_channel_id', 'rules_channel',),
                     ('public_updates_channel_id', 'public_updates_channel',),
                 ),
-                kwargs,
-            ),
-            **self.parent._get_image_kwargs(
-                (
+                "image": (
                     'icon',
                     'splash',
                     'discovery_splash',
                     'banner',
                 ),
-                kwargs,
-            ),
-            **kwargs,
-        }
+            },
+            kwargs,
+        )
         route = Route(
             "PATCH",
             "/guilds/{guild_id}",
-            guild_id=id,
+            guild_id=guild_id,
         )
         data: payloads.Guild = await self.parent.request(
             route,
@@ -153,16 +164,635 @@ class GuildHTTPConnection:
 
     async def delete_guild(
             self,
-            id: int,
-            /) -> None:
+            guild_id: int, /) -> None:
         """
-        Delete the guild.
+        Delete a guild.
         """
 
         route = Route(
             "DELETE",
             "/guilds/{guild_id}",
-            guild_id=id,
+            guild_id=guild_id,
         )
         await self.parent.request(route)
         return None
+
+    async def get_guild_channels(
+            self,
+            guild_id: int, /) -> list[models.Channel]:
+        """
+        Get guild channels.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/channels",
+            guild_id=guild_id,
+        )
+        data: list[payloads.Channel] = await self.parent.request(
+            route,
+        )
+        return [
+            models.Channel._from_data(state=self.parent, data=d)
+            for d in data
+        ]
+
+    async def create_guild_channel(
+            self,
+            guild_id: int,
+            /,
+            reason: str | None = None,
+            **kwargs) -> models.Channel:
+        """
+        Create a guild channel.
+        """
+
+        route = Route(
+            "POST",
+            "/guilds/{guild_id}/channels",
+            guild_id=guild_id,
+        )
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "bitrate",
+                    "user_limit",
+                    "rate_limit_per_user",
+                    "position",
+                    "nsfw",
+                    "default_auto_archive_duration",
+                ),
+                "enum": (
+                    "type",
+                ),
+                "snowflake": (
+                    ("parent_id", "parent",),
+                ),
+                "object": (
+                    "permission_overwrites",
+                    "default_reaction_emoji",
+                    "available_tags",
+                ),
+            },
+            kwargs,
+        )
+        data: payloads.Channel = await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data,
+        )
+        return models.Channel._from_data(state=self.parent, data=data)
+
+    async def move_guild_channels(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def get_active_guild_threads(self, guild_id: int) -> list[models.Thread]:
+        """
+        Get the threads from the guild.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/threads/active",
+            guild_id=guild_id,
+        )
+        data: list[payloads.Channel] = await self.parent.request(
+            route,
+        )
+        return [
+            models.Thread(state=self.parent, data=d)
+            for d in data
+        ]
+
+    async def get_guild_member(
+            self,
+            guild_id: int,
+            member_id: int) -> models.GuildMember:
+        """
+        Get a guild member.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/members/{member_id}",
+            guild_id=guild_id,
+            member_id=member_id,
+        )
+        data: payloads.GuildMember = await self.parent.request(
+            route,
+        )
+        guild = models.Object(guild_id, state=self.parent)
+        return models.GuildMember(state=self.parent, data=data, guild=guild)
+
+    async def get_guild_members(
+            self,
+            guild_id: int,
+            *,
+            limit: int = 1,
+            after: int = 0) -> list[models.GuildMember]:
+        """
+        Get a guild member.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/members",
+            guild_id=guild_id,
+        )
+        data: list[payloads.GuildMember] = await self.parent.request(
+            route,
+            params={
+                "limit": limit,
+                "after": after,
+            }
+        )
+        guild = models.Object(guild_id, state=self.parent)
+        return [
+            models.GuildMember(state=self.parent, data=d, guild=guild)
+            for d in data
+        ]
+
+    async def search_guild_members(
+            self,
+            guild_id: int,
+            *,
+            query: str,
+            limit: int = 1) -> list[models.GuildMember]:
+        """
+        Get a guild member.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/members/search",
+            guild_id=guild_id,
+        )
+        data: list[payloads.GuildMember] = await self.parent.request(
+            route,
+            params={
+                "query": query,
+                "limit": limit,
+            }
+        )
+        guild = models.Object(guild_id, state=self.parent)
+        return [
+            models.GuildMember(state=self.parent, data=d, guild=guild)
+            for d in data
+        ]
+
+    async def add_guild_member(
+            self,
+            guild_id: int,
+            user_id: int,
+            *,
+            access_token: str,
+            **kwargs) -> models.GuildMember | None:
+        """
+        Add a member to the guild. Only works if you have a valid Oauth2 access
+        token with the guild.join scope.
+        """
+
+        route = Route(
+            "PUT",
+            "/guilds/{guild_id}/members/{user_id}",
+            guild_id=guild_id,
+            user_id=user_id,
+        )
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "access_token",
+                    "nick",
+                    "mute",
+                    "deaf",
+                ),
+            },
+            {**kwargs, "access_token": access_token},
+        )
+        data: payloads.GuildMember | None = await self.parent.request(
+            route,
+            data=post_data,
+        )
+        if data:
+            guild = models.Object(guild_id, state=self.parent)
+            return models.GuildMember(state=self.parent, data=data, guild=guild)
+        return None
+
+    async def modify_guild_member(
+            self,
+            guild_id: int,
+            user_id: int,
+            *,
+            reason: str | None = None,
+            **kwargs) -> models.GuildMember:
+        """
+        Update a guild member.
+        """
+
+        route = Route(
+            "PATCH",
+            "/guilds/{guild_id}/members/{user_id}",
+            guild_id=guild_id,
+            user_id=user_id,
+        )
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "nick",
+                    "mute",
+                    "deaf",
+                ),
+                "snowflake": (
+                    "roles",
+                    ("channel_id", "channel",),
+                ),
+                "timestamp": (
+                    "communication_disabled_until",
+                ),
+            },
+            kwargs,
+        )
+        data: payloads.GuildMember = await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data,
+        )
+        guild = models.Object(guild_id, state=self.parent)
+        return models.GuildMember(state=self.parent, data=data, guild=guild)
+
+    async def modify_current_guild_member(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def add_guild_member_role(
+            self,
+            guild_id: int,
+            user_id: int,
+            role_id: int,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Add a role to a guild member.
+        """
+
+        route = Route(
+            "PUT",
+            "/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
+            guild_id=guild_id,
+            user_id=user_id,
+            role_id=role_id,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+        )
+        return
+
+    async def remove_guild_member_role(
+            self,
+            guild_id: int,
+            user_id: int,
+            role_id: int,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Remove a role from a guild member.
+        """
+
+        route = Route(
+            "DELETE",
+            "/guilds/{guild_id}/members/{user_id}/roles/{role_id}",
+            guild_id=guild_id,
+            user_id=user_id,
+            role_id=role_id,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+        )
+        return
+
+    async def remove_guild_member(
+            self,
+            guild_id: int,
+            user_id: int,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Remove a member from the guild.
+        """
+
+        route = Route(
+            "DELETE",
+            "/guilds/{guild_id}/members/{user_id}",
+            guild_id=guild_id,
+            user_id=user_id,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+        )
+        return
+
+    async def get_guild_bans(
+            self,
+            guild_id: int,
+            limit: int | None = None,
+            before: int | None = None,
+            after: int | None = None) -> list[models.GuildBan]:
+        """
+        Get the bans from a guild.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/bans",
+            guild_id=guild_id,
+        )
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params['limit'] = limit
+        if before is not None:
+            params['before'] = before
+        if after is not None:
+            params['after'] = after
+        data: list[dict] = await self.parent.request(
+            route,
+            params=params,
+        )
+        return [
+            models.GuildBan(
+                reason=d.get('reason'),
+                user=models.User(state=self.parent, data=d['user'])
+            )
+            for d in data
+        ]
+
+    async def get_guild_ban(
+            self,
+            guild_id: int,
+            user_id: int) -> models.GuildBan:
+        """
+        Get a ban for a particular member.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/bans/{user_id}",
+            guild_id=guild_id,
+            user_id=user_id,
+        )
+        data: dict = await self.parent.request(
+            route,
+        )
+        return models.GuildBan(
+            reason=data.get('reason'),
+            user=models.User(state=self.parent, data=data['user'])
+        )
+
+    async def create_guild_ban(
+            self,
+            guild_id: int,
+            user_id: int,
+            *,
+            reason: str | None = None,
+            **kwargs) -> None:
+        """
+        Ban a user.
+        """
+
+        route = Route(
+            "PUT",
+            "/guilds/{guild_id}/bans/{user_id}",
+            guild_id=guild_id,
+            user_id=user_id,
+        )
+        post_data: dict[str, Any] = {}
+        self.parent._get_kwargs(
+            {
+                "type": (
+                    "delete_message_seconds",
+                ),
+            },
+            kwargs,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data,
+        )
+        return
+
+    async def remove_guild_ban(
+            self,
+            guild_id: int,
+            user_id: int,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Unban a user.
+        """
+
+        route = Route(
+            "DELETE",
+            "/guilds/{guild_id}/bans/{user_id}",
+            guild_id=guild_id,
+            user_id=user_id,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+        )
+        return
+
+    async def get_guild_roles(self, guild_id: int) -> list[models.Role]:
+        """
+        List the roles for the guild.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/roles",
+            guild_id=guild_id,
+        )
+        data: list[payloads.Role] = await self.parent.request(
+            route,
+        )
+        guild = models.Object(guild_id, state=self.parent)
+        return [
+            models.Role(state=self.parent, data=d, guild=guild)
+            for d in data
+        ]
+
+    async def create_guild_role(
+            self,
+            guild_id: int,
+            *,
+            reason: str | None = None,
+            **kwargs) -> models.Role:
+        """
+        Create a role in the guild.
+        """
+
+        route = Route(
+            "POST",
+            "/guilds/{guild_id}/roles",
+            guild_id=guild_id,
+        )
+        post_data: dict[str, Any] = {}
+        self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "color",
+                    "hoist",
+                    "unicode_emoji",
+                    "mentionable",
+                ),
+                "image": (
+                    "icon",
+                ),
+                "flags": (
+                    "permissions",
+                ),
+            },
+            kwargs,
+        )
+        data: payloads.Role = await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data,
+        )
+        guild = models.Object(guild_id, state=self.parent)
+        return models.Role(state=self.parent, data=data, guild=guild)
+
+    async def modify_guild_role_positions(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def modify_guild_role(
+            self,
+            guild_id: int,
+            role_id: int,
+            *,
+            reason: str | None = None,
+            **kwargs) -> models.Role:
+        """
+        Edit a guild role.
+        """
+
+        route = Route(
+            "PATCH",
+            "/guilds/{guild_id}/roles/{role_id}",
+            guild_id=guild_id,
+            role_id=role_id,
+        )
+        post_data: dict[str, Any] = {}
+        self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "color",
+                    "hoist",
+                    "unicode_emoji",
+                    "mentionable",
+                ),
+                "image": (
+                    "icon",
+                ),
+                "flags": (
+                    "permissions",
+                ),
+            },
+            kwargs,
+        )
+        data: payloads.Role = await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data,
+        )
+        guild = models.Object(guild_id, state=self.parent)
+        return models.Role(state=self.parent, data=data, guild=guild)
+
+    async def modify_guild_mfa_level(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def delete_guild_role(
+            self,
+            guild_id: int,
+            role_id: int,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Delete a guild role.
+        """
+
+        route = Route(
+            "DELETE",
+            "/guilds/{guild_id}/roles/{role_id}",
+            guild_id=guild_id,
+            role_id=role_id,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+        )
+        return None
+
+    async def get_guild_prune_count(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def begin_guild_prune(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def get_guild_voice_regions(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def get_guild_invites(
+            self,
+            guild_id: int) -> list[models.Invite]:
+        """
+        Get the invites for a guild.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/invites",
+            guild_id=guild_id,
+        )
+        data: list[payloads.InviteWithMetadata] = await self.parent.request(
+            route,
+        )
+        return [
+            models.Invite(state=self.parent, data=d)
+            for d in data
+        ]
+
+    async def get_guild_integrations(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def delete_guild_integration(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def get_guild_widget_settings(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def modify_guild_widget_settings(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def modify_guild_vainity_url(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def modify_guild_widget_image(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def get_guild_welcome_screen(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def modify_guild_welcome_screen(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def modify_current_user_voice_state(self, guild_id: int):
+        raise NotImplementedError()
+
+    async def modify_user_voice_state(self, guild_id: int):
+        raise NotImplementedError()

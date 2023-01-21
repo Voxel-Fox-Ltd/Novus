@@ -1,3 +1,5 @@
+# flake8: noqa
+
 """
 Copyright (c) Kae Bartlett
 
@@ -15,13 +17,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from ._route import Route
-from ._http import HTTPConnection, OauthHTTPConnection
-from .guild import GuildHTTPConnection
-
-__all__ = (
-    'Route',
-    'HTTPConnection',
-    'OauthHTTPConnection',
-    'GuildHTTPConnection',
-)
+from ._route import *
+from ._http import *
+from .guild import *

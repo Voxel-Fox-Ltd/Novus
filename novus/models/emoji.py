@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'Emoji',
+    'Reaction',
 )
 
 
@@ -100,3 +101,7 @@ class Emoji:
         if self.id is not None:
             return Asset.from_emoji(self)
         return None
+
+
+class Reaction:
+    ...  # TODO

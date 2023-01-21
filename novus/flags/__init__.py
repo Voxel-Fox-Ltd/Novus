@@ -1,3 +1,5 @@
+# flake8: noqa
+
 """
 Copyright (c) Kae Bartlett
 
@@ -15,14 +17,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .application import ApplicationFlags
-from .permissions import Permissions
-from .message import MessageFlags
-from .guild import SystemChannelFlags
-
-__all__ = (
-    'ApplicationFlags',
-    'Permissions',
-    'MessageFlags',
-    'SystemChannelFlags',
-)
+from .application import *
+from .permissions import *
+from .message import *
+from .guild import *
+from .user import *
