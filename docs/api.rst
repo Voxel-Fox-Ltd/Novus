@@ -52,6 +52,37 @@ Enums
         * - ``taiwan_chinese``
         * - ``korean``
 
+Channel
+~~~~~~~
+
+.. autoclass:: novus.enums.ChannelType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``guild_text``
+        * - ``dm``
+        * - ``guild_voice``
+        * - ``group_dm``
+        * - ``guild_category``
+        * - ``guild_announcement``
+        * - ``announcement_thread``
+        * - ``public_thread``
+        * - ``private_thread``
+        * - ``guild_stage_voice``
+        * - ``guild_directory``
+        * - ``guild_forum``
+
+.. autoclass:: novus.enums.PermissionOverwriteType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``role``
+        * - ``member``
+
 Guild
 ~~~~~~
 
@@ -146,58 +177,22 @@ Sticker
         * - ``lottie``
         * - ``gif``
 
-Flags
-------
+User
+~~~~~~~
 
-.. class:: novus.flags.Permissions
-
-    A permission set from Discord's API.
+.. autoclass:: novus.enums.UserPremiumType
 
     .. list-table::
         :header-rows: 1
 
         * - Attribute
-        * - ``create_instant_invite``
-        * - ``kick_members``
-        * - ``ban_members``
-        * - ``administrator``
-        * - ``manage_channels``
-        * - ``manage_guild``
-        * - ``add_reactions``
-        * - ``view_audit_log``
-        * - ``priority_speaker``
-        * - ``stream``
-        * - ``view_channel``
-        * - ``send_messages``
-        * - ``send_tts_messages``
-        * - ``manage_messages``
-        * - ``embed_links``
-        * - ``attach_files``
-        * - ``read_message_history``
-        * - ``mention_everyone``
-        * - ``use_external_emojis``
-        * - ``view_guild_insights``
-        * - ``connect``
-        * - ``speak``
-        * - ``mute_members``
-        * - ``deafen_members``
-        * - ``move_members``
-        * - ``use_vad``
-        * - ``change_nickname``
-        * - ``manage_nicknames``
-        * - ``manage_roles``
-        * - ``manage_webhooks``
-        * - ``manage_emojis_and_stickers``
-        * - ``use_application_commands``
-        * - ``request_to_speak``
-        * - ``manage_events``
-        * - ``manage_threads``
-        * - ``create_public_threads``
-        * - ``create_private_threads``
-        * - ``use_external_stickers``
-        * - ``send_messages_in_threads``
-        * - ``use_embedded_activites``
-        * - ``moderate_members``
+        * - ``none``
+        * - ``nitro_classic``
+        * - ``nitro``
+        * - ``nitro_basic``
+
+Flags
+------
 
 Application
 ~~~~~~~~~~~~
@@ -211,7 +206,6 @@ Application
 
         * - Attribute
           - Description
-
         * - ``application_command_badge``
           - Indicates if an app has registered global application commands.
         * - ``embedded``
@@ -267,6 +261,81 @@ Guild
         * - ``suppress_premium_subscriptions``
         * - ``suppress_guild_reminder_notifications``
         * - ``suppress_join_notification_replies``
+
+.. class:: novus.flags.Permissions
+
+    A permission set from Discord's API.
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``create_instant_invite``
+        * - ``kick_members``
+        * - ``ban_members``
+        * - ``administrator``
+        * - ``manage_channels``
+        * - ``manage_guild``
+        * - ``add_reactions``
+        * - ``view_audit_log``
+        * - ``priority_speaker``
+        * - ``stream``
+        * - ``view_channel``
+        * - ``send_messages``
+        * - ``send_tts_messages``
+        * - ``manage_messages``
+        * - ``embed_links``
+        * - ``attach_files``
+        * - ``read_message_history``
+        * - ``mention_everyone``
+        * - ``use_external_emojis``
+        * - ``view_guild_insights``
+        * - ``connect``
+        * - ``speak``
+        * - ``mute_members``
+        * - ``deafen_members``
+        * - ``move_members``
+        * - ``use_vad``
+        * - ``change_nickname``
+        * - ``manage_nicknames``
+        * - ``manage_roles``
+        * - ``manage_webhooks``
+        * - ``manage_emojis_and_stickers``
+        * - ``use_application_commands``
+        * - ``request_to_speak``
+        * - ``manage_events``
+        * - ``manage_threads``
+        * - ``create_public_threads``
+        * - ``create_private_threads``
+        * - ``use_external_stickers``
+        * - ``send_messages_in_threads``
+        * - ``use_embedded_activites``
+        * - ``moderate_members``
+
+User
+~~~~
+
+.. class:: novus.flags.UserFlags
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``staff``
+        * - ``partner``
+        * - ``hypesquad``
+        * - ``bug_hunter_level_1``
+        * - ``hypesquad_house_bravery``
+        * - ``hypesquad_house_brilliance``
+        * - ``hypesquad_house_balance``
+        * - ``premium_early_supporter``
+        * - ``team_pseudo_user``
+        * - ``bug_hunter_level_2``
+        * - ``verified_bot``
+        * - ``verified_developer``
+        * - ``certified_moderator``
+        * - ``bot_http_interactions``
+        * - ``active_developer``
 
 Utils
 --------
