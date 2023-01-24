@@ -21,12 +21,12 @@ from typing import TYPE_CHECKING, Any
 
 from ._route import Route
 from ..models import (
+    Object,
     Guild,
     GuildPreview,
     Channel,
     Thread,
     GuildMember,
-    Object,
     GuildBan,
     User,
     Role,
@@ -120,6 +120,7 @@ class GuildHTTPConnection:
             self,
             guild_id: int,
             /,
+            *,
             reason: str | None = None,
             **kwargs) -> Guild:
         """
@@ -212,6 +213,7 @@ class GuildHTTPConnection:
             self,
             guild_id: int,
             /,
+            *,
             reason: str | None = None,
             **kwargs) -> Channel:
         """
@@ -394,6 +396,7 @@ class GuildHTTPConnection:
             self,
             guild_id: int,
             user_id: int,
+            /,
             *,
             reason: str | None = None,
             **kwargs) -> GuildMember:
@@ -440,6 +443,7 @@ class GuildHTTPConnection:
             guild_id: int,
             user_id: int,
             role_id: int,
+            /,
             *,
             reason: str | None = None) -> None:
         """
@@ -464,6 +468,7 @@ class GuildHTTPConnection:
             guild_id: int,
             user_id: int,
             role_id: int,
+            /,
             *,
             reason: str | None = None) -> None:
         """
@@ -487,6 +492,7 @@ class GuildHTTPConnection:
             self,
             guild_id: int,
             user_id: int,
+            /,
             *,
             reason: str | None = None) -> None:
         """
@@ -508,6 +514,8 @@ class GuildHTTPConnection:
     async def get_guild_bans(
             self,
             guild_id: int,
+            /,
+            *,
             limit: int | None = None,
             before: int | None = None,
             after: int | None = None) -> list[GuildBan]:
@@ -542,7 +550,7 @@ class GuildHTTPConnection:
     async def get_guild_ban(
             self,
             guild_id: int,
-            user_id: int) -> GuildBan:
+            user_id: int, /) -> GuildBan:
         """
         Get a ban for a particular member.
         """
@@ -565,6 +573,7 @@ class GuildHTTPConnection:
             self,
             guild_id: int,
             user_id: int,
+            /,
             *,
             reason: str | None = None,
             **kwargs) -> None:
@@ -598,6 +607,7 @@ class GuildHTTPConnection:
             self,
             guild_id: int,
             user_id: int,
+            /,
             *,
             reason: str | None = None) -> None:
         """
@@ -677,13 +687,14 @@ class GuildHTTPConnection:
         guild = Object(guild_id, state=self.parent)
         return Role(state=self.parent, data=data, guild=guild)
 
-    async def modify_guild_role_positions(self, guild_id: int):
+    async def modify_guild_role_positions(self, _: int):
         raise NotImplementedError()
 
     async def modify_guild_role(
             self,
             guild_id: int,
             role_id: int,
+            /,
             *,
             reason: str | None = None,
             **kwargs) -> Role:
@@ -724,13 +735,14 @@ class GuildHTTPConnection:
         guild = Object(guild_id, state=self.parent)
         return Role(state=self.parent, data=data, guild=guild)
 
-    async def modify_guild_mfa_level(self, guild_id: int):
+    async def modify_guild_mfa_level(self, _: int):
         raise NotImplementedError()
 
     async def delete_guild_role(
             self,
             guild_id: int,
             role_id: int,
+            /,
             *,
             reason: str | None = None) -> None:
         """
@@ -749,18 +761,18 @@ class GuildHTTPConnection:
         )
         return None
 
-    async def get_guild_prune_count(self, guild_id: int):
+    async def get_guild_prune_count(self, _: int):
         raise NotImplementedError()
 
-    async def begin_guild_prune(self, guild_id: int):
+    async def begin_guild_prune(self, _: int):
         raise NotImplementedError()
 
-    async def get_guild_voice_regions(self, guild_id: int):
+    async def get_guild_voice_regions(self, _: int):
         raise NotImplementedError()
 
     async def get_guild_invites(
             self,
-            guild_id: int) -> list[Invite]:
+            guild_id: int, /) -> list[Invite]:
         """
         Get the invites for a guild.
         """
@@ -778,32 +790,32 @@ class GuildHTTPConnection:
             for d in data
         ]
 
-    async def get_guild_integrations(self, guild_id: int):
+    async def get_guild_integrations(self, _: int, /):
         raise NotImplementedError()
 
-    async def delete_guild_integration(self, guild_id: int):
+    async def delete_guild_integration(self, _: int, /):
         raise NotImplementedError()
 
-    async def get_guild_widget_settings(self, guild_id: int):
+    async def get_guild_widget_settings(self, _: int, /):
         raise NotImplementedError()
 
-    async def modify_guild_widget_settings(self, guild_id: int):
+    async def modify_guild_widget_settings(self, _: int, /):
         raise NotImplementedError()
 
-    async def modify_guild_vainity_url(self, guild_id: int):
+    async def modify_guild_vainity_url(self, _: int, /):
         raise NotImplementedError()
 
-    async def modify_guild_widget_image(self, guild_id: int):
+    async def modify_guild_widget_image(self, _: int, /):
         raise NotImplementedError()
 
-    async def get_guild_welcome_screen(self, guild_id: int):
+    async def get_guild_welcome_screen(self, _: int, /):
         raise NotImplementedError()
 
-    async def modify_guild_welcome_screen(self, guild_id: int):
+    async def modify_guild_welcome_screen(self, _: int, /):
         raise NotImplementedError()
 
-    async def modify_current_user_voice_state(self, guild_id: int):
+    async def modify_current_user_voice_state(self, _: int, /):
         raise NotImplementedError()
 
-    async def modify_user_voice_state(self, guild_id: int):
+    async def modify_user_voice_state(self, _: int, /):
         raise NotImplementedError()

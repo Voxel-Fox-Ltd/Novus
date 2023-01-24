@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 __all__ = (
     'Snowflake',
     'StateSnowflake',
+    'StateSnowflakeWithGuild',
     'OauthStateSnowflake',
 )
 
@@ -58,6 +59,26 @@ class StateSnowflake(Protocol):
 
     id: int
     _state: HTTPConnection
+
+
+@runtime_checkable
+class StateSnowflakeWithGuild(Protocol):
+    """
+    An ABC for Discord models that has a state attached.
+
+    Attributes
+    ----------
+    id : int
+        The model's unique ID.
+    _state : novus.api.HTTPConection
+        The HTTP connection state.
+    guild: novus.models.abc.Snowflake
+        An object containing the guild ID.
+    """
+
+    id: int
+    _state: HTTPConnection
+    guild: Snowflake
 
 
 @runtime_checkable

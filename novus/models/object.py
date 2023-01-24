@@ -33,6 +33,14 @@ class Object:
     IDs and a state.
     """
 
-    def __init__(self, id: int, *, state: HTTPConnection):
+    def __init__(
+            self,
+            id: int,
+            *,
+            state: HTTPConnection,
+            guild_id: int | None = None):
         self.id = id
         self._state = state
+        self.guild = None
+        if guild_id:
+            self.guild = Object(guild_id, state=state)

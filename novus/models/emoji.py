@@ -17,15 +17,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 from .asset import Asset
+from .mixins import Hashable
+from .api_mixins.emoji import EmojiAPIMixin
 from ..utils import try_snowflake, generate_repr, cached_slot_property
 
 if TYPE_CHECKING:
+    import io
+
     from .abc import Snowflake
     from ..api import HTTPConnection
     from ..payloads import Emoji as EmojiPayload
+
+    FileT: TypeAlias = str | bytes | io.IOBase
 
 __all__ = (
     'Emoji',
@@ -33,7 +39,7 @@ __all__ = (
 )
 
 
-class Emoji:
+class Emoji(Hashable, EmojiAPIMixin):
     """
     A custom emoji in a guild.
 
@@ -76,7 +82,12 @@ class Emoji:
         '_cs_asset',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: EmojiPayload, guild: Snowflake):
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: EmojiPayload,
+            guild: Snowflake):
         self._state = state
         if data['id'] is None:
             raise ValueError("Emoji ID cannot be None")

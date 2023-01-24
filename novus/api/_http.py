@@ -24,6 +24,7 @@ import io
 import aiohttp
 
 from .guild import GuildHTTPConnection
+from .emoji import EmojiHTTPConnection
 from ..utils import bytes_to_base64_data
 
 if TYPE_CHECKING:
@@ -85,8 +86,20 @@ class HTTPConnection:
         self._token = f"{self.AUTH_PREFIX} {token}"
 
         # Specific routes
-        self.guild = GuildHTTPConnection(self)
+        self.application_role_connection_metadata: Any
+        self.audit_log: Any
+        self.auto_moderation: Any
         self.channel: Any
+        self.emoji = EmojiHTTPConnection(self)
+        self.guild = GuildHTTPConnection(self)
+        self.guild_scheduled_event: Any
+        self.guild_template: Any
+        self.invite: Any
+        self.stage_instance: Any
+        self.sticker: Any
+        self.user: Any
+        self.voice: Any
+        self.webhook: Any
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self._session:
