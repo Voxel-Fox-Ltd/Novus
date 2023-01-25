@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING
 from .mixins import Hashable
 from .asset import Asset
 from .guild import Guild
-from .object import Object
 from ..flags import UserFlags, Permissions
 from ..enums import try_enum, UserPremiumType, Locale
 from ..utils import try_snowflake, parse_timestamp, cached_slot_property, generate_repr
@@ -107,26 +106,6 @@ class User(Hashable):
         '_cs_avatar',
         '_cs_banner',
     )
-
-    @classmethod
-    async def fetch(cls, state: HTTPConnection, user_id: int) -> User:
-        """
-        Get an instance of a user from the API.
-
-        Parameters
-        ----------
-        state : HTTPConnection
-            The API connection.
-        user_id : int
-            The ID associated with the user you want to get.
-
-        Returns
-        -------
-        novus.models.User
-            The user associated with the given ID.
-        """
-
-        raise NotImplementedError()
 
     def __init__(self, *, state: HTTPConnection, data: UserPayload):
         self._state = state
@@ -214,29 +193,6 @@ class GuildMember(User):
 
         '_cs_guild_avatar',
     )
-
-    @classmethod
-    async def fetch(cls, state: HTTPConnection, guild_id: int, user_id: int) -> GuildMember:
-        """
-        Get an instance of a user from the API.
-
-        Parameters
-        ----------
-        state : HTTPConnection
-            The API connection.
-        guild_id : int
-            The ID associated with the guild you want to get.
-        user_id : int
-            The ID associated with the user you want to get.
-
-        Returns
-        -------
-        novus.models.GuildMember
-            The user associated with the given ID.
-        """
-
-        guild = Object(guild_id, state=state)
-        return await Guild.fetch_member(guild, user_id)
 
     def __init__(
             self,

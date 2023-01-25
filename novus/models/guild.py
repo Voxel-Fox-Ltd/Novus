@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias, Any
 from dataclasses import dataclass
 
 from .mixins import Hashable
@@ -42,7 +42,6 @@ from ..utils import (
     try_snowflake,
     generate_repr,
     cached_slot_property,
-    parse_timestamp,
 )
 
 if TYPE_CHECKING:
@@ -54,54 +53,16 @@ if TYPE_CHECKING:
         Guild as APIGuildPayload,
         GatewayGuild as GatewayGuildPayload,
         GuildPreview as GuildPreviewPayload,
-        InviteWithMetadata as InviteMetadataPayload,
     )
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
 __all__ = (
-    'Invite',
     'GuildBan',
     'Guild',
     'OauthGuild',
     'GuildPreview',
 )
-
-
-class Invite:
-    """
-    A model representing a guild invite.
-
-    Attributes
-    ----------
-    code : str
-        The code associated with the invite.
-    channel : novus.models.Channel | None
-        The channel that the invite leads to.
-    uses : int | None
-        How many times the invite has been used.
-    max_uses : int | None
-        The maximum number of times the invite can be used.
-    max_age : int | None
-        Duration (in seconds) after which the invite expires.
-    temporary : bool | None
-        Whether the invite only grants temporary membership.
-    created_at : datetime.datetime | None
-        The time that the invite was created.
-    """
-
-    def __init__(self, *, state: HTTPConnection, data: InviteMetadataPayload):
-        self._state = state
-        self.code = data['code']
-        self.channel = None
-        channel = data.get('channel')
-        if channel:
-            self.channel = Channel._from_data(state=self._state, data=channel)
-        self.uses = data.get('uses')
-        self.max_uses = data.get('max_uses')
-        self.max_age = data.get('max_age')
-        self.temporary = data.get('temporary')
-        self.created_at = parse_timestamp(data.get('created_at'))
 
 
 @dataclass
@@ -326,6 +287,7 @@ class Guild(Hashable, GuildAPIMixin):
         Sync the cached state with the given gateway payload.
         """
 
+        d: Any
         if 'emojis' in data:
             for d in data['emojis']:
                 if d['id'] is None:
@@ -399,23 +361,62 @@ class Guild(Hashable, GuildAPIMixin):
         ]
 
 
-class OauthGuild(Guild):
+class OauthGuild(GuildAPIMixin):
     """
     A model for a Discord guild when fetched by an authenticated user through
     the API.
 
     Attributes
     ----------
+    id : int
+        The ID of the guild.
+    name : str
+        The name of the guild.
+    icon_hash : str | None
+        The hash for the guild's icon.
+    icon : novus.models.Asset | None
+        A model for the guild's icon.
     owner : bool
         Whether the authenticated user owns the guild.
     permissions : novus.flags.Permissions
         The authenticated user's permissions in the guild.
     """
 
+    __slots__ = (
+        '_state',
+        'id',
+        'name',
+        'icon_hash',
+        'owner',
+        'permissions',
+        '_cs_icon',
+    )
+
     def __init__(self, *, state, data: APIGuildPayload):
+        self._state = state
+        self.id = try_snowflake(data['id'])
+        self.name = data['name']
+        self.icon_hash = data['icon'] or data.get('icon_hash')
         self.owner: bool = data.get('owner', False)
         self.permissions: Permissions = Permissions(int(data.get('permissions', 0)))
-        super().__init__(state=state, data=data)
+
+    __repr__ = generate_repr(('id', 'name', 'owner', 'permissions',))
+
+    @cached_slot_property('_cs_icon')
+    def icon(self) -> Asset:
+        return Asset.from_guild_icon(self)
+
+    async def fetch_full_guild(self) -> Guild:
+        """
+        Return the full guild associated with this partial one.
+
+        Returns
+        -------
+        novus.models.Guild
+            The full guild object.
+        """
+
+        return await Guild.fetch(self._state, self.id)
 
 
 class GuildPreview(GuildAPIMixin):

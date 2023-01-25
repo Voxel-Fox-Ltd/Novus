@@ -23,8 +23,21 @@ import io
 
 import aiohttp
 
-from .guild import GuildHTTPConnection
+
+# .application_role_connection_metadata
+# .audit_log
+# .auto_moderation
+# .channel
 from .emoji import EmojiHTTPConnection
+from .guild import GuildHTTPConnection
+# .guild_scheduled_event
+# .guild_template
+# .invite
+# .stage_instance
+# .sticker
+from .user import UserHTTPConnection
+# .voice
+# .webhook
 from ..utils import bytes_to_base64_data
 
 if TYPE_CHECKING:
@@ -47,6 +60,29 @@ class FixableKwargs(TypedDict, total=False):
     object: Iterable[tuple[str, str] | str]
     timestamp: Iterable[tuple[str, str] | str]
     flags: Iterable[tuple[str, str] | str]
+
+
+class HTTPException(Exception):
+    """
+    Generic base class for all HTTP errors.
+    """
+
+    def __init__(self, payload: dict):
+        self.payload: dict = payload
+        self.message: str = payload['message']
+        self.code: int = payload['code']
+
+
+class NotFound(HTTPException):
+    """
+    When a resource cannot be found on the server.
+    """
+
+
+class Unauthorized(HTTPException):
+    """
+    When you are missing relevant permissions to access a resource.
+    """
 
 
 class HTTPConnection:
@@ -76,7 +112,20 @@ class HTTPConnection:
 
     Attributes
     ----------
-    guild : GuildHTTPConnection
+    application_role_connection_metadata: Any
+    audit_log: Any
+    auto_moderation: Any
+    channel: Any
+    emoji: EmojiHTTPConnection
+    guild: GuildHTTPConnection
+    guild_scheduled_event: Any
+    guild_template: Any
+    invite: Any
+    stage_instance: Any
+    sticker: Any
+    user: UserHTTPConnection
+    voice: Any
+    webhook: Any
     """
 
     AUTH_PREFIX: str = "Bot"
@@ -84,6 +133,9 @@ class HTTPConnection:
     def __init__(self, token: str):
         self._session: aiohttp.ClientSession | None = None
         self._token = f"{self.AUTH_PREFIX} {token}"
+        self._user_agent = (
+            "DiscordBot (Python, Novus, https://github.com/Voxel-Fox-Ltd/Novus)"
+        )
 
         # Specific routes
         self.application_role_connection_metadata: Any
@@ -97,7 +149,7 @@ class HTTPConnection:
         self.invite: Any
         self.stage_instance: Any
         self.sticker: Any
-        self.user: Any
+        self.user = UserHTTPConnection(self)
         self.voice: Any
         self.webhook: Any
 
@@ -120,6 +172,7 @@ class HTTPConnection:
 
         headers = {
             "Authorization": self._token,
+            "User-Agent": self._user_agent,
         }
         if reason:
             headers['X-Audit-Log-Reason'] = reason
@@ -136,14 +189,22 @@ class HTTPConnection:
             headers=headers,
             timeout=5,
         )
+        json: dict[Any, Any] | None
         try:
             json = await resp.json()
         except Exception:
             if resp.ok:
                 json = None
             else:
-                resp.raise_for_status()
-                raise AssertionError()
+                raise AssertionError("Cannot parse JSON from response.")
+        if not resp.ok:
+            assert isinstance(json, dict)
+            if resp.status == 401:
+                raise Unauthorized(json)
+            elif resp.status == 404:
+                raise NotFound(json)
+            else:
+                raise HTTPException(json)
         log.debug(
             "Response {0.method} {0.path} returned {1.status} {2}"
             .format(route, resp, json)

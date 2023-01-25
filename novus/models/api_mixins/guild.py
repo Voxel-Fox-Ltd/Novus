@@ -20,13 +20,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, overload, Literal, TypeAlias
 from datetime import datetime as dt
 
-from ...utils import MISSING
+from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
     import io
 
     from ..abc import Snowflake, StateSnowflake, OauthStateSnowflake
-    from ..guild import Guild, OauthGuild, Invite, GuildBan
+    from ..guild import Guild, GuildBan
+    from ..invite import Invite
     from ..channel import (
         GuildTextChannel,
         Thread,
@@ -37,7 +38,7 @@ if TYPE_CHECKING:
     from ..user import GuildMember
     from ..channel import Channel
     from ..role import Role
-    from ...api import HTTPConnection, OauthHTTPConnection
+    from ...api import HTTPConnection
     from ...flags import Permissions, SystemChannelFlags
     from ...enums import (
         Locale,
@@ -51,6 +52,8 @@ if TYPE_CHECKING:
 
 
 class GuildAPIMixin:
+
+    # Guild API methods
 
     @classmethod
     async def create(cls, state: HTTPConnection, *, name: str) -> Guild:
@@ -70,18 +73,8 @@ class GuildAPIMixin:
 
         return await state.guild.create_guild(name=name)
 
-    @overload
-    @classmethod
-    async def fetch(cls, state: OauthHTTPConnection, guild_id: int) -> OauthGuild:
-        ...
-
-    @overload
     @classmethod
     async def fetch(cls, state: HTTPConnection, guild_id: int) -> Guild:
-        ...
-
-    @classmethod
-    async def fetch(cls, state: HTTPConnection, guild_id: int) -> Guild | OauthGuild:
         """
         Get an instance of a guild from the API. Unlike the gateway's
         ``GUILD_CREATE`` payload, this method does not return members,
@@ -112,17 +105,17 @@ class GuildAPIMixin:
             verification_level: VerificationLevel | None = MISSING,
             default_message_notifications: NotificationLevel | None = MISSING,
             explicit_content_filter: ContentFilterLevel | None = MISSING,
-            afk_channel: Snowflake | None = MISSING,
+            afk_channel: int | Snowflake | None = MISSING,
             icon: FileT | None = MISSING,
-            owner: Snowflake = MISSING,
+            owner: int | Snowflake = MISSING,
             splash: FileT | None = MISSING,
             discovery_splash: FileT | None = MISSING,
             banner: FileT | None = MISSING,
-            system_channel: Snowflake | None = MISSING,
+            system_channel: int | Snowflake | None = MISSING,
             system_channel_flags: SystemChannelFlags | None = MISSING,
-            rules_channel: Snowflake | None = MISSING,
+            rules_channel: int | Snowflake | None = MISSING,
             preferred_locale: Locale | None = MISSING,
-            public_updates_channel: Snowflake = MISSING,
+            public_updates_channel: int | Snowflake = MISSING,
             features: list[str] = MISSING,
             description: str | None = MISSING,
             premium_progress_bar_enabled: bool = MISSING,
@@ -147,12 +140,12 @@ class GuildAPIMixin:
             The default message notification level you want to set the guild to.
         explicit_content_filter : novus.enums.guild.ContentFilterLevel | None
             The content filter level you want to set the guild to.
-        afk_channel : novus.models.abc.Snowflake | None
+        afk_channel : int | novus.models.abc.Snowflake | None
             The channel you want to set as the guild's AFK channel.
         icon : str | bytes | io.IOBase | None
             The icon that you want to set for the guild. Can be its bytes, a
             file path, or a file object.
-        owner : novus.models.abc.Snowflake
+        owner : int | novus.models.abc.Snowflake
             The person you want to set as owner of the guild. Can only be run
             if the current user is the existing owner.
         splash : str | bytes | io.IOBase | None
@@ -164,15 +157,15 @@ class GuildAPIMixin:
         banner : str | bytes | io.IOBase | None
             The banner for the guild. Can be its bytes, a file path, or a file
             object.
-        system_channel : novus.models.abc.Snowflake | None
+        system_channel : int | novus.models.abc.Snowflake | None
             The system channel you want to set for the guild.
         system_channel_flags : novus.flags.guild.SystemChannelFlags | None
             The system channel flags you want to set.
-        rules_channel : novus.models.abc.Snowflake | None
+        rules_channel : int | novus.models.abc.Snowflake | None
             The channel you want to set as the rules channel.
         preferred_locale : Locale | None
             The locale you want to set as the guild's preferred.
-        public_updates_channel : novus.models.abc.Snowflake
+        public_updates_channel : int | novus.models.abc.Snowflake
             The channel you want to set as the updates channel for the guild.
         features : list[str]
             A list of features for the guild.
@@ -200,11 +193,11 @@ class GuildAPIMixin:
         if explicit_content_filter is not None:
             updates["explicit_content_filter"] = explicit_content_filter
         if afk_channel is not None:
-            updates["afk_channel"] = afk_channel
+            updates["afk_channel"] = try_object(afk_channel)
         if icon is not None:
             updates["icon"] = icon
         if owner is not None:
-            updates["owner"] = owner
+            updates["owner"] = try_object(owner)
         if splash is not None:
             updates["splash"] = splash
         if discovery_splash is not None:
@@ -212,15 +205,15 @@ class GuildAPIMixin:
         if banner is not None:
             updates["banner"] = banner
         if system_channel is not None:
-            updates["system_channel"] = system_channel
+            updates["system_channel"] = try_object(system_channel)
         if system_channel_flags is not None:
             updates["system_channel_flags"] = system_channel_flags
         if rules_channel is not None:
-            updates["rules_channel"] = rules_channel
+            updates["rules_channel"] = try_object(rules_channel)
         if preferred_locale is not None:
             updates["preferred_locale"] = preferred_locale
         if public_updates_channel is not None:
-            updates["public_updates_channel"] = public_updates_channel
+            updates["public_updates_channel"] = try_object(public_updates_channel)
         if features is not None:
             updates["features"] = features
         if description is not None:
@@ -269,7 +262,7 @@ class GuildAPIMixin:
             rate_limit_per_user: int = ...,
             position: int = ...,
             permission_overwrites: list[PermissionOverwrite] = ...,
-            parent: Snowflake = ...,
+            parent: int | Snowflake = ...,
             nsfw: bool = ...,
             default_auto_archive_duration: int = ...,
             default_reaction_emoji: Reaction = ...,
@@ -281,13 +274,13 @@ class GuildAPIMixin:
             self: StateSnowflake,
             *,
             name: str,
-            type: ChannelType = ChannelType.guild_text,
+            type: Literal[ChannelType.guild_text] = ...,
             bitrate: int = ...,
             user_limit: int = ...,
             rate_limit_per_user: int = ...,
             position: int = ...,
             permission_overwrites: list[PermissionOverwrite] = ...,
-            parent: Snowflake = ...,
+            parent: int | Snowflake = ...,
             nsfw: bool = ...,
             default_auto_archive_duration: int = ...,
             default_reaction_emoji: Reaction = ...,
@@ -304,7 +297,7 @@ class GuildAPIMixin:
             rate_limit_per_user: int = MISSING,
             position: int = MISSING,
             permission_overwrites: list[PermissionOverwrite] = MISSING,
-            parent: Snowflake = MISSING,
+            parent: int | Snowflake = MISSING,
             nsfw: bool = MISSING,
             default_auto_archive_duration: int = MISSING,
             default_reaction_emoji: Reaction = MISSING,
@@ -328,7 +321,7 @@ class GuildAPIMixin:
             The channel position.
         permission_overwrites : list[novus.models.PermissionOverwrite]
             A list of permission overwrites for the channel.
-        parent : novus.models.abc.Snowflake
+        parent : int | novus.models.abc.Snowflake
             A parent object for the channel.
         nsfw : bool
             Whether or not the channel will be set to NSFW.
@@ -365,7 +358,7 @@ class GuildAPIMixin:
         if permission_overwrites is not MISSING:
             update["permission_overwrites"] = permission_overwrites
         if parent is not MISSING:
-            update["parent"] = parent
+            update["parent"] = try_object(parent)
         if nsfw is not MISSING:
             update["nsfw"] = nsfw
         if default_auto_archive_duration is not MISSING:
@@ -400,6 +393,16 @@ class GuildAPIMixin:
     async def fetch_member(self: StateSnowflake, member_id: int, /) -> GuildMember:
         """
         Get a member from the server.
+
+        Parameters
+        ----------
+        member_id : int
+            The ID of the member you want to get.
+
+        Returns
+        -------
+        novus.models.GuildMember
+            The member object for the given user.
         """
 
         member = await self._state.guild.get_guild_member(self.id, member_id)
@@ -498,6 +501,8 @@ class GuildAPIMixin:
 
         Parameters
         ----------
+        user_id : int
+            The ID of the user that you want to add.
         access_token : str
             The access token with the ``guilds.join`` scope to the bot's
             application for the user you want to add to the guild.
@@ -537,25 +542,25 @@ class GuildAPIMixin:
 
     async def edit_member(
             self: StateSnowflake,
-            user_id: int,
+            user: int | Snowflake,
             *,
             reason: str | None = None,
             nick: str | None = MISSING,
-            roles: list[Snowflake] = MISSING,
+            roles: list[int | Snowflake] = MISSING,
             mute: bool = MISSING,
             deaf: bool = MISSING,
-            voice_channel: Snowflake | None = MISSING,
+            voice_channel: int | Snowflake | None = MISSING,
             timeout_until: dt | None = MISSING) -> GuildMember:
         """
         Edit a guild member.
 
         Parameters
         ----------
-        user_id : int
+        user : int | novus.models.abc.Snowflake
             The ID of the user you want to edit.
         nick : str | None
             The nickname you want to set for the user.
-        roles : list[novus.models.abc.Snowflake]
+        roles : list[int | novus.models.abc.Snowflake]
             A list of roles that you want the user to have.
         mute : bool
             Whether or not the user is muted in voice channels. Will error if
@@ -563,7 +568,7 @@ class GuildAPIMixin:
         deaf : bool
             Whether or not the user is deafened in voice channels. Will error
             if the user is not currently in a voice channel.
-        voice_channel : novus.models.abc.Snowflake | None
+        voice_channel : int | novus.models.abc.Snowflake | None
             The voice channel that the user is in.
         timeout_until : datetime.datetime | None
             When the user's timeout should expire (up to 28 days in the
@@ -575,19 +580,19 @@ class GuildAPIMixin:
         if nick is not MISSING:
             update["nick"] = nick
         if roles is not MISSING:
-            update["roles"] = roles
+            update["roles"] = [try_object(r) for r in roles]
         if mute is not MISSING:
             update["mute"] = mute
         if deaf is not MISSING:
             update["deaf"] = deaf
         if voice_channel is not MISSING:
-            update["channel"] = voice_channel
+            update["channel"] = try_object(voice_channel)
         if timeout_until is not MISSING:
             update["communication_disabled_until"] = timeout_until
 
         member = await self._state.guild.modify_guild_member(
             self.id,
-            user_id,
+            try_id(user),
             reason=reason,
             **update,
         )
@@ -596,8 +601,8 @@ class GuildAPIMixin:
 
     async def add_member_role(
             self: StateSnowflake,
-            user_id: int,
-            role_id: int,
+            user: int | Snowflake,
+            role: int | Snowflake,
             *,
             reason: str | None = None) -> None:
         """
@@ -607,25 +612,25 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        user_id : int
+        user : int | novus.models.abc.Snowflake
             The user you want to add the role to.
-        role_id : int
-            The ID of the role you want to add.
+        role : int | novus.models.abc.Snowflake
+            The role you want to add.
         reason : str | None
             The reason shown in the audit log.
         """
 
         await self._state.guild.add_guild_member_role(
             self.id,
-            user_id,
-            role_id,
+            try_id(user),
+            try_id(role),
             reason=reason,
         )
 
     async def remove_member_role(
             self: StateSnowflake,
-            user_id: int,
-            role_id: int,
+            user: int | Snowflake,
+            role: int | Snowflake,
             *,
             reason: str | None = None) -> None:
         """
@@ -635,9 +640,9 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        user_id : int
+        user : int | novus.models.abc.Snowflake
             The user you want to add the role to.
-        role_id : int
+        role : int | novus.models.abc.Snowflake
             The ID of the role you want to add.
         reason : str | None
             The reason shown in the audit log.
@@ -645,14 +650,14 @@ class GuildAPIMixin:
 
         await self._state.guild.add_guild_member_role(
             self.id,
-            user_id,
-            role_id,
+            try_id(user),
+            try_id(role),
             reason=reason,
         )
 
     async def kick_member(
             self: StateSnowflake,
-            user_id: int,
+            user: int | Snowflake,
             *,
             reason: str | None = None) -> None:
         """
@@ -662,7 +667,7 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        user_id : int
+        user : int | novus.models.abc.Snowflake
             The user you want to remove.
         reason : str | None
             The reason to be shown in the audit log.
@@ -670,7 +675,7 @@ class GuildAPIMixin:
 
         await self._state.guild.remove_guild_member(
             self.id,
-            user_id,
+            try_id(user),
             reason=reason,
         )
 
@@ -712,13 +717,15 @@ class GuildAPIMixin:
             **update,
         )
 
-    async def fetch_ban(self: StateSnowflake, user_id: int) -> GuildBan:
+    async def fetch_ban(
+            self: StateSnowflake,
+            user: int | Snowflake) -> GuildBan:
         """
         Get an individual user's ban.
 
         Parameters
         ----------
-        user_id : int
+        user : int | novus.models.abc.Snowflake
             The user whose ban you want to get.
 
         Returns
@@ -729,12 +736,12 @@ class GuildAPIMixin:
 
         return await self._state.guild.get_guild_ban(
             self.id,
-            user_id,
+            try_id(user),
         )
 
     async def create_ban(
             self: StateSnowflake,
-            user_id: int,
+            user: int | Snowflake,
             *,
             reason: str | None = None,
             delete_message_seconds: int = MISSING) -> None:
@@ -743,7 +750,7 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        user_id : int
+        user : int | novus.models.abc.Snowflake
             The user who you want to ban.
         delete_message_seconds : int
             The number of seconds of messages you want to delete.
@@ -758,7 +765,7 @@ class GuildAPIMixin:
 
         await self._state.guild.create_guild_ban(
             self.id,
-            user_id,
+            try_id(user),
             reason=reason,
             **updates
         )
@@ -766,7 +773,7 @@ class GuildAPIMixin:
 
     async def remove_ban(
             self: StateSnowflake,
-            user_id: int,
+            user: int | Snowflake,
             *,
             reason: str | None = None) -> None:
         """
@@ -774,7 +781,7 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        user_id : int
+        user : int | novus.models.abc.Snowflake
             The user who you want to ban.
         reason : str | None
             The reason to be shown in the audit log.
@@ -782,10 +789,9 @@ class GuildAPIMixin:
 
         await self._state.guild.remove_guild_ban(
             self.id,
-            user_id,
+            try_id(user),
             reason=reason,
         )
-        return
 
     async def fetch_roles(self: StateSnowflake) -> list[Role]:
         """
@@ -936,7 +942,7 @@ class GuildAPIMixin:
 
     async def delete_role(
             self: StateSnowflake,
-            role_id: int,
+            role: int | Snowflake,
             *,
             reason: str | None = None) -> None:
         """
@@ -944,7 +950,7 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        role_id : int
+        role : int | novus.models.abc.Snowflake
             The ID of the role to delete.
         reason : str | None
             The reason to be shown in the audit log.
@@ -952,7 +958,7 @@ class GuildAPIMixin:
 
         await self._state.guild.delete_guild_role(
             self.id,
-            role_id,
+            try_id(role),
             reason=reason,
         )
         return None
@@ -1010,6 +1016,8 @@ class GuildAPIMixin:
     async def edit_current_member_voice_state(self):
         raise NotImplementedError()
 
+    # Emoji API endpoints
+
     async def fetch_emojis(self: StateSnowflake) -> list[Emoji]:
         """
         List all of the emojis for the guild.
@@ -1036,7 +1044,7 @@ class GuildAPIMixin:
             The name of the emoji you want to add.
         image : str | bytes | io.IOBase
             The image that you want to add.
-        roles : list[Snowflake] | None
+        roles : list[int | novus.models.abc.Snowflake] | None
             A list of roles that are allowed to use the emoji.
         reason : str | None
             A reason you're adding the emoji.
@@ -1049,3 +1057,27 @@ class GuildAPIMixin:
 
         from .emoji import Emoji
         return await Emoji.create(self._state, self.id, *args, **kwargs)
+
+    # User API methods
+
+    async def fetch_current_member(self: StateSnowflake) -> GuildMember:
+        """
+        Get the member object associated with the current guild and the current
+        connection.
+
+        Returns
+        -------
+        novus.models.GuildMember
+            The member object for the current user.
+        """
+
+        member = await self._state.user.get_current_user_guild_member(self.id)
+        member.guild = self
+        return member
+
+    async def leave(self: StateSnowflake) -> None:
+        """
+        Leave the current guild.
+        """
+
+        await self._state.user.leave_guild(self.id)

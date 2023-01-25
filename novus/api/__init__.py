@@ -21,3 +21,4 @@ from ._route import *
 from ._http import *
 from .guild import *
 from .emoji import *
+from .user import *

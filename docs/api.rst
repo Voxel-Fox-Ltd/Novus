@@ -340,39 +340,53 @@ User
 Utils
 --------
 
+.. autofunction:: novus.utils.try_snowflake
+
+.. autofunction:: novus.utils.try_id
+
+.. autofunction:: novus.utils.try_object
+
 Discord Models
 --------------
 
 .. autoclass:: novus.models.Guild
     :members:
+    :inherited-members:
     :no-members: __init__
 
 .. autoclass:: novus.models.Sticker
     :members:
+    :inherited-members:
     :no-members: __init__
 
 .. autoclass:: novus.models.Emoji
     :members:
+    :inherited-members:
     :no-members: __init__
 
 .. autoclass:: novus.models.Role
     :members:
+    :inherited-members:
     :no-members: __init__
 
 .. autoclass:: novus.models.Asset
     :members:
+    :inherited-members:
     :no-members: __init__
 
 .. autoclass:: novus.models.Message
     :members:
+    :inherited-members:
     :no-members: __init__
 
 .. autoclass:: novus.models.User
     :members:
+    :inherited-members:
     :no-members: __init__
 
 .. autoclass:: novus.models.GuildMember
     :members:
+    :inherited-members:
     :no-members: __init__
 
 Discord Oauth Models
@@ -388,6 +402,8 @@ authenticated via an Oauth access token.
 
 Discord Data Containers
 -----------------------
+
+These are models are designed for you to initialize yourself so as to use them in API methods.
 
 .. autoclass:: novus.models.Object
     :special-members: __init__
@@ -412,6 +428,12 @@ Discord Data Containers
 .. autoclass:: novus.models.PermissionOverwrite
     :special-members: __init__
     :members:
+
+
+Proxy Objects
+-------------
+
+These are models returned from the API that you aren't intended to make yourself.
 
 .. autoclass:: novus.models.WelcomeScreen
     :members:
@@ -438,6 +460,10 @@ API
     :no-members:
 
 .. autoclass:: novus.api.GuildHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.UserHTTPConnection
     :members:
     :no-members: __init__
 

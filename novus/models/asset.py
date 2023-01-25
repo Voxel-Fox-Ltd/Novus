@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, TypeAlias
+from typing import TYPE_CHECKING, Literal
 
 import os
 
@@ -31,9 +31,6 @@ if TYPE_CHECKING:
     from .role import Role
     from .sticker import Sticker
     from .user import User, GuildMember
-
-    AnyFullGuild: TypeAlias = Guild | OauthGuild
-    AnyGuild: TypeAlias = AnyFullGuild | GuildPreview
 
 __all__ = (
     'Asset',
@@ -103,19 +100,19 @@ class Asset:
         )
 
     @classmethod
-    def from_guild_icon(cls, guild: AnyGuild) -> Asset:
+    def from_guild_icon(cls, guild: Guild | GuildPreview | OauthGuild) -> Asset:
         return cls(f"/icons/{guild.id}/{guild.icon_hash}")
 
     @classmethod
-    def from_guild_splash(cls, guild: AnyGuild) -> Asset:
+    def from_guild_splash(cls, guild: Guild | GuildPreview) -> Asset:
         return cls(f"/splashes/{guild.id}/{guild.splash_hash}")
 
     @classmethod
-    def from_guild_discovery_splash(cls, guild: AnyGuild) -> Asset:
+    def from_guild_discovery_splash(cls, guild: Guild | GuildPreview) -> Asset:
         return cls(f"/discovery-splashes/{guild.id}/{guild.discovery_splash_hash}")
 
     @classmethod
-    def from_guild_banner(cls, guild: AnyFullGuild) -> Asset:
+    def from_guild_banner(cls, guild: Guild) -> Asset:
         return cls(f"/banners/{guild.id}/{guild.banner_hash}")
 
     @classmethod
