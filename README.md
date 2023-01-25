@@ -27,6 +27,10 @@ user2 = await novus.models.GuildMember.fetch(state, GUILD_ID, USER_ID)
 assert user1 == user2
 ```
 
+## Tests
+
+In an attempt to build a testing suite, I'm writing some test cases to go into the `tests/` directory so as to test each of the API methods. These use `pytest` with `pytest-asyncio`.
+
 ## Environment Variables
 
 Novus uses a few environment variables to configure itself. These support

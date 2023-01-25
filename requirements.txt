@@ -1,2 +1,7 @@
 python-dotenv
 vf-flags>=0.2.0,<0.3
+sphinx
+furo
+pytest
+pytest-asyncio
+python-dotenv
