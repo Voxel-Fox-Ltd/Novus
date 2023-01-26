@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING
 
 from .mixins import Hashable
 from .asset import Asset
-from .guild import Guild
 from ..flags import UserFlags, Permissions
 from ..enums import try_enum, UserPremiumType, Locale
 from ..utils import try_snowflake, parse_timestamp, cached_slot_property, generate_repr
@@ -231,51 +230,3 @@ class GuildMember(User):
         if self.guild_avatar_hash is None:
             return None
         return Asset.from_guild_member_avatar(self)
-
-    async def kick(self, *, reason: str | None) -> None:
-        """
-        Remove a user from the guild.
-
-        Requires the ``KICK_MEMBERS`` permission.
-
-        Parameters
-        ----------
-        reason : str | None
-            The reason to be shown in the audit log.
-        """
-
-        return await Guild.kick_member(
-            self.guild,
-            self.id,
-            reason=reason,
-        )
-
-    async def edit(self, *, reason: str | None, **kwargs) -> GuildMember:
-        """
-        Edit a guild member.
-
-        Parameters
-        ----------
-        nick : str | None
-            The nickname you want to set for the user.
-        roles : list[novus.models.abc.Snowflake]
-            A list of roles that you want the user to have.
-        mute : bool
-            Whether or not the user is muted in voice channels. Will error if
-            the user is not currently in a voice channel.
-        deaf : bool
-            Whether or not the user is deafened in voice channels. Will error
-            if the user is not currently in a voice channel.
-        voice_channel : novus.models.abc.Snowflake | None
-            The voice channel that the user is in.
-        timeout_until : datetime.datetime | None
-            When the user's timeout should expire (up to 28 days in the
-            future).
-        """
-
-        return await Guild.edit_member(
-            self.guild,
-            self.id,
-            reason=reason,
-            **kwargs
-        )

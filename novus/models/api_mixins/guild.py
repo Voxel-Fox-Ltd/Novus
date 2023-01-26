@@ -392,7 +392,9 @@ class GuildAPIMixin:
 
     async def fetch_member(self: StateSnowflake, member_id: int, /) -> GuildMember:
         """
-        Get a member from the server.
+        Get a member from the guild.
+
+        .. seealso:: :func:`novus.models.GuildMember.fetch`
 
         Parameters
         ----------
@@ -554,6 +556,8 @@ class GuildAPIMixin:
         """
         Edit a guild member.
 
+        .. seealso:: :func:`novus.models.GuildMember.edit`
+
         Parameters
         ----------
         user : int | novus.models.abc.Snowflake
@@ -610,6 +614,8 @@ class GuildAPIMixin:
 
         Requires the ``MANAGE_ROLES`` permission.
 
+        .. seealso:: :func:`novus.models.GuildMember.add_role`
+
         Parameters
         ----------
         user : int | novus.models.abc.Snowflake
@@ -638,6 +644,8 @@ class GuildAPIMixin:
 
         Requires the ``MANAGE_ROLES`` permission.
 
+        .. seealso:: :func:`novus.models.GuildMember.remove_role`
+
         Parameters
         ----------
         user : int | novus.models.abc.Snowflake
@@ -655,7 +663,7 @@ class GuildAPIMixin:
             reason=reason,
         )
 
-    async def kick_member(
+    async def kick(
             self: StateSnowflake,
             user: int | Snowflake,
             *,
@@ -739,14 +747,16 @@ class GuildAPIMixin:
             try_id(user),
         )
 
-    async def create_ban(
+    async def ban(
             self: StateSnowflake,
             user: int | Snowflake,
             *,
             reason: str | None = None,
             delete_message_seconds: int = MISSING) -> None:
         """
-        Get an individual user's ban.
+        Ban a user from the guild.
+
+        .. seealso:: :func:`novus.models.GuildMember.ban`
 
         Parameters
         ----------
@@ -771,7 +781,7 @@ class GuildAPIMixin:
         )
         return
 
-    async def remove_ban(
+    async def unban(
             self: StateSnowflake,
             user: int | Snowflake,
             *,
@@ -1013,7 +1023,7 @@ class GuildAPIMixin:
     async def edit_member_voice_state(self):
         raise NotImplementedError()
 
-    async def edit_current_member_voice_state(self):
+    async def edit_my_voice_state(self):
         raise NotImplementedError()
 
     # Emoji API endpoints
@@ -1060,10 +1070,12 @@ class GuildAPIMixin:
 
     # User API methods
 
-    async def fetch_current_member(self: StateSnowflake) -> GuildMember:
+    async def fetch_me(self: StateSnowflake) -> GuildMember:
         """
         Get the member object associated with the current guild and the current
         connection.
+
+        .. seealso:: :func:`novus.models.GuildMember.fetch_me`
 
         Returns
         -------

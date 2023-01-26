@@ -57,7 +57,7 @@ class UserAPIMixin:
         return await state.user.get_user(user_id)
 
     @classmethod
-    async def fetch_current(
+    async def fetch_me(
             cls,
             state: HTTPConnection) -> User:
         """
@@ -77,7 +77,7 @@ class UserAPIMixin:
         return await state.user.get_current_user()
 
     @classmethod
-    async def fetch_current_guilds(
+    async def fetch_my_guilds(
             cls,
             state: HTTPConnection,
             *,
@@ -126,6 +126,8 @@ class GuildMemberAPIMixin:
         """
         Get an instance of a user from the API.
 
+        .. seealso:: :func:`novus.models.Guild.fetch_member`
+
         Parameters
         ----------
         state : HTTPConnection
@@ -145,13 +147,15 @@ class GuildMemberAPIMixin:
         return await Guild.fetch_member(guild, user_id)
 
     @classmethod
-    async def fetch_current(
+    async def fetch_me(
             cls,
             state: HTTPConnection,
             guild_id: int) -> GuildMember:
         """
         Get the member object associated with the current connection and a
         given guild ID.
+
+        .. seealso:: :func:`novus.models.Guild.fetch_me`
 
         Parameters
         ----------
@@ -167,7 +171,7 @@ class GuildMemberAPIMixin:
         """
 
         guild = Object(guild_id, state=state)
-        return await Guild.fetch_current_member(guild)
+        return await Guild.fetch_me(guild)
 
     async def edit(
             self: StateSnowflakeWithGuild,
@@ -175,6 +179,8 @@ class GuildMemberAPIMixin:
             **kwargs) -> GuildMember:
         """
         Edit a guild member.
+
+        .. seealso:: :func:`novus.models.Guild.edit_member`
 
         Parameters
         ----------
@@ -208,6 +214,8 @@ class GuildMemberAPIMixin:
 
         Requires the ``MANAGE_ROLES`` permission.
 
+        .. seealso:: :func:`novus.models.Guild.add_member_role`
+
         Parameters
         ----------
         role : int | novus.models.abc.Snowflake
@@ -234,6 +242,8 @@ class GuildMemberAPIMixin:
 
         Requires the ``MANAGE_ROLES`` permission.
 
+        .. seealso:: :func:`novus.models.Guild.remove_member_role`
+
         Parameters
         ----------
         role : int | novus.models.abc.Snowflake
@@ -247,5 +257,53 @@ class GuildMemberAPIMixin:
             guild,
             self.id,
             try_id(role),
+            reason=reason,
+        )
+
+    async def kick(
+            self: StateSnowflakeWithGuild,
+            *,
+            reason: str | None) -> None:
+        """
+        Remove a user from the guild.
+
+        Requires the ``KICK_MEMBERS`` permission.
+
+        .. seealso:: :func:`novus.models.Guild.kick`
+
+        Parameters
+        ----------
+        reason : str | None
+            The reason to be shown in the audit log.
+        """
+
+        guild = Object(self.guild.id, state=self._state)
+        return await Guild.kick(
+            guild,
+            self.id,
+            reason=reason,
+        )
+
+    async def ban(
+            self: StateSnowflakeWithGuild,
+            *,
+            reason: str | None) -> None:
+        """
+        Ban a user from the guild.
+
+        Requires the ``BAN_MEMBERS`` permission.
+
+        .. seealso:: :func:`novus.models.Guild.ban`
+
+        Parameters
+        ----------
+        reason : str | None
+            The reason to be shown in the audit log.
+        """
+
+        guild = Object(self.guild.id, state=self._state)
+        return await Guild.ban(
+            guild,
+            self.id,
             reason=reason,
         )
