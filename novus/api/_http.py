@@ -159,6 +159,13 @@ class HTTPConnection:
         self._session = aiohttp.ClientSession()
         return self._session
 
+    async def __aenter__(self) -> None:
+        await self.get_session()
+
+    async def __aexit__(self, *args) -> None:
+        s = await self.get_session()
+        await s.close()
+
     async def request(
             self,
             route: Route,
