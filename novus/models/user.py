@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING
 
 from .mixins import Hashable
 from .asset import Asset
+from .api_mixins.user import UserAPIMixin, GuildMemberAPIMixin
 from ..flags import UserFlags, Permissions
 from ..enums import try_enum, UserPremiumType, Locale
 from ..utils import try_snowflake, parse_timestamp, cached_slot_property, generate_repr
@@ -39,7 +40,7 @@ __all__ = (
 )
 
 
-class User(Hashable):
+class User(Hashable, UserAPIMixin):
     """
     A model for a user object.
 
@@ -140,7 +141,7 @@ class User(Hashable):
         return Asset.from_user_banner(self)
 
 
-class GuildMember(User):
+class GuildMember(User, GuildMemberAPIMixin):
     """
     A model for a guild member object.
 

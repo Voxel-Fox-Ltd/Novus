@@ -155,6 +155,8 @@ class GuildMemberAPIMixin:
         Get the member object associated with the current connection and a
         given guild ID.
 
+        .. note:: Only usable via Oauth with the ``guilds.members.read`` scope.
+
         .. seealso:: :func:`novus.models.Guild.fetch_me`
 
         Parameters

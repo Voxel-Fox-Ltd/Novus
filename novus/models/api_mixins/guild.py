@@ -1032,6 +1032,8 @@ class GuildAPIMixin:
         """
         List all of the emojis for the guild.
 
+        .. seealso:: :func:`novus.models.Emoji.fetch_all_for_guild`
+
         Returns
         -------
         list[novus.models.Emoji]
@@ -1074,6 +1076,8 @@ class GuildAPIMixin:
         """
         Get the member object associated with the current guild and the current
         connection.
+
+        .. note:: Only usable via Oauth with the ``guilds.members.read`` scope.
 
         .. seealso:: :func:`novus.models.GuildMember.fetch_me`
 

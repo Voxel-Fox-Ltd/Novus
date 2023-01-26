@@ -107,6 +107,8 @@ class EmojiAPIMixin:
         """
         Fetch all of the emojis from a guild.
 
+        .. seealso:: :func:`novus.models.Guild.fetch_emojis`
+
         Parameters
         ----------
         guild_id : int
@@ -130,7 +132,7 @@ class EmojiAPIMixin:
         Parameters
         ----------
         reason : str | None
-            The given reason that the user was banned.
+            The reason shown in the audit log.
         """
 
         await self._state.emoji.delete_guild_emoji(
@@ -156,7 +158,7 @@ class EmojiAPIMixin:
         roles : list[novus.models.abc.Snowflake]
             A list of the roles that can use the emoji.
         reason : str | None
-            The given reason that the user was banned.
+            The reason shown in the audit log.
 
         Returns
         -------
