@@ -27,7 +27,8 @@ extensions = [
     # 'nitpick_file_ignorer',
 ]
 
-autodoc_member_order = 'bysource'
+autodoc_member_order = "bysource"
+# autodoc_class_signature = "separated"
 
 intersphinx_mapping = {
     'py': ('https://docs.python.org/3', None),

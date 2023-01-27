@@ -34,5 +34,8 @@ class MissingObject:
     def __bool__(self):
         return False
 
+    def __repr__(self):
+        return "MISSING"
+
 
 MISSING: Any = MissingObject()

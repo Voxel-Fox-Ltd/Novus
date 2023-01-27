@@ -14,7 +14,7 @@ ABCs and Mixins
 Enums
 ------
 
-.. autoclass:: novus.enums.Locale
+.. class:: novus.enums.Locale
 
     .. list-table::
         :header-rows: 1
@@ -55,7 +55,7 @@ Enums
 Channel
 ~~~~~~~
 
-.. autoclass:: novus.enums.ChannelType
+.. class:: novus.enums.ChannelType
 
     .. list-table::
         :header-rows: 1
@@ -74,7 +74,7 @@ Channel
         * - ``guild_directory``
         * - ``guild_forum``
 
-.. autoclass:: novus.enums.PermissionOverwriteType
+.. class:: novus.enums.PermissionOverwriteType
 
     .. list-table::
         :header-rows: 1
@@ -86,7 +86,7 @@ Channel
 Guild
 ~~~~~~
 
-.. autoclass:: novus.enums.NSFWLevel
+.. class:: novus.enums.NSFWLevel
 
     .. list-table::
         :header-rows: 1
@@ -97,7 +97,7 @@ Guild
         * - ``safe``
         * - ``age_restricted``
 
-.. autoclass:: novus.enums.PremiumTier
+.. class:: novus.enums.PremiumTier
 
     .. list-table::
         :header-rows: 1
@@ -108,7 +108,7 @@ Guild
         * - ``tier_2``
         * - ``tier_3``
 
-.. autoclass:: novus.enums.MFALevel
+.. class:: novus.enums.MFALevel
 
     .. list-table::
         :header-rows: 1
@@ -117,7 +117,7 @@ Guild
         * - ``none``
         * - ``elevated``
 
-.. autoclass:: novus.enums.ContentFilterLevel
+.. class:: novus.enums.ContentFilterLevel
 
     .. list-table::
         :header-rows: 1
@@ -127,7 +127,7 @@ Guild
         * - ``members_without_roles``
         * - ``all_members``
 
-.. autoclass:: novus.enums.VerificationLevel
+.. class:: novus.enums.VerificationLevel
 
     .. list-table::
         :header-rows: 1
@@ -145,7 +145,7 @@ Guild
         * - ``very_high``
           - Must have a verified phone number.
 
-.. autoclass:: novus.enums.NotificationLevel
+.. class:: novus.enums.NotificationLevel
 
     .. list-table::
         :header-rows: 1
@@ -157,7 +157,7 @@ Guild
 Sticker
 ~~~~~~~
 
-.. autoclass:: novus.enums.StickerType
+.. class:: novus.enums.StickerType
 
     .. list-table::
         :header-rows: 1
@@ -166,7 +166,7 @@ Sticker
         * - ``standard``
         * - ``guild``
 
-.. autoclass:: novus.enums.StickerFormat
+.. class:: novus.enums.StickerFormat
 
     .. list-table::
         :header-rows: 1
@@ -180,7 +180,7 @@ Sticker
 User
 ~~~~~~~
 
-.. autoclass:: novus.enums.UserPremiumType
+.. class:: novus.enums.UserPremiumType
 
     .. list-table::
         :header-rows: 1
