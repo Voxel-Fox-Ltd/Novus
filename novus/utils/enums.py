@@ -15,21 +15,28 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .utils import Enum
+from typing import Any, Type, TypeVar, overload
+from enum import Enum
 
 __all__ = (
-    'StickerType',
-    'StickerFormat',
+    'try_enum',
 )
 
 
-class StickerType(Enum):
-    standard = 1
-    guild = 2
+E = TypeVar('E', bound=Enum)
 
 
-class StickerFormat(Enum):
-    png = 1
-    apng = 2
-    lottie = 3
-    gif = 4
+@overload
+def try_enum(enum: Type[E], value: Any) -> E:
+    ...
+
+
+@overload
+def try_enum(enum, value: None) -> None:
+    ...
+
+
+def try_enum(enum: Type[E], value: Any | None = None) -> E | None:
+    if value is None:
+        return None
+    return enum(value)

@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..utils import generate_repr
+
 if TYPE_CHECKING:
     from ..api import HTTPConnection
 
@@ -44,3 +46,7 @@ class Object:
         self.guild = None
         if guild_id:
             self.guild = Object(guild_id, state=state)
+        else:
+            del self.guild
+
+    __repr__ = generate_repr(('id', 'guild',))

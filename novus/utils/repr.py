@@ -35,6 +35,8 @@ def generate_repr(
                 kwarg_name, self_name = pair
             else:
                 kwarg_name, self_name = pair, pair
+            if not hasattr(instance, self_name):
+                continue
             generated_args.append(f"{kwarg_name}={getattr(instance, self_name)!r}")
         return f"<{instance.__class__.__name__} {' '.join(generated_args)}>"
     return wrapper

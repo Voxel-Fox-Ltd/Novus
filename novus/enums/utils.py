@@ -15,21 +15,14 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .utils import Enum
+from enum import Enum as E
 
 __all__ = (
-    'StickerType',
-    'StickerFormat',
+    'Enum',
 )
 
 
-class StickerType(Enum):
-    standard = 1
-    guild = 2
+class Enum(E):
 
-
-class StickerFormat(Enum):
-    png = 1
-    apng = 2
-    lottie = 3
-    gif = 4
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'

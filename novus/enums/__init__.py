@@ -17,30 +17,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any, Type, TypeVar, overload
-from enum import Enum
-
-from .guild import *
-from .sticker import *
+from .audit_log import *
 from .channel import *
+from .guild import *
 from .locale import *
+from .sticker import *
 from .user import *
-
-
-E = TypeVar('E', bound=Enum)
-
-
-@overload
-def try_enum(enum: Type[E], value: Any) -> E:
-    ...
-
-
-@overload
-def try_enum(enum, value: None) -> None:
-    ...
-
-
-def try_enum(enum: Type[E], value: Any | None = None) -> E | None:
-    if value is None:
-        return None
-    return enum(value)

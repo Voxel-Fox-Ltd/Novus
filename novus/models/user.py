@@ -23,8 +23,14 @@ from .mixins import Hashable
 from .asset import Asset
 from .api_mixins.user import UserAPIMixin, GuildMemberAPIMixin
 from ..flags import UserFlags, Permissions
-from ..enums import try_enum, UserPremiumType, Locale
-from ..utils import try_snowflake, parse_timestamp, cached_slot_property, generate_repr
+from ..enums import UserPremiumType, Locale
+from ..utils import (
+    try_snowflake,
+    parse_timestamp,
+    cached_slot_property,
+    generate_repr,
+    try_enum,
+)
 
 if TYPE_CHECKING:
     from .abc import StateSnowflake

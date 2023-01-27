@@ -1040,13 +1040,18 @@ class GuildAPIMixin:
             A list of the guild's emojis.
         """
 
-        from .emoji import Emoji
-        emojis = await Emoji.fetch_all_for_guild(self._state, self.id)
+        emojis = await self._state.emoji.list_guild_emojis(self.id)
         for e in emojis:
             e.guild = self
         return emojis
 
-    async def create_emoji(self: StateSnowflake, *args, **kwargs):
+    async def create_emoji(
+            self: StateSnowflake,
+            *,
+            name: str,
+            image: FileT,
+            roles: list[Snowflake] | None = None,
+            reason: str | None = None) -> Emoji:
         """
         Create an emoji within a guild.
 
@@ -1067,8 +1072,15 @@ class GuildAPIMixin:
             The newly created emoji.
         """
 
-        from .emoji import Emoji
-        return await Emoji.create(self._state, self.id, *args, **kwargs)
+        return await self._state.emoji.create_guild_emoji(
+            self.id,
+            reason=reason,
+            **{
+                "name": name,
+                "image": image,
+                "roles": roles or list(),
+            },
+        )
 
     # User API methods
 
@@ -1097,3 +1109,8 @@ class GuildAPIMixin:
         """
 
         await self._state.user.leave_guild(self.id)
+
+    # Audit log API methods
+
+    async def fetch_audit_logs(self: StateSnowflake, ):
+        ...

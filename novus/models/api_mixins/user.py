@@ -17,12 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+from datetime import datetime as dt
 
-
-from ..guild import Guild
-from ..object import Object
-from ...utils import try_id
+from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
     from ..abc import Snowflake, StateSnowflakeWithGuild
@@ -122,7 +120,7 @@ class GuildMemberAPIMixin:
             cls,
             state: HTTPConnection,
             guild_id: int,
-            user_id: int) -> GuildMember:
+            member_id: int) -> GuildMember:
         """
         Get an instance of a user from the API.
 
@@ -134,7 +132,7 @@ class GuildMemberAPIMixin:
             The API connection.
         guild_id : int
             The ID associated with the guild you want to get.
-        user_id : int
+        member_id : int
             The ID associated with the user you want to get.
 
         Returns
@@ -143,8 +141,7 @@ class GuildMemberAPIMixin:
             The user associated with the given ID.
         """
 
-        guild = Object(guild_id, state=state)
-        return await Guild.fetch_member(guild, user_id)
+        return await state.guild.get_guild_member(guild_id, member_id)
 
     @classmethod
     async def fetch_me(
@@ -172,13 +169,18 @@ class GuildMemberAPIMixin:
             The member within the given guild.
         """
 
-        guild = Object(guild_id, state=state)
-        return await Guild.fetch_me(guild)
+        return await state.user.get_current_user_guild_member(guild_id)
 
     async def edit(
             self: StateSnowflakeWithGuild,
-            *args,
-            **kwargs) -> GuildMember:
+            *,
+            reason: str | None = None,
+            nick: str | None = MISSING,
+            roles: list[int | Snowflake] = MISSING,
+            mute: bool = MISSING,
+            deaf: bool = MISSING,
+            voice_channel: int | Snowflake | None = MISSING,
+            timeout_until: dt | None = MISSING) -> GuildMember:
         """
         Edit a guild member.
 
@@ -203,8 +205,27 @@ class GuildMemberAPIMixin:
             future).
         """
 
-        guild = Object(self.guild.id, state=self._state)
-        return await Guild.edit_member(guild, self.id, *args, **kwargs)
+        update: dict[str, Any] = {}
+
+        if nick is not MISSING:
+            update["nick"] = nick
+        if roles is not MISSING:
+            update["roles"] = [try_object(r) for r in roles]
+        if mute is not MISSING:
+            update["mute"] = mute
+        if deaf is not MISSING:
+            update["deaf"] = deaf
+        if voice_channel is not MISSING:
+            update["channel"] = try_object(voice_channel)
+        if timeout_until is not MISSING:
+            update["communication_disabled_until"] = timeout_until
+
+        return await self._state.guild.modify_guild_member(
+            self.guild.id,
+            self.id,
+            reason=reason,
+            **update,
+        )
 
     async def add_role(
             self: StateSnowflakeWithGuild,
@@ -226,9 +247,8 @@ class GuildMemberAPIMixin:
             The reason shown in the audit log.
         """
 
-        guild = Object(self.guild.id, state=self._state)
-        return await Guild.add_member_role(
-            guild,
+        await self._state.guild.add_guild_member_role(
+            self.guild.id,
             self.id,
             try_id(role),
             reason=reason,
@@ -254,9 +274,8 @@ class GuildMemberAPIMixin:
             The reason shown in the audit log.
         """
 
-        guild = Object(self.guild.id, state=self._state)
-        return await Guild.remove_member_role(
-            guild,
+        await self._state.guild.add_guild_member_role(
+            self.guild.id,
             self.id,
             try_id(role),
             reason=reason,
@@ -279,9 +298,8 @@ class GuildMemberAPIMixin:
             The reason to be shown in the audit log.
         """
 
-        guild = Object(self.guild.id, state=self._state)
-        return await Guild.kick(
-            guild,
+        await self._state.guild.remove_guild_member(
+            self.guild.id,
             self.id,
             reason=reason,
         )
@@ -289,7 +307,8 @@ class GuildMemberAPIMixin:
     async def ban(
             self: StateSnowflakeWithGuild,
             *,
-            reason: str | None) -> None:
+            reason: str | None,
+            delete_message_seconds: int = MISSING) -> None:
         """
         Ban a user from the guild.
 
@@ -299,13 +318,21 @@ class GuildMemberAPIMixin:
 
         Parameters
         ----------
+        delete_message_seconds : int
+            The number of seconds of messages you want to delete.
         reason : str | None
             The reason to be shown in the audit log.
         """
 
-        guild = Object(self.guild.id, state=self._state)
-        return await Guild.ban(
-            guild,
+        updates: dict[str, Any] = {}
+
+        if delete_message_seconds is not MISSING:
+            updates['delete_message_seconds'] = delete_message_seconds
+
+        await self._state.guild.create_guild_ban(
+            self.guild.id,
             self.id,
             reason=reason,
+            **updates
         )
+        return

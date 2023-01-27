@@ -24,6 +24,7 @@ from .repr import *
 from .files import *
 from .cached_slots import *
 from .times import *
+from .enums import *
 
 
 class MissingObject:

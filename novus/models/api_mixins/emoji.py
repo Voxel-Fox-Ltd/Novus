@@ -167,10 +167,12 @@ class EmojiAPIMixin:
         """
 
         update: dict[str, Any] = {}
+
         if name is not MISSING:
             update["name"] = name
         if roles is not MISSING:
             update["roles"] = roles
+
         return await self._state.emoji.modify_guild_emoji(
             self.guild.id,
             self.id,
