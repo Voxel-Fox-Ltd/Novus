@@ -337,8 +337,72 @@ User
         * - ``bot_http_interactions``
         * - ``active_developer``
 
+Audit Log
+~~~~~~~~~
+
+.. class:: novus.flags.AuditLogEntryType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``guild_update``
+        * - ``channel_create``
+        * - ``channel_update``
+        * - ``channel_delete``
+        * - ``channel_overwrite_create``
+        * - ``channel_overwrite_update``
+        * - ``channel_overwrite_delete``
+        * - ``member_kick``
+        * - ``member_prune``
+        * - ``member_ban_add``
+        * - ``member_ban_remove``
+        * - ``member_update``
+        * - ``member_role_update``
+        * - ``member_move``
+        * - ``member_disconnect``
+        * - ``bot_add``
+        * - ``role_create``
+        * - ``role_update``
+        * - ``role_delete``
+        * - ``invite_create``
+        * - ``invite_update``
+        * - ``invite_delete``
+        * - ``webhook_create``
+        * - ``webhook_update``
+        * - ``webhook_delete``
+        * - ``emoji_create``
+        * - ``emoji_update``
+        * - ``emoji_delete``
+        * - ``message_delete``
+        * - ``message_bulk_delete``
+        * - ``message_pin``
+        * - ``message_unpin``
+        * - ``integration_create``
+        * - ``integration_update``
+        * - ``integration_delete``
+        * - ``stage_instance_create``
+        * - ``stage_instance_update``
+        * - ``stage_instance_delete``
+        * - ``sticker_create``
+        * - ``sticker_update``
+        * - ``sticker_delete``
+        * - ``guild_scheduled_event_create``
+        * - ``guild_scheduled_event_update``
+        * - ``guild_scheduled_event_delete``
+        * - ``thread_create``
+        * - ``thread_update``
+        * - ``thread_delete``
+        * - ``application_command_permission_update``
+        * - ``auto_moderation_rule_create``
+        * - ``auto_moderation_rule_update``
+        * - ``auto_moderation_rule_delete``
+        * - ``auto_moderation_block_message``
+        * - ``auto_moderation_flag_to_channel``
+        * - ``auto_moderation_user_communication_disabled``
+
 Utils
---------
+-----
 
 .. autofunction:: novus.utils.try_snowflake
 
@@ -349,42 +413,70 @@ Utils
 Discord Models
 --------------
 
-.. autoclass:: novus.models.Guild
-    :members:
-    :inherited-members:
-    :no-members: __init__
-
-.. autoclass:: novus.models.Sticker
-    :members:
-    :inherited-members:
-    :no-members: __init__
-
-.. autoclass:: novus.models.Emoji
-    :members:
-    :inherited-members:
-    :no-members: __init__
-
-.. autoclass:: novus.models.Role
-    :members:
-    :inherited-members:
-    :no-members: __init__
-
-.. autoclass:: novus.models.Asset
-    :members:
-    :inherited-members:
-    :no-members: __init__
-
-.. autoclass:: novus.models.Message
-    :members:
-    :inherited-members:
-    :no-members: __init__
+User
+~~~~
 
 .. autoclass:: novus.models.User
     :members:
     :inherited-members:
     :no-members: __init__
 
+Guild
+~~~~~
+
+.. autoclass:: novus.models.Guild
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
 .. autoclass:: novus.models.GuildMember
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
+Audit Logs
+~~~~~~~~~~
+
+.. autoclass:: novus.models.AuditLog
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.models.AuditLogEntry
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.models.AuditLogContainer
+    :members:
+    :no-members: __init__
+
+Sticker
+~~~~~~~
+
+.. autoclass:: novus.models.Sticker
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
+Emoji
+~~~~~
+
+.. autoclass:: novus.models.Emoji
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
+Role
+~~~~
+
+.. autoclass:: novus.models.Role
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
+Message
+~~~~~~~
+
+.. autoclass:: novus.models.Message
     :members:
     :inherited-members:
     :no-members: __init__
@@ -451,6 +543,10 @@ These are models returned from the API that you aren't intended to make yourself
     :members:
     :no-members: __init__
 
+.. autoclass:: novus.models.Asset
+    :members:
+    :no-members: __init__
+
 API
 ----
 
@@ -459,7 +555,47 @@ API
 .. autoclass:: novus.api.HTTPConnection
     :no-members:
 
+.. autoclass:: novus.api.ApplicationRoleHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.AuditLogHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.AutoModerationHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.ChannelHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.EmojiHTTPConnection
+    :members:
+    :no-members: __init__
+
 .. autoclass:: novus.api.GuildHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.GuildEventHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.GuildTemplateHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.InviteHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.StageHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.StickerHTTPConnection
     :members:
     :no-members: __init__
 
@@ -467,3 +603,10 @@ API
     :members:
     :no-members: __init__
 
+.. autoclass:: novus.api.VoiceHTTPConnection
+    :members:
+    :no-members: __init__
+
+.. autoclass:: novus.api.WebhookHTTPConnection
+    :members:
+    :no-members: __init__

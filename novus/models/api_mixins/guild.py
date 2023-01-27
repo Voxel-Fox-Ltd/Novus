@@ -38,6 +38,7 @@ if TYPE_CHECKING:
     from ..user import GuildMember
     from ..channel import Channel
     from ..role import Role
+    from ..audit_log import AuditLog
     from ...api import HTTPConnection
     from ...flags import Permissions, SystemChannelFlags
     from ...enums import (
@@ -46,6 +47,7 @@ if TYPE_CHECKING:
         NotificationLevel,
         ContentFilterLevel,
         ChannelType,
+        AuditLogEventType,
     )
 
     FileT: TypeAlias = str | bytes | io.IOBase
@@ -1112,5 +1114,41 @@ class GuildAPIMixin:
 
     # Audit log API methods
 
-    async def fetch_audit_logs(self: StateSnowflake, ):
-        ...
+    async def fetch_audit_logs(
+            self: StateSnowflake,
+            *,
+            user_id: int | None = None,
+            action_type: AuditLogEventType | None = None,
+            before: int | None = None,
+            after: int | None = None,
+            limit: int = 50) -> AuditLog:
+        """
+        Get the audit logs for the guild.
+
+        Parameters
+        ----------
+        user_id: int | None
+            The ID of the moderator you want to to filter by.
+        action_type: AuditLogEventType | None
+            The ID of an action to filter by.
+        before: int | None
+            The snowflake before which to get entries.
+        after: int | None
+            The snowflake after which to get entries.
+        limit: int
+            The number of entries to get. Max 100, defaults to 50.
+
+        Returns
+        -------
+        novus.models.AuditLog
+            The audit log for the guild.
+        """
+
+        return await self._state.audit_log.get_guild_audit_log(
+            self.id,
+            user_id=user_id,
+            action_type=action_type,
+            before=before,
+            after=after,
+            limit=limit,
+        )

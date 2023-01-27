@@ -23,21 +23,20 @@ import io
 
 import aiohttp
 
-
-# .application_role_connection_metadata
-# .audit_log
-# .auto_moderation
-# .channel
+from .application_role_connection_metadata import ApplicationRoleHTTPConnection
+from .audit_log import AuditLogHTTPConnection
+from .auto_moderation import AutoModerationHTTPConnection
+from .channel import ChannelHTTPConnection
 from .emoji import EmojiHTTPConnection
 from .guild import GuildHTTPConnection
-# .guild_scheduled_event
-# .guild_template
-# .invite
-# .stage_instance
-# .sticker
+from .guild_scheduled_event import GuildEventHTTPConnection
+from .guild_template import GuildTemplateHTTPConnection
+from .invite import InviteHTTPConnection
+from .stage_instance import StageHTTPConnection
+from .sticker import StickerHTTPConnection
 from .user import UserHTTPConnection
-# .voice
-# .webhook
+from .voice import VoiceHTTPConnection
+from .webhook import WebhookHTTPConnection
 from ..utils import bytes_to_base64_data
 
 if TYPE_CHECKING:
@@ -112,7 +111,7 @@ class HTTPConnection:
 
     Attributes
     ----------
-    application_role_connection_metadata: Any
+    application_role_connection_metadata: ApplicationRoleHTTPConnection
     audit_log: Any
     auto_moderation: Any
     channel: Any
@@ -138,20 +137,20 @@ class HTTPConnection:
         )
 
         # Specific routes
-        self.application_role_connection_metadata: Any
-        self.audit_log: Any
-        self.auto_moderation: Any
-        self.channel: Any
+        self.application_role_connection_metadata = ApplicationRoleHTTPConnection(self)
+        self.audit_log = AuditLogHTTPConnection(self)
+        self.auto_moderation = AutoModerationHTTPConnection(self)
+        self.channel = ChannelHTTPConnection(self)
         self.emoji = EmojiHTTPConnection(self)
         self.guild = GuildHTTPConnection(self)
-        self.guild_scheduled_event: Any
-        self.guild_template: Any
-        self.invite: Any
-        self.stage_instance: Any
-        self.sticker: Any
+        self.guild_scheduled_event = GuildEventHTTPConnection(self)
+        self.guild_template = GuildTemplateHTTPConnection(self)
+        self.invite = InviteHTTPConnection(self)
+        self.stage_instance = StageHTTPConnection(self)
+        self.sticker = StickerHTTPConnection(self)
         self.user = UserHTTPConnection(self)
-        self.voice: Any
-        self.webhook: Any
+        self.voice = VoiceHTTPConnection(self)
+        self.webhook = WebhookHTTPConnection(self)
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self._session:
@@ -172,7 +171,7 @@ class HTTPConnection:
             *,
             reason: str | None = None,
             params: dict | None = None,
-            data: dict | None = None) -> Any:
+            data: dict | list | None = None) -> Any:
         """
         Perform a web request.
         """

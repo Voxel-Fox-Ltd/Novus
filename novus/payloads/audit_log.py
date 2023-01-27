@@ -22,6 +22,11 @@ from typing import TYPE_CHECKING, TypedDict, Literal, Any, Optional
 if TYPE_CHECKING:
     from ._util import Snowflake
     from .user import User
+    from .auto_moderation import AutoModerationRule
+    from .channel import Channel
+    from .guild import Integration
+    from .guild_scheduled_event import GuildScheduledEvent
+    from .webhook import Webhook
 
 __all__ = (
     'AuditLogEvent',
@@ -130,9 +135,9 @@ class AuditLogEntry(_AuditLogEntryOptional):
 class AuditLog(TypedDict):
     application_commands: list
     audit_log_entries: list[AuditLogEntry]
-    auto_moderation_rules: list
-    guild_scheduled_events: list
-    integrations: list
-    threads: list
+    auto_moderation_rules: list[AutoModerationRule]
+    guild_scheduled_events: list[GuildScheduledEvent]
+    integrations: list[Integration]
+    threads: list[Channel]
     users: list[User]
-    webhooks: list
+    webhooks: list[Webhook]

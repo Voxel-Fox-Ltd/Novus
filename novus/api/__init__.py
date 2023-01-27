@@ -19,6 +19,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from ._route import *
 from ._http import *
-from .guild import *
+from .application_role_connection_metadata import *
+from .audit_log import *
+from .auto_moderation import *
+from .channel import *
 from .emoji import *
+from .guild import *
+from .guild_scheduled_event import *
+from .guild_template import *
+from .invite import *
+from .stage_instance import *
+from .sticker import *
 from .user import *
+from .voice import *
+from .webhook import *

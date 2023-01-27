@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,16 +15,19 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import abc, mixins
-from .asset import *
-from .audit_log import *
-from .channel import *
-from .emoji import *
-from .guild import *
-from .invite import *
-from .message import *
-from .object import *
-from .role import *
-from .sticker import *
-from .user import *
-from .welcome_screen import *
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ._http import HTTPConnection
+
+__all__ = (
+    'StickerHTTPConnection',
+)
+
+
+class StickerHTTPConnection:
+
+    def __init__(self, parent: HTTPConnection):
+        self.parent = parent
