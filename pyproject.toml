@@ -30,6 +30,7 @@
     dependencies = [
         "python-dotenv",
         "vf-flags>=0.2.0,<0.3",
+        "aiohttp>=3.8.0",
     ]
 
 [project.optional-dependencies]
