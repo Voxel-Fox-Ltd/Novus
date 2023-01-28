@@ -15,7 +15,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any, Type, TypeVar, overload
+from typing import Type, TypeVar, overload
 from enum import Enum
 
 __all__ = (
@@ -27,16 +27,16 @@ E = TypeVar('E', bound=Enum)
 
 
 @overload
-def try_enum(enum: Type[E], value: Any) -> E:
+def try_enum(enum: Type[E], value: int | str) -> E:
     ...
 
 
 @overload
-def try_enum(enum, value: None) -> None:
+def try_enum(enum: Type[E], value: None) -> None:
     ...
 
 
-def try_enum(enum: Type[E], value: Any | None = None) -> E | None:
+def try_enum(enum: Type[E], value: int | str | None = None) -> E | None:
     if value is None:
         return None
     return enum(value)

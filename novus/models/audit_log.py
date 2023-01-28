@@ -26,6 +26,8 @@ from ..utils import try_snowflake, cached_slot_property, generate_repr
 from ..enums import AuditLogEventType
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+
     from .abc import Snowflake
     from ..api import HTTPConnection
     from ..payloads import (
@@ -48,7 +50,7 @@ class AuditLogContainer:
     over like a `dict` for easy access.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
@@ -156,7 +158,7 @@ class AuditLogEntry:
                 assert nv is not None
                 for k, v in nv[0].items():
                     if k == "id":
-                        v = int(v)
+                        v = int(v)  # type: ignore
                     setattr(change_obj, k, v)
                 continue
 
@@ -272,13 +274,13 @@ class AuditLog(AuditLogAPIMixin):
         self._auto_moderation_rules = {}
         self._guild_scheduled_events = {}
         self._integrations = {}
-        self._threads = {}
-        self._users = {}
+        self._threads: dict[int, Channel | None] = {}
+        self._users: dict[int, User | None] = {}
         self._webhooks = {}
 
     __repr__ = generate_repr(('guild',))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[AuditLogEntry]:
         return iter(self.entries)
 
     def _get_application_command(self, id: int):
@@ -301,7 +303,7 @@ class AuditLog(AuditLogAPIMixin):
             return self._integrations[id]
         # TODO
 
-    def _get_thread(self, id: int):
+    def _get_thread(self, id: int) -> Channel | None:
         if id in self._threads:
             return self._threads[id]
         if id in self._targets['threads']:
@@ -313,7 +315,7 @@ class AuditLog(AuditLogAPIMixin):
         )
         return u
 
-    def _get_user(self, id: int):
+    def _get_user(self, id: int) -> User | None:
         if id in self._users:
             return self._users[id]
         if id in self._targets['users']:

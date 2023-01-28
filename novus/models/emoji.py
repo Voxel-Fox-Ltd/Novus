@@ -62,7 +62,7 @@ class Emoji(Hashable, EmojiAPIMixin):
     available : bool
         If the emoji is available. May be ``False`` in the case that the guild
         has lost nitro boosts.
-    asset : novus.models.Asset | None
+    asset : novus.models.Asset
         The asset associated with the emoji, if it's a custom emoji.
     guild : novus.models.abc.Snowflake | novus.models.Guild
         The guild (or a data container for the ID) that the emoji came from.
@@ -108,10 +108,8 @@ class Emoji(Hashable, EmojiAPIMixin):
     __repr__ = generate_repr(('id', 'name', 'animated',))
 
     @cached_slot_property('_cs_asset')
-    def asset(self) -> Asset | None:
-        if self.id is not None:
-            return Asset.from_emoji(self)
-        return None
+    def asset(self) -> Asset:
+        return Asset.from_emoji(self)
 
 
 class Reaction:

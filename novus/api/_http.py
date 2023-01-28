@@ -161,7 +161,7 @@ class HTTPConnection:
     async def __aenter__(self) -> None:
         await self.get_session()
 
-    async def __aexit__(self, *args) -> None:
+    async def __aexit__(self, *_args: Any) -> None:
         s = await self.get_session()
         await s.close()
 

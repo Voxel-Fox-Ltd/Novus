@@ -28,7 +28,7 @@ def generate_repr(
     Easily add a __repr__ to a class.
     """
 
-    def wrapper(instance: Any):
+    def wrapper(instance: Any) -> str:
         generated_args = []
         for pair in args:
             if isinstance(pair, tuple):

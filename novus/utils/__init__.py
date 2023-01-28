@@ -17,7 +17,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any
+from typing import Any, Literal
 
 from .snowflakes import *
 from .repr import *
@@ -31,11 +31,11 @@ class MissingObject:
 
     __slots__ = ()
 
-    def __bool__(self):
+    def __bool__(self) -> Literal[False]:
         return False
 
-    def __repr__(self):
-        return "MISSING"
+    def __repr__(self) -> Literal['MISSING']:
+        return 'MISSING'
 
 
 MISSING: Any = MissingObject()

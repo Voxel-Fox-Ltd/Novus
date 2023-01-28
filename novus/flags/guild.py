@@ -28,7 +28,7 @@ class SystemChannelFlags(Flags):
 
     if TYPE_CHECKING:
 
-        def __init__(self, value: int = 0, **kwargs):
+        def __init__(self, value: int = 0, **kwargs) -> None:
             ...
 
         suppress_join_notifications: bool

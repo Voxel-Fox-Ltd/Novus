@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from ._route import Route
 from ..models import (
@@ -50,7 +50,7 @@ class GuildHTTPConnection:
 
     async def create_guild(
             self,
-            **kwargs) -> Guild:
+            **kwargs: Any) -> Guild:
         """
         Create a guild.
         """
@@ -122,7 +122,7 @@ class GuildHTTPConnection:
             /,
             *,
             reason: str | None = None,
-            **kwargs) -> Guild:
+            **kwargs: Any) -> Guild:
         """
         Edit a guild.
         """
@@ -215,7 +215,7 @@ class GuildHTTPConnection:
             /,
             *,
             reason: str | None = None,
-            **kwargs) -> Channel:
+            **kwargs: Any) -> Channel:
         """
         Create a guild channel.
         """
@@ -257,7 +257,7 @@ class GuildHTTPConnection:
         )
         return Channel._from_data(state=self.parent, data=data)
 
-    async def move_guild_channels(self, guild_id: int):
+    async def move_guild_channels(self, guild_id: int) -> NoReturn:
         raise NotImplementedError()
 
     async def get_active_guild_threads(self, guild_id: int) -> list[Thread]:
@@ -360,7 +360,7 @@ class GuildHTTPConnection:
             user_id: int,
             *,
             access_token: str,
-            **kwargs) -> GuildMember | None:
+            **kwargs: Any) -> GuildMember | None:
         """
         Add a member to the guild. Only works if you have a valid Oauth2 access
         token with the guild.join scope.
@@ -399,7 +399,7 @@ class GuildHTTPConnection:
             /,
             *,
             reason: str | None = None,
-            **kwargs) -> GuildMember:
+            **kwargs: Any) -> GuildMember:
         """
         Update a guild member.
         """
@@ -435,7 +435,7 @@ class GuildHTTPConnection:
         guild = Object(guild_id, state=self.parent)
         return GuildMember(state=self.parent, data=data, guild=guild)
 
-    async def modify_current_guild_member(self, guild_id: int):
+    async def modify_current_guild_member(self, guild_id: int) -> NoReturn:
         raise NotImplementedError()
 
     async def add_guild_member_role(
@@ -576,7 +576,7 @@ class GuildHTTPConnection:
             /,
             *,
             reason: str | None = None,
-            **kwargs) -> None:
+            **kwargs: Any) -> None:
         """
         Ban a user.
         """
@@ -650,7 +650,7 @@ class GuildHTTPConnection:
             guild_id: int,
             *,
             reason: str | None = None,
-            **kwargs) -> Role:
+            **kwargs: Any) -> Role:
         """
         Create a role in the guild.
         """
@@ -687,7 +687,7 @@ class GuildHTTPConnection:
         guild = Object(guild_id, state=self.parent)
         return Role(state=self.parent, data=data, guild=guild)
 
-    async def modify_guild_role_positions(self, _: int):
+    async def modify_guild_role_positions(self, _: int) -> NoReturn:
         raise NotImplementedError()
 
     async def modify_guild_role(
@@ -697,7 +697,7 @@ class GuildHTTPConnection:
             /,
             *,
             reason: str | None = None,
-            **kwargs) -> Role:
+            **kwargs: Any) -> Role:
         """
         Edit a guild role.
         """
@@ -735,7 +735,7 @@ class GuildHTTPConnection:
         guild = Object(guild_id, state=self.parent)
         return Role(state=self.parent, data=data, guild=guild)
 
-    async def modify_guild_mfa_level(self, _: int):
+    async def modify_guild_mfa_level(self, _: int) -> NoReturn:
         raise NotImplementedError()
 
     async def delete_guild_role(
@@ -761,13 +761,13 @@ class GuildHTTPConnection:
         )
         return None
 
-    async def get_guild_prune_count(self, _: int):
+    async def get_guild_prune_count(self, _: int) -> NoReturn:
         raise NotImplementedError()
 
-    async def begin_guild_prune(self, _: int):
+    async def begin_guild_prune(self, _: int) -> NoReturn:
         raise NotImplementedError()
 
-    async def get_guild_voice_regions(self, _: int):
+    async def get_guild_voice_regions(self, _: int) -> NoReturn:
         raise NotImplementedError()
 
     async def get_guild_invites(
@@ -790,32 +790,32 @@ class GuildHTTPConnection:
             for d in data
         ]
 
-    async def get_guild_integrations(self, _: int, /):
+    async def get_guild_integrations(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def delete_guild_integration(self, _: int, /):
+    async def delete_guild_integration(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def get_guild_widget_settings(self, _: int, /):
+    async def get_guild_widget_settings(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def modify_guild_widget_settings(self, _: int, /):
+    async def modify_guild_widget_settings(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def modify_guild_vainity_url(self, _: int, /):
+    async def modify_guild_vainity_url(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def modify_guild_widget_image(self, _: int, /):
+    async def modify_guild_widget_image(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def get_guild_welcome_screen(self, _: int, /):
+    async def get_guild_welcome_screen(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def modify_guild_welcome_screen(self, _: int, /):
+    async def modify_guild_welcome_screen(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def modify_current_user_voice_state(self, _: int, /):
+    async def modify_current_user_voice_state(self, _: int, /) -> NoReturn:
         raise NotImplementedError()
 
-    async def modify_user_voice_state(self, _: int, /):
+    async def modify_user_voice_state(self, _: int, /) -> NoReturn:
         raise NotImplementedError()

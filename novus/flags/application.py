@@ -28,7 +28,7 @@ class ApplicationFlags(Flags):
 
     if TYPE_CHECKING:
 
-        def __init__(self, value: int = 0, **kwargs):
+        def __init__(self, value: int = 0, **kwargs) -> None:
             ...
 
         gateway_presence: bool
