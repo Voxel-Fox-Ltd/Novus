@@ -1,7 +1,13 @@
-python-dotenv
+# Requirements
 vf-flags>=0.2.0,<0.3
+
+# Recommended
+python-dotenv
+
+# Docs
 sphinx
 furo
+
+# Testing
 pytest
 pytest-asyncio
-python-dotenv
