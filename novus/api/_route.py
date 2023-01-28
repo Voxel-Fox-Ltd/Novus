@@ -65,10 +65,10 @@ class Route:
         "https://discord.com/api/v10",
     )
 
-    def __init__(self, method: str, resource: str, **kwargs):
-        self.method = method
-        self.resource = resource
-        self.kwargs = kwargs
+    def __init__(self, method: str, resource: str, **kwargs: str | int) -> None:
+        self.method: str = method
+        self.resource: str = resource
+        self.kwargs: dict[str, str | int] = kwargs
 
     def __str__(self) -> str:
         return self.url

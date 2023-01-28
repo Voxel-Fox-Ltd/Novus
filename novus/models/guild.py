@@ -282,7 +282,7 @@ class Guild(Hashable, GuildAPIMixin):
         self._channels: dict[int, Channel] = {}
         self._sync(data=data)  # type: ignore
 
-    def _sync(self, *, data: GatewayGuildPayload):
+    def _sync(self, *, data: GatewayGuildPayload) -> None:
         """
         Sync the cached state with the given gateway payload.
         """
@@ -392,11 +392,11 @@ class OauthGuild(GuildAPIMixin):
         '_cs_icon',
     )
 
-    def __init__(self, *, state, data: APIGuildPayload):
-        self._state = state
-        self.id = try_snowflake(data['id'])
-        self.name = data['name']
-        self.icon_hash = data['icon'] or data.get('icon_hash')
+    def __init__(self, *, state: HTTPConnection, data: APIGuildPayload) -> None:
+        self._state: HTTPConnection = state
+        self.id: int = try_snowflake(data['id'])
+        self.name: str = data['name']
+        self.icon_hash: str | None = data['icon'] or data.get('icon_hash')
         self.owner: bool = data.get('owner', False)
         self.permissions: Permissions = Permissions(int(data.get('permissions', 0)))
 

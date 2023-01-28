@@ -15,6 +15,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 from datetime import datetime as dt, timezone
 from typing import overload
 
@@ -27,7 +29,7 @@ __all__ = (
 class DiscordDatetime(dt):
 
     @property
-    def naive(self):
+    def naive(self) -> DiscordDatetime:
         return self.replace(tzinfo=timezone.utc)
 
 

@@ -28,7 +28,7 @@ class Permissions(Flags):
 
     if TYPE_CHECKING:
 
-        def __init__(self, value: int = 0, **kwargs):
+        def __init__(self, value: int = 0, **kwargs) -> None:
             ...
 
         create_instant_invite: bool

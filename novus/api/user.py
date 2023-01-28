@@ -82,7 +82,7 @@ class UserHTTPConnection:
 
     async def modify_current_user(
             self,
-            **kwargs) -> User:
+            **kwargs: Any) -> User:
         """
         Edit the current user.
         """

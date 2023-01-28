@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, overload, Literal, TypeAlias
+from typing import TYPE_CHECKING, Any, overload, Literal, NoReturn, TypeAlias
 from datetime import datetime as dt
 
 from ...utils import MISSING, try_id, try_object
@@ -97,7 +97,7 @@ class GuildAPIMixin:
 
         return await state.guild.get_guild(guild_id)
 
-    async def fetch_preview(self: StateSnowflake):
+    async def fetch_preview(self: StateSnowflake) -> NoReturn:
         raise NotImplementedError()
 
     async def edit(
@@ -881,7 +881,7 @@ class GuildAPIMixin:
         role.guild = self
         return role
 
-    async def move_roles(self):
+    async def move_roles(self) -> NoReturn:
         raise NotImplementedError()
 
     async def edit_role(
@@ -949,7 +949,7 @@ class GuildAPIMixin:
         role.guild = self
         return role
 
-    async def edit_mfa_level(self):
+    async def edit_mfa_level(self) -> NoReturn:
         raise NotImplementedError()
 
     async def delete_role(
@@ -975,13 +975,13 @@ class GuildAPIMixin:
         )
         return None
 
-    async def fetch_prune_count(self):
+    async def fetch_prune_count(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def prune(self):
+    async def prune(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def fetch_voice_regions(self):
+    async def fetch_voice_regions(self) -> NoReturn:
         raise NotImplementedError()
 
     async def fetch_invites(self: StateSnowflake) -> list[Invite]:
@@ -998,34 +998,34 @@ class GuildAPIMixin:
 
         return await self._state.guild.get_guild_invites(self.id)
 
-    async def fetch_integrations(self):
+    async def fetch_integrations(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def delete_integration(self):
+    async def delete_integration(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def fetch_widget(self):
+    async def fetch_widget(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def edit_widget(self):
+    async def edit_widget(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def edit_vainity_url(self):
+    async def edit_vainity_url(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def edit_widget_image(self):
+    async def edit_widget_image(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def fetch_welcome_screen(self):
+    async def fetch_welcome_screen(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def edit_welcome_screen(self):
+    async def edit_welcome_screen(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def edit_member_voice_state(self):
+    async def edit_member_voice_state(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def edit_my_voice_state(self):
+    async def edit_my_voice_state(self) -> NoReturn:
         raise NotImplementedError()
 
     # Emoji API endpoints

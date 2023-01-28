@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from .asset import Asset
 from ..utils import try_snowflake, cached_slot_property
@@ -129,7 +129,7 @@ class Role:
             reason=reason,
         )
 
-    async def edit(self, *, reason: str | None = None, **kwargs) -> Role:
+    async def edit(self, *, reason: str | None = None, **kwargs: Any) -> Role:
         """
         Edit a role.
 
