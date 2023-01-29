@@ -22,7 +22,6 @@ jobs:
 
                 # Specify certain linters
                 VALIDATE_PYTHON: true
-                VALIDATE_PYTHON_BLACK: false
                 VALIDATE_PYTHON_FLAKE8: true
                 VALIDATE_PYTHON_ISORT: true
                 VALIDATE_PYTHON_MYPY: true
