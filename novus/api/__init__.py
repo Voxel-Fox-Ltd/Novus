@@ -17,8 +17,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from ._route import *
 from ._http import *
+from ._route import *
 from .application_role_connection_metadata import *
 from .audit_log import *
 from .auto_moderation import *

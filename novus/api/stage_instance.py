@@ -22,12 +22,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ._http import HTTPConnection
 
-__all__ = (
-    'StageHTTPConnection',
-)
+__all__ = ("StageHTTPConnection",)
 
 
 class StageHTTPConnection:
-
     def __init__(self, parent: HTTPConnection):
         self.parent = parent

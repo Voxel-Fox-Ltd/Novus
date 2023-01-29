@@ -19,16 +19,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .channel import Channel
 from ..utils import parse_timestamp
+from .channel import Channel
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..payloads import InviteWithMetadata as InviteMetadataPayload
 
-__all__ = (
-    'Invite',
-)
+__all__ = ("Invite",)
 
 
 class Invite:
@@ -55,13 +53,13 @@ class Invite:
 
     def __init__(self, *, state: HTTPConnection, data: InviteMetadataPayload):
         self._state = state
-        self.code = data['code']
+        self.code = data["code"]
         self.channel = None
-        channel = data.get('channel')
+        channel = data.get("channel")
         if channel:
             self.channel = Channel._from_data(state=self._state, data=channel)
-        self.uses = data.get('uses')
-        self.max_uses = data.get('max_uses')
-        self.max_age = data.get('max_age')
-        self.temporary = data.get('temporary')
-        self.created_at = parse_timestamp(data.get('created_at'))
+        self.uses = data.get("uses")
+        self.max_uses = data.get("max_uses")
+        self.max_age = data.get("max_age")
+        self.temporary = data.get("temporary")
+        self.created_at = parse_timestamp(data.get("created_at"))

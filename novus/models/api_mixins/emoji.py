@@ -24,25 +24,25 @@ from ...utils import MISSING, try_object
 if TYPE_CHECKING:
     import io
 
+    from ...api import HTTPConnection
     from ..abc import Snowflake, StateSnowflakeWithGuild
     from ..emoji import Emoji
-    from ...api import HTTPConnection
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
 
 class EmojiAPIMixin:
-
     @classmethod
     async def create(
-            cls,
-            state: HTTPConnection,
-            guild_id: int,
-            *,
-            name: str,
-            image: FileT,
-            roles: list[int | Snowflake] | None = None,
-            reason: str | None = None) -> Emoji:
+        cls,
+        state: HTTPConnection,
+        guild_id: int,
+        *,
+        name: str,
+        image: FileT,
+        roles: list[int | Snowflake] | None = None,
+        reason: str | None = None,
+    ) -> Emoji:
         """
         Create an emoji within a guild.
 
@@ -78,11 +78,7 @@ class EmojiAPIMixin:
         )
 
     @classmethod
-    async def fetch(
-            cls,
-            state: HTTPConnection,
-            guild_id: int,
-            emoji_id: int) -> Emoji:
+    async def fetch(cls, state: HTTPConnection, guild_id: int, emoji_id: int) -> Emoji:
         """
         Fetch a specific emoji by its ID from the API.
 
@@ -103,9 +99,8 @@ class EmojiAPIMixin:
 
     @classmethod
     async def fetch_all_for_guild(
-            cls,
-            state: HTTPConnection,
-            guild_id: int) -> list[Emoji]:
+        cls, state: HTTPConnection, guild_id: int
+    ) -> list[Emoji]:
         """
         Fetch all of the emojis from a guild.
 
@@ -125,9 +120,8 @@ class EmojiAPIMixin:
         return await state.emoji.list_guild_emojis(guild_id)
 
     async def delete(
-            self: StateSnowflakeWithGuild,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflakeWithGuild, *, reason: str | None = None
+    ) -> None:
         """
         Delete this emoji.
 
@@ -145,11 +139,12 @@ class EmojiAPIMixin:
         return None
 
     async def edit(
-            self: StateSnowflakeWithGuild,
-            *,
-            reason: str | None = None,
-            name: str = MISSING,
-            roles: list[int | Snowflake] = MISSING) -> Emoji:
+        self: StateSnowflakeWithGuild,
+        *,
+        reason: str | None = None,
+        name: str = MISSING,
+        roles: list[int | Snowflake] = MISSING,
+    ) -> Emoji:
         """
         Edit the current emoji.
 

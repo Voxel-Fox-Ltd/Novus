@@ -21,12 +21,10 @@ from typing import TYPE_CHECKING, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
-    from .user import User
     from .guild import Guild
+    from .user import User
 
-__all__ = (
-    'GuildTemplate',
-)
+__all__ = ("GuildTemplate",)
 
 
 class GuildTemplate(TypedDict):

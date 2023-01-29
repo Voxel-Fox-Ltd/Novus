@@ -23,10 +23,10 @@ if TYPE_CHECKING:
     from ..api import HTTPConnection, OauthHTTPConnection
 
 __all__ = (
-    'Snowflake',
-    'StateSnowflake',
-    'StateSnowflakeWithGuild',
-    'OauthStateSnowflake',
+    "Snowflake",
+    "StateSnowflake",
+    "StateSnowflakeWithGuild",
+    "OauthStateSnowflake",
 )
 
 

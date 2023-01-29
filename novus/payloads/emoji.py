@@ -24,8 +24,8 @@ if TYPE_CHECKING:
     from .user import User
 
 __all__ = (
-    'Emoji',
-    'PartialEmoji',
+    "Emoji",
+    "PartialEmoji",
 )
 
 

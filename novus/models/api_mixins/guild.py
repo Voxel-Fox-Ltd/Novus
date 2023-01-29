@@ -17,39 +17,39 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, overload, Literal, NoReturn, TypeAlias
 from datetime import datetime as dt
+from typing import TYPE_CHECKING, Any, Literal, NoReturn, TypeAlias, overload
 
 from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
     import io
 
-    from ..abc import Snowflake, StateSnowflake, OauthStateSnowflake
-    from ..guild import Guild, GuildBan
-    from ..invite import Invite
-    from ..channel import (
-        GuildTextChannel,
-        Thread,
-        PermissionOverwrite,
-        ForumTag,
+    from ...api import HTTPConnection
+    from ...enums import (
+        AuditLogEventType,
+        ChannelType,
+        ContentFilterLevel,
+        Locale,
+        NotificationLevel,
+        VerificationLevel,
     )
-    from ..emoji import Emoji, Reaction
-    from ..user import GuildMember
-    from ..channel import Channel
-    from ..role import Role
+    from ...flags import Permissions, SystemChannelFlags
+    from ..abc import OauthStateSnowflake, Snowflake, StateSnowflake
     from ..audit_log import AuditLog
     from ..auto_moderation import AutoModerationRule
-    from ...api import HTTPConnection
-    from ...flags import Permissions, SystemChannelFlags
-    from ...enums import (
-        Locale,
-        VerificationLevel,
-        NotificationLevel,
-        ContentFilterLevel,
-        ChannelType,
-        AuditLogEventType,
+    from ..channel import (
+        Channel,
+        ForumTag,
+        GuildTextChannel,
+        PermissionOverwrite,
+        Thread,
     )
+    from ..emoji import Emoji, Reaction
+    from ..guild import Guild, GuildBan
+    from ..invite import Invite
+    from ..role import Role
+    from ..user import GuildMember
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
@@ -104,27 +104,28 @@ class GuildAPIMixin:
         raise NotImplementedError()
 
     async def edit(
-            self: StateSnowflake,
-            *,
-            name: str = MISSING,
-            verification_level: VerificationLevel | None = MISSING,
-            default_message_notifications: NotificationLevel | None = MISSING,
-            explicit_content_filter: ContentFilterLevel | None = MISSING,
-            afk_channel: int | Snowflake | None = MISSING,
-            icon: FileT | None = MISSING,
-            owner: int | Snowflake = MISSING,
-            splash: FileT | None = MISSING,
-            discovery_splash: FileT | None = MISSING,
-            banner: FileT | None = MISSING,
-            system_channel: int | Snowflake | None = MISSING,
-            system_channel_flags: SystemChannelFlags | None = MISSING,
-            rules_channel: int | Snowflake | None = MISSING,
-            preferred_locale: Locale | None = MISSING,
-            public_updates_channel: int | Snowflake = MISSING,
-            features: list[str] = MISSING,
-            description: str | None = MISSING,
-            premium_progress_bar_enabled: bool = MISSING,
-            reason: str | None = None) -> Guild:
+        self: StateSnowflake,
+        *,
+        name: str = MISSING,
+        verification_level: VerificationLevel | None = MISSING,
+        default_message_notifications: NotificationLevel | None = MISSING,
+        explicit_content_filter: ContentFilterLevel | None = MISSING,
+        afk_channel: int | Snowflake | None = MISSING,
+        icon: FileT | None = MISSING,
+        owner: int | Snowflake = MISSING,
+        splash: FileT | None = MISSING,
+        discovery_splash: FileT | None = MISSING,
+        banner: FileT | None = MISSING,
+        system_channel: int | Snowflake | None = MISSING,
+        system_channel_flags: SystemChannelFlags | None = MISSING,
+        rules_channel: int | Snowflake | None = MISSING,
+        preferred_locale: Locale | None = MISSING,
+        public_updates_channel: int | Snowflake = MISSING,
+        features: list[str] = MISSING,
+        description: str | None = MISSING,
+        premium_progress_bar_enabled: bool = MISSING,
+        reason: str | None = None,
+    ) -> Guild:
         """
         Edit the guild parameters.
 
@@ -258,55 +259,58 @@ class GuildAPIMixin:
 
     @overload
     async def create_channel(
-            self: StateSnowflake,
-            *,
-            name: str,
-            type: Literal[ChannelType.public_thread, ChannelType.private_thread] = ...,
-            bitrate: int = ...,
-            user_limit: int = ...,
-            rate_limit_per_user: int = ...,
-            position: int = ...,
-            permission_overwrites: list[PermissionOverwrite] = ...,
-            parent: int | Snowflake = ...,
-            nsfw: bool = ...,
-            default_auto_archive_duration: int = ...,
-            default_reaction_emoji: Reaction = ...,
-            available_tags: list[ForumTag] = ...) -> Thread:
+        self: StateSnowflake,
+        *,
+        name: str,
+        type: Literal[ChannelType.public_thread, ChannelType.private_thread] = ...,
+        bitrate: int = ...,
+        user_limit: int = ...,
+        rate_limit_per_user: int = ...,
+        position: int = ...,
+        permission_overwrites: list[PermissionOverwrite] = ...,
+        parent: int | Snowflake = ...,
+        nsfw: bool = ...,
+        default_auto_archive_duration: int = ...,
+        default_reaction_emoji: Reaction = ...,
+        available_tags: list[ForumTag] = ...,
+    ) -> Thread:
         ...
 
     @overload
     async def create_channel(
-            self: StateSnowflake,
-            *,
-            name: str,
-            type: Literal[ChannelType.guild_text] = ...,
-            bitrate: int = ...,
-            user_limit: int = ...,
-            rate_limit_per_user: int = ...,
-            position: int = ...,
-            permission_overwrites: list[PermissionOverwrite] = ...,
-            parent: int | Snowflake = ...,
-            nsfw: bool = ...,
-            default_auto_archive_duration: int = ...,
-            default_reaction_emoji: Reaction = ...,
-            available_tags: list[ForumTag] = ...) -> GuildTextChannel:
+        self: StateSnowflake,
+        *,
+        name: str,
+        type: Literal[ChannelType.guild_text] = ...,
+        bitrate: int = ...,
+        user_limit: int = ...,
+        rate_limit_per_user: int = ...,
+        position: int = ...,
+        permission_overwrites: list[PermissionOverwrite] = ...,
+        parent: int | Snowflake = ...,
+        nsfw: bool = ...,
+        default_auto_archive_duration: int = ...,
+        default_reaction_emoji: Reaction = ...,
+        available_tags: list[ForumTag] = ...,
+    ) -> GuildTextChannel:
         ...
 
     async def create_channel(
-            self: StateSnowflake,
-            *,
-            name: str,
-            type: ChannelType = MISSING,
-            bitrate: int = MISSING,
-            user_limit: int = MISSING,
-            rate_limit_per_user: int = MISSING,
-            position: int = MISSING,
-            permission_overwrites: list[PermissionOverwrite] = MISSING,
-            parent: int | Snowflake = MISSING,
-            nsfw: bool = MISSING,
-            default_auto_archive_duration: int = MISSING,
-            default_reaction_emoji: Reaction = MISSING,
-            available_tags: list[ForumTag] = MISSING) -> Channel:
+        self: StateSnowflake,
+        *,
+        name: str,
+        type: ChannelType = MISSING,
+        bitrate: int = MISSING,
+        user_limit: int = MISSING,
+        rate_limit_per_user: int = MISSING,
+        position: int = MISSING,
+        permission_overwrites: list[PermissionOverwrite] = MISSING,
+        parent: int | Snowflake = MISSING,
+        nsfw: bool = MISSING,
+        default_auto_archive_duration: int = MISSING,
+        default_reaction_emoji: Reaction = MISSING,
+        available_tags: list[ForumTag] = MISSING,
+    ) -> Channel:
         """
         Create a channel within the guild.
 
@@ -417,10 +421,8 @@ class GuildAPIMixin:
         return member
 
     async def fetch_members(
-            self: StateSnowflake,
-            *,
-            limit: int = 1,
-            after: int = 0) -> list[GuildMember]:
+        self: StateSnowflake, *, limit: int = 1, after: int = 0
+    ) -> list[GuildMember]:
         """
         Get a list of members for the guild.
 
@@ -456,10 +458,8 @@ class GuildAPIMixin:
         return members
 
     async def search_members(
-            self: StateSnowflake,
-            *,
-            query: str,
-            limit: int = 1) -> list[GuildMember]:
+        self: StateSnowflake, *, query: str, limit: int = 1
+    ) -> list[GuildMember]:
         """
         Get a list of members for the guild whose username of nickname starts
         with the provided string.
@@ -491,13 +491,14 @@ class GuildAPIMixin:
         return members
 
     async def add_member(
-            self: OauthStateSnowflake,
-            user_id: int,
-            access_token: str,
-            *,
-            nick: str = MISSING,
-            mute: bool = MISSING,
-            deaf: bool = MISSING) -> GuildMember | None:
+        self: OauthStateSnowflake,
+        user_id: int,
+        access_token: str,
+        *,
+        nick: str = MISSING,
+        mute: bool = MISSING,
+        deaf: bool = MISSING,
+    ) -> GuildMember | None:
         """
         Add a member to the guild.
 
@@ -548,16 +549,17 @@ class GuildAPIMixin:
         return member
 
     async def edit_member(
-            self: StateSnowflake,
-            user: int | Snowflake,
-            *,
-            reason: str | None = None,
-            nick: str | None = MISSING,
-            roles: list[int | Snowflake] = MISSING,
-            mute: bool = MISSING,
-            deaf: bool = MISSING,
-            voice_channel: int | Snowflake | None = MISSING,
-            timeout_until: dt | None = MISSING) -> GuildMember:
+        self: StateSnowflake,
+        user: int | Snowflake,
+        *,
+        reason: str | None = None,
+        nick: str | None = MISSING,
+        roles: list[int | Snowflake] = MISSING,
+        mute: bool = MISSING,
+        deaf: bool = MISSING,
+        voice_channel: int | Snowflake | None = MISSING,
+        timeout_until: dt | None = MISSING,
+    ) -> GuildMember:
         """
         Edit a guild member.
 
@@ -609,11 +611,12 @@ class GuildAPIMixin:
         return member
 
     async def add_member_role(
-            self: StateSnowflake,
-            user: int | Snowflake,
-            role: int | Snowflake,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflake,
+        user: int | Snowflake,
+        role: int | Snowflake,
+        *,
+        reason: str | None = None,
+    ) -> None:
         """
         Add a role to a user.
 
@@ -639,11 +642,12 @@ class GuildAPIMixin:
         )
 
     async def remove_member_role(
-            self: StateSnowflake,
-            user: int | Snowflake,
-            role: int | Snowflake,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflake,
+        user: int | Snowflake,
+        role: int | Snowflake,
+        *,
+        reason: str | None = None,
+    ) -> None:
         """
         Remove a role from a member.
 
@@ -669,10 +673,8 @@ class GuildAPIMixin:
         )
 
     async def kick(
-            self: StateSnowflake,
-            user: int | Snowflake,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflake, user: int | Snowflake, *, reason: str | None = None
+    ) -> None:
         """
         Remove a user from the guild.
 
@@ -693,11 +695,12 @@ class GuildAPIMixin:
         )
 
     async def fetch_bans(
-            self: StateSnowflake,
-            *,
-            limit: int = 1_000,
-            before: int | None = None,
-            after: int | None = None) -> list[GuildBan]:
+        self: StateSnowflake,
+        *,
+        limit: int = 1_000,
+        before: int | None = None,
+        after: int | None = None,
+    ) -> list[GuildBan]:
         """
         Get a list of bans from the guild.
 
@@ -721,18 +724,16 @@ class GuildAPIMixin:
         }
 
         if before is not None:
-            update['before'] = before
+            update["before"] = before
         if after is not None:
-            update['after'] = after
+            update["after"] = after
 
         return await self._state.guild.get_guild_bans(
             self.id,
             **update,
         )
 
-    async def fetch_ban(
-            self: StateSnowflake,
-            user: int | Snowflake) -> GuildBan:
+    async def fetch_ban(self: StateSnowflake, user: int | Snowflake) -> GuildBan:
         """
         Get an individual user's ban.
 
@@ -753,11 +754,12 @@ class GuildAPIMixin:
         )
 
     async def ban(
-            self: StateSnowflake,
-            user: int | Snowflake,
-            *,
-            reason: str | None = None,
-            delete_message_seconds: int = MISSING) -> None:
+        self: StateSnowflake,
+        user: int | Snowflake,
+        *,
+        reason: str | None = None,
+        delete_message_seconds: int = MISSING,
+    ) -> None:
         """
         Ban a user from the guild.
 
@@ -776,21 +778,16 @@ class GuildAPIMixin:
         updates: dict[str, Any] = {}
 
         if delete_message_seconds is not MISSING:
-            updates['delete_message_seconds'] = delete_message_seconds
+            updates["delete_message_seconds"] = delete_message_seconds
 
         await self._state.guild.create_guild_ban(
-            self.id,
-            try_id(user),
-            reason=reason,
-            **updates
+            self.id, try_id(user), reason=reason, **updates
         )
         return
 
     async def unban(
-            self: StateSnowflake,
-            user: int | Snowflake,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflake, user: int | Snowflake, *, reason: str | None = None
+    ) -> None:
         """
         Remove a user's ban
 
@@ -824,16 +821,17 @@ class GuildAPIMixin:
         return roles
 
     async def create_role(
-            self: StateSnowflake,
-            *,
-            reason: str | None = None,
-            name: str = MISSING,
-            permissions: Permissions = MISSING,
-            color: int = MISSING,
-            hoist: bool = MISSING,
-            icon: FileT = MISSING,
-            unicode_emoji: str = MISSING,
-            mentionable: bool = MISSING) -> Role:
+        self: StateSnowflake,
+        *,
+        reason: str | None = None,
+        name: str = MISSING,
+        permissions: Permissions = MISSING,
+        color: int = MISSING,
+        hoist: bool = MISSING,
+        icon: FileT = MISSING,
+        unicode_emoji: str = MISSING,
+        mentionable: bool = MISSING,
+    ) -> Role:
         """
         Create a role within the guild.
 
@@ -862,19 +860,19 @@ class GuildAPIMixin:
         update: dict[str, Any] = {}
 
         if name is not MISSING:
-            update['name'] = name
+            update["name"] = name
         if permissions is not MISSING:
-            update['permissions'] = permissions
+            update["permissions"] = permissions
         if color is not MISSING:
-            update['color'] = color
+            update["color"] = color
         if hoist is not MISSING:
-            update['hoist'] = hoist
+            update["hoist"] = hoist
         if icon is not MISSING:
-            update['icon'] = icon
+            update["icon"] = icon
         if unicode_emoji is not MISSING:
-            update['unicode_emoji'] = unicode_emoji
+            update["unicode_emoji"] = unicode_emoji
         if mentionable is not MISSING:
-            update['mentionable'] = mentionable
+            update["mentionable"] = mentionable
 
         role = await self._state.guild.create_guild_role(
             self.id,
@@ -888,17 +886,18 @@ class GuildAPIMixin:
         raise NotImplementedError()
 
     async def edit_role(
-            self: StateSnowflake,
-            role_id: int,
-            *,
-            reason: str | None = None,
-            name: str = MISSING,
-            permissions: Permissions = MISSING,
-            color: int = MISSING,
-            hoist: bool = MISSING,
-            icon: FileT = MISSING,
-            unicode_emoji: str = MISSING,
-            mentionable: bool = MISSING) -> Role:
+        self: StateSnowflake,
+        role_id: int,
+        *,
+        reason: str | None = None,
+        name: str = MISSING,
+        permissions: Permissions = MISSING,
+        color: int = MISSING,
+        hoist: bool = MISSING,
+        icon: FileT = MISSING,
+        unicode_emoji: str = MISSING,
+        mentionable: bool = MISSING,
+    ) -> Role:
         """
         Edit a role.
 
@@ -929,19 +928,19 @@ class GuildAPIMixin:
         update: dict[str, Any] = {}
 
         if name is not MISSING:
-            update['name'] = name
+            update["name"] = name
         if permissions is not MISSING:
-            update['permissions'] = permissions
+            update["permissions"] = permissions
         if color is not MISSING:
-            update['color'] = color
+            update["color"] = color
         if hoist is not MISSING:
-            update['hoist'] = hoist
+            update["hoist"] = hoist
         if icon is not MISSING:
-            update['icon'] = icon
+            update["icon"] = icon
         if unicode_emoji is not MISSING:
-            update['unicode_emoji'] = unicode_emoji
+            update["unicode_emoji"] = unicode_emoji
         if mentionable is not MISSING:
-            update['mentionable'] = mentionable
+            update["mentionable"] = mentionable
 
         role = await self._state.guild.modify_guild_role(
             self.id,
@@ -956,10 +955,8 @@ class GuildAPIMixin:
         raise NotImplementedError()
 
     async def delete_role(
-            self: StateSnowflake,
-            role: int | Snowflake,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflake, role: int | Snowflake, *, reason: str | None = None
+    ) -> None:
         """
         A role to delete.
 
@@ -1051,12 +1048,13 @@ class GuildAPIMixin:
         return emojis
 
     async def create_emoji(
-            self: StateSnowflake,
-            *,
-            name: str,
-            image: FileT,
-            roles: list[Snowflake] | None = None,
-            reason: str | None = None) -> Emoji:
+        self: StateSnowflake,
+        *,
+        name: str,
+        image: FileT,
+        roles: list[Snowflake] | None = None,
+        reason: str | None = None,
+    ) -> Emoji:
         """
         Create an emoji within a guild.
 
@@ -1118,13 +1116,14 @@ class GuildAPIMixin:
     # Audit log API methods
 
     async def fetch_audit_logs(
-            self: StateSnowflake,
-            *,
-            user_id: int | None = None,
-            action_type: AuditLogEventType | None = None,
-            before: int | None = None,
-            after: int | None = None,
-            limit: int = 50) -> AuditLog:
+        self: StateSnowflake,
+        *,
+        user_id: int | None = None,
+        action_type: AuditLogEventType | None = None,
+        before: int | None = None,
+        after: int | None = None,
+        limit: int = 50,
+    ) -> AuditLog:
         """
         Get the audit logs for the guild.
 
@@ -1159,7 +1158,8 @@ class GuildAPIMixin:
     # Auto moderation API methods
 
     async def fetch_auto_moderation_rules(
-            self: StateSnowflake) -> list[AutoModerationRule]:
+        self: StateSnowflake,
+    ) -> list[AutoModerationRule]:
         """
         Get the auto moderation rules for this guild.
 
@@ -1170,6 +1170,5 @@ class GuildAPIMixin:
         """
 
         return await (
-            self._state.auto_moderation
-            .list_auto_moderation_rules_for_guild(self.id)
+            self._state.auto_moderation.list_auto_moderation_rules_for_guild(self.id)
         )

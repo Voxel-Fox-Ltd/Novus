@@ -19,29 +19,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..models import Emoji, Object
 from ._route import Route
-from ..models import (
-    Object,
-    Emoji,
-)
 
 if TYPE_CHECKING:
-    from ._http import HTTPConnection
     from .. import payloads
+    from ._http import HTTPConnection
 
-__all__ = (
-    'EmojiHTTPConnection',
-)
+__all__ = ("EmojiHTTPConnection",)
 
 
 class EmojiHTTPConnection:
-
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
 
-    async def list_guild_emojis(
-            self,
-            guild_id: int) -> list[Emoji]:
+    async def list_guild_emojis(self, guild_id: int) -> list[Emoji]:
         """
         Get all guild emojis.
         """
@@ -64,10 +56,7 @@ class EmojiHTTPConnection:
             for d in data
         ]
 
-    async def get_emoji(
-            self,
-            guild_id: int,
-            emoji_id: int) -> Emoji:
+    async def get_emoji(self, guild_id: int, emoji_id: int) -> Emoji:
         """
         Get one guild emoji.
         """
@@ -89,27 +78,17 @@ class EmojiHTTPConnection:
         )
 
     async def create_guild_emoji(
-            self,
-            guild_id: int,
-            /,
-            *,
-            reason: str | None = None,
-            **kwargs: Any) -> Emoji:
+        self, guild_id: int, /, *, reason: str | None = None, **kwargs: Any
+    ) -> Emoji:
         """
         Create a guild emoji.
         """
 
         post_data = self.parent._get_kwargs(
             {
-                "type": (
-                    'name',
-                ),
-                "snowflake": (
-                    'roles',
-                ),
-                "image": (
-                    'image',
-                ),
+                "type": ("name",),
+                "snowflake": ("roles",),
+                "image": ("image",),
             },
             kwargs,
         )
@@ -131,25 +110,22 @@ class EmojiHTTPConnection:
         )
 
     async def modify_guild_emoji(
-            self,
-            guild_id: int,
-            emoji_id: int,
-            /,
-            *,
-            reason: str | None = None,
-            **kwargs: Any) -> Emoji:
+        self,
+        guild_id: int,
+        emoji_id: int,
+        /,
+        *,
+        reason: str | None = None,
+        **kwargs: Any,
+    ) -> Emoji:
         """
         Modify guild emoji.
         """
 
         post_data = self.parent._get_kwargs(
             {
-                "type": (
-                    'name',
-                ),
-                "snowflake": (
-                    'roles',
-                ),
+                "type": ("name",),
+                "snowflake": ("roles",),
             },
             kwargs,
         )
@@ -172,12 +148,8 @@ class EmojiHTTPConnection:
         )
 
     async def delete_guild_emoji(
-            self,
-            guild_id: int,
-            emoji_id: int,
-            /,
-            *,
-            reason: str | None = None) -> None:
+        self, guild_id: int, emoji_id: int, /, *, reason: str | None = None
+    ) -> None:
         """
         Delete guild emoji.
         """

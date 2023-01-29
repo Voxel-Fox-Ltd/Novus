@@ -17,25 +17,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
 from datetime import datetime as dt
+from typing import TYPE_CHECKING, Any
 
 from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
-    from ..abc import Snowflake, StateSnowflakeWithGuild
-    from ..user import User, GuildMember
-    from ..guild import OauthGuild
     from ...api import HTTPConnection
+    from ..abc import Snowflake, StateSnowflakeWithGuild
+    from ..guild import OauthGuild
+    from ..user import GuildMember, User
 
 
 class UserAPIMixin:
-
     @classmethod
-    async def fetch(
-            cls,
-            state: HTTPConnection,
-            user_id: int) -> User:
+    async def fetch(cls, state: HTTPConnection, user_id: int) -> User:
         """
         Get an instance of a user from the API.
 
@@ -55,9 +51,7 @@ class UserAPIMixin:
         return await state.user.get_user(user_id)
 
     @classmethod
-    async def fetch_me(
-            cls,
-            state: HTTPConnection) -> User:
+    async def fetch_me(cls, state: HTTPConnection) -> User:
         """
         Get the user associated with the current connection.
 
@@ -76,12 +70,13 @@ class UserAPIMixin:
 
     @classmethod
     async def fetch_my_guilds(
-            cls,
-            state: HTTPConnection,
-            *,
-            before: int | None = None,
-            after: int | None = None,
-            limit: int = 200) -> list[OauthGuild]:
+        cls,
+        state: HTTPConnection,
+        *,
+        before: int | None = None,
+        after: int | None = None,
+        limit: int = 200,
+    ) -> list[OauthGuild]:
         """
         Return a list of partial guild objects that the current user is a
         member of.
@@ -114,13 +109,10 @@ class UserAPIMixin:
 
 
 class GuildMemberAPIMixin:
-
     @classmethod
     async def fetch(
-            cls,
-            state: HTTPConnection,
-            guild_id: int,
-            member_id: int) -> GuildMember:
+        cls, state: HTTPConnection, guild_id: int, member_id: int
+    ) -> GuildMember:
         """
         Get an instance of a user from the API.
 
@@ -144,10 +136,7 @@ class GuildMemberAPIMixin:
         return await state.guild.get_guild_member(guild_id, member_id)
 
     @classmethod
-    async def fetch_me(
-            cls,
-            state: HTTPConnection,
-            guild_id: int) -> GuildMember:
+    async def fetch_me(cls, state: HTTPConnection, guild_id: int) -> GuildMember:
         """
         Get the member object associated with the current connection and a
         given guild ID.
@@ -172,15 +161,16 @@ class GuildMemberAPIMixin:
         return await state.user.get_current_user_guild_member(guild_id)
 
     async def edit(
-            self: StateSnowflakeWithGuild,
-            *,
-            reason: str | None = None,
-            nick: str | None = MISSING,
-            roles: list[int | Snowflake] = MISSING,
-            mute: bool = MISSING,
-            deaf: bool = MISSING,
-            voice_channel: int | Snowflake | None = MISSING,
-            timeout_until: dt | None = MISSING) -> GuildMember:
+        self: StateSnowflakeWithGuild,
+        *,
+        reason: str | None = None,
+        nick: str | None = MISSING,
+        roles: list[int | Snowflake] = MISSING,
+        mute: bool = MISSING,
+        deaf: bool = MISSING,
+        voice_channel: int | Snowflake | None = MISSING,
+        timeout_until: dt | None = MISSING,
+    ) -> GuildMember:
         """
         Edit a guild member.
 
@@ -228,10 +218,11 @@ class GuildMemberAPIMixin:
         )
 
     async def add_role(
-            self: StateSnowflakeWithGuild,
-            role: int | Snowflake,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflakeWithGuild,
+        role: int | Snowflake,
+        *,
+        reason: str | None = None,
+    ) -> None:
         """
         Add a role to the user.
 
@@ -255,10 +246,11 @@ class GuildMemberAPIMixin:
         )
 
     async def remove_role(
-            self: StateSnowflakeWithGuild,
-            role: int | Snowflake,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflakeWithGuild,
+        role: int | Snowflake,
+        *,
+        reason: str | None = None,
+    ) -> None:
         """
         Remove a role from the user.
 
@@ -281,10 +273,7 @@ class GuildMemberAPIMixin:
             reason=reason,
         )
 
-    async def kick(
-            self: StateSnowflakeWithGuild,
-            *,
-            reason: str | None) -> None:
+    async def kick(self: StateSnowflakeWithGuild, *, reason: str | None) -> None:
         """
         Remove a user from the guild.
 
@@ -305,10 +294,11 @@ class GuildMemberAPIMixin:
         )
 
     async def ban(
-            self: StateSnowflakeWithGuild,
-            *,
-            reason: str | None,
-            delete_message_seconds: int = MISSING) -> None:
+        self: StateSnowflakeWithGuild,
+        *,
+        reason: str | None,
+        delete_message_seconds: int = MISSING,
+    ) -> None:
         """
         Ban a user from the guild.
 
@@ -327,12 +317,9 @@ class GuildMemberAPIMixin:
         updates: dict[str, Any] = {}
 
         if delete_message_seconds is not MISSING:
-            updates['delete_message_seconds'] = delete_message_seconds
+            updates["delete_message_seconds"] = delete_message_seconds
 
         await self._state.guild.create_guild_ban(
-            self.guild.id,
-            self.id,
-            reason=reason,
-            **updates
+            self.guild.id, self.id, reason=reason, **updates
         )
         return

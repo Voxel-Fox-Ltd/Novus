@@ -19,38 +19,32 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NoReturn
 
-from ._route import Route
 from ..models import (
-    Object,
-    Guild,
-    GuildPreview,
     Channel,
-    Thread,
-    GuildMember,
+    Guild,
     GuildBan,
-    User,
-    Role,
+    GuildMember,
+    GuildPreview,
     Invite,
+    Object,
+    Role,
+    Thread,
+    User,
 )
-
+from ._route import Route
 
 if TYPE_CHECKING:
-    from ._http import HTTPConnection
     from .. import payloads
+    from ._http import HTTPConnection
 
-__all__ = (
-    'GuildHTTPConnection',
-)
+__all__ = ("GuildHTTPConnection",)
 
 
 class GuildHTTPConnection:
-
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
 
-    async def create_guild(
-            self,
-            **kwargs: Any) -> Guild:
+    async def create_guild(self, **kwargs: Any) -> Guild:
         """
         Create a guild.
         """
@@ -68,11 +62,7 @@ class GuildHTTPConnection:
             data=data,
         )
 
-    async def get_guild(
-            self,
-            guild_id: int,
-            /,
-            with_counts: bool = False) -> Guild:
+    async def get_guild(self, guild_id: int, /, with_counts: bool = False) -> Guild:
         """
         Get a guild.
         """
@@ -85,20 +75,15 @@ class GuildHTTPConnection:
         data: payloads.Guild = await self.parent.request(
             route,
             params={
-                "with_counts": (
-                    "true" if with_counts
-                    else "false"
-                ),
-            }
+                "with_counts": ("true" if with_counts else "false"),
+            },
         )
         return Guild(
             state=self.parent,
             data=data,
         )
 
-    async def get_guild_preview(
-            self,
-            guild_id: int, /) -> GuildPreview:
+    async def get_guild_preview(self, guild_id: int, /) -> GuildPreview:
         """
         Get a guild preview.
         """
@@ -117,12 +102,8 @@ class GuildHTTPConnection:
         )
 
     async def modify_guild(
-            self,
-            guild_id: int,
-            /,
-            *,
-            reason: str | None = None,
-            **kwargs: Any) -> Guild:
+        self, guild_id: int, /, *, reason: str | None = None, **kwargs: Any
+    ) -> Guild:
         """
         Edit a guild.
         """
@@ -130,31 +111,46 @@ class GuildHTTPConnection:
         post_data = self.parent._get_kwargs(
             {
                 "type": (
-                    'name',
-                    'region',
-                    'afk_timeout',
-                    'description',
-                    'premium_progress_bar_enabled',
+                    "name",
+                    "region",
+                    "afk_timeout",
+                    "description",
+                    "premium_progress_bar_enabled",
                 ),
                 "enum": (
-                    'verification_level',
-                    'default_message_notifications',
-                    'explicit_content_filter',
-                    'preferred_locale',
-                    'system_channel_flags',
+                    "verification_level",
+                    "default_message_notifications",
+                    "explicit_content_filter",
+                    "preferred_locale",
+                    "system_channel_flags",
                 ),
                 "snowflake": (
-                    ('afk_channel_id', 'afk_channel',),
-                    ('owner_id', 'owner',),
-                    ('system_channel_id', 'system_channel',),
-                    ('rules_channel_id', 'rules_channel',),
-                    ('public_updates_channel_id', 'public_updates_channel',),
+                    (
+                        "afk_channel_id",
+                        "afk_channel",
+                    ),
+                    (
+                        "owner_id",
+                        "owner",
+                    ),
+                    (
+                        "system_channel_id",
+                        "system_channel",
+                    ),
+                    (
+                        "rules_channel_id",
+                        "rules_channel",
+                    ),
+                    (
+                        "public_updates_channel_id",
+                        "public_updates_channel",
+                    ),
                 ),
                 "image": (
-                    'icon',
-                    'splash',
-                    'discovery_splash',
-                    'banner',
+                    "icon",
+                    "splash",
+                    "discovery_splash",
+                    "banner",
                 ),
             },
             kwargs,
@@ -174,9 +170,7 @@ class GuildHTTPConnection:
             data=data,
         )
 
-    async def delete_guild(
-            self,
-            guild_id: int, /) -> None:
+    async def delete_guild(self, guild_id: int, /) -> None:
         """
         Delete a guild.
         """
@@ -189,9 +183,7 @@ class GuildHTTPConnection:
         await self.parent.request(route)
         return None
 
-    async def get_guild_channels(
-            self,
-            guild_id: int, /) -> list[Channel]:
+    async def get_guild_channels(self, guild_id: int, /) -> list[Channel]:
         """
         Get guild channels.
         """
@@ -204,18 +196,11 @@ class GuildHTTPConnection:
         data: list[payloads.Channel] = await self.parent.request(
             route,
         )
-        return [
-            Channel._from_data(state=self.parent, data=d)
-            for d in data
-        ]
+        return [Channel._from_data(state=self.parent, data=d) for d in data]
 
     async def create_guild_channel(
-            self,
-            guild_id: int,
-            /,
-            *,
-            reason: str | None = None,
-            **kwargs: Any) -> Channel:
+        self, guild_id: int, /, *, reason: str | None = None, **kwargs: Any
+    ) -> Channel:
         """
         Create a guild channel.
         """
@@ -236,11 +221,12 @@ class GuildHTTPConnection:
                     "nsfw",
                     "default_auto_archive_duration",
                 ),
-                "enum": (
-                    "type",
-                ),
+                "enum": ("type",),
                 "snowflake": (
-                    ("parent_id", "parent",),
+                    (
+                        "parent_id",
+                        "parent",
+                    ),
                 ),
                 "object": (
                     "permission_overwrites",
@@ -273,15 +259,9 @@ class GuildHTTPConnection:
         data: list[payloads.Channel] = await self.parent.request(
             route,
         )
-        return [
-            Thread(state=self.parent, data=d)
-            for d in data
-        ]
+        return [Thread(state=self.parent, data=d) for d in data]
 
-    async def get_guild_member(
-            self,
-            guild_id: int,
-            member_id: int) -> GuildMember:
+    async def get_guild_member(self, guild_id: int, member_id: int) -> GuildMember:
         """
         Get a guild member.
         """
@@ -299,11 +279,8 @@ class GuildHTTPConnection:
         return GuildMember(state=self.parent, data=data, guild=guild)
 
     async def get_guild_members(
-            self,
-            guild_id: int,
-            *,
-            limit: int = 1,
-            after: int = 0) -> list[GuildMember]:
+        self, guild_id: int, *, limit: int = 1, after: int = 0
+    ) -> list[GuildMember]:
         """
         Get a guild member.
         """
@@ -318,20 +295,14 @@ class GuildHTTPConnection:
             params={
                 "limit": limit,
                 "after": after,
-            }
+            },
         )
         guild = Object(guild_id, state=self.parent)
-        return [
-            GuildMember(state=self.parent, data=d, guild=guild)
-            for d in data
-        ]
+        return [GuildMember(state=self.parent, data=d, guild=guild) for d in data]
 
     async def search_guild_members(
-            self,
-            guild_id: int,
-            *,
-            query: str,
-            limit: int = 1) -> list[GuildMember]:
+        self, guild_id: int, *, query: str, limit: int = 1
+    ) -> list[GuildMember]:
         """
         Get a guild member.
         """
@@ -346,21 +317,14 @@ class GuildHTTPConnection:
             params={
                 "query": query,
                 "limit": limit,
-            }
+            },
         )
         guild = Object(guild_id, state=self.parent)
-        return [
-            GuildMember(state=self.parent, data=d, guild=guild)
-            for d in data
-        ]
+        return [GuildMember(state=self.parent, data=d, guild=guild) for d in data]
 
     async def add_guild_member(
-            self,
-            guild_id: int,
-            user_id: int,
-            *,
-            access_token: str,
-            **kwargs: Any) -> GuildMember | None:
+        self, guild_id: int, user_id: int, *, access_token: str, **kwargs: Any
+    ) -> GuildMember | None:
         """
         Add a member to the guild. Only works if you have a valid Oauth2 access
         token with the guild.join scope.
@@ -393,13 +357,14 @@ class GuildHTTPConnection:
         return None
 
     async def modify_guild_member(
-            self,
-            guild_id: int,
-            user_id: int,
-            /,
-            *,
-            reason: str | None = None,
-            **kwargs: Any) -> GuildMember:
+        self,
+        guild_id: int,
+        user_id: int,
+        /,
+        *,
+        reason: str | None = None,
+        **kwargs: Any,
+    ) -> GuildMember:
         """
         Update a guild member.
         """
@@ -419,11 +384,12 @@ class GuildHTTPConnection:
                 ),
                 "snowflake": (
                     "roles",
-                    ("channel_id", "channel",),
+                    (
+                        "channel_id",
+                        "channel",
+                    ),
                 ),
-                "timestamp": (
-                    "communication_disabled_until",
-                ),
+                "timestamp": ("communication_disabled_until",),
             },
             kwargs,
         )
@@ -439,13 +405,8 @@ class GuildHTTPConnection:
         raise NotImplementedError()
 
     async def add_guild_member_role(
-            self,
-            guild_id: int,
-            user_id: int,
-            role_id: int,
-            /,
-            *,
-            reason: str | None = None) -> None:
+        self, guild_id: int, user_id: int, role_id: int, /, *, reason: str | None = None
+    ) -> None:
         """
         Add a role to a guild member.
         """
@@ -464,13 +425,8 @@ class GuildHTTPConnection:
         return
 
     async def remove_guild_member_role(
-            self,
-            guild_id: int,
-            user_id: int,
-            role_id: int,
-            /,
-            *,
-            reason: str | None = None) -> None:
+        self, guild_id: int, user_id: int, role_id: int, /, *, reason: str | None = None
+    ) -> None:
         """
         Remove a role from a guild member.
         """
@@ -489,12 +445,8 @@ class GuildHTTPConnection:
         return
 
     async def remove_guild_member(
-            self,
-            guild_id: int,
-            user_id: int,
-            /,
-            *,
-            reason: str | None = None) -> None:
+        self, guild_id: int, user_id: int, /, *, reason: str | None = None
+    ) -> None:
         """
         Remove a member from the guild.
         """
@@ -512,13 +464,14 @@ class GuildHTTPConnection:
         return
 
     async def get_guild_bans(
-            self,
-            guild_id: int,
-            /,
-            *,
-            limit: int | None = None,
-            before: int | None = None,
-            after: int | None = None) -> list[GuildBan]:
+        self,
+        guild_id: int,
+        /,
+        *,
+        limit: int | None = None,
+        before: int | None = None,
+        after: int | None = None,
+    ) -> list[GuildBan]:
         """
         Get the bans from a guild.
         """
@@ -530,27 +483,23 @@ class GuildHTTPConnection:
         )
         params: dict[str, Any] = {}
         if limit is not None:
-            params['limit'] = limit
+            params["limit"] = limit
         if before is not None:
-            params['before'] = before
+            params["before"] = before
         if after is not None:
-            params['after'] = after
+            params["after"] = after
         data: list[dict] = await self.parent.request(
             route,
             params=params,
         )
         return [
             GuildBan(
-                reason=d.get('reason'),
-                user=User(state=self.parent, data=d['user'])
+                reason=d.get("reason"), user=User(state=self.parent, data=d["user"])
             )
             for d in data
         ]
 
-    async def get_guild_ban(
-            self,
-            guild_id: int,
-            user_id: int, /) -> GuildBan:
+    async def get_guild_ban(self, guild_id: int, user_id: int, /) -> GuildBan:
         """
         Get a ban for a particular member.
         """
@@ -565,18 +514,18 @@ class GuildHTTPConnection:
             route,
         )
         return GuildBan(
-            reason=data.get('reason'),
-            user=User(state=self.parent, data=data['user'])
+            reason=data.get("reason"), user=User(state=self.parent, data=data["user"])
         )
 
     async def create_guild_ban(
-            self,
-            guild_id: int,
-            user_id: int,
-            /,
-            *,
-            reason: str | None = None,
-            **kwargs: Any) -> None:
+        self,
+        guild_id: int,
+        user_id: int,
+        /,
+        *,
+        reason: str | None = None,
+        **kwargs: Any,
+    ) -> None:
         """
         Ban a user.
         """
@@ -590,9 +539,7 @@ class GuildHTTPConnection:
         post_data: dict[str, Any] = {}
         self.parent._get_kwargs(
             {
-                "type": (
-                    "delete_message_seconds",
-                ),
+                "type": ("delete_message_seconds",),
             },
             kwargs,
         )
@@ -604,12 +551,8 @@ class GuildHTTPConnection:
         return
 
     async def remove_guild_ban(
-            self,
-            guild_id: int,
-            user_id: int,
-            /,
-            *,
-            reason: str | None = None) -> None:
+        self, guild_id: int, user_id: int, /, *, reason: str | None = None
+    ) -> None:
         """
         Unban a user.
         """
@@ -640,17 +583,11 @@ class GuildHTTPConnection:
             route,
         )
         guild = Object(guild_id, state=self.parent)
-        return [
-            Role(state=self.parent, data=d, guild=guild)
-            for d in data
-        ]
+        return [Role(state=self.parent, data=d, guild=guild) for d in data]
 
     async def create_guild_role(
-            self,
-            guild_id: int,
-            *,
-            reason: str | None = None,
-            **kwargs: Any) -> Role:
+        self, guild_id: int, *, reason: str | None = None, **kwargs: Any
+    ) -> Role:
         """
         Create a role in the guild.
         """
@@ -670,12 +607,8 @@ class GuildHTTPConnection:
                     "unicode_emoji",
                     "mentionable",
                 ),
-                "image": (
-                    "icon",
-                ),
-                "flags": (
-                    "permissions",
-                ),
+                "image": ("icon",),
+                "flags": ("permissions",),
             },
             kwargs,
         )
@@ -691,13 +624,14 @@ class GuildHTTPConnection:
         raise NotImplementedError()
 
     async def modify_guild_role(
-            self,
-            guild_id: int,
-            role_id: int,
-            /,
-            *,
-            reason: str | None = None,
-            **kwargs: Any) -> Role:
+        self,
+        guild_id: int,
+        role_id: int,
+        /,
+        *,
+        reason: str | None = None,
+        **kwargs: Any,
+    ) -> Role:
         """
         Edit a guild role.
         """
@@ -718,12 +652,8 @@ class GuildHTTPConnection:
                     "unicode_emoji",
                     "mentionable",
                 ),
-                "image": (
-                    "icon",
-                ),
-                "flags": (
-                    "permissions",
-                ),
+                "image": ("icon",),
+                "flags": ("permissions",),
             },
             kwargs,
         )
@@ -739,12 +669,8 @@ class GuildHTTPConnection:
         raise NotImplementedError()
 
     async def delete_guild_role(
-            self,
-            guild_id: int,
-            role_id: int,
-            /,
-            *,
-            reason: str | None = None) -> None:
+        self, guild_id: int, role_id: int, /, *, reason: str | None = None
+    ) -> None:
         """
         Delete a guild role.
         """
@@ -770,9 +696,7 @@ class GuildHTTPConnection:
     async def get_guild_voice_regions(self, _: int) -> NoReturn:
         raise NotImplementedError()
 
-    async def get_guild_invites(
-            self,
-            guild_id: int, /) -> list[Invite]:
+    async def get_guild_invites(self, guild_id: int, /) -> list[Invite]:
         """
         Get the invites for a guild.
         """
@@ -785,10 +709,7 @@ class GuildHTTPConnection:
         data: list[payloads.InviteWithMetadata] = await self.parent.request(
             route,
         )
-        return [
-            Invite(state=self.parent, data=d)
-            for d in data
-        ]
+        return [Invite(state=self.parent, data=d) for d in data]
 
     async def get_guild_integrations(self, _: int, /) -> NoReturn:
         raise NotImplementedError()

@@ -21,14 +21,14 @@ from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
-    from .user import User, GuildMember
+    from .user import GuildMember, User
 
 __all__ = (
-    'Channel',
-    'ChannelType',
-    'ChannelOverwrite',
-    'ThreadMetadata',
-    'ThreadMember',
+    "Channel",
+    "ChannelType",
+    "ChannelOverwrite",
+    "ThreadMetadata",
+    "ThreadMember",
 )
 
 

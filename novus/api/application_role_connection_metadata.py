@@ -24,19 +24,14 @@ from ._route import Route
 if TYPE_CHECKING:
     from ._http import HTTPConnection
 
-__all__ = (
-    'ApplicationRoleHTTPConnection',
-)
+__all__ = ("ApplicationRoleHTTPConnection",)
 
 
 class ApplicationRoleHTTPConnection:
-
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
 
-    async def get_application_role_records(
-            self,
-            application_id: int) -> list[dict]:
+    async def get_application_role_records(self, application_id: int) -> list[dict]:
         """
         Get the application role connection metadata objects for the given
         application.
@@ -50,15 +45,11 @@ class ApplicationRoleHTTPConnection:
         data: list[Any] = await self.parent.request(
             route,
         )
-        return [
-            d
-            for d in data
-        ]  # TODO
+        return [d for d in data]  # TODO
 
     async def update_application_role_records(
-            self,
-            application_id: int,
-            records: list[Any]) -> list[dict]:
+        self, application_id: int, records: list[Any]
+    ) -> list[dict]:
         """
         Get one guild emoji.
         """
@@ -72,7 +63,4 @@ class ApplicationRoleHTTPConnection:
             route,
             data=[i.to_json() for i in records],
         )
-        return [
-            d
-            for d in data
-        ]  # TODO
+        return [d for d in data]  # TODO

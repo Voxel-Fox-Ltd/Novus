@@ -22,12 +22,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ._http import HTTPConnection
 
-__all__ = (
-    'StickerHTTPConnection',
-)
+__all__ = ("StickerHTTPConnection",)
 
 
 class StickerHTTPConnection:
-
     def __init__(self, parent: HTTPConnection):
         self.parent = parent

@@ -17,15 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict, Optional
+from typing import TYPE_CHECKING, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
     from .user import GuildMember
 
 __all__ = (
-    'VoiceState',
-    'VoiceRegion',
+    "VoiceState",
+    "VoiceRegion",
 )
 
 

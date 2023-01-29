@@ -19,9 +19,7 @@ from typing import TYPE_CHECKING
 
 from vfflags import Flags
 
-__all__ = (
-    'MessageFlags',
-)
+__all__ = ("MessageFlags",)
 
 
 class MessageFlags(Flags):

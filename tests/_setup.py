@@ -1,11 +1,12 @@
 import os
 
 import dotenv
+
 import novus
 
 __all__ = (
-    'get_connection',
-    'get_data',
+    "get_connection",
+    "get_data",
 )
 
 

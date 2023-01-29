@@ -18,10 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from .utils import Enum
 
 __all__ = (
-    'AutoModerationKeywordPresetType',
-    'AutoModerationTriggerType',
-    'AutoModerationEventType',
-    'AutoModerationActionType',
+    "AutoModerationKeywordPresetType",
+    "AutoModerationTriggerType",
+    "AutoModerationEventType",
+    "AutoModerationActionType",
 )
 
 

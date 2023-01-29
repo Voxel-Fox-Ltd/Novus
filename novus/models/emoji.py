@@ -19,23 +19,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeAlias
 
+from ..utils import cached_slot_property, generate_repr, try_snowflake
+from .api_mixins.emoji import EmojiAPIMixin
 from .asset import Asset
 from .mixins import Hashable
-from .api_mixins.emoji import EmojiAPIMixin
-from ..utils import try_snowflake, generate_repr, cached_slot_property
 
 if TYPE_CHECKING:
     import io
 
-    from .abc import Snowflake
     from ..api import HTTPConnection
     from ..payloads import Emoji as EmojiPayload
+    from .abc import Snowflake
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
 __all__ = (
-    'Emoji',
-    'Reaction',
+    "Emoji",
+    "Reaction",
 )
 
 
@@ -69,35 +69,29 @@ class Emoji(Hashable, EmojiAPIMixin):
     """
 
     __slots__ = (
-        '_state',
-        'id',
-        'name',
-        'role_ids',
-        'requires_colons',
-        'managed',
-        'animated',
-        'available',
-        'guild',
-
-        '_cs_asset',
+        "_state",
+        "id",
+        "name",
+        "role_ids",
+        "requires_colons",
+        "managed",
+        "animated",
+        "available",
+        "guild",
+        "_cs_asset",
     )
 
-    def __init__(
-            self,
-            *,
-            state: HTTPConnection,
-            data: EmojiPayload,
-            guild: Snowflake):
+    def __init__(self, *, state: HTTPConnection, data: EmojiPayload, guild: Snowflake):
         self._state = state
-        if data['id'] is None:
+        if data["id"] is None:
             raise ValueError("Emoji ID cannot be None")
-        self.id: int = try_snowflake(data['id'])
-        self.name = data['name']
-        self.role_ids = data.get('roles', list())
-        self.requires_colons = data.get('require_colons', True)
-        self.managed = data.get('managed', False)
-        self.animated = data.get('animated', False)
-        self.available = data.get('available', True)
+        self.id: int = try_snowflake(data["id"])
+        self.name = data["name"]
+        self.role_ids = data.get("roles", list())
+        self.requires_colons = data.get("require_colons", True)
+        self.managed = data.get("managed", False)
+        self.animated = data.get("animated", False)
+        self.available = data.get("available", True)
         self.guild: Snowflake = guild
 
     def __str__(self) -> str:
@@ -105,9 +99,15 @@ class Emoji(Hashable, EmojiAPIMixin):
             return f"<a:{self.name}:{self.id}>"
         return f"<:{self.name}:{self.id}>"
 
-    __repr__ = generate_repr(('id', 'name', 'animated',))
+    __repr__ = generate_repr(
+        (
+            "id",
+            "name",
+            "animated",
+        )
+    )
 
-    @cached_slot_property('_cs_asset')
+    @cached_slot_property("_cs_asset")
     def asset(self) -> Asset:
         return Asset.from_emoji(self)
 

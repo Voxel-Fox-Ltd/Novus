@@ -19,30 +19,28 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .mixins import Hashable
-from .asset import Asset
-from .api_mixins.user import UserAPIMixin, GuildMemberAPIMixin
-from ..flags import UserFlags, Permissions
-from ..enums import UserPremiumType, Locale
+from ..enums import Locale, UserPremiumType
+from ..flags import Permissions, UserFlags
 from ..utils import (
-    try_snowflake,
-    parse_timestamp,
     cached_slot_property,
     generate_repr,
+    parse_timestamp,
     try_enum,
+    try_snowflake,
 )
+from .api_mixins.user import GuildMemberAPIMixin, UserAPIMixin
+from .asset import Asset
+from .mixins import Hashable
 
 if TYPE_CHECKING:
-    from .abc import StateSnowflake
-    from ..payloads import (
-        User as UserPayload,
-        GuildMember as GuildMemberPayload,
-    )
     from ..api import HTTPConnection
+    from ..payloads import GuildMember as GuildMemberPayload
+    from ..payloads import User as UserPayload
+    from .abc import StateSnowflake
 
 __all__ = (
-    'User',
-    'GuildMember',
+    "User",
+    "GuildMember",
 )
 
 
@@ -93,54 +91,59 @@ class User(Hashable, UserAPIMixin):
     """
 
     __slots__ = (
-        '_state',
-        'id',
-        'username',
-        'discriminator',
-        'avatar_hash',
-        'bot',
-        'system',
-        'mfa_enabled',
-        'banner_hash',
-        'accent_color',
-        'locale',
-        'verified',
-        'email',
-        'flags',
-        'premium_type',
-
-        '_cs_avatar',
-        '_cs_banner',
+        "_state",
+        "id",
+        "username",
+        "discriminator",
+        "avatar_hash",
+        "bot",
+        "system",
+        "mfa_enabled",
+        "banner_hash",
+        "accent_color",
+        "locale",
+        "verified",
+        "email",
+        "flags",
+        "premium_type",
+        "_cs_avatar",
+        "_cs_banner",
     )
 
     def __init__(self, *, state: HTTPConnection, data: UserPayload):
         self._state = state
-        self.id = try_snowflake(data['id'])
-        self.username = data['username']
-        self.discriminator = data['discriminator']
-        self.avatar_hash = data.get('avatar')
-        self.bot = data.get('bot', False)
-        self.system = data.get('system', False)
-        self.mfa_enabled = data.get('mfa_enabled', False)
-        self.banner_hash = data.get('banner')
-        self.accent_color = data.get('accent_color')
-        self.locale = try_enum(Locale, data.get('locale'))
-        self.verified = data.get('verified', False)
-        self.email = data.get('email')
+        self.id = try_snowflake(data["id"])
+        self.username = data["username"]
+        self.discriminator = data["discriminator"]
+        self.avatar_hash = data.get("avatar")
+        self.bot = data.get("bot", False)
+        self.system = data.get("system", False)
+        self.mfa_enabled = data.get("mfa_enabled", False)
+        self.banner_hash = data.get("banner")
+        self.accent_color = data.get("accent_color")
+        self.locale = try_enum(Locale, data.get("locale"))
+        self.verified = data.get("verified", False)
+        self.email = data.get("email")
         self.flags = None
-        if 'flags' in data or 'public_flags' in data:
-            self.flags = UserFlags(data.get('flags', 0) | data.get('public_flags', 0))
-        self.premium_type = try_enum(UserPremiumType, data.get('premium_type', 0))
+        if "flags" in data or "public_flags" in data:
+            self.flags = UserFlags(data.get("flags", 0) | data.get("public_flags", 0))
+        self.premium_type = try_enum(UserPremiumType, data.get("premium_type", 0))
 
-    __repr__ = generate_repr(('id', 'username', 'bot',))
+    __repr__ = generate_repr(
+        (
+            "id",
+            "username",
+            "bot",
+        )
+    )
 
-    @cached_slot_property('_cs_avatar')
+    @cached_slot_property("_cs_avatar")
     def avatar(self) -> Asset | None:
         if self.avatar_hash is None:
             return None
         return Asset.from_user_avatar(self)
 
-    @cached_slot_property('_cs_banner')
+    @cached_slot_property("_cs_banner")
     def banner(self) -> Asset | None:
         if self.banner_hash is None:
             return None
@@ -185,54 +188,51 @@ class GuildMember(User, GuildMemberAPIMixin):
 
     __slots__ = (
         *User.__slots__,
-        'nick',
-        'guild_avatar_hash',
-        'role_ids',
-        'joined_at',
-        'premium_since',
-        'deaf',
-        'mute',
-        'pending',
-        'permissions',
-        'timeout_until',
-        'guild',
-
-        '_cs_guild_avatar',
+        "nick",
+        "guild_avatar_hash",
+        "role_ids",
+        "joined_at",
+        "premium_since",
+        "deaf",
+        "mute",
+        "pending",
+        "permissions",
+        "timeout_until",
+        "guild",
+        "_cs_guild_avatar",
     )
 
     def __init__(
-            self,
-            *,
-            state: HTTPConnection,
-            data: GuildMemberPayload,
-            guild: StateSnowflake,
-            user: UserPayload | None = None):
+        self,
+        *,
+        state: HTTPConnection,
+        data: GuildMemberPayload,
+        guild: StateSnowflake,
+        user: UserPayload | None = None,
+    ):
         if user is not None:
             super().__init__(state=state, data=user)
-        elif 'user' in data:
-            super().__init__(state=state, data=data['user'])
+        elif "user" in data:
+            super().__init__(state=state, data=data["user"])
         else:
             raise ValueError("Missing user data from member init")
-        self.nick = data.get('nick')
-        self.guild_avatar_hash = data.get('avatar')
-        self.role_ids = [
-            try_snowflake(d)
-            for d in data['roles']
-        ]
-        self.joined_at = parse_timestamp(data['joined_at'])
-        self.premium_since = parse_timestamp(data.get('premium_since'))
-        self.deaf = data['deaf']
-        self.mute = data['mute']
-        self.pending = data.get('pending', False)
+        self.nick = data.get("nick")
+        self.guild_avatar_hash = data.get("avatar")
+        self.role_ids = [try_snowflake(d) for d in data["roles"]]
+        self.joined_at = parse_timestamp(data["joined_at"])
+        self.premium_since = parse_timestamp(data.get("premium_since"))
+        self.deaf = data["deaf"]
+        self.mute = data["mute"]
+        self.pending = data.get("pending", False)
         self.permissions = None
-        if 'permissions' in data:
-            self.permissions = Permissions(int(data['permissions']))
+        if "permissions" in data:
+            self.permissions = Permissions(int(data["permissions"]))
         self.timeout_until = None
-        if 'communication_disabled_until' in data:
-            self.timeout_until = parse_timestamp(data['communication_disabled_until'])
+        if "communication_disabled_until" in data:
+            self.timeout_until = parse_timestamp(data["communication_disabled_until"])
         self.guild = guild
 
-    @cached_slot_property('_cs_guild_avatar')
+    @cached_slot_property("_cs_guild_avatar")
     def guild_avatar(self) -> Asset | None:
         if self.guild_avatar_hash is None:
             return None

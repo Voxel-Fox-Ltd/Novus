@@ -18,12 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from .utils import Enum
 
 __all__ = (
-    'NSFWLevel',
-    'PremiumTier',
-    'MFALevel',
-    'ContentFilterLevel',
-    'VerificationLevel',
-    'NotificationLevel',
+    "NSFWLevel",
+    "PremiumTier",
+    "MFALevel",
+    "ContentFilterLevel",
+    "VerificationLevel",
+    "NotificationLevel",
 )
 
 

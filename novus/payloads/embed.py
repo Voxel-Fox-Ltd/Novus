@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     from ._util import Timestamp
 
 __all__ = (
-    'Embed',
-    'EmbedType',
+    "Embed",
+    "EmbedType",
 )
 
 

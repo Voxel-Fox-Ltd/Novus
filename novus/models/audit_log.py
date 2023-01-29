@@ -17,28 +17,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generator, Any
+from typing import TYPE_CHECKING, Any, Generator
 
-from .api_mixins.audit_log import AuditLogAPIMixin
-from .user import User
-from .channel import Channel
-from ..utils import try_snowflake, cached_slot_property, generate_repr
 from ..enums import AuditLogEventType
+from ..utils import cached_slot_property, generate_repr, try_snowflake
+from .api_mixins.audit_log import AuditLogAPIMixin
+from .channel import Channel
+from .user import User
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from .abc import Snowflake
     from ..api import HTTPConnection
-    from ..payloads import (
-        AuditLog as AuditLogPayload,
-        AuditLogEntry as AuditLogEntryPayload,
-    )
+    from ..payloads import AuditLog as AuditLogPayload
+    from ..payloads import AuditLogEntry as AuditLogEntryPayload
+    from .abc import Snowflake
 
 __all__ = (
-    'AuditLogContainer',
-    'AuditLogEntry',
-    'AuditLog',
+    "AuditLogContainer",
+    "AuditLogEntry",
+    "AuditLog",
 )
 
 
@@ -61,10 +59,10 @@ class AuditLogContainer:
         yield from self.__dict__.items()
 
     def __repr__(self) -> str:
-        values = ' '.join('%s=%r' % item for item in self.__dict__.items())
+        values = " ".join("%s=%r" % item for item in self.__dict__.items())
         if values:
-            return f'<{self.__class__.__name__} {values}>'
-        return f'<{self.__class__.__name__}>'
+            return f"<{self.__class__.__name__} {values}>"
+        return f"<{self.__class__.__name__}>"
 
     if TYPE_CHECKING:
 
@@ -106,32 +104,31 @@ class AuditLogEntry:
     """
 
     __slots__ = (
-        'log',
-        'id',
-        'reason',
-        'target_id',
-        'user_id',
-        'action_type',
-        'options',
-        'before',
-        'after',
-
-        '_cs_user',
-        '_cs_target',
+        "log",
+        "id",
+        "reason",
+        "target_id",
+        "user_id",
+        "action_type",
+        "options",
+        "before",
+        "after",
+        "_cs_user",
+        "_cs_target",
     )
 
     def __init__(self, *, data: AuditLogEntryPayload, log: AuditLog):
         self.log = log
-        self.id = try_snowflake(data['id'])
-        self.reason = data.get('reason', None)
-        self.target_id = try_snowflake(data.get('target_id'))
-        self.user_id = try_snowflake(data.get('user_id'))
-        self.action_type = AuditLogEventType(data['action_type'])
+        self.id = try_snowflake(data["id"])
+        self.reason = data.get("reason", None)
+        self.target_id = try_snowflake(data.get("target_id"))
+        self.user_id = try_snowflake(data.get("user_id"))
+        self.action_type = AuditLogEventType(data["action_type"])
 
         self.options: AuditLogContainer | None = None
-        if 'options' in data:
+        if "options" in data:
             self.options = AuditLogContainer()
-            for k, v in data['options'].items():
+            for k, v in data["options"].items():
                 if k.endswith("_id") or k == "id":
                     v = int(v)  # type: ignore
                 setattr(self.options, k, v)
@@ -140,20 +137,20 @@ class AuditLogEntry:
         self.after: AuditLogContainer | None = AuditLogContainer()
 
         # Log all changes uwu
-        changes = data.get('changes', list())
+        changes = data.get("changes", list())
         for change in changes:
 
             # Special case for role add/remove
-            if change['key'].startswith("$"):
-                if change['key'] == "$add":
+            if change["key"].startswith("$"):
+                if change["key"] == "$add":
                     self.before = None
                     change_obj = self.after
-                elif change['key'] == "$remove":
+                elif change["key"] == "$remove":
                     self.after = None
                     change_obj = self.before
                 else:
                     raise ValueError("Invalid change key")
-                nv = change.get('new_value')
+                nv = change.get("new_value")
                 assert change_obj is not None
                 assert nv is not None
                 for k, v in nv[0].items():
@@ -163,9 +160,9 @@ class AuditLogEntry:
                 continue
 
             # Everything else case for everything else
-            key = change['key']
-            setattr(self.before, key, change.get('old_value'))
-            setattr(self.after, key, change.get('new_value'))
+            key = change["key"]
+            setattr(self.before, key, change.get("old_value"))
+            setattr(self.after, key, change.get("new_value"))
 
         # If we're all null
         if self.before is not None:
@@ -181,15 +178,21 @@ class AuditLogEntry:
             else:
                 self.after = None
 
-    __repr__ = generate_repr(('id', 'action_type', 'reason',))
+    __repr__ = generate_repr(
+        (
+            "id",
+            "action_type",
+            "reason",
+        )
+    )
 
-    @cached_slot_property('_cs_user')
+    @cached_slot_property("_cs_user")
     def user(self) -> User | None:
         if self.user_id is None:
             return None
         return self.log._get_user(self.user_id)
 
-    @cached_slot_property('_cs_target')
+    @cached_slot_property("_cs_target")
     def target(self) -> Snowflake | None:
         if self.target_id is None:
             return None
@@ -240,34 +243,41 @@ class AuditLog(AuditLogAPIMixin):
     """
 
     __slots__ = (
-        'guild',
-        'entries',
-        '_state',
-        '_targets',
-        '_application_commands',
-        '_auto_moderation_rules',
-        '_guild_scheduled_events',
-        '_integrations',
-        '_threads',
-        '_users',
-        '_webhooks',
+        "guild",
+        "entries",
+        "_state",
+        "_targets",
+        "_application_commands",
+        "_auto_moderation_rules",
+        "_guild_scheduled_events",
+        "_integrations",
+        "_threads",
+        "_users",
+        "_webhooks",
     )
 
-    def __init__(self, *, data: AuditLogPayload, state: HTTPConnection, guild: Snowflake):
+    def __init__(
+        self, *, data: AuditLogPayload, state: HTTPConnection, guild: Snowflake
+    ):
         self.guild = guild
         self._state = state
         self._targets: dict[str, dict[int, Any]] = {
-            'application_commands': {int(i['id']): i for i in data['application_commands']},
-            'auto_moderation_rules': {int(i['id']): i for i in data['auto_moderation_rules']},
-            'guild_scheduled_events': {int(i['id']): i for i in data['guild_scheduled_events']},
-            'integrations': {int(i['id']): i for i in data['integrations']},
-            'threads': {int(i['id']): i for i in data['threads']},
-            'users': {int(i['id']): i for i in data['users']},
-            'webhooks': {int(i['id']): i for i in data['webhooks']},
+            "application_commands": {
+                int(i["id"]): i for i in data["application_commands"]
+            },
+            "auto_moderation_rules": {
+                int(i["id"]): i for i in data["auto_moderation_rules"]
+            },
+            "guild_scheduled_events": {
+                int(i["id"]): i for i in data["guild_scheduled_events"]
+            },
+            "integrations": {int(i["id"]): i for i in data["integrations"]},
+            "threads": {int(i["id"]): i for i in data["threads"]},
+            "users": {int(i["id"]): i for i in data["users"]},
+            "webhooks": {int(i["id"]): i for i in data["webhooks"]},
         }
         self.entries = [
-            AuditLogEntry(data=d, log=self)
-            for d in data['audit_log_entries']
+            AuditLogEntry(data=d, log=self) for d in data["audit_log_entries"]
         ]
 
         self._application_commands = {}
@@ -278,7 +288,7 @@ class AuditLog(AuditLogAPIMixin):
         self._users: dict[int, User | None] = {}
         self._webhooks = {}
 
-    __repr__ = generate_repr(('guild',))
+    __repr__ = generate_repr(("guild",))
 
     def __iter__(self) -> Iterator[AuditLogEntry]:
         return iter(self.entries)
@@ -306,11 +316,11 @@ class AuditLog(AuditLogAPIMixin):
     def _get_thread(self, id: int) -> Channel | None:
         if id in self._threads:
             return self._threads[id]
-        if id in self._targets['threads']:
+        if id in self._targets["threads"]:
             self._threads[id] = None
             return None
         self._threads[id] = u = Channel._from_data(
-            data=self._targets['threads'][id],
+            data=self._targets["threads"][id],
             state=self._state,
         )
         return u
@@ -318,11 +328,11 @@ class AuditLog(AuditLogAPIMixin):
     def _get_user(self, id: int) -> User | None:
         if id in self._users:
             return self._users[id]
-        if id in self._targets['users']:
+        if id in self._targets["users"]:
             self._users[id] = None
             return None
         self._users[id] = u = User(
-            data=self._targets['users'][id],
+            data=self._targets["users"][id],
             state=self._state,
         )
         return u

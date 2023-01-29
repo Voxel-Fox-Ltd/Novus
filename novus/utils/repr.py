@@ -15,15 +15,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Callable, Any, Iterable
+from typing import Any, Callable, Iterable
 
-__all__ = (
-    "generate_repr",
-)
+__all__ = ("generate_repr",)
 
 
-def generate_repr(
-        args: Iterable[str | tuple[str, str]]) -> Callable[..., str]:
+def generate_repr(args: Iterable[str | tuple[str, str]]) -> Callable[..., str]:
     """
     Easily add a __repr__ to a class.
     """
@@ -39,4 +36,5 @@ def generate_repr(
                 continue
             generated_args.append(f"{kwarg_name}={getattr(instance, self_name)!r}")
         return f"<{instance.__class__.__name__} {' '.join(generated_args)}>"
+
     return wrapper

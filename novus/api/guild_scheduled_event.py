@@ -22,12 +22,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ._http import HTTPConnection
 
-__all__ = (
-    'GuildEventHTTPConnection',
-)
+__all__ = ("GuildEventHTTPConnection",)
 
 
 class GuildEventHTTPConnection:
-
     def __init__(self, parent: HTTPConnection):
         self.parent = parent

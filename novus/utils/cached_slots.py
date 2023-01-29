@@ -17,11 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import Generic, TypeVar, Callable, Type, Any, overload
+from typing import Any, Callable, Generic, Type, TypeVar, overload
 
-__all__ = (
-    'cached_slot_property',
-)
+__all__ = ("cached_slot_property",)
 
 
 T = TypeVar("T")
@@ -31,15 +29,15 @@ R = TypeVar("R")
 class CachedSlotProperty(Generic[T, R]):
 
     __slots__ = (
-        'name',
-        'func',
-        '__doc__',
+        "name",
+        "func",
+        "__doc__",
     )
 
     def __init__(self, name: str, func: Callable[[T], R]) -> None:
         self.name = name
         self.func = func
-        self.__doc__ = getattr(func, '__doc__')
+        self.__doc__ = getattr(func, "__doc__")
 
     @overload
     def __get__(self, instance: None, owner: Type[T]) -> CachedSlotProperty[T, R]:
@@ -63,7 +61,10 @@ class CachedSlotProperty(Generic[T, R]):
         delattr(instance, self.name)
 
 
-def cached_slot_property(name: str) -> Callable[[Callable[[T], R]], CachedSlotProperty[T, R]]:
+def cached_slot_property(
+    name: str,
+) -> Callable[[Callable[[T], R]], CachedSlotProperty[T, R]]:
     def decorator(func: Callable[[T], R]) -> CachedSlotProperty[T, R]:
         return CachedSlotProperty(name, func)
+
     return decorator

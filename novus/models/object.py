@@ -24,9 +24,7 @@ from ..utils import generate_repr
 if TYPE_CHECKING:
     from ..api import HTTPConnection
 
-__all__ = (
-    'Object',
-)
+__all__ = ("Object",)
 
 
 class Object:
@@ -35,12 +33,7 @@ class Object:
     IDs and a state.
     """
 
-    def __init__(
-            self,
-            id: int,
-            *,
-            state: HTTPConnection,
-            guild_id: int | None = None):
+    def __init__(self, id: int, *, state: HTTPConnection, guild_id: int | None = None):
         self.id = id
         self._state = state
         self.guild = None
@@ -49,4 +42,9 @@ class Object:
         else:
             del self.guild
 
-    __repr__ = generate_repr(('id', 'guild',))
+    __repr__ = generate_repr(
+        (
+            "id",
+            "guild",
+        )
+    )

@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from .utils import Enum
 
 __all__ = (
-    'ChannelType',
-    'PermissionOverwriteType',
+    "ChannelType",
+    "PermissionOverwriteType",
 )
 
 

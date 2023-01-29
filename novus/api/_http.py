@@ -17,12 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, TypedDict
-import logging
 import io
+import logging
+from typing import TYPE_CHECKING, Any, Iterable, TypedDict
 
 import aiohttp
 
+from ..utils import bytes_to_base64_data
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
 from .audit_log import AuditLogHTTPConnection
 from .auto_moderation import AutoModerationHTTPConnection
@@ -37,14 +38,13 @@ from .sticker import StickerHTTPConnection
 from .user import UserHTTPConnection
 from .voice import VoiceHTTPConnection
 from .webhook import WebhookHTTPConnection
-from ..utils import bytes_to_base64_data
 
 if TYPE_CHECKING:
     from ._route import Route
 
 __all__ = (
-    'HTTPConnection',
-    'OauthHTTPConnection',
+    "HTTPConnection",
+    "OauthHTTPConnection",
 )
 
 
@@ -68,8 +68,8 @@ class HTTPException(Exception):
 
     def __init__(self, payload: dict):
         self.payload: dict = payload
-        self.message: str = payload['message']
-        self.code: int = payload['code']
+        self.message: str = payload["message"]
+        self.code: int = payload["code"]
 
 
 class NotFound(HTTPException):
@@ -166,12 +166,13 @@ class HTTPConnection:
         await s.close()
 
     async def request(
-            self,
-            route: Route,
-            *,
-            reason: str | None = None,
-            params: dict | None = None,
-            data: dict | list | None = None) -> Any:
+        self,
+        route: Route,
+        *,
+        reason: str | None = None,
+        params: dict | None = None,
+        data: dict | list | None = None,
+    ) -> Any:
         """
         Perform a web request.
         """
@@ -181,11 +182,8 @@ class HTTPConnection:
             "User-Agent": self._user_agent,
         }
         if reason:
-            headers['X-Audit-Log-Reason'] = reason
-        log.debug(
-            "Sending {0.method} {0.path} with {1}"
-            .format(route, data)
-        )
+            headers["X-Audit-Log-Reason"] = reason
+        log.debug("Sending {0.method} {0.path} with {1}".format(route, data))
         session = await self.get_session()
         resp: aiohttp.ClientResponse = await session.request(
             route.method,
@@ -212,28 +210,26 @@ class HTTPConnection:
             else:
                 raise HTTPException(json)
         log.debug(
-            "Response {0.method} {0.path} returned {1.status} {2}"
-            .format(route, resp, json)
+            "Response {0.method} {0.path} returned {1.status} {2}".format(
+                route, resp, json
+            )
         )
         return json
 
     @classmethod
-    def _get_kwargs(
-            cls,
-            args: FixableKwargs,
-            kwargs: dict[str, Any]) -> dict[str, Any]:
+    def _get_kwargs(cls, args: FixableKwargs, kwargs: dict[str, Any]) -> dict[str, Any]:
         """
         A single catch-all kwargs fixer for POST requests.
         """
 
         to_return: dict[str, Any] = {}
-        to_return.update(cls._get_type_kwargs(args.get('type', ()), kwargs))
-        to_return.update(cls._get_enum_kwargs(args.get('enum', ()), kwargs))
-        to_return.update(cls._get_snowflake_kwargs(args.get('snowflake', ()), kwargs))
-        to_return.update(cls._get_image_kwargs(args.get('image', ()), kwargs))
-        to_return.update(cls._get_object_kwargs(args.get('object', ()), kwargs))
-        to_return.update(cls._get_timestamp_kwargs(args.get('timestamp', ()), kwargs))
-        to_return.update(cls._get_flags_kwargs(args.get('flags', ()), kwargs))
+        to_return.update(cls._get_type_kwargs(args.get("type", ()), kwargs))
+        to_return.update(cls._get_enum_kwargs(args.get("enum", ()), kwargs))
+        to_return.update(cls._get_snowflake_kwargs(args.get("snowflake", ()), kwargs))
+        to_return.update(cls._get_image_kwargs(args.get("image", ()), kwargs))
+        to_return.update(cls._get_object_kwargs(args.get("object", ()), kwargs))
+        to_return.update(cls._get_timestamp_kwargs(args.get("timestamp", ()), kwargs))
+        to_return.update(cls._get_flags_kwargs(args.get("flags", ()), kwargs))
         to_return.update(kwargs)
         return to_return
 
@@ -247,9 +243,8 @@ class HTTPConnection:
 
     @classmethod
     def _get_type_kwargs(
-            cls,
-            args: Iterable[tuple[str, str] | str],
-            kwargs: dict[str, Any]) -> dict[str, Any]:
+        cls, args: Iterable[tuple[str, str] | str], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         """
@@ -264,9 +259,8 @@ class HTTPConnection:
 
     @classmethod
     def _get_snowflake_kwargs(
-            cls,
-            args: Iterable[tuple[str, str] | str],
-            kwargs: dict[str, Any]) -> dict[str, Any]:
+        cls, args: Iterable[tuple[str, str] | str], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is a snowflake, so returns its ``.id``.
@@ -290,9 +284,8 @@ class HTTPConnection:
 
     @classmethod
     def _get_enum_kwargs(
-            cls,
-            args: Iterable[tuple[str, str] | str],
-            kwargs: dict[str, Any]) -> dict[str, Any]:
+        cls, args: Iterable[tuple[str, str] | str], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is an enum, so returns its ``.value``.
@@ -316,9 +309,8 @@ class HTTPConnection:
 
     @classmethod
     def _get_image_kwargs(
-            cls,
-            args: Iterable[tuple[str, str] | str],
-            kwargs: dict[str, Any]) -> dict[str, Any]:
+        cls, args: Iterable[tuple[str, str] | str], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is a binary string or `io.BytesIO` object.
@@ -336,7 +328,7 @@ class HTTPConnection:
             elif isinstance(given_arg, bytes):
                 updated[updated_key] = bytes_to_base64_data(given_arg)
             elif isinstance(given_arg, str):
-                with open(given_arg, 'rb') as a:
+                with open(given_arg, "rb") as a:
                     updated[updated_key] = bytes_to_base64_data(a.read())
             elif isinstance(given_arg, io.IOBase):
                 updated[updated_key] = bytes_to_base64_data(given_arg.read())
@@ -347,9 +339,8 @@ class HTTPConnection:
 
     @classmethod
     def _get_object_kwargs(
-            cls,
-            args: Iterable[tuple[str, str] | str],
-            kwargs: dict[str, Any]) -> dict[str, Any]:
+        cls, args: Iterable[tuple[str, str] | str], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is an object implementing a ``._to_json``
@@ -374,9 +365,8 @@ class HTTPConnection:
 
     @classmethod
     def _get_timestamp_kwargs(
-            cls,
-            args: Iterable[tuple[str, str] | str],
-            kwargs: dict[str, Any]) -> dict[str, Any]:
+        cls, args: Iterable[tuple[str, str] | str], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is a timestamp.
@@ -400,9 +390,8 @@ class HTTPConnection:
 
     @classmethod
     def _get_flags_kwargs(
-            cls,
-            args: Iterable[tuple[str, str] | str],
-            kwargs: dict[str, Any]) -> dict[str, Any]:
+        cls, args: Iterable[tuple[str, str] | str], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
         This assumes each given item is a flags item.

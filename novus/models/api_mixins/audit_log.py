@@ -20,24 +20,24 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..audit_log import AuditLog
     from ...api import HTTPConnection
     from ...enums import AuditLogEventType
+    from ..audit_log import AuditLog
 
 
 class AuditLogAPIMixin:
-
     @classmethod
     async def fetch(
-            cls,
-            state: HTTPConnection,
-            guild_id: int,
-            *,
-            user_id: int | None = None,
-            action_type: AuditLogEventType | None = None,
-            before: int | None = None,
-            after: int | None = None,
-            limit: int = 50) -> AuditLog:
+        cls,
+        state: HTTPConnection,
+        guild_id: int,
+        *,
+        user_id: int | None = None,
+        action_type: AuditLogEventType | None = None,
+        before: int | None = None,
+        after: int | None = None,
+        limit: int = 50,
+    ) -> AuditLog:
         """
         Get an instance of a user from the API.
 

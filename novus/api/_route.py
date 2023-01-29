@@ -19,9 +19,7 @@ import os
 
 import dotenv
 
-__all__ = (
-    'Route',
-)
+__all__ = ("Route",)
 
 
 dotenv.load_dotenv()
@@ -55,9 +53,9 @@ class Route:
     """
 
     __slots__ = (
-        'method',
-        'resource',
-        'kwargs',
+        "method",
+        "resource",
+        "kwargs",
     )
 
     BASE = os.getenv(
@@ -74,9 +72,8 @@ class Route:
         return self.url
 
     def __repr__(self) -> str:
-        return (
-            "{0.__class__.__name__}(method={0.method}, resource={0.path})"
-            .format(self)
+        return "{0.__class__.__name__}(method={0.method}, resource={0.path})".format(
+            self
         )
 
     @property

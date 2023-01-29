@@ -17,24 +17,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
-
 import os
+from typing import TYPE_CHECKING, Literal
 
 import dotenv
 
 from ..utils import MISSING, generate_repr
 
 if TYPE_CHECKING:
-    from .guild import Guild, OauthGuild, GuildPreview
     from .emoji import Emoji
+    from .guild import Guild, GuildPreview, OauthGuild
     from .role import Role
     from .sticker import Sticker
-    from .user import User, GuildMember
+    from .user import GuildMember, User
 
-__all__ = (
-    'Asset',
-)
+__all__ = ("Asset",)
 
 
 dotenv.load_dotenv()
@@ -52,22 +49,17 @@ class Asset:
         Whether or not the asset is animated.
     """
 
-    BASE = os.getenv(
-        "NOVUS_API_URL",
-        "https://cdn.discordapp.com"
-    )
+    BASE = os.getenv("NOVUS_API_URL", "https://cdn.discordapp.com")
 
     __slots__ = (
-        'resource',
-        'animated',
-        'default_format',
+        "resource",
+        "animated",
+        "default_format",
     )
 
     def __init__(
-            self,
-            resource: str,
-            animated: bool = MISSING,
-            default_format: str | None = None):
+        self, resource: str, animated: bool = MISSING, default_format: str | None = None
+    ):
         self.resource: str = resource
         if animated is MISSING:
             animated = self.resource.split("/")[-1].startswith("a_")
@@ -77,12 +69,18 @@ class Asset:
     def __str__(self) -> str:
         return self.get_url()
 
-    __repr__ = generate_repr(('resource', 'animated',))
+    __repr__ = generate_repr(
+        (
+            "resource",
+            "animated",
+        )
+    )
 
     def get_url(
-            self,
-            format: Literal["webp", "jpg", "jpeg", "png", "gif", "json"] = MISSING,
-            size: int = MISSING) -> str:
+        self,
+        format: Literal["webp", "jpg", "jpeg", "png", "gif", "json"] = MISSING,
+        size: int = MISSING,
+    ) -> str:
         """
         Get the URL for the image with different formatting and size than the
         CDN default.
@@ -137,7 +135,9 @@ class Asset:
 
     @classmethod
     def from_guild_member_avatar(cls, user: GuildMember) -> Asset:
-        return cls(f"/guilds/{user.guild.id}/users/{user.id}/avatars/{user.guild_avatar_hash}")
+        return cls(
+            f"/guilds/{user.guild.id}/users/{user.id}/avatars/{user.guild_avatar_hash}"
+        )
 
     # @classmethod
     # def from_guild_member_banner(cls, user: GuildMember) -> Asset:

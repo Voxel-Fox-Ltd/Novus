@@ -19,18 +19,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from .asset import Asset
-from ..utils import try_snowflake, cached_slot_property
 from ..flags import Permissions
+from ..utils import cached_slot_property, try_snowflake
+from .asset import Asset
 
 if TYPE_CHECKING:
-    from .abc import StateSnowflake
     from ..api import HTTPConnection
     from ..payloads import Role as RolePayload
+    from .abc import StateSnowflake
 
-__all__ = (
-    'Role',
-)
+__all__ = ("Role",)
 
 
 class Role:
@@ -74,39 +72,40 @@ class Role:
     """
 
     __slots__ = (
-        '_state',
-        'id',
-        'name',
-        'color',
-        'hoist',
-        'icon_hash',
-        'unicode_emoji',
-        'position',
-        'permissions',
-        'managed',
-        'mentionable',
-        'tags',
-        'guild',
-
-        '_cs_icon',
+        "_state",
+        "id",
+        "name",
+        "color",
+        "hoist",
+        "icon_hash",
+        "unicode_emoji",
+        "position",
+        "permissions",
+        "managed",
+        "mentionable",
+        "tags",
+        "guild",
+        "_cs_icon",
     )
 
-    def __init__(self, *, state: HTTPConnection, data: RolePayload, guild: StateSnowflake):
+    def __init__(
+        self, *, state: HTTPConnection, data: RolePayload, guild: StateSnowflake
+    ):
         self._state = state
-        self.id = try_snowflake(data['id'])
-        self.name = data['name']
-        self.color = data['color']
-        self.hoist = data['hoist']
-        self.icon_hash = data.get('icon')
-        self.unicode_emoji = data.get('unicode_emoji')
-        self.position = data['position']
-        self.permissions = Permissions(int(data['permissions']))
-        self.managed = data['managed']
-        self.mentionable = data['mentionable']
-        self.tags = data.get('role_tags', list())
+        self.id = try_snowflake(data["id"])
+        self.name = data["name"]
+        self.color = data["color"]
+        self.hoist = data["hoist"]
+        self.icon_hash = data.get("icon")
+        self.unicode_emoji = data.get("unicode_emoji")
+        self.position = data["position"]
+        self.permissions = Permissions(int(data["permissions"]))
+        self.managed = data["managed"]
+        self.mentionable = data["mentionable"]
+        self.tags = data.get("role_tags", list())
         self.guild: StateSnowflake = guild
 
-    @cached_slot_property('_cs_icon')
+    @cached_slot_property("_cs_icon")
     def icon(self) -> Asset | None:
         if self.icon_hash is None:
             return None
@@ -123,6 +122,7 @@ class Role:
         """
 
         from .guild import Guild
+
         return await Guild.delete_role(
             self.guild,
             self.id,
@@ -156,6 +156,7 @@ class Role:
         """
 
         from .guild import Guild
+
         return await Guild.edit_role(
             self.guild,
             self.id,

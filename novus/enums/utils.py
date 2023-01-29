@@ -17,12 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from enum import Enum as E
 
-__all__ = (
-    'Enum',
-)
+__all__ = ("Enum",)
 
 
 class Enum(E):
-
     def __repr__(self) -> str:
-        return f'{self.__class__.__name__}.{self.name}'
+        return f"{self.__class__.__name__}.{self.name}"

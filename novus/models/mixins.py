@@ -22,15 +22,15 @@ from typing import TYPE_CHECKING, Any
 from ..utils import MISSING
 
 if TYPE_CHECKING:
-    from .message import Message, Embed, AllowedMentions, File
-    from .sticker import Sticker
-    from ..flags import MessageFlags
     from ..api import HTTPConnection
+    from ..flags import MessageFlags
+    from .message import AllowedMentions, Embed, File, Message
+    from .sticker import Sticker
 
 __all__ = (
-    'EqualityComparable',
-    'Hashable',
-    'Messageable',
+    "EqualityComparable",
+    "Hashable",
+    "Messageable",
 )
 
 
@@ -41,10 +41,7 @@ class EqualityComparable:
     id: int
 
     def __eq__(self, other: object) -> bool:
-        return (
-            isinstance(other, self.__class__)
-            and other.id == self.id
-        )
+        return isinstance(other, self.__class__) and other.id == self.id
 
     def __ne__(self, other: object) -> bool:
         if isinstance(other, self.__class__):
@@ -71,16 +68,17 @@ class Messageable:
         raise NotImplementedError()
 
     async def send(
-            self,
-            content: str = MISSING,
-            *,
-            tts: bool = MISSING,
-            embeds: list[Embed] = MISSING,
-            allowed_mentions: AllowedMentions = MISSING,
-            message_reference: Message = MISSING,
-            stickers: list[Sticker] = MISSING,
-            files: list[File] = MISSING,
-            flags: MessageFlags = MISSING) -> Message:
+        self,
+        content: str = MISSING,
+        *,
+        tts: bool = MISSING,
+        embeds: list[Embed] = MISSING,
+        allowed_mentions: AllowedMentions = MISSING,
+        message_reference: Message = MISSING,
+        stickers: list[Sticker] = MISSING,
+        files: list[File] = MISSING,
+        flags: MessageFlags = MISSING,
+    ) -> Message:
         """
         Send a message to the channel associated with the model.
 

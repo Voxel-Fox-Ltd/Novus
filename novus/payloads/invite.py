@@ -17,19 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, TypedDict, Literal
+from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Timestamp
-    from .user import User
-    from .guild import Guild
-    from .guild_scheduled_event import GuildScheduledEvent
     from .application import Application
     from .channel import Channel
+    from .guild import Guild
+    from .guild_scheduled_event import GuildScheduledEvent
+    from .user import User
 
 __all__ = (
-    'Invite',
-    'InviteWithMetadata',
+    "Invite",
+    "InviteWithMetadata",
 )
 
 

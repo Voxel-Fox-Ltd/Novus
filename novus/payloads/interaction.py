@@ -21,11 +21,11 @@ from typing import TYPE_CHECKING, Literal, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake
-    from .user import User, GuildMember
+    from .user import GuildMember, User
 
 __all__ = (
-    'InteractionType',
-    'MessageInteraction',
+    "InteractionType",
+    "MessageInteraction",
 )
 
 

@@ -22,14 +22,12 @@ from typing import TYPE_CHECKING
 from ..utils import try_snowflake
 
 if TYPE_CHECKING:
-    from ..payloads import (
-        GuildWelcomeScreen as WelcomeScreenPayload,
-        GuildWelcomeScreenChannel as WelcomeScreenChannelPayload,
-    )
+    from ..payloads import GuildWelcomeScreen as WelcomeScreenPayload
+    from ..payloads import GuildWelcomeScreenChannel as WelcomeScreenChannelPayload
 
 __all__ = (
-    'WelcomeScreenChannel',
-    'WelcomeScreen',
+    "WelcomeScreenChannel",
+    "WelcomeScreen",
 )
 
 
@@ -39,17 +37,17 @@ class WelcomeScreenChannel:
     """
 
     __slots__ = (
-        'channel_id',
-        'description',
-        'emoji_id',
-        'emoji_name',
+        "channel_id",
+        "description",
+        "emoji_id",
+        "emoji_name",
     )
 
     def __init__(self, *, data: WelcomeScreenChannelPayload):
-        self.channel_id = try_snowflake(data['channel_id'])
-        self.description = data['description']
-        self.emoji_id = try_snowflake(data.get('emoji_id'))
-        self.emoji_name = data.get('emoji_name')
+        self.channel_id = try_snowflake(data["channel_id"])
+        self.description = data["description"]
+        self.emoji_id = try_snowflake(data.get("emoji_id"))
+        self.emoji_name = data.get("emoji_name")
 
 
 class WelcomeScreen:
@@ -58,13 +56,12 @@ class WelcomeScreen:
     """
 
     __slots__ = (
-        'description',
-        'welcome_channels',
+        "description",
+        "welcome_channels",
     )
 
     def __init__(self, *, data: WelcomeScreenPayload):
-        self.description = data.get('description')
+        self.description = data.get("description")
         self.welcome_channels = [
-            WelcomeScreenChannel(data=i)
-            for i in data['welcome_channels']
+            WelcomeScreenChannel(data=i) for i in data["welcome_channels"]
         ]

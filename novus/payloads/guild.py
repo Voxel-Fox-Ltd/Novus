@@ -16,34 +16,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from __future__ import annotations
+
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 from novus.payloads.stage_instance import StageInstance
 
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
-    from .emoji import Emoji
-    from .user import User, GuildMember, Presence
-    from .voice import VoiceState
-    from .sticker import Sticker
-    from .guild_scheduled_event import GuildScheduledEvent
     from .channel import Channel
+    from .emoji import Emoji
+    from .guild_scheduled_event import GuildScheduledEvent
+    from .sticker import Sticker
+    from .user import GuildMember, Presence, User
+    from .voice import VoiceState
 
 __all__ = (
-    'RoleTags',
-    'Role',
-    'GuildWidget',
-    'GuildPreview',
-    'UnavailableGuild',
-    'GuildWelcomeScreenChannel',
-    'GuildWelcomeScreen',
-    'GuildFeature',
-    'Guild',
-    'GatewayGuild',
-    'IntegrationApplication',
-    'IntegrationAccount',
-    'Integration',
-    'Ban',
+    "RoleTags",
+    "Role",
+    "GuildWidget",
+    "GuildPreview",
+    "UnavailableGuild",
+    "GuildWelcomeScreenChannel",
+    "GuildWelcomeScreen",
+    "GuildFeature",
+    "Guild",
+    "GatewayGuild",
+    "IntegrationApplication",
+    "IntegrationAccount",
+    "Integration",
+    "Ban",
 )
 
 

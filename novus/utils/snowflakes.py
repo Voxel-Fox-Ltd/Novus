@@ -23,9 +23,9 @@ if TYPE_CHECKING:
     from ..models.abc import Snowflake
 
 __all__ = (
-    'try_snowflake',
-    'try_id',
-    'try_object',
+    "try_snowflake",
+    "try_id",
+    "try_object",
 )
 
 
@@ -126,5 +126,6 @@ def try_object(given: int | Snowflake | None) -> Snowflake | None:
         return None
     if isinstance(given, int):
         from ..models import Object  # Circular import :(
+
         return Object(given, state=None)  # type: ignore
     return given

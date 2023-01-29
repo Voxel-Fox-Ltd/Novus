@@ -17,9 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .utils import Enum
 
-__all__ = (
-    'AuditLogEventType',
-)
+__all__ = ("AuditLogEventType",)
 
 
 class AuditLogEventType(Enum):

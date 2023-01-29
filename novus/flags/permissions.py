@@ -19,9 +19,7 @@ from typing import TYPE_CHECKING
 
 from vfflags import Flags
 
-__all__ = (
-    'Permissions',
-)
+__all__ = ("Permissions",)
 
 
 class Permissions(Flags):

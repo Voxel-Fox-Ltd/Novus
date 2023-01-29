@@ -19,23 +19,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ...utils import MISSING, try_object, try_id
+from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
-    from ..abc import Snowflake, StateSnowflakeWithGuild
-    from ..auto_moderation import AutoModerationAction, AutoModerationRule, AutoModerationTriggerMetadata
     from ...api import HTTPConnection
     from ...enums import AutoModerationEventType, AutoModerationTriggerType
+    from ..abc import Snowflake, StateSnowflakeWithGuild
+    from ..auto_moderation import (
+        AutoModerationAction,
+        AutoModerationRule,
+        AutoModerationTriggerMetadata,
+    )
 
 
 class AutoModerationAPIMixin:
-
     @classmethod
     async def fetch(
-            cls,
-            state: HTTPConnection,
-            guild: int | Snowflake,
-            rule: int | Snowflake) -> AutoModerationRule:
+        cls, state: HTTPConnection, guild: int | Snowflake, rule: int | Snowflake
+    ) -> AutoModerationRule:
         """
         Get an instance of an auto moderation rule from the API.
 
@@ -61,9 +62,8 @@ class AutoModerationAPIMixin:
 
     @classmethod
     async def fetch_all_for_guild(
-            cls,
-            state: HTTPConnection,
-            guild: int | Snowflake) -> list[AutoModerationRule]:
+        cls, state: HTTPConnection, guild: int | Snowflake
+    ) -> list[AutoModerationRule]:
         """
         Get all of the auto moderation rules from the API for a given guild.
 
@@ -85,17 +85,18 @@ class AutoModerationAPIMixin:
         )
 
     async def edit(
-            self: StateSnowflakeWithGuild,
-            *,
-            reason: str | None = None,
-            name: str = MISSING,
-            event_type: AutoModerationEventType = MISSING,
-            trigger_type: AutoModerationTriggerType = MISSING,
-            trigger_metadata: AutoModerationTriggerMetadata = MISSING,
-            actions: list[AutoModerationAction] = MISSING,
-            enabled: bool = MISSING,
-            exempt_roles: list[int | Snowflake] = MISSING,
-            exempt_channels: list[int | Snowflake] = MISSING) -> AutoModerationRule:
+        self: StateSnowflakeWithGuild,
+        *,
+        reason: str | None = None,
+        name: str = MISSING,
+        event_type: AutoModerationEventType = MISSING,
+        trigger_type: AutoModerationTriggerType = MISSING,
+        trigger_metadata: AutoModerationTriggerMetadata = MISSING,
+        actions: list[AutoModerationAction] = MISSING,
+        enabled: bool = MISSING,
+        exempt_roles: list[int | Snowflake] = MISSING,
+        exempt_channels: list[int | Snowflake] = MISSING,
+    ) -> AutoModerationRule:
         """
         Edit an instance of the auto moderation rule.
 
@@ -153,9 +154,8 @@ class AutoModerationAPIMixin:
         )
 
     async def delete(
-            self: StateSnowflakeWithGuild,
-            *,
-            reason: str | None = None) -> None:
+        self: StateSnowflakeWithGuild, *, reason: str | None = None
+    ) -> None:
         """
         Delete this auto moderation rule.
 
@@ -179,19 +179,20 @@ class AutoModerationAPIMixin:
 
     @classmethod
     async def create(
-            cls,
-            state: HTTPConnection,
-            guild: int | Snowflake,
-            *,
-            reason: str | None = None,
-            name: str,
-            event_type: AutoModerationEventType,
-            trigger_type: AutoModerationTriggerType,
-            trigger_metadata: AutoModerationTriggerMetadata | None = None,
-            actions: list[AutoModerationAction] | None = None,
-            enabled: bool = False,
-            exempt_roles: list[int | Snowflake] | None = None,
-            exempt_channels: list[int | Snowflake] | None = None) -> AutoModerationRule:
+        cls,
+        state: HTTPConnection,
+        guild: int | Snowflake,
+        *,
+        reason: str | None = None,
+        name: str,
+        event_type: AutoModerationEventType,
+        trigger_type: AutoModerationTriggerType,
+        trigger_metadata: AutoModerationTriggerMetadata | None = None,
+        actions: list[AutoModerationAction] | None = None,
+        enabled: bool = False,
+        exempt_roles: list[int | Snowflake] | None = None,
+        exempt_channels: list[int | Snowflake] | None = None,
+    ) -> AutoModerationRule:
         """
         Create a new auto moderation rule.
 

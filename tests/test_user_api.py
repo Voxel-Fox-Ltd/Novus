@@ -1,8 +1,8 @@
 import pytest
+
 import novus
 
 from ._setup import get_connection, get_data
-
 
 known_user_ids, known_guild_ids = get_data()
 

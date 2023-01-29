@@ -19,26 +19,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ._route import Route
 from ..models import AutoModerationRule
+from ._route import Route
 
 if TYPE_CHECKING:
-    from ._http import HTTPConnection
     from .. import payloads
+    from ._http import HTTPConnection
 
-__all__ = (
-    'AutoModerationHTTPConnection',
-)
+__all__ = ("AutoModerationHTTPConnection",)
 
 
 class AutoModerationHTTPConnection:
-
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
 
     async def list_auto_moderation_rules_for_guild(
-            self,
-            guild_id: int) -> list[AutoModerationRule]:
+        self, guild_id: int
+    ) -> list[AutoModerationRule]:
         """
         Get a list of automoderator rules for the guild.
         """
@@ -49,15 +46,11 @@ class AutoModerationHTTPConnection:
             guild_id=guild_id,
         )
         data: list[payloads.AutoModerationRule] = await self.parent.request(route)
-        return [
-            AutoModerationRule(state=self.parent, data=d)
-            for d in data
-        ]
+        return [AutoModerationRule(state=self.parent, data=d) for d in data]
 
     async def get_auto_moderation_rule(
-            self,
-            guild_id: int,
-            rule_id: int) -> AutoModerationRule:
+        self, guild_id: int, rule_id: int
+    ) -> AutoModerationRule:
         """
         Get a specific automoderator rule for the guild.
         """
@@ -72,11 +65,8 @@ class AutoModerationHTTPConnection:
         return AutoModerationRule(state=self.parent, data=data)
 
     async def create_auto_moderation_rule(
-            self,
-            guild_id: int,
-            *,
-            reason: str | None = None,
-            **kwargs: dict[str, Any]) -> AutoModerationRule:
+        self, guild_id: int, *, reason: str | None = None, **kwargs: dict[str, Any]
+    ) -> AutoModerationRule:
         """
         Create an automoderation rule.
         """
@@ -119,12 +109,13 @@ class AutoModerationHTTPConnection:
         )
 
     async def modify_auto_moderation_rule(
-            self,
-            guild_id: int,
-            rule_id: int,
-            *,
-            reason: str | None = None,
-            **kwargs: dict[str, Any]) -> AutoModerationRule:
+        self,
+        guild_id: int,
+        rule_id: int,
+        *,
+        reason: str | None = None,
+        **kwargs: dict[str, Any],
+    ) -> AutoModerationRule:
         """
         Edit an automoderation rule.
         """
@@ -168,11 +159,8 @@ class AutoModerationHTTPConnection:
         )
 
     async def delete_auto_moderation_rule(
-            self,
-            guild_id: int,
-            rule_id: int,
-            *,
-            reason: str | None = None) -> None:
+        self, guild_id: int, rule_id: int, *, reason: str | None = None
+    ) -> None:
         """
         Delete an automoderation rule.
         """

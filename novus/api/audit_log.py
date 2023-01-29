@@ -19,51 +19,46 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ._route import Route
-from ..models import (
-    AuditLog,
-    Object,
-)
 from ..enums import AuditLogEventType
+from ..models import AuditLog, Object
+from ._route import Route
 
 if TYPE_CHECKING:
-    from ._http import HTTPConnection
     from .. import payloads
+    from ._http import HTTPConnection
 
-__all__ = (
-    'AuditLogHTTPConnection',
-)
+__all__ = ("AuditLogHTTPConnection",)
 
 
 class AuditLogHTTPConnection:
-
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
 
     async def get_guild_audit_log(
-            self,
-            guild_id: int,
-            *,
-            user_id: int | None = None,
-            action_type: AuditLogEventType | None = None,
-            before: int | None = None,
-            after: int | None = None,
-            limit: int = 50) -> AuditLog:
+        self,
+        guild_id: int,
+        *,
+        user_id: int | None = None,
+        action_type: AuditLogEventType | None = None,
+        before: int | None = None,
+        after: int | None = None,
+        limit: int = 50,
+    ) -> AuditLog:
         """
         Get guild audit logs.
         """
 
         params: dict[str, Any] = {}
         if user_id is not None:
-            params['user_id'] = user_id
+            params["user_id"] = user_id
         if action_type is not None:
-            params['action_type'] = action_type.value
+            params["action_type"] = action_type.value
         if before is not None:
-            params['before'] = before
+            params["before"] = before
         if after is not None:
-            params['after'] = after
+            params["after"] = after
         if limit is not None:
-            params['limit'] = limit
+            params["limit"] = limit
         route = Route(
             "GET",
             "/guilds/{guild_id}/audit-logs",

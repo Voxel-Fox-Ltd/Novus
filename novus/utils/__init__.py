@@ -19,12 +19,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from typing import Any, Literal
 
-from .snowflakes import *
-from .repr import *
-from .files import *
 from .cached_slots import *
-from .times import *
 from .enums import *
+from .files import *
+from .repr import *
+from .snowflakes import *
+from .times import *
 
 
 class MissingObject:
@@ -34,8 +34,8 @@ class MissingObject:
     def __bool__(self) -> Literal[False]:
         return False
 
-    def __repr__(self) -> Literal['MISSING']:
-        return 'MISSING'
+    def __repr__(self) -> Literal["MISSING"]:
+        return "MISSING"
 
 
 MISSING: Any = MissingObject()

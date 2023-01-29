@@ -17,51 +17,45 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeAlias, Any
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, TypeAlias
 
-from .mixins import Hashable
-from .channel import Channel
-from .role import Role
-from .asset import Asset
-from .emoji import Emoji
-from .welcome_screen import WelcomeScreen
-from .sticker import Sticker
-from .api_mixins.guild import GuildAPIMixin
-from ..flags import Permissions, SystemChannelFlags
 from ..enums import (
-    Locale,
-    VerificationLevel,
-    NotificationLevel,
     ContentFilterLevel,
+    Locale,
     MFALevel,
-    PremiumTier,
+    NotificationLevel,
     NSFWLevel,
+    PremiumTier,
+    VerificationLevel,
 )
-from ..utils import (
-    try_snowflake,
-    generate_repr,
-    cached_slot_property,
-)
+from ..flags import Permissions, SystemChannelFlags
+from ..utils import cached_slot_property, generate_repr, try_snowflake
+from .api_mixins.guild import GuildAPIMixin
+from .asset import Asset
+from .channel import Channel
+from .emoji import Emoji
+from .mixins import Hashable
+from .role import Role
+from .sticker import Sticker
+from .welcome_screen import WelcomeScreen
 
 if TYPE_CHECKING:
     import io
 
-    from .user import User, GuildMember
     from ..api import HTTPConnection
-    from ..payloads import (
-        Guild as APIGuildPayload,
-        GatewayGuild as GatewayGuildPayload,
-        GuildPreview as GuildPreviewPayload,
-    )
+    from ..payloads import GatewayGuild as GatewayGuildPayload
+    from ..payloads import Guild as APIGuildPayload
+    from ..payloads import GuildPreview as GuildPreviewPayload
+    from .user import GuildMember, User
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
 __all__ = (
-    'GuildBan',
-    'Guild',
-    'OauthGuild',
-    'GuildPreview',
+    "GuildBan",
+    "Guild",
+    "OauthGuild",
+    "GuildPreview",
 )
 
 
@@ -181,95 +175,101 @@ class Guild(Hashable, GuildAPIMixin):
     """
 
     __slots__ = (
-        '_state',
-        'id',
-        'name',
-        'icon_hash',
-        'splash_hash',
-        'discovery_splash_hash',
-        'owner_id',
-        'afk_channel_id',
-        'afk_timeout',
-        'verification_level',
-        'default_message_notifications',
-        'explicit_content_filter',
-        'features',
-        'mfa_level',
-        'application_id',
-        'system_channel_id',
-        'system_channel_flags',
-        'rules_channel_id',
-        'vanity_url_code',
-        'description',
-        'banner_hash',
-        'premium_tier',
-        'preferred_locale',
-        'public_updates_channel_id',
-        'nsfw_level',
-        'premium_progress_bar_enabled',
-        'widget_enabled',
-        'widget_channel_id',
-        'max_presences',
-        'max_members',
-        'premium_subscription_count',
-        'max_video_channel_users',
-        'approximate_member_count',
-        'welcome_screen',
-        'emojis',
-        'stickers',
-
-        '_roles',
-        '_members',
-        '_guild_scheduled_events',
-        '_threads',
-        '_voice_states',
-        '_channels',
-
-        '_cs_icon',
-        '_cs_splash',
-        '_cs_discovery_splash',
-        '_cs_banner',
+        "_state",
+        "id",
+        "name",
+        "icon_hash",
+        "splash_hash",
+        "discovery_splash_hash",
+        "owner_id",
+        "afk_channel_id",
+        "afk_timeout",
+        "verification_level",
+        "default_message_notifications",
+        "explicit_content_filter",
+        "features",
+        "mfa_level",
+        "application_id",
+        "system_channel_id",
+        "system_channel_flags",
+        "rules_channel_id",
+        "vanity_url_code",
+        "description",
+        "banner_hash",
+        "premium_tier",
+        "preferred_locale",
+        "public_updates_channel_id",
+        "nsfw_level",
+        "premium_progress_bar_enabled",
+        "widget_enabled",
+        "widget_channel_id",
+        "max_presences",
+        "max_members",
+        "premium_subscription_count",
+        "max_video_channel_users",
+        "approximate_member_count",
+        "welcome_screen",
+        "emojis",
+        "stickers",
+        "_roles",
+        "_members",
+        "_guild_scheduled_events",
+        "_threads",
+        "_voice_states",
+        "_channels",
+        "_cs_icon",
+        "_cs_splash",
+        "_cs_discovery_splash",
+        "_cs_banner",
     )
 
     def __init__(self, *, state: HTTPConnection, data: APIGuildPayload):
         self._state = state
-        self.id = try_snowflake(data['id'])
-        self.name = data['name']
-        self.icon_hash = data['icon'] or data.get('icon_hash')
-        self.splash_hash = data['splash']
-        self.discovery_splash_hash = data['discovery_splash']
-        self.owner_id = try_snowflake(data['owner_id'])
-        self.afk_channel_id = try_snowflake(data['afk_channel_id'])
-        self.afk_timeout = data['afk_timeout']
-        self.verification_level = VerificationLevel(data['verification_level'])
-        self.default_message_notifications = NotificationLevel(data['default_message_notifications'])
-        self.explicit_content_filter = ContentFilterLevel(data['explicit_content_filter'])
-        self.features = data['features']
-        self.mfa_level = MFALevel(data['mfa_level'])
-        self.application_id = try_snowflake(data['application_id'])
-        self.system_channel_id = try_snowflake(data['system_channel_id'])
-        self.system_channel_flags = SystemChannelFlags(data['system_channel_flags'])
-        self.rules_channel_id = try_snowflake(data['rules_channel_id'])
-        self.vanity_url_code = data['vanity_url_code']
-        self.description = data['description']
-        self.banner_hash = data['banner']
-        self.premium_tier = PremiumTier(data['premium_tier'])
-        self.preferred_locale = Locale(data['preferred_locale'])
-        self.public_updates_channel_id = try_snowflake(data['public_updates_channel_id'])
-        self.nsfw_level = NSFWLevel(data.get('nsfw_level', 0))
-        self.premium_progress_bar_enabled = data.get('premium_progress_bar_enabled', False)
+        self.id = try_snowflake(data["id"])
+        self.name = data["name"]
+        self.icon_hash = data["icon"] or data.get("icon_hash")
+        self.splash_hash = data["splash"]
+        self.discovery_splash_hash = data["discovery_splash"]
+        self.owner_id = try_snowflake(data["owner_id"])
+        self.afk_channel_id = try_snowflake(data["afk_channel_id"])
+        self.afk_timeout = data["afk_timeout"]
+        self.verification_level = VerificationLevel(data["verification_level"])
+        self.default_message_notifications = NotificationLevel(
+            data["default_message_notifications"]
+        )
+        self.explicit_content_filter = ContentFilterLevel(
+            data["explicit_content_filter"]
+        )
+        self.features = data["features"]
+        self.mfa_level = MFALevel(data["mfa_level"])
+        self.application_id = try_snowflake(data["application_id"])
+        self.system_channel_id = try_snowflake(data["system_channel_id"])
+        self.system_channel_flags = SystemChannelFlags(data["system_channel_flags"])
+        self.rules_channel_id = try_snowflake(data["rules_channel_id"])
+        self.vanity_url_code = data["vanity_url_code"]
+        self.description = data["description"]
+        self.banner_hash = data["banner"]
+        self.premium_tier = PremiumTier(data["premium_tier"])
+        self.preferred_locale = Locale(data["preferred_locale"])
+        self.public_updates_channel_id = try_snowflake(
+            data["public_updates_channel_id"]
+        )
+        self.nsfw_level = NSFWLevel(data.get("nsfw_level", 0))
+        self.premium_progress_bar_enabled = data.get(
+            "premium_progress_bar_enabled", False
+        )
 
         # Optional attrs
-        self.widget_enabled = data.get('widget_enabled', False)
-        self.widget_channel_id = try_snowflake(data.get('widget_channel_id'))
-        self.max_presences = data.get('max_presences')
-        self.max_members = data.get('max_members')
-        self.premium_subscription_count = data.get('premium_subscription_count', 0)
-        self.max_video_channel_users = data.get('max_video_channel_users')
-        self.approximate_member_count = data.get('approximate_member_count')
+        self.widget_enabled = data.get("widget_enabled", False)
+        self.widget_channel_id = try_snowflake(data.get("widget_channel_id"))
+        self.max_presences = data.get("max_presences")
+        self.max_members = data.get("max_members")
+        self.premium_subscription_count = data.get("premium_subscription_count", 0)
+        self.max_video_channel_users = data.get("max_video_channel_users")
+        self.approximate_member_count = data.get("approximate_member_count")
         self.welcome_screen = None
-        if 'welcome_screen' in data:
-            self.welcome_screen = WelcomeScreen(data=data['welcome_screen'])
+        if "welcome_screen" in data:
+            self.welcome_screen = WelcomeScreen(data=data["welcome_screen"])
 
         # Gateway attributes
         self._emojis: dict[int, Emoji] = {}
@@ -288,77 +288,78 @@ class Guild(Hashable, GuildAPIMixin):
         """
 
         d: Any
-        if 'emojis' in data:
-            for d in data['emojis']:
-                if d['id'] is None:
+        if "emojis" in data:
+            for d in data["emojis"]:
+                if d["id"] is None:
                     continue
-                id = int(d['id'])
+                id = int(d["id"])
                 self._emojis[id] = Emoji(state=self._state, data=d, guild=self)
-        if 'stickers' in data:
-            for d in data['stickers']:
-                id = int(d['id'])
+        if "stickers" in data:
+            for d in data["stickers"]:
+                id = int(d["id"])
                 self._stickers[id] = Sticker(state=self._state, data=d, guild=self)
-        if 'roles' in data:
-            for d in data['roles']:
-                id = int(d['id'])
+        if "roles" in data:
+            for d in data["roles"]:
+                id = int(d["id"])
                 self._roles[id] = Role(
                     state=self._state,
                     data=d,
                     guild=self,
                 )
-        if 'members' in data:
-            for d in data.get('members', ()):
-                id = int(d['user']['id'])
+        if "members" in data:
+            for d in data.get("members", ()):
+                id = int(d["user"]["id"])
                 self._members[id] = GuildMember(
                     state=self._state,
                     data=d,
                     guild=self,
                 )
-        if 'guild_scheduled_events' in data:
-            for d in data.get('guild_scheduled_events', ()):
-                id = int(d['id'])
+        if "guild_scheduled_events" in data:
+            for d in data.get("guild_scheduled_events", ()):
+                id = int(d["id"])
                 self._guild_scheduled_events[id] = None
-        if 'threads' in data:
-            for d in data.get('threads', ()):
-                id = int(d['id'])
+        if "threads" in data:
+            for d in data.get("threads", ()):
+                id = int(d["id"])
                 self._threads[id] = None
-        if 'voice_states' in data:
-            for d in data.get('voice_states', ()):
-                id = int(d['user_id'])
+        if "voice_states" in data:
+            for d in data.get("voice_states", ()):
+                id = int(d["user_id"])
                 self._voice_states[id] = None
-        if 'channels' in data:
-            for d in data.get('channels', ()):
-                id = int(d['id'])
+        if "channels" in data:
+            for d in data.get("channels", ()):
+                id = int(d["id"])
                 self._channels[id] = c = Channel._from_data(
                     state=self._state,
                     data=d,
                 )
                 c.guild = self
 
-    __repr__ = generate_repr(('id', 'name',))
+    __repr__ = generate_repr(
+        (
+            "id",
+            "name",
+        )
+    )
 
-    @cached_slot_property('_cs_icon')
+    @cached_slot_property("_cs_icon")
     def icon(self) -> Asset:
         return Asset.from_guild_icon(self)
 
-    @cached_slot_property('_cs_splash')
+    @cached_slot_property("_cs_splash")
     def splash(self) -> Asset:
         return Asset.from_guild_splash(self)
 
-    @cached_slot_property('_cs_discovery_splash')
+    @cached_slot_property("_cs_discovery_splash")
     def discovery_splash(self) -> Asset:
         return Asset.from_guild_discovery_splash(self)
 
-    @cached_slot_property('_cs_banner')
+    @cached_slot_property("_cs_banner")
     def banner(self) -> Asset:
         return Asset.from_guild_banner(self)
 
     def roles(self) -> list[Role]:
-        return [
-            i
-            for i in
-            self._roles.values()
-        ]
+        return [i for i in self._roles.values()]
 
 
 class OauthGuild(GuildAPIMixin):
@@ -383,26 +384,33 @@ class OauthGuild(GuildAPIMixin):
     """
 
     __slots__ = (
-        '_state',
-        'id',
-        'name',
-        'icon_hash',
-        'owner',
-        'permissions',
-        '_cs_icon',
+        "_state",
+        "id",
+        "name",
+        "icon_hash",
+        "owner",
+        "permissions",
+        "_cs_icon",
     )
 
     def __init__(self, *, state: HTTPConnection, data: APIGuildPayload) -> None:
         self._state: HTTPConnection = state
-        self.id: int = try_snowflake(data['id'])
-        self.name: str = data['name']
-        self.icon_hash: str | None = data['icon'] or data.get('icon_hash')
-        self.owner: bool = data.get('owner', False)
-        self.permissions: Permissions = Permissions(int(data.get('permissions', 0)))
+        self.id: int = try_snowflake(data["id"])
+        self.name: str = data["name"]
+        self.icon_hash: str | None = data["icon"] or data.get("icon_hash")
+        self.owner: bool = data.get("owner", False)
+        self.permissions: Permissions = Permissions(int(data.get("permissions", 0)))
 
-    __repr__ = generate_repr(('id', 'name', 'owner', 'permissions',))
+    __repr__ = generate_repr(
+        (
+            "id",
+            "name",
+            "owner",
+            "permissions",
+        )
+    )
 
-    @cached_slot_property('_cs_icon')
+    @cached_slot_property("_cs_icon")
     def icon(self) -> Asset:
         return Asset.from_guild_icon(self)
 
@@ -456,52 +464,51 @@ class GuildPreview(GuildAPIMixin):
     """
 
     __slots__ = (
-        '_state',
-        'id',
-        'name',
-        'icon_hash',
-        'splash_hash',
-        'discovery_splash_hash',
-        'emojis',
-        'features',
-        'approximate_member_count',
-        'approximate_presence_count',
-        'description',
-        'stickers',
-
-        '_cs_icon',
-        '_cs_splash',
-        '_cs_discovery_splash',
+        "_state",
+        "id",
+        "name",
+        "icon_hash",
+        "splash_hash",
+        "discovery_splash_hash",
+        "emojis",
+        "features",
+        "approximate_member_count",
+        "approximate_presence_count",
+        "description",
+        "stickers",
+        "_cs_icon",
+        "_cs_splash",
+        "_cs_discovery_splash",
     )
 
     def __init__(self, *, state: HTTPConnection, data: GuildPreviewPayload):
         self._state = state
-        self.id = try_snowflake(data['id'])
-        self.name = data['name']
-        self.icon_hash = data.get('icon')
-        self.splash_hash = data.get('splash')
-        self.discovery_splash_hash = data.get('discovery_splash')
+        self.id = try_snowflake(data["id"])
+        self.name = data["name"]
+        self.icon_hash = data.get("icon")
+        self.splash_hash = data.get("splash")
+        self.discovery_splash_hash = data.get("discovery_splash")
         self.emojis = [
             Emoji(state=self._state, data=i, guild=self)
-            for i in data.get('emojis', list())
+            for i in data.get("emojis", list())
         ]
-        self.features = data.get('features', list())
-        self.approximate_member_count = data['approximate_member_count']
-        self.approximate_presence_count = data['approximate_presence_count']
-        self.description = data.get('description')
+        self.features = data.get("features", list())
+        self.approximate_member_count = data["approximate_member_count"]
+        self.approximate_presence_count = data["approximate_presence_count"]
+        self.description = data.get("description")
         self.stickers = [
             Sticker(state=self._state, data=i, guild=self)
-            for i in data.get('stickers', list())
+            for i in data.get("stickers", list())
         ]
 
-    @cached_slot_property('_cs_icon')
+    @cached_slot_property("_cs_icon")
     def icon(self) -> Asset:
         return Asset.from_guild_icon(self)
 
-    @cached_slot_property('_cs_splash')
+    @cached_slot_property("_cs_splash")
     def splash(self) -> Asset:
         return Asset.from_guild_splash(self)
 
-    @cached_slot_property('_cs_discovery_splash')
+    @cached_slot_property("_cs_discovery_splash")
     def discovery_splash(self) -> Asset:
         return Asset.from_guild_discovery_splash(self)

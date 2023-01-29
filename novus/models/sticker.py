@@ -19,18 +19,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .asset import Asset
 from ..enums import sticker as sticker_enums
-from ..utils import try_snowflake, cached_slot_property
+from ..utils import cached_slot_property, try_snowflake
+from .asset import Asset
 
 if TYPE_CHECKING:
-    from .abc import Snowflake
-    from ..payloads import Sticker as StickerPayload
     from ..api import HTTPConnection
+    from ..payloads import Sticker as StickerPayload
+    from .abc import Snowflake
 
-__all__ = (
-    'Sticker',
-)
+__all__ = ("Sticker",)
 
 
 class Sticker:
@@ -63,30 +61,31 @@ class Sticker:
     """
 
     __slots__ = (
-        '_state',
-        'id',
-        'pack_id',
-        'name',
-        'description',
-        'type',
-        'format_type',
-        'available',
-        'guild',
-
-        '_cs_asset',
+        "_state",
+        "id",
+        "pack_id",
+        "name",
+        "description",
+        "type",
+        "format_type",
+        "available",
+        "guild",
+        "_cs_asset",
     )
 
-    def __init__(self, *, state: HTTPConnection, data: StickerPayload, guild: Snowflake):
+    def __init__(
+        self, *, state: HTTPConnection, data: StickerPayload, guild: Snowflake
+    ):
         self._state = state
-        self.id = try_snowflake(data['id'])
-        self.pack_id = try_snowflake(data.get('pack_id'))
-        self.name = data['name']
-        self.description = data['description']
-        self.type = sticker_enums.StickerType(data['type'])
-        self.format_type = sticker_enums.StickerFormat(data['format_type'])
-        self.available = data.get('available', True)
+        self.id = try_snowflake(data["id"])
+        self.pack_id = try_snowflake(data.get("pack_id"))
+        self.name = data["name"]
+        self.description = data["description"]
+        self.type = sticker_enums.StickerType(data["type"])
+        self.format_type = sticker_enums.StickerFormat(data["format_type"])
+        self.available = data.get("available", True)
         self.guild = guild
 
-    @cached_slot_property('_cs_asset')
+    @cached_slot_property("_cs_asset")
     def asset(self) -> Asset:
         return Asset.from_sticker(self)

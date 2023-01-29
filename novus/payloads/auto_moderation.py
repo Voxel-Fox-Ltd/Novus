@@ -23,14 +23,14 @@ if TYPE_CHECKING:
     from ._util import Snowflake
 
 __all__ = (
-    'AutoModerationTriggerType',
-    'AutoModerationKeywordPresetType',
-    'AutoModeratorEventType',
-    'AutoModerationActionType',
-    'AutoModerationActionMetadata',
-    'AutoModerationTriggerMetadata',
-    'AutoModerationAction',
-    'AutoModerationRule',
+    "AutoModerationTriggerType",
+    "AutoModerationKeywordPresetType",
+    "AutoModeratorEventType",
+    "AutoModerationActionType",
+    "AutoModerationActionMetadata",
+    "AutoModerationTriggerMetadata",
+    "AutoModerationAction",
+    "AutoModerationRule",
 )
 
 
