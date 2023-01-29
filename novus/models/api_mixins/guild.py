@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from ..channel import Channel
     from ..role import Role
     from ..audit_log import AuditLog
+    from ..auto_moderation import AutoModerationRule
     from ...api import HTTPConnection
     from ...flags import Permissions, SystemChannelFlags
     from ...enums import (
@@ -64,6 +65,8 @@ class GuildAPIMixin:
 
         Parameters
         ----------
+        state : novus.api.HTTPConnection
+            The API connection to create the entity with.
         name : str
             The name for the guild that you want to create.
 
@@ -1151,4 +1154,22 @@ class GuildAPIMixin:
             before=before,
             after=after,
             limit=limit,
+        )
+
+    # Auto moderation API methods
+
+    async def fetch_auto_moderation_rules(
+            self: StateSnowflake) -> list[AutoModerationRule]:
+        """
+        Get the auto moderation rules for this guild.
+
+        Returns
+        -------
+        list[novus.models.AutoModerationRule]
+            A list of the auto moderation rules for the guild.
+        """
+
+        return await (
+            self._state.auto_moderation
+            .list_auto_moderation_rules_for_guild(self.id)
         )

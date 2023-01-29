@@ -62,11 +62,11 @@ AutoModerationActionType = Literal[
 
 
 class AutoModerationActionMetadata(TypedDict):
-    channel_id: Snowflake
-    duration_seconds: int
+    channel_id: Optional[Snowflake]
+    duration_seconds: Optional[int]
 
 
-class AutoModerationTriggerMetadata(TypedDict):
+class AutoModerationTriggerMetadata(TypedDict, total=False):
     keyword_filter: list[str]
     regex_patterns: list[str]
     presets: list[AutoModerationKeywordPresetType]
@@ -75,7 +75,7 @@ class AutoModerationTriggerMetadata(TypedDict):
 
 
 class _AutoModerationActionOptional(TypedDict, total=False):
-    metadata: Optional[AutoModerationActionMetadata]
+    metadata: AutoModerationActionMetadata
 
 
 class AutoModerationAction(_AutoModerationActionOptional):

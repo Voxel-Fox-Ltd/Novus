@@ -352,7 +352,7 @@ class HTTPConnection:
             kwargs: dict[str, Any]) -> dict[str, Any]:
         """
         Fix up the given user list of kwargs to return a dict of updated ones.
-        This assumes each given item is an object implementing a ``.to_dict``
+        This assumes each given item is an object implementing a ``._to_json``
         method (or a list thereof).
         """
 
@@ -366,9 +366,9 @@ class HTTPConnection:
             updated[updated_key] = None
             if item is not None:
                 if isinstance(item, (list, tuple)):
-                    updated[updated_key] = [i.to_json() for i in item]
+                    updated[updated_key] = [i._to_data() for i in item]
                 else:
-                    updated[updated_key] = item.to_json()
+                    updated[updated_key] = item._to_data()
 
         return updated
 

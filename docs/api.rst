@@ -191,6 +191,49 @@ User
         * - ``nitro``
         * - ``nitro_basic``
 
+Auto Moderation
+~~~~~~~~~~~~~~~
+
+.. class:: novus.enums.AutoModerationKeywordPresetType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``profanity``
+        * - ``sexual_content``
+        * - ``slurs``
+
+.. class:: novus.enums.AutoModerationTriggerType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``keyword``
+        * - ``spam``
+        * - ``keyword_preset``
+        * - ``mention_spam``
+
+.. class:: novus.enums.AutoModerationEventType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``message_send``
+
+.. class:: novus.enums.AutoModerationActionType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``block_message``
+        * - ``send_alert_message``
+        * - ``timeout``
+
+
 Flags
 ------
 
@@ -481,6 +524,14 @@ Message
     :inherited-members:
     :no-members: __init__
 
+Auto Moderation
+~~~~~~~
+
+.. autoclass:: novus.models.AutoModerationRule
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
 Discord Oauth Models
 ------------------------
 
@@ -495,7 +546,7 @@ authenticated via an Oauth access token.
 Discord Data Containers
 -----------------------
 
-These are models are designed for you to initialize yourself so as to use them in API methods.
+These are models are designed for you to initialize yourself so as to use them in API methods. They may also be returned from API methods.
 
 .. autoclass:: novus.models.Object
     :special-members: __init__
@@ -518,6 +569,14 @@ These are models are designed for you to initialize yourself so as to use them i
     :members:
 
 .. autoclass:: novus.models.PermissionOverwrite
+    :special-members: __init__
+    :members:
+
+.. autoclass:: novus.models.AutoModerationAction
+    :special-members: __init__
+    :members:
+
+.. autoclass:: novus.models.AutoModerationTriggerMetadata
     :special-members: __init__
     :members:
 

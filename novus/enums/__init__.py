@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from .audit_log import *
+from .auto_moderation import *
 from .channel import *
 from .guild import *
 from .locale import *

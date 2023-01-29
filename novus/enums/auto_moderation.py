@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,17 +15,34 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import abc, mixins
-from .asset import *
-from .audit_log import *
-from .auto_moderation import *
-from .channel import *
-from .emoji import *
-from .guild import *
-from .invite import *
-from .message import *
-from .object import *
-from .role import *
-from .sticker import *
-from .user import *
-from .welcome_screen import *
+from .utils import Enum
+
+__all__ = (
+    'AutoModerationKeywordPresetType',
+    'AutoModerationTriggerType',
+    'AutoModerationEventType',
+    'AutoModerationActionType',
+)
+
+
+class AutoModerationKeywordPresetType(Enum):
+    profanity = 1
+    sexual_content = 2
+    slurs = 3
+
+
+class AutoModerationTriggerType(Enum):
+    keyword = 1
+    spam = 3
+    keyword_preset = 4
+    mention_spam = 5
+
+
+class AutoModerationEventType(Enum):
+    message_send = 1
+
+
+class AutoModerationActionType(Enum):
+    block_message = 1
+    send_alert_message = 2
+    timeout = 3
