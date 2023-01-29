@@ -1,17 +1,29 @@
----
 name: Super-Linter
-
 on: [push, pull_request]
 jobs:
-  super-lint:
-    name: Lint code base
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+    super-lint:
+        name: Lint code base
+        runs-on: ubuntu-latest
+        steps:
+        -   name: Checkout code
+            uses: actions/checkout@v2
 
-      - name: Run Super-Linter
-        uses: github/super-linter@v4
-        env:
-          DEFAULT_BRANCH: rewrite
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        -   name: Run Super-Linter
+            uses: github/super-linter/slim@v4
+            env:
+                DEFAULT_BRANCH: rewrite
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+                # Run over entire codebase (t) or just new files (f)
+                VALIDATE_ALL_CODEBASE: true
+
+                # Give file path
+                FILTER_REGEX_INCLUDE: novus/*
+
+                # Specify certain linters
+                VALIDATE_PYTHON: true
+                VALIDATE_PYTHON_BLACK: false
+                VALIDATE_PYTHON_FLAKE8: true
+                VALIDATE_PYTHON_ISORT: true
+                VALIDATE_PYTHON_MYPY: true
+                VALIDATE_PYTHON_PYLINT: true
