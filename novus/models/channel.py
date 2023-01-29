@@ -191,7 +191,10 @@ class GroupDMChannel(MessageableChannel):
 class GuildChannel(Channel):
 
     __slots__ = (
-        *Channel.__slots__[:-1],  # get all apart from ``raw``
+        '_state',
+        'id',
+        'type',
+        'guild',
         'guild_id',
         'position',
         'permissions_overwrites',
@@ -200,6 +203,7 @@ class GuildChannel(Channel):
         'nsfw',
         'last_message_id',
         'parent_id',
+        'rate_limit_per_user',
     )
 
     guild: StateSnowflake
@@ -207,8 +211,8 @@ class GuildChannel(Channel):
     def __init__(self, *, state: HTTPConnection, data: ChannelPayload):
         super().__init__(state=state, data=data)
         del self.raw  # Not needed for known types)
-        self.guild_id = try_snowflake(data.get('guild_id'))
-        if self.guild_id is None:
+        guild_id = try_snowflake(data.get('guild_id'))
+        if guild_id is None:
             raise ValueError("Missing guild ID from guild channel %s" % data)
         self.position = data.get('position', 0)
         self.permissions_overwrites = [
@@ -231,7 +235,7 @@ class GuildChannel(Channel):
         self.last_message_id = try_snowflake(data.get('last_message_id'))
         self.parent_id = try_snowflake(data.get('parent_id'))
         self.rate_limit_per_user: int | None = data.get('rate_limit_per_user')
-        self.guild = Object(self.guild_id, state=self._state)
+        self.guild = Object(guild_id, state=self._state)
 
     __repr__ = generate_repr(('id', 'guild_id', 'name',))
 

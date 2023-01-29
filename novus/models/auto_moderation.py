@@ -31,12 +31,10 @@ from .object import Object
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
-    from ..payloads import AutoModerationAction as AutoModerationActionPayload
-    from ..payloads import \
-        AutoModerationActionMetadata as AutoModerationActionMetadataPayload
-    from ..payloads import AutoModerationRule as AutoModerationRulePayload
-    from ..payloads import \
-        AutoModerationTriggerMetadata as AutoModerationTriggerMetadataPayload
+    from ..payloads import AutoModerationAction as ActionPayload
+    from ..payloads import AutoModerationActionMetadata as ActionMetaPayload
+    from ..payloads import AutoModerationRule as RulePayload
+    from ..payloads import AutoModerationTriggerMetadata as TriggerMetaPayload
     from .abc import Snowflake
 
 __all__ = (
@@ -99,7 +97,7 @@ class AutoModerationTriggerMetadata:
     def _from_data(
             cls,
             *,
-            data: AutoModerationTriggerMetadataPayload) -> AutoModerationTriggerMetadata:
+            data: TriggerMetaPayload) -> AutoModerationTriggerMetadata:
         return cls(
             keyword_filters=data.get('keyword_filter'),
             regex_patterns=data.get('regex_patterns'),
@@ -111,8 +109,8 @@ class AutoModerationTriggerMetadata:
             mention_total_limit=data.get('mention_total_limit'),
         )
 
-    def _to_data(self) -> AutoModerationTriggerMetadataPayload:
-        ret: AutoModerationTriggerMetadataPayload = {}
+    def _to_data(self) -> TriggerMetaPayload:
+        ret: TriggerMetaPayload = {}
         if self.keyword_filters is not None:
             ret['keyword_filter'] = self.keyword_filters
         if self.regex_patterns is not None:
@@ -180,17 +178,17 @@ class AutoModerationAction:
     __repr__ = generate_repr(('type', 'channel_id', 'duration',))
 
     @classmethod
-    def _from_data(cls, *, data: AutoModerationActionPayload) -> AutoModerationAction:
+    def _from_data(cls, *, data: ActionPayload) -> AutoModerationAction:
         return cls(
             type=try_enum(AutoModerationActionType, data['type']),
             channel=try_snowflake(data.get('metadata', {}).get('channel_id')),
             duration=data.get('metadata', {}).get('duration_seconds'),
         )
 
-    def _to_data(self) -> AutoModerationActionPayload:
-        data: AutoModerationActionPayload = {}  # type: ignore
+    def _to_data(self) -> ActionPayload:
+        data: ActionPayload = {}
         data['type'] = self.type.value
-        metadata: AutoModerationActionMetadataPayload = {}  # type: ignore
+        metadata: ActionMetaPayload = {}
         if self.channel_id is not None:
             metadata['channel_id'] = str(self.channel_id)
         if self.duration is not None:
@@ -252,7 +250,7 @@ class AutoModerationRule(AutoModerationAPIMixin):
             self,
             *,
             state: HTTPConnection,
-            data: AutoModerationRulePayload):
+            data: RulePayload):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.guild_id = try_snowflake(data['guild_id'])

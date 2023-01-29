@@ -1,14 +1,26 @@
-name: Super-Linter
-on: [push, pull_request]
+name: Linter
+on:
+    push:
+        paths:
+            - '*.py'
+    pull_request:
+        paths:
+            - '*.py'
 jobs:
     super-lint:
-        name: Lint code base
+        name: Lint codebase
         runs-on: ubuntu-latest
         steps:
+        -   name: Setup Python
+            uses: actions/setup-python@v1
+            with:
+                python-version: 3.10
+                architecture: x64
+
         -   name: Checkout code
             uses: actions/checkout@v2
 
-        -   name: Run Super-Linter
+        -   name: Run linters
             uses: github/super-linter/slim@v4
             env:
                 DEFAULT_BRANCH: rewrite
