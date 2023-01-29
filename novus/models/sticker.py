@@ -19,14 +19,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .asset import Asset
 from ..enums import sticker as sticker_enums
-from ..utils import try_snowflake, cached_slot_property
+from ..utils import cached_slot_property, try_snowflake
+from .asset import Asset
 
 if TYPE_CHECKING:
-    from .abc import Snowflake
-    from ..payloads import Sticker as StickerPayload
     from ..api import HTTPConnection
+    from ..payloads import Sticker as StickerPayload
+    from .abc import Snowflake
 
 __all__ = (
     'Sticker',

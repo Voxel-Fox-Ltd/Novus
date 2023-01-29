@@ -19,24 +19,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NoReturn
 
-from ._route import Route
 from ..models import (
-    Object,
-    Guild,
-    GuildPreview,
     Channel,
-    Thread,
-    GuildMember,
+    Guild,
     GuildBan,
-    User,
-    Role,
+    GuildMember,
+    GuildPreview,
     Invite,
+    Object,
+    Role,
+    Thread,
+    User,
 )
-
+from ._route import Route
 
 if TYPE_CHECKING:
-    from ._http import HTTPConnection
     from .. import payloads
+    from ._http import HTTPConnection
 
 __all__ = (
     'GuildHTTPConnection',

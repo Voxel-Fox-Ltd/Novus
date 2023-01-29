@@ -19,26 +19,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .mixins import Hashable
-from .asset import Asset
-from .api_mixins.user import UserAPIMixin, GuildMemberAPIMixin
-from ..flags import UserFlags, Permissions
-from ..enums import UserPremiumType, Locale
+from ..enums import Locale, UserPremiumType
+from ..flags import Permissions, UserFlags
 from ..utils import (
-    try_snowflake,
-    parse_timestamp,
     cached_slot_property,
     generate_repr,
+    parse_timestamp,
     try_enum,
+    try_snowflake,
 )
+from .api_mixins.user import GuildMemberAPIMixin, UserAPIMixin
+from .asset import Asset
+from .mixins import Hashable
 
 if TYPE_CHECKING:
-    from .abc import StateSnowflake
-    from ..payloads import (
-        User as UserPayload,
-        GuildMember as GuildMemberPayload,
-    )
     from ..api import HTTPConnection
+    from ..payloads import GuildMember as GuildMemberPayload
+    from ..payloads import User as UserPayload
+    from .abc import StateSnowflake
 
 __all__ = (
     'User',

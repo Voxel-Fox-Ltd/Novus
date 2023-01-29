@@ -19,13 +19,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ...utils import MISSING, try_object, try_id
+from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
-    from ..abc import Snowflake, StateSnowflakeWithGuild
-    from ..auto_moderation import AutoModerationAction, AutoModerationRule, AutoModerationTriggerMetadata
     from ...api import HTTPConnection
     from ...enums import AutoModerationEventType, AutoModerationTriggerType
+    from ..abc import Snowflake, StateSnowflakeWithGuild
+    from ..auto_moderation import (
+        AutoModerationAction,
+        AutoModerationRule,
+        AutoModerationTriggerMetadata,
+    )
 
 
 class AutoModerationAPIMixin:

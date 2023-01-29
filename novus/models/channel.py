@@ -17,19 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Type
 import logging
+from typing import TYPE_CHECKING, Type
 
-from .mixins import Hashable, Messageable
-from .object import Object
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import Permissions
-from ..utils import try_snowflake, generate_repr
+from ..utils import generate_repr, try_snowflake
+from .mixins import Hashable, Messageable
+from .object import Object
 
 if TYPE_CHECKING:
-    from .abc import StateSnowflake
     from ..api import HTTPConnection
     from ..payloads import Channel as ChannelPayload
+    from .abc import StateSnowflake
 
 __all__ = (
     'PermissionOverwrite',

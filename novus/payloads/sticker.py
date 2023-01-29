@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional, TypedDict, Literal
+from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake

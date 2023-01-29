@@ -24,9 +24,9 @@ from ...utils import MISSING, try_object
 if TYPE_CHECKING:
     import io
 
+    from ...api import HTTPConnection
     from ..abc import Snowflake, StateSnowflakeWithGuild
     from ..emoji import Emoji
-    from ...api import HTTPConnection
 
     FileT: TypeAlias = str | bytes | io.IOBase
 

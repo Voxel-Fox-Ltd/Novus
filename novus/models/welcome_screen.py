@@ -22,10 +22,8 @@ from typing import TYPE_CHECKING
 from ..utils import try_snowflake
 
 if TYPE_CHECKING:
-    from ..payloads import (
-        GuildWelcomeScreen as WelcomeScreenPayload,
-        GuildWelcomeScreenChannel as WelcomeScreenChannelPayload,
-    )
+    from ..payloads import GuildWelcomeScreen as WelcomeScreenPayload
+    from ..payloads import GuildWelcomeScreenChannel as WelcomeScreenChannelPayload
 
 __all__ = (
     'WelcomeScreenChannel',

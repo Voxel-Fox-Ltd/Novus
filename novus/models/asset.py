@@ -17,20 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
-
 import os
+from typing import TYPE_CHECKING, Literal
 
 import dotenv
 
 from ..utils import MISSING, generate_repr
 
 if TYPE_CHECKING:
-    from .guild import Guild, OauthGuild, GuildPreview
     from .emoji import Emoji
+    from .guild import Guild, GuildPreview, OauthGuild
     from .role import Role
     from .sticker import Sticker
-    from .user import User, GuildMember
+    from .user import GuildMember, User
 
 __all__ = (
     'Asset',

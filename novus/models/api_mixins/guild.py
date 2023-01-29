@@ -17,39 +17,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, overload, Literal, NoReturn, TypeAlias
 from datetime import datetime as dt
+from typing import TYPE_CHECKING, Any, Literal, NoReturn, TypeAlias, overload
 
 from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
     import io
 
-    from ..abc import Snowflake, StateSnowflake, OauthStateSnowflake
-    from ..guild import Guild, GuildBan
-    from ..invite import Invite
-    from ..channel import (
-        GuildTextChannel,
-        Thread,
-        PermissionOverwrite,
-        ForumTag,
+    from ...api import HTTPConnection
+    from ...enums import (
+        AuditLogEventType,
+        ChannelType,
+        ContentFilterLevel,
+        Locale,
+        NotificationLevel,
+        VerificationLevel,
     )
-    from ..emoji import Emoji, Reaction
-    from ..user import GuildMember
-    from ..channel import Channel
-    from ..role import Role
+    from ...flags import Permissions, SystemChannelFlags
+    from ..abc import OauthStateSnowflake, Snowflake, StateSnowflake
     from ..audit_log import AuditLog
     from ..auto_moderation import AutoModerationRule
-    from ...api import HTTPConnection
-    from ...flags import Permissions, SystemChannelFlags
-    from ...enums import (
-        Locale,
-        VerificationLevel,
-        NotificationLevel,
-        ContentFilterLevel,
-        ChannelType,
-        AuditLogEventType,
-    )
+    from ..channel import Channel, ForumTag, GuildTextChannel, PermissionOverwrite, Thread
+    from ..emoji import Emoji, Reaction
+    from ..guild import Guild, GuildBan
+    from ..invite import Invite
+    from ..role import Role
+    from ..user import GuildMember
 
     FileT: TypeAlias = str | bytes | io.IOBase
 

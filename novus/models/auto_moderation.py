@@ -19,25 +19,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .api_mixins.auto_moderation import AutoModerationAPIMixin
-from .object import Object
 from ..enums import (
+    AutoModerationActionType,
+    AutoModerationEventType,
     AutoModerationKeywordPresetType,
     AutoModerationTriggerType,
-    AutoModerationEventType,
-    AutoModerationActionType,
 )
-from ..utils import try_snowflake, try_enum, generate_repr
+from ..utils import generate_repr, try_enum, try_snowflake
+from .api_mixins.auto_moderation import AutoModerationAPIMixin
+from .object import Object
 
 if TYPE_CHECKING:
-    from .abc import Snowflake
     from ..api import HTTPConnection
-    from ..payloads import (
-        AutoModerationRule as AutoModerationRulePayload,
-        AutoModerationAction as AutoModerationActionPayload,
-        AutoModerationActionMetadata as AutoModerationActionMetadataPayload,
-        AutoModerationTriggerMetadata as AutoModerationTriggerMetadataPayload,
-    )
+    from ..payloads import AutoModerationAction as AutoModerationActionPayload
+    from ..payloads import \
+        AutoModerationActionMetadata as AutoModerationActionMetadataPayload
+    from ..payloads import AutoModerationRule as AutoModerationRulePayload
+    from ..payloads import \
+        AutoModerationTriggerMetadata as AutoModerationTriggerMetadataPayload
+    from .abc import Snowflake
 
 __all__ = (
     'AutoModerationTriggerMetadata',

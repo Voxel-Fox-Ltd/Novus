@@ -17,16 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
 from datetime import datetime as dt
+from typing import TYPE_CHECKING, Any
 
 from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
-    from ..abc import Snowflake, StateSnowflakeWithGuild
-    from ..user import User, GuildMember
-    from ..guild import OauthGuild
     from ...api import HTTPConnection
+    from ..abc import Snowflake, StateSnowflakeWithGuild
+    from ..guild import OauthGuild
+    from ..user import GuildMember, User
 
 
 class UserAPIMixin:

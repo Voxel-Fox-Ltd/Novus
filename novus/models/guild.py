@@ -17,43 +17,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeAlias, Any
 from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, TypeAlias
 
-from .mixins import Hashable
-from .channel import Channel
-from .role import Role
-from .asset import Asset
-from .emoji import Emoji
-from .welcome_screen import WelcomeScreen
-from .sticker import Sticker
-from .api_mixins.guild import GuildAPIMixin
-from ..flags import Permissions, SystemChannelFlags
 from ..enums import (
-    Locale,
-    VerificationLevel,
-    NotificationLevel,
     ContentFilterLevel,
+    Locale,
     MFALevel,
-    PremiumTier,
+    NotificationLevel,
     NSFWLevel,
+    PremiumTier,
+    VerificationLevel,
 )
-from ..utils import (
-    try_snowflake,
-    generate_repr,
-    cached_slot_property,
-)
+from ..flags import Permissions, SystemChannelFlags
+from ..utils import cached_slot_property, generate_repr, try_snowflake
+from .api_mixins.guild import GuildAPIMixin
+from .asset import Asset
+from .channel import Channel
+from .emoji import Emoji
+from .mixins import Hashable
+from .role import Role
+from .sticker import Sticker
+from .welcome_screen import WelcomeScreen
 
 if TYPE_CHECKING:
     import io
 
-    from .user import User, GuildMember
     from ..api import HTTPConnection
-    from ..payloads import (
-        Guild as APIGuildPayload,
-        GatewayGuild as GatewayGuildPayload,
-        GuildPreview as GuildPreviewPayload,
-    )
+    from ..payloads import GatewayGuild as GatewayGuildPayload
+    from ..payloads import Guild as APIGuildPayload
+    from ..payloads import GuildPreview as GuildPreviewPayload
+    from .user import GuildMember, User
 
     FileT: TypeAlias = str | bytes | io.IOBase
 

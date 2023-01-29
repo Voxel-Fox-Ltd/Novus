@@ -17,12 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, TypedDict, Optional
+from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake
-    from .user import PartialUser
     from .locale import Locale
+    from .user import PartialUser
 
 __all__ = (
     'ApplicationTeamMember',

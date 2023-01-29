@@ -21,9 +21,9 @@ from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake
-    from .user import User
-    from .guild import Guild
     from .channel import Channel
+    from .guild import Guild
+    from .user import User
 
 __all__ = (
     'Webhook',

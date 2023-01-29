@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from .application import *
-from .permissions import *
-from .message import *
 from .guild import *
+from .message import *
+from .permissions import *
 from .user import *

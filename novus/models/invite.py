@@ -19,8 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .channel import Channel
 from ..utils import parse_timestamp
+from .channel import Channel
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection

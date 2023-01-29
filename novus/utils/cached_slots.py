@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import Generic, TypeVar, Callable, Type, Any, overload
+from typing import Any, Callable, Generic, Type, TypeVar, overload
 
 __all__ = (
     'cached_slot_property',

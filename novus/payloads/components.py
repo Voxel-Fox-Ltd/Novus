@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict, Literal, Union
+from typing import TYPE_CHECKING, Literal, TypedDict, Union
 
 if TYPE_CHECKING:
     from .emoji import PartialEmoji

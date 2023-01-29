@@ -17,7 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from datetime import datetime as dt, timezone
+from datetime import datetime as dt
+from datetime import timezone
 from typing import overload
 
 __all__ = (

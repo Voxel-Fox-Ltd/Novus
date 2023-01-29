@@ -17,14 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict, Optional, Literal
+from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 from ._util import HasLocalizations
 
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
-    from .locale import Locale
     from .guild import Integration
+    from .locale import Locale
 
 __all__ = (
     'PartialUser',

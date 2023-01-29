@@ -21,14 +21,14 @@ from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
-    from .user import User, PartialUser
-    from .channel import Channel, ChannelType
-    from .embed import Embed
     from .application import Application
-    from .interaction import MessageInteraction
+    from .channel import Channel, ChannelType
     from .components import MessageComponent
+    from .embed import Embed
     from .emoji import Emoji
+    from .interaction import MessageInteraction
     from .sticker import PartialSticker
+    from .user import PartialUser, User
 
 __all__ = (
     'Attachment',

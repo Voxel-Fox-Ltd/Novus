@@ -22,10 +22,10 @@ from typing import TYPE_CHECKING, Any
 from ..utils import MISSING
 
 if TYPE_CHECKING:
-    from .message import Message, Embed, AllowedMentions, File
-    from .sticker import Sticker
-    from ..flags import MessageFlags
     from ..api import HTTPConnection
+    from ..flags import MessageFlags
+    from .message import AllowedMentions, Embed, File, Message
+    from .sticker import Sticker
 
 __all__ = (
     'EqualityComparable',

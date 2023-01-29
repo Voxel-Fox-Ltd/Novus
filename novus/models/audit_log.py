@@ -17,23 +17,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generator, Any
+from typing import TYPE_CHECKING, Any, Generator
 
-from .api_mixins.audit_log import AuditLogAPIMixin
-from .user import User
-from .channel import Channel
-from ..utils import try_snowflake, cached_slot_property, generate_repr
 from ..enums import AuditLogEventType
+from ..utils import cached_slot_property, generate_repr, try_snowflake
+from .api_mixins.audit_log import AuditLogAPIMixin
+from .channel import Channel
+from .user import User
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from .abc import Snowflake
     from ..api import HTTPConnection
-    from ..payloads import (
-        AuditLog as AuditLogPayload,
-        AuditLogEntry as AuditLogEntryPayload,
-    )
+    from ..payloads import AuditLog as AuditLogPayload
+    from ..payloads import AuditLogEntry as AuditLogEntryPayload
+    from .abc import Snowflake
 
 __all__ = (
     'AuditLogContainer',

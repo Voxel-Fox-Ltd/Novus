@@ -19,16 +19,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ._route import Route
-from ..models import (
-    AuditLog,
-    Object,
-)
 from ..enums import AuditLogEventType
+from ..models import AuditLog, Object
+from ._route import Route
 
 if TYPE_CHECKING:
-    from ._http import HTTPConnection
     from .. import payloads
+    from ._http import HTTPConnection
 
 __all__ = (
     'AuditLogHTTPConnection',

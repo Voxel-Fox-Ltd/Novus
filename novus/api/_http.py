@@ -17,12 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, TypedDict
-import logging
 import io
+import logging
+from typing import TYPE_CHECKING, Any, Iterable, TypedDict
 
 import aiohttp
 
+from ..utils import bytes_to_base64_data
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
 from .audit_log import AuditLogHTTPConnection
 from .auto_moderation import AutoModerationHTTPConnection
@@ -37,7 +38,6 @@ from .sticker import StickerHTTPConnection
 from .user import UserHTTPConnection
 from .voice import VoiceHTTPConnection
 from .webhook import WebhookHTTPConnection
-from ..utils import bytes_to_base64_data
 
 if TYPE_CHECKING:
     from ._route import Route

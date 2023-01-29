@@ -19,14 +19,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from .asset import Asset
-from ..utils import try_snowflake, cached_slot_property
 from ..flags import Permissions
+from ..utils import cached_slot_property, try_snowflake
+from .asset import Asset
 
 if TYPE_CHECKING:
-    from .abc import StateSnowflake
     from ..api import HTTPConnection
     from ..payloads import Role as RolePayload
+    from .abc import StateSnowflake
 
 __all__ = (
     'Role',

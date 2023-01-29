@@ -20,9 +20,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..audit_log import AuditLog
     from ...api import HTTPConnection
     from ...enums import AuditLogEventType
+    from ..audit_log import AuditLog
 
 
 class AuditLogAPIMixin:

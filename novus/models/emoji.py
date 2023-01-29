@@ -19,17 +19,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeAlias
 
+from ..utils import cached_slot_property, generate_repr, try_snowflake
+from .api_mixins.emoji import EmojiAPIMixin
 from .asset import Asset
 from .mixins import Hashable
-from .api_mixins.emoji import EmojiAPIMixin
-from ..utils import try_snowflake, generate_repr, cached_slot_property
 
 if TYPE_CHECKING:
     import io
 
-    from .abc import Snowflake
     from ..api import HTTPConnection
     from ..payloads import Emoji as EmojiPayload
+    from .abc import Snowflake
 
     FileT: TypeAlias = str | bytes | io.IOBase
 

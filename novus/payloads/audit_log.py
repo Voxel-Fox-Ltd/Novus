@@ -17,15 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict, Literal, Any, Optional
+from typing import TYPE_CHECKING, Any, Literal, Optional, TypedDict
 
 if TYPE_CHECKING:
     from ._util import Snowflake
-    from .user import User
     from .auto_moderation import AutoModerationRule
     from .channel import Channel
     from .guild import Integration
     from .guild_scheduled_event import GuildScheduledEvent
+    from .user import User
     from .webhook import Webhook
 
 __all__ = (

@@ -19,18 +19,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ..models import Channel, GuildMember, OauthGuild, Object, User
 from ._route import Route
-from ..models import (
-    Object,
-    User,
-    GuildMember,
-    OauthGuild,
-    Channel,
-)
 
 if TYPE_CHECKING:
-    from ._http import HTTPConnection
     from .. import payloads
+    from ._http import HTTPConnection
 
 __all__ = (
     'UserHTTPConnection',
