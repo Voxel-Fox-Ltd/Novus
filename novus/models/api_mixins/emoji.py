@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, TypeAlias
 
-from ...utils import MISSING
+from ...utils import MISSING, try_object
 
 if TYPE_CHECKING:
     import io
@@ -41,20 +41,22 @@ class EmojiAPIMixin:
             *,
             name: str,
             image: FileT,
-            roles: list[Snowflake] | None = None,
+            roles: list[int | Snowflake] | None = None,
             reason: str | None = None) -> Emoji:
         """
         Create an emoji within a guild.
 
         Parameters
         ----------
+        state : novus.api.HTTPConnection
+            The API connection to create the entity with.
         guild_id : int
             The ID of the guild that the emoji is to be created in.
         name : str
             The name of the emoji you want to add.
         image : str | bytes | io.IOBase
             The image that you want to add.
-        roles : list[Snowflake] | None
+        roles : list[int | novus.models.abc.Snowflake] | None
             A list of roles that are allowed to use the emoji.
         reason : str | None
             A reason you're adding the emoji.
@@ -71,7 +73,7 @@ class EmojiAPIMixin:
             **{
                 "name": name,
                 "image": image,
-                "roles": roles or list(),
+                "roles": [try_object(i) for i in roles or ()],
             },
         )
 
@@ -147,7 +149,7 @@ class EmojiAPIMixin:
             *,
             reason: str | None = None,
             name: str = MISSING,
-            roles: list[Snowflake] = MISSING) -> Emoji:
+            roles: list[int | Snowflake] = MISSING) -> Emoji:
         """
         Edit the current emoji.
 
@@ -155,7 +157,7 @@ class EmojiAPIMixin:
         ----------
         name : str
             The new name for the emoji.
-        roles : list[novus.models.abc.Snowflake]
+        roles : list[int | novus.models.abc.Snowflake]
             A list of the roles that can use the emoji.
         reason : str | None
             The reason shown in the audit log.
@@ -171,7 +173,7 @@ class EmojiAPIMixin:
         if name is not MISSING:
             update["name"] = name
         if roles is not MISSING:
-            update["roles"] = roles
+            update["roles"] = [try_object(i) for i in roles]
 
         return await self._state.emoji.modify_guild_emoji(
             self.guild.id,
