@@ -26,7 +26,7 @@ from ..utils import MISSING, generate_repr
 
 if TYPE_CHECKING:
     from .emoji import Emoji
-    from .guild import Guild, GuildPreview, OauthGuild
+    from .guild import Guild, GuildPreview, OauthGuild, PartialGuild
     from .role import Role
     from .sticker import Sticker
     from .user import GuildMember, User
@@ -94,16 +94,16 @@ class Asset:
 
         return (
             f"{self.BASE}{self.resource}."
-            f"{format or self.default_format}"
-            f"?size={size or 1024}"
+            f"{format if format else self.default_format}"
+            f"?size={size if size else 1024}"
         )
 
     @classmethod
-    def from_guild_icon(cls, guild: Guild | GuildPreview | OauthGuild) -> Asset:
+    def from_guild_icon(cls, guild: Guild | GuildPreview | OauthGuild | PartialGuild) -> Asset:
         return cls(f"/icons/{guild.id}/{guild.icon_hash}")
 
     @classmethod
-    def from_guild_splash(cls, guild: Guild | GuildPreview) -> Asset:
+    def from_guild_splash(cls, guild: Guild | GuildPreview | PartialGuild) -> Asset:
         return cls(f"/splashes/{guild.id}/{guild.splash_hash}")
 
     @classmethod
@@ -111,7 +111,7 @@ class Asset:
         return cls(f"/discovery-splashes/{guild.id}/{guild.discovery_splash_hash}")
 
     @classmethod
-    def from_guild_banner(cls, guild: Guild) -> Asset:
+    def from_guild_banner(cls, guild: Guild | PartialGuild) -> Asset:
         return cls(f"/banners/{guild.id}/{guild.banner_hash}")
 
     @classmethod

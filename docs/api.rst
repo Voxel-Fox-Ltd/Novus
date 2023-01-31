@@ -464,6 +464,14 @@ User
     :inherited-members:
     :no-members: __init__
 
+GuildMember
+~~~~~~~~~~~
+
+.. autoclass:: novus.models.GuildMember
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
 Guild
 ~~~~~
 
@@ -472,7 +480,15 @@ Guild
     :inherited-members:
     :no-members: __init__
 
-.. autoclass:: novus.models.GuildMember
+.. autoclass:: novus.models.PartialGuild
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
+Invite
+~~~~~~
+
+.. autoclass:: novus.models.Invite
     :members:
     :inherited-members:
     :no-members: __init__
@@ -525,7 +541,7 @@ Message
     :no-members: __init__
 
 Auto Moderation
-~~~~~~~
+~~~~~~~~~~~~~~~
 
 .. autoclass:: novus.models.AutoModerationRule
     :members:
@@ -595,10 +611,6 @@ These are models returned from the API that you aren't intended to make yourself
     :no-members: __init__
 
 .. autoclass:: novus.models.GuildBan
-    :members:
-    :no-members: __init__
-
-.. autoclass:: novus.models.Invite
     :members:
     :no-members: __init__
 

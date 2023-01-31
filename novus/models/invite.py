@@ -19,8 +19,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..utils import parse_timestamp
+from ..utils import generate_repr, parse_timestamp
+from .api_mixins.invite import InviteAPIMixin
 from .channel import Channel
+from .guild import PartialGuild
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
@@ -31,7 +33,7 @@ __all__ = (
 )
 
 
-class Invite:
+class Invite(InviteAPIMixin):
     """
     A model representing a guild invite.
 
@@ -51,6 +53,9 @@ class Invite:
         Whether the invite only grants temporary membership.
     created_at : datetime.datetime | None
         The time that the invite was created.
+    guild : novus.models.PartialGuild | None
+        The guild that the invite leads to. Could be ``None`` if the invite
+        leads to a group DM.
     """
 
     def __init__(self, *, state: HTTPConnection, data: InviteMetadataPayload):
@@ -59,9 +64,18 @@ class Invite:
         self.channel = None
         channel = data.get('channel')
         if channel:
+            if 'guild' in data:
+                channel['guild_id'] = data['guild']['id']
             self.channel = Channel._from_data(state=self._state, data=channel)
         self.uses = data.get('uses')
         self.max_uses = data.get('max_uses')
         self.max_age = data.get('max_age')
         self.temporary = data.get('temporary')
         self.created_at = parse_timestamp(data.get('created_at'))
+        self.guild = None
+        if 'guild' in data:
+            self.guild = PartialGuild(state=self._state, data=data['guild'])
+            if self.channel:
+                self.channel.guild = self.guild
+
+    __repr__ = generate_repr(('code', 'channel', 'guild',))

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from datetime import datetime as dt
-from typing import TYPE_CHECKING, Any, Literal, NoReturn, TypeAlias, overload
+from typing import TYPE_CHECKING, Any, NoReturn, TypeAlias, overload
 
 from ...utils import MISSING, try_id, try_object
 
@@ -73,7 +73,7 @@ class GuildAPIMixin:
         return await state.guild.create_guild(name=name)
 
     @classmethod
-    async def fetch(cls, state: HTTPConnection, guild_id: int) -> Guild:
+    async def fetch(cls, state: HTTPConnection, guild: int | Snowflake) -> Guild:
         """
         Get an instance of a guild from the API. Unlike the gateway's
         ``GUILD_CREATE`` payload, this method does not return members,
@@ -83,8 +83,8 @@ class GuildAPIMixin:
         ----------
         state : HTTPConnection
             The API connection.
-        guild_id : int
-            The ID associated with the guild you want to get.
+        guild : int | novus.models.abc.Snowflake
+            A reference to the guild that you want to fetch.
 
         Returns
         -------
@@ -92,7 +92,7 @@ class GuildAPIMixin:
             The guild associated with the given ID.
         """
 
-        return await state.guild.get_guild(guild_id)
+        return await state.guild.get_guild(try_id(guild))
 
     async def fetch_preview(self: StateSnowflake) -> NoReturn:
         raise NotImplementedError()
@@ -255,7 +255,25 @@ class GuildAPIMixin:
             self: StateSnowflake,
             *,
             name: str,
-            type: Literal[ChannelType.public_thread, ChannelType.private_thread] = ...,
+            type: ChannelType = ChannelType.guild_text,
+            bitrate: int = ...,
+            user_limit: int = ...,
+            rate_limit_per_user: int = ...,
+            position: int = ...,
+            permission_overwrites: list[PermissionOverwrite] = ...,
+            parent: int | Snowflake = ...,
+            nsfw: bool = ...,
+            default_auto_archive_duration: int = ...,
+            default_reaction_emoji: Reaction = ...,
+            available_tags: list[ForumTag] = ...) -> GuildTextChannel:
+        ...
+
+    @overload
+    async def create_channel(
+            self: StateSnowflake,
+            *,
+            name: str,
+            type: ChannelType = ChannelType.private_thread,
             bitrate: int = ...,
             user_limit: int = ...,
             rate_limit_per_user: int = ...,
@@ -273,7 +291,7 @@ class GuildAPIMixin:
             self: StateSnowflake,
             *,
             name: str,
-            type: Literal[ChannelType.guild_text] = ...,
+            type: ChannelType = ChannelType.public_thread,
             bitrate: int = ...,
             user_limit: int = ...,
             rate_limit_per_user: int = ...,
@@ -283,7 +301,7 @@ class GuildAPIMixin:
             nsfw: bool = ...,
             default_auto_archive_duration: int = ...,
             default_reaction_emoji: Reaction = ...,
-            available_tags: list[ForumTag] = ...) -> GuildTextChannel:
+            available_tags: list[ForumTag] = ...) -> Thread:
         ...
 
     async def create_channel(

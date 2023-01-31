@@ -54,6 +54,7 @@ if TYPE_CHECKING:
 __all__ = (
     'GuildBan',
     'Guild',
+    'PartialGuild',
     'OauthGuild',
     'GuildPreview',
 )
@@ -411,6 +412,94 @@ class OauthGuild(GuildAPIMixin):
         """
 
         return await Guild.fetch(self._state, self.id)
+
+
+class PartialGuild(GuildAPIMixin):
+    """
+    A model for a partial guild object, such as one retrieved from an invite
+    link.
+
+    This model still implements the normal guild API methods, though does not
+    contain all of the data a guild would (see the attributes).
+
+    Attributes
+    ----------
+    id : int
+        The ID of the guild.
+    name : str
+        The name of the guild.
+    splash_hash : str | None
+        The splash hash of the guild.
+    splash : novus.models.Asset | None
+        The splash asset for the guild.
+    banner_hash : str | None
+        The banner hash of the guild.
+    banner : novus.models.Asset | None
+        The banner asset for the guild.
+    description : str | None
+        A description of the guild.
+    icon_hash : str | None
+        The icon hash for the guild.
+    icon : novus.models.Asset | None
+        An icon asset for the guild.
+    features : list[str]
+        A list of features the guild implements.
+    verification_level : novus.enums.VerificationLevel
+        The guild's verification level.
+    vainity_url_code : str | None
+        The guild's vainity URL code.
+    nsfw_level : novus.enums.NSFWLevel
+        The guild's NSFW level.
+    premium_subscription_count : int
+        The number of nitro boosts the guild has.
+    """
+
+    __slots__ = (
+        '_state',
+        'id',
+        'name',
+        'splash_hash',
+        'banner_hash',
+        'description',
+        'icon_hash',
+        'features',
+        'verification_level',
+        'vainity_url_code',
+        'nsfw_level',
+        'premium_subscription_count',
+
+        '_cs_splash',
+        '_cs_banner',
+        '_cs_icon',
+    )
+
+    def __init__(self, *, state: HTTPConnection, data: APIGuildPayload):
+        self._state = state
+        self.id: int = try_snowflake(data['id'])
+        self.name: str = data['name']
+        self.splash_hash: str | None = data.get('splash')
+        self.banner_hash: str | None = data.get('banner')
+        self.description: str | None = data.get('description')
+        self.icon_hash: str | None = data.get('icon')
+        self.features: list[str] = data['features']
+        self.verification_level: VerificationLevel = VerificationLevel(data.get('verification_level', 0))
+        self.vainity_url_code: str | None = data.get('vainity_url_code')
+        self.nsfw_level: NSFWLevel = NSFWLevel(data.get('nsfw_level', 0))
+        self.premium_subscription_count: int = data.get('premium_subscription_count', 0)
+
+    __repr__ = generate_repr(('id', 'name',))
+
+    @cached_slot_property('_cs_icon')
+    def icon(self) -> Asset:
+        return Asset.from_guild_icon(self)
+
+    @cached_slot_property('_cs_splash')
+    def splash(self) -> Asset:
+        return Asset.from_guild_splash(self)
+
+    @cached_slot_property('_cs_banner')
+    def banner(self) -> Asset:
+        return Asset.from_guild_banner(self)
 
 
 class GuildPreview(GuildAPIMixin):
