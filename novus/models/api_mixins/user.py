@@ -24,7 +24,8 @@ from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
     from ...api import HTTPConnection
-    from ..abc import Snowflake, StateSnowflakeWithGuild
+    from ..abc import Snowflake, StateSnowflake, StateSnowflakeWithGuild
+    from ..channel import DMChannel
     from ..guild import OauthGuild
     from ..user import GuildMember, User
 
@@ -111,6 +112,18 @@ class UserAPIMixin:
             after=after,
             limit=limit,
         )
+
+    async def create_dm_channel(self: StateSnowflake) -> DMChannel:
+        """
+        Open a DM channel with the given user.
+
+        Returns
+        -------
+        novus.DMChannel
+            The DM channel for the user.
+        """
+
+        return await self._state.user.create_dm(self.id)
 
 
 class GuildMemberAPIMixin:

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ..models import Channel, GuildMember, OauthGuild, Object, User
+from ..models import Channel, DMChannel, GuildMember, OauthGuild, Object, User
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -125,7 +125,7 @@ class UserHTTPConnection:
 
         route = Route(
             "GET",
-            "/users/@me/guild",
+            "/users/@me/guilds",
         )
         data: list[payloads.Guild] = await self.parent.request(
             route,
@@ -179,20 +179,26 @@ class UserHTTPConnection:
 
     async def create_dm(
             self,
-            recipient_id: int) -> Channel:
+            recipient_id: int) -> DMChannel:
         """
         Create a DM with a user.
         """
 
         route = Route(
             "POST",
-            "/users/@me/guild/{recipient_id}",
-            recipient_id=recipient_id,
+            "/users/@me/channels",
         )
+        json = {
+            "recipient_id": recipient_id,
+        }
         data: payloads.Channel = await self.parent.request(
             route,
+            data=json,
         )
-        return Channel._from_data(state=self.parent, data=data)
+        created = Channel._from_data(state=self.parent, data=data)
+        if not isinstance(created, DMChannel):
+            raise TypeError("Created channel was not a DM channel.")
+        return created
 
     async def get_user_connections(
             self) -> Any:

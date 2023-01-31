@@ -1,6 +1,6 @@
-import os
+import pathlib
 
-import dotenv
+import toml
 
 import novus
 
@@ -10,24 +10,33 @@ __all__ = (
 )
 
 
-dotenv.load_dotenv()
+current_directory = pathlib.Path(__file__).parent
+
+
+def read_toml() -> dict:
+    with open(current_directory / "env.toml") as a:
+        return toml.load(a)
 
 
 def get_connection() -> novus.HTTPConnection:
-    token = os.getenv("DISCORD_BOT_TOKEN")
+    token = read_toml()['token']
     if not token:
-        raise ValueError("Missing DISCORD_BOT_TOKEN from .env")
+        raise ValueError("Missing token from .env")
     return novus.HTTPConnection(token)
 
 
-def get_data() -> tuple[list[int], list[int]]:
-    known_users = os.getenv("KNOWN_EXISTING_USERS")
-    known_guilds = os.getenv("KNOWN_EXISTING_GUILDS")
+def get_data() -> tuple[list[int], list[int], list[int]]:
+    known_users = read_toml()['known_human_users']
+    known_bots = read_toml()['known_bot_users']
+    known_guilds = read_toml()['known_guilds']
     if not known_users:
-        raise ValueError("Missing KNOWN_EXISTING_USERS from .env")
+        raise ValueError("Missing known_human_users from .env")
+    if not known_bots:
+        raise ValueError("Missing known_bot_users from .env")
     if not known_guilds:
-        raise ValueError("Missing KNOWN_EXISTING_GUILDS from .env")
+        raise ValueError("Missing known_guilds from .env")
     return (
-        [int(i) for i in known_users.split(",")],
-        [int(i) for i in known_guilds.split(",")],
+        known_users,
+        known_bots,
+        known_guilds,
     )
