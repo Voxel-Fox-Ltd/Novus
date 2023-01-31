@@ -167,11 +167,6 @@ class AutoModerationAPIMixin:
         ----------
         reason : str | None
             The reason shown in the audit log.
-
-        Returns
-        -------
-        novus.AutoModerationRule
-            The updated rule.
         """
 
         await self._state.auto_moderation.delete_auto_moderation_rule(
@@ -191,8 +186,8 @@ class AutoModerationAPIMixin:
             name: str,
             event_type: AutoModerationEventType,
             trigger_type: AutoModerationTriggerType,
+            actions: list[AutoModerationAction],
             trigger_metadata: AutoModerationTriggerMetadata | None = None,
-            actions: list[AutoModerationAction] | None = None,
             enabled: bool = False,
             exempt_roles: list[int | Snowflake] | None = None,
             exempt_channels: list[int | Snowflake] | None = None) -> AutoModerationRule:
@@ -211,10 +206,10 @@ class AutoModerationAPIMixin:
             The event type.
         trigger_type : novus.AutoModerationTriggerType
             The trigger type.
+        actions : list[novus.AutoModerationAction]
+            The actions to be taken on trigger.
         trigger_metadata : novus.AutoModerationTriggerMetadata | None
             The trigger metadata.
-        actions : list[novus.AutoModerationAction] | None
-            The actions to be taken on trigger.
         enabled : bool
             Whether the rule is enabled or not.
         exempt_roles : list[int | novus.abc.Snowflake] | None
@@ -227,7 +222,7 @@ class AutoModerationAPIMixin:
         Returns
         -------
         novus.AutoModerationRule
-            The updated rule.
+            The created rule.
         """
 
         updates: dict[str, Any] = {}

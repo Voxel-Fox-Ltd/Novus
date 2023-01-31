@@ -86,7 +86,6 @@ class AutoModerationHTTPConnection:
                 "type": (
                     "name",
                     "enabled",
-                    "trigger_metadata",
                 ),
                 "snowflake": (
                     "exempt_roles",

@@ -1,7 +1,6 @@
 # Requirements
 vf-flags>=0.2.0,<0.3
 aiohttp>=3.8.0
-toml
 
 # Recommended
 python-dotenv
@@ -13,3 +12,4 @@ furo
 # Testing
 pytest
 pytest-asyncio
+pyyaml

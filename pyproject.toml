@@ -41,5 +41,5 @@
     testing = [
         "pytest",
         "pytest-asyncio",
-        "toml",
+        "pyyaml",
     ]

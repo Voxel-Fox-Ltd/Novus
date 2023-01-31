@@ -1,4 +1,4 @@
-tests/env.toml
+tests/env.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -1,13 +1,18 @@
-import random
-from typing import NoReturn
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, NoReturn
 
 import pytest
 
 import novus
 
-from ._setup import get_connection, get_data
+from ._setup import get_connection, get_data, max_choices, to_object
 
-known_human_ids, known_bot_ids, known_guild_ids = get_data()
+if TYPE_CHECKING:
+    from ._setup import ConfigGuild, ConfigUser
+
+
+users, guilds = get_data()
 
 
 @pytest.mark.asyncio
@@ -16,14 +21,17 @@ async def test_get_current_user() -> None:
     await novus.User.fetch_me(state)
 
 
-@pytest.mark.parametrize("user_id", random.choices(known_human_ids + known_bot_ids, k=3))
+@pytest.mark.parametrize(
+    "user",
+    max_choices(users, k=3),
+)
 @pytest.mark.asyncio
-async def test_get_any_user(user_id: int) -> None:
+async def test_get_any_user(user: ConfigUser) -> None:
     state = get_connection()
     try:
-        await novus.User.fetch(state, user_id)
+        await novus.User.fetch(state, user.id)
     except novus.HTTPException:
-        assert False, "User with ID %s doesn't exist" % user_id
+        assert False, "User with ID %s doesn't exist" % user.id
     else:
         assert True
 
@@ -53,9 +61,12 @@ async def test_get_current_user_guilds() -> None:
 
 
 @pytest.mark.skip("Only available with Oauth")
-@pytest.mark.parametrize("guild_id", random.choices(known_guild_ids, k=3))
+@pytest.mark.parametrize(
+    "guild",
+    max_choices(guilds, k=3),
+)
 @pytest.mark.asyncio
-async def test_get_current_user_guild_member(guild_id: int) -> NoReturn:
+async def test_get_current_user_guild_member(guild: ConfigGuild) -> NoReturn:
     raise NotImplementedError()
 
 
@@ -65,9 +76,12 @@ async def test_leave_guild() -> NoReturn:
     raise NotImplementedError()
 
 
-@pytest.mark.parametrize("user_id", random.choices(known_human_ids, k=3))
+@pytest.mark.parametrize(
+    "user",
+    max_choices([i for i in users if i.bot is False], k=3),
+)
 @pytest.mark.asyncio
-async def test_create_dm(user_id: int) -> None:
+async def test_create_dm(user: ConfigUser) -> None:
     state = get_connection()
-    fake_user = novus.Object(user_id, state=state)
+    fake_user = to_object(user, state=state)
     await novus.User.create_dm_channel(fake_user)
