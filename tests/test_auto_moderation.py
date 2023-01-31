@@ -33,7 +33,7 @@ for g in guilds:
     max_choices(guild_automod_pairs, k=3),
 )
 @pytest.mark.asyncio
-async def test_get_automod_rule(guild_automod_pair: tuple[ConfigGuild, int]) -> None:
+async def test_get_rule(guild_automod_pair: tuple[ConfigGuild, int]) -> None:
     guild, rule_id = guild_automod_pair
     state = get_connection()
     await novus.AutoModerationRule.fetch(state, guild.id, rule_id)
@@ -41,7 +41,7 @@ async def test_get_automod_rule(guild_automod_pair: tuple[ConfigGuild, int]) -> 
 
 @pytest.mark.parametrize("run", range(2))
 @pytest.mark.asyncio
-async def test_create_automod_rule(run: int) -> None:
+async def test_create_rule(run: int) -> None:
     guild = ConfigGuild.get_test()
     state = get_connection()
     fake_guild = to_object(guild, state=state)
@@ -64,10 +64,24 @@ async def test_create_automod_rule(run: int) -> None:
 
 @pytest.mark.parametrize("run", range(2))
 @pytest.mark.asyncio
-async def test_delete_automod_rule(run: int) -> None:
+async def test_edit_rule(run: int) -> None:
     rule_id: int
     guild_id: int
-    rule_id, guild_id = cache.automod_rule_id.pop()
+    rule_id, guild_id = cache.automod_rule_id[run]
+    state = get_connection()
+    fake_rule = novus.Object(rule_id, state=state, guild_id=guild_id)
+    await novus.AutoModerationRule.edit(  # type: ignore
+        fake_rule,  # type: ignore
+        name="Edited Test Case",
+    )
+
+
+@pytest.mark.parametrize("run", range(2))
+@pytest.mark.asyncio
+async def test_delete_rule(run: int) -> None:
+    rule_id: int
+    guild_id: int
+    rule_id, guild_id = cache.automod_rule_id[run]
     state = get_connection()
     fake_rule = novus.Object(rule_id, state=state, guild_id=guild_id)
     await novus.AutoModerationRule.delete(fake_rule)  # type: ignore

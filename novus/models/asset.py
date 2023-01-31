@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from .emoji import Emoji
     from .guild import Guild, GuildPreview, OauthGuild, PartialGuild
     from .role import Role
+    from .scheduled_event import ScheduledEvent
     from .sticker import Sticker
     from .user import GuildMember, User
 
@@ -141,3 +142,7 @@ class Asset:
     # @classmethod
     # def from_guild_member_banner(cls, user: GuildMember) -> Asset:
     #     return cls(f"/guilds/{user.guild.id}/users/{user.id}/banners/{user.guild_banner_hash}")
+
+    @classmethod
+    def from_event_image(cls, event: ScheduledEvent) -> Asset:
+        return cls(f"/guild-events/{event.id}/{event.image_hash}")

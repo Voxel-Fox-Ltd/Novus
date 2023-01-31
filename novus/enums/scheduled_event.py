@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -17,11 +15,27 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .audit_log import *
-from .auto_moderation import *
-from .channel import *
-from .guild import *
-from .locale import *
-from .scheduled_event import *
-from .sticker import *
-from .user import *
+from .utils import Enum
+
+__all__ = (
+    'EventPrivacyLevel',
+    'EventStatus',
+    'EventEntityType',
+)
+
+
+class EventPrivacyLevel(Enum):
+    guild_only = 2
+
+
+class EventStatus(Enum):
+    scheduled = 1
+    active = 2
+    completed = 3
+    cancelled = 4
+
+
+class EventEntityType(Enum):
+    stage_instance = 1
+    voice = 2
+    external = 3

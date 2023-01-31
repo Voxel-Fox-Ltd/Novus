@@ -99,12 +99,14 @@ class ConfigGuild:
             present: bool = False,
             test: bool = False,
             members: list[int] | None = None,
-            automod_rules: list[int] | None = None) -> None:
+            automod_rules: list[int] | None = None,
+            scheduled_events: list[int] | None = None) -> None:
         self.id: int = id
         self.admin: bool = admin
         self.present: bool = present
         self.members: list[ConfigUser] = [ConfigUser.ALL[i] for i in members or {}]
         self.automod_rules: list[int] = automod_rules or []
+        self.scheduled_events: list[int] = scheduled_events or []
         self.test = test
         self.ALL[self.id] = self
         self._state: novus.HTTPConnection | None = None

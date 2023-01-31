@@ -233,6 +233,37 @@ Auto Moderation
         * - ``send_alert_message``
         * - ``timeout``
 
+Scheduled Event
+~~~~~~~~~~~~~~~
+
+.. class:: novus.EventPrivacyLevel
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``guild_only``
+
+.. class:: novus.EventStatus
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``scheduled``
+        * - ``active``
+        * - ``completed``
+        * - ``cancelled``
+
+.. class:: novus.EventEntityType
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``stage_instance``
+        * - ``voice``
+        * - ``external``
 
 Flags
 ------
@@ -548,6 +579,14 @@ Auto Moderation
     :inherited-members:
     :no-members: __init__
 
+Auto Moderation
+~~~~~~~~~~~~~~~
+
+.. autoclass:: novus.ScheduledEvent
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
 Discord Oauth Models
 ------------------------
 
@@ -615,7 +654,7 @@ These are models returned from the API that you aren't intended to make yourself
     :no-members: __init__
 
 .. autoclass:: novus.Asset
-    :members:
+    :members: get_url
     :no-members: __init__
 
 API
