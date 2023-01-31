@@ -74,7 +74,7 @@ class GuildBan:
     ----------
     reason : str | None
         The given reason that the user was banned.
-    user : novus.models.User
+    user : novus.User
         The user that was banned.
     """
 
@@ -94,15 +94,15 @@ class Guild(Hashable, GuildAPIMixin):
         The name of the guild.
     icon_hash : str | None
         The hash associated with the guild's icon.
-    icon : novus.models.Asset | None
+    icon : novus.Asset | None
         The asset associated with the guild's icon hash.
     splash_hash : str | None
         The hash associated with the guild's splash.
-    splash : novus.models.Asset | None
+    splash : novus.Asset | None
         The asset associated with the guild's splash hash.
     discovery_splash_hash : str | None
         The hash associated with the guild's discovery splash.
-    discovery_splash : novus.models.Asset | None
+    discovery_splash : novus.Asset | None
         The asset associated with the guild's discovery splash hash.
     owner_id : int
         The ID of the user that owns the guild.
@@ -112,26 +112,26 @@ class Guild(Hashable, GuildAPIMixin):
         Whether or not the widget for the guild is enabled.
     widget_channel_id : int | None
         If the widget is enabled, this will be the ID of the widget's channel.
-    verification_level : novus.enums.VerificationLevel
+    verification_level : novus.VerificationLevel
         The verification level required for the guild.
-    default_message_notifications : novus.enums.NotificationLevel
+    default_message_notifications : novus.NotificationLevel
         The default message notification level.
-    explicit_content_filter : novus.enums.ContentFilterLevel
+    explicit_content_filter : novus.ContentFilterLevel
         The explicit content filter level.
-    roles : list[novus.models.Role]
+    roles : list[novus.Role]
         The roles associated with the guild, as returned from the cache.
-    emojis : list[novus.models.Emoji]
+    emojis : list[novus.Emoji]
         The emojis associated with the guild, as returned from the cache.
     features : list[str]
         A list of guild features.
-    mfa_level : novus.enums.MFALevel
+    mfa_level : novus.MFALevel
         The required MFA level for the guild.
     application_id : int | None
         The application ID of the guild creator, if the guild is bot-created.
     system_channel_id: int | None
         The ID of the channel where guild notices (such as welcome messages
         and boost events) are posted.
-    system_channel_flags : novus.flags.SystemChannelFlags
+    system_channel_flags : novus.SystemChannelFlags
         The flags associated with the guild's system channel.
     rules_channel_id : int | None
         The ID of the guild's rules channel.
@@ -146,13 +146,13 @@ class Guild(Hashable, GuildAPIMixin):
         The guild's description.
     banner_hash : str | None
         The hash associated with the guild's banner splash.
-    banner : novus.models.Asset | None
+    banner : novus.Asset | None
         The asset associated with the guild's banner splash hash.
-    premium_tier : novus.enums.PremiumTier
+    premium_tier : novus.PremiumTier
         The premium tier of the guild.
     premium_subscription_count : int
         The number of boosts the guild currently has.
-    preferred_locale : novus.enums.Locale
+    preferred_locale : novus.Locale
         The locale for the guild, if set. Defaults to US English.
     public_updates_channel_id : int | None
         The ID of the channel when admins and moderators of community guilds
@@ -165,11 +165,11 @@ class Guild(Hashable, GuildAPIMixin):
     approximate_presence_count : int | None
         The approximate number of non-offline members in the guild. Present
         in guild GET requests when ``with_counts`` is ``True``.
-    welcome_screen : novus.models.WelcomeScreen | None
+    welcome_screen : novus.WelcomeScreen | None
         The welcome screen of a community guild.
-    nsfw_level : novus.enums.NSFWLevel
+    nsfw_level : novus.NSFWLevel
         The guild NSFW level.
-    stickers : list[novus.models.Sticker]
+    stickers : list[novus.Sticker]
         The list of stickers added to the guild.
     premium_progress_bar_enabled : bool
         Whether or not the progress bar is enabled.
@@ -369,11 +369,11 @@ class OauthGuild(GuildAPIMixin):
         The name of the guild.
     icon_hash : str | None
         The hash for the guild's icon.
-    icon : novus.models.Asset | None
+    icon : novus.Asset | None
         A model for the guild's icon.
     owner : bool
         Whether the authenticated user owns the guild.
-    permissions : novus.flags.Permissions
+    permissions : novus.Permissions
         The authenticated user's permissions in the guild.
     """
 
@@ -407,7 +407,7 @@ class OauthGuild(GuildAPIMixin):
 
         Returns
         -------
-        novus.models.Guild
+        novus.Guild
             The full guild object.
         """
 
@@ -430,25 +430,25 @@ class PartialGuild(GuildAPIMixin):
         The name of the guild.
     splash_hash : str | None
         The splash hash of the guild.
-    splash : novus.models.Asset | None
+    splash : novus.Asset | None
         The splash asset for the guild.
     banner_hash : str | None
         The banner hash of the guild.
-    banner : novus.models.Asset | None
+    banner : novus.Asset | None
         The banner asset for the guild.
     description : str | None
         A description of the guild.
     icon_hash : str | None
         The icon hash for the guild.
-    icon : novus.models.Asset | None
+    icon : novus.Asset | None
         An icon asset for the guild.
     features : list[str]
         A list of features the guild implements.
-    verification_level : novus.enums.VerificationLevel
+    verification_level : novus.VerificationLevel
         The guild's verification level.
     vainity_url_code : str | None
         The guild's vainity URL code.
-    nsfw_level : novus.enums.NSFWLevel
+    nsfw_level : novus.NSFWLevel
         The guild's NSFW level.
     premium_subscription_count : int
         The number of nitro boosts the guild has.
@@ -514,17 +514,17 @@ class GuildPreview(GuildAPIMixin):
         The name of the guild.
     icon_hash : str | None
         The icon hash for the guild.
-    icon : novus.models.Asset | None
+    icon : novus.Asset | None
         The icon asset associated with the guild.
     splash_hash : str | None
         The splash hash for the guild.
-    splash : novus.models.Asset | None
+    splash : novus.Asset | None
         The splash asset associated with the guild.
     discovery_splash_hash : str | None
         The discovery splash hash for the guild.
-    discovery_splash : novus.models.Asset | None
+    discovery_splash : novus.Asset | None
         The discovery splash asset associated with the guild.
-    emojis : list[novus.models.Emoji]
+    emojis : list[novus.Emoji]
         A list of emojis in the guild.
     features : list[str]
         A list of features that the guild has.
@@ -534,7 +534,7 @@ class GuildPreview(GuildAPIMixin):
         The approximate online member count for the guild.
     description : str
         The description of the guild.
-    stickers : list[novus.models.Sticker]
+    stickers : list[novus.Sticker]
         A list of the stickers in the guild.
     """
 

@@ -47,18 +47,18 @@ class Sticker:
         The name of the sticker.
     description : str
         The description of the sticker.
-    type : novus.enums.StickerType
+    type : novus.StickerType
         The type of the sticker.
-    format_type : novus.enums.StickerFormat
+    format_type : novus.StickerFormat
         The format for the sticker.
     available : bool
         Whether or not the sticker can be used. May be ``False`` due to loss of
         nitro boosts.
     guild_id : int | None
         The ID of the guild associated with the sticker.
-    asset : novus.models.Asset
+    asset : novus.Asset
         The asset associated with the sticker.
-    guild : novus.models.abc.Snowflake | novus.models.Guild
+    guild : novus.abc.Snowflake | novus.Guild
         The guild (or a data container for the ID) that the emoji came from.
     """
 

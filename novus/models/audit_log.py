@@ -85,20 +85,20 @@ class AuditLogEntry:
         The reason added to the entry, if one was given.
     target_id : int | None
         The ID of the affected entity.
-    target : novus.models.abc.Snowflake | None
+    target : novus.abc.Snowflake | None
         The affected entity.
     user_id : int | None
         The ID of the user or app that made the changes.
-    user : novus.models.User | None
+    user : novus.User | None
         The user or app that made the changes.
-    action_type : novus.enums.AuditLogEvent
+    action_type : novus.AuditLogEvent
         The action that was applied.
-    options : novus.models.AuditLogContainer
+    options : novus.AuditLogContainer
         Additional information for the entry.
-    before : novus.models.AuditLogContainer | None
+    before : novus.AuditLogContainer | None
         The state of the object before the action happened. Could be ``None``
         in the case of new objects being created.
-    after : novus.models.AuditLogContainer | None
+    after : novus.AuditLogContainer | None
         The state of the object after the action happened. Could be ``None``
         in the case of an object being removed.
     """
@@ -233,7 +233,7 @@ class AuditLog(AuditLogAPIMixin):
 
     Attributes
     ----------
-    entries : list[novus.models.AuditLogEntry]
+    entries : list[novus.AuditLogEntry]
         The entries contained in the audit log.
     """
 

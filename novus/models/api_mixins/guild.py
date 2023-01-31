@@ -20,6 +20,7 @@ from __future__ import annotations
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Any, NoReturn, TypeAlias, overload
 
+from ...enums import ChannelType
 from ...utils import MISSING, try_id, try_object
 
 if TYPE_CHECKING:
@@ -28,7 +29,6 @@ if TYPE_CHECKING:
     from ...api import HTTPConnection
     from ...enums import (
         AuditLogEventType,
-        ChannelType,
         ContentFilterLevel,
         Locale,
         NotificationLevel,
@@ -59,14 +59,14 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        state : novus.api.HTTPConnection
+        state : novus.HTTPConnection
             The API connection to create the entity with.
         name : str
             The name for the guild that you want to create.
 
         Returns
         -------
-        novus.models.Guild
+        novus.Guild
             The created guild.
         """
 
@@ -83,12 +83,12 @@ class GuildAPIMixin:
         ----------
         state : HTTPConnection
             The API connection.
-        guild : int | novus.models.abc.Snowflake
+        guild : int | novus.abc.Snowflake
             A reference to the guild that you want to fetch.
 
         Returns
         -------
-        novus.models.Guild
+        novus.Guild
             The guild associated with the given ID.
         """
 
@@ -133,18 +133,18 @@ class GuildAPIMixin:
         ----------
         name : str
             The name you want to set the guild to.
-        verification_level : novus.enums.guild.VerificationLevel | None
+        verification_level : novus.guild.VerificationLevel | None
             The verification level you want to set the guild to.
-        default_message_notifications : novus.enums.guild.NotificationLevel | None
+        default_message_notifications : novus.guild.NotificationLevel | None
             The default message notification level you want to set the guild to.
-        explicit_content_filter : novus.enums.guild.ContentFilterLevel | None
+        explicit_content_filter : novus.guild.ContentFilterLevel | None
             The content filter level you want to set the guild to.
-        afk_channel : int | novus.models.abc.Snowflake | None
+        afk_channel : int | novus.abc.Snowflake | None
             The channel you want to set as the guild's AFK channel.
         icon : str | bytes | io.IOBase | None
             The icon that you want to set for the guild. Can be its bytes, a
             file path, or a file object.
-        owner : int | novus.models.abc.Snowflake
+        owner : int | novus.abc.Snowflake
             The person you want to set as owner of the guild. Can only be run
             if the current user is the existing owner.
         splash : str | bytes | io.IOBase | None
@@ -156,15 +156,15 @@ class GuildAPIMixin:
         banner : str | bytes | io.IOBase | None
             The banner for the guild. Can be its bytes, a file path, or a file
             object.
-        system_channel : int | novus.models.abc.Snowflake | None
+        system_channel : int | novus.abc.Snowflake | None
             The system channel you want to set for the guild.
-        system_channel_flags : novus.flags.guild.SystemChannelFlags | None
+        system_channel_flags : novus.guild.SystemChannelFlags | None
             The system channel flags you want to set.
-        rules_channel : int | novus.models.abc.Snowflake | None
+        rules_channel : int | novus.abc.Snowflake | None
             The channel you want to set as the rules channel.
         preferred_locale : Locale | None
             The locale you want to set as the guild's preferred.
-        public_updates_channel : int | novus.models.abc.Snowflake
+        public_updates_channel : int | novus.abc.Snowflake
             The channel you want to set as the updates channel for the guild.
         features : list[str]
             A list of features for the guild.
@@ -177,7 +177,7 @@ class GuildAPIMixin:
 
         Returns
         -------
-        novus.models.Guild
+        novus.Guild
             The updated guild.
         """
 
@@ -326,7 +326,7 @@ class GuildAPIMixin:
         ----------
         name : str
             The name of the channel.
-        type : novus.enums.ChannelType
+        type : novus.ChannelType
             The type of the channel.
         bitrate : int
             The bitrate for the channel. Only for use with voice channels.
@@ -336,9 +336,9 @@ class GuildAPIMixin:
             The slowmode seconds on the channel.
         position : int
             The channel position.
-        permission_overwrites : list[novus.models.PermissionOverwrite]
+        permission_overwrites : list[novus.PermissionOverwrite]
             A list of permission overwrites for the channel.
-        parent : int | novus.models.abc.Snowflake
+        parent : int | novus.abc.Snowflake
             A parent object for the channel.
         nsfw : bool
             Whether or not the channel will be set to NSFW.
@@ -411,7 +411,7 @@ class GuildAPIMixin:
         """
         Get a member from the guild.
 
-        .. seealso:: :func:`novus.models.GuildMember.fetch`
+        .. seealso:: :func:`novus.GuildMember.fetch`
 
         Parameters
         ----------
@@ -420,7 +420,7 @@ class GuildAPIMixin:
 
         Returns
         -------
-        novus.models.GuildMember
+        novus.GuildMember
             The member object for the given user.
         """
 
@@ -454,7 +454,7 @@ class GuildAPIMixin:
 
         Returns
         -------
-        list[novus.models.GuildMember]
+        list[novus.GuildMember]
             A list of members from the guild.
         """
 
@@ -489,7 +489,7 @@ class GuildAPIMixin:
 
         Returns
         -------
-        list[novus.models.GuildMember]
+        list[novus.GuildMember]
             A list of members from the guild.
         """
 
@@ -534,7 +534,7 @@ class GuildAPIMixin:
 
         Returns
         -------
-        novus.models.GuildMember | None
+        novus.GuildMember | None
             The member for the user that was added to the guild, or ``None``
             if the user was already present.
         """
@@ -573,15 +573,15 @@ class GuildAPIMixin:
         """
         Edit a guild member.
 
-        .. seealso:: :func:`novus.models.GuildMember.edit`
+        .. seealso:: :func:`novus.GuildMember.edit`
 
         Parameters
         ----------
-        user : int | novus.models.abc.Snowflake
+        user : int | novus.abc.Snowflake
             The ID of the user you want to edit.
         nick : str | None
             The nickname you want to set for the user.
-        roles : list[int | novus.models.abc.Snowflake]
+        roles : list[int | novus.abc.Snowflake]
             A list of roles that you want the user to have.
         mute : bool
             Whether or not the user is muted in voice channels. Will error if
@@ -589,7 +589,7 @@ class GuildAPIMixin:
         deaf : bool
             Whether or not the user is deafened in voice channels. Will error
             if the user is not currently in a voice channel.
-        voice_channel : int | novus.models.abc.Snowflake | None
+        voice_channel : int | novus.abc.Snowflake | None
             The voice channel that the user is in.
         timeout_until : datetime.datetime | None
             When the user's timeout should expire (up to 28 days in the
@@ -631,13 +631,13 @@ class GuildAPIMixin:
 
         Requires the ``MANAGE_ROLES`` permission.
 
-        .. seealso:: :func:`novus.models.GuildMember.add_role`
+        .. seealso:: :func:`novus.GuildMember.add_role`
 
         Parameters
         ----------
-        user : int | novus.models.abc.Snowflake
+        user : int | novus.abc.Snowflake
             The user you want to add the role to.
-        role : int | novus.models.abc.Snowflake
+        role : int | novus.abc.Snowflake
             The role you want to add.
         reason : str | None
             The reason shown in the audit log.
@@ -661,13 +661,13 @@ class GuildAPIMixin:
 
         Requires the ``MANAGE_ROLES`` permission.
 
-        .. seealso:: :func:`novus.models.GuildMember.remove_role`
+        .. seealso:: :func:`novus.GuildMember.remove_role`
 
         Parameters
         ----------
-        user : int | novus.models.abc.Snowflake
+        user : int | novus.abc.Snowflake
             The user you want to add the role to.
-        role : int | novus.models.abc.Snowflake
+        role : int | novus.abc.Snowflake
             The ID of the role you want to add.
         reason : str | None
             The reason shown in the audit log.
@@ -692,7 +692,7 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        user : int | novus.models.abc.Snowflake
+        user : int | novus.abc.Snowflake
             The user you want to remove.
         reason : str | None
             The reason to be shown in the audit log.
@@ -750,12 +750,12 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        user : int | novus.models.abc.Snowflake
+        user : int | novus.abc.Snowflake
             The user whose ban you want to get.
 
         Returns
         -------
-        novus.models.GuildBan
+        novus.GuildBan
             The ban for the user.
         """
 
@@ -773,11 +773,11 @@ class GuildAPIMixin:
         """
         Ban a user from the guild.
 
-        .. seealso:: :func:`novus.models.GuildMember.ban`
+        .. seealso:: :func:`novus.GuildMember.ban`
 
         Parameters
         ----------
-        user : int | novus.models.abc.Snowflake
+        user : int | novus.abc.Snowflake
             The user who you want to ban.
         delete_message_seconds : int
             The number of seconds of messages you want to delete.
@@ -808,7 +808,7 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        user : int | novus.models.abc.Snowflake
+        user : int | novus.abc.Snowflake
             The user who you want to ban.
         reason : str | None
             The reason to be shown in the audit log.
@@ -853,7 +853,7 @@ class GuildAPIMixin:
         ----------
         name : str
             The name of the role.
-        permissions : novus.flags.Permissions
+        permissions : novus.Permissions
             The permissions attached to the role.
         color : int
             The color of the role.
@@ -920,7 +920,7 @@ class GuildAPIMixin:
             The ID of the role to be edited.
         name : str
             The new name of the role.
-        permissions : novus.flags.Permissions
+        permissions : novus.Permissions
             The permissions to be applied to the role.
         color : int
             The color to apply to the role.
@@ -977,7 +977,7 @@ class GuildAPIMixin:
 
         Parameters
         ----------
-        role : int | novus.models.abc.Snowflake
+        role : int | novus.abc.Snowflake
             The ID of the role to delete.
         reason : str | None
             The reason to be shown in the audit log.
@@ -1007,7 +1007,7 @@ class GuildAPIMixin:
 
         Returns
         -------
-        list[novus.models.Invite]
+        list[novus.Invite]
             A list of invites.
         """
 
@@ -1049,11 +1049,11 @@ class GuildAPIMixin:
         """
         List all of the emojis for the guild.
 
-        .. seealso:: :func:`novus.models.Emoji.fetch_all_for_guild`
+        .. seealso:: :func:`novus.Emoji.fetch_all_for_guild`
 
         Returns
         -------
-        list[novus.models.Emoji]
+        list[novus.Emoji]
             A list of the guild's emojis.
         """
 
@@ -1078,14 +1078,14 @@ class GuildAPIMixin:
             The name of the emoji you want to add.
         image : str | bytes | io.IOBase
             The image that you want to add.
-        roles : list[int | novus.models.abc.Snowflake] | None
+        roles : list[int | novus.abc.Snowflake] | None
             A list of roles that are allowed to use the emoji.
         reason : str | None
             A reason you're adding the emoji.
 
         Returns
         -------
-        novus.models.Emoji
+        novus.Emoji
             The newly created emoji.
         """
 
@@ -1108,11 +1108,11 @@ class GuildAPIMixin:
 
         .. note:: Only usable via Oauth with the ``guilds.members.read`` scope.
 
-        .. seealso:: :func:`novus.models.GuildMember.fetch_me`
+        .. seealso:: :func:`novus.GuildMember.fetch_me`
 
         Returns
         -------
-        novus.models.GuildMember
+        novus.GuildMember
             The member object for the current user.
         """
 
@@ -1155,7 +1155,7 @@ class GuildAPIMixin:
 
         Returns
         -------
-        novus.models.AuditLog
+        novus.AuditLog
             The audit log for the guild.
         """
 
@@ -1177,7 +1177,7 @@ class GuildAPIMixin:
 
         Returns
         -------
-        list[novus.models.AutoModerationRule]
+        list[novus.AutoModerationRule]
             A list of the auto moderation rules for the guild.
         """
 

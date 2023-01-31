@@ -90,17 +90,17 @@ class Messageable:
             The content that you want to have in the message
         tts : bool
             If you want the message to be sent with the TTS flag.
-        embeds : list[novus.models.Embed]
+        embeds : list[novus.Embed]
             The embeds you want added to the message.
-        allowed_mentions : novus.models.AllowedMentions
+        allowed_mentions : novus.AllowedMentions
             The mentions you want parsed in the message.
-        message_reference : novus.models.MessageReference
+        message_reference : novus.MessageReference
             A reference to a message you want replied to.
-        stickers : list[novus.models.Sticker]
+        stickers : list[novus.Sticker]
             A list of stickers to add to the message.
-        files : list[novus.models.File]
+        files : list[novus.File]
             A list of files to be sent with the message.
-        flags : novus.flags.MessageFlags
+        flags : novus.MessageFlags
             The flags to be sent with the message.
         """
 

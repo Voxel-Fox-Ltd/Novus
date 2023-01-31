@@ -62,9 +62,9 @@ class Emoji(Hashable, EmojiAPIMixin):
     available : bool
         If the emoji is available. May be ``False`` in the case that the guild
         has lost nitro boosts.
-    asset : novus.models.Asset
+    asset : novus.Asset
         The asset associated with the emoji, if it's a custom emoji.
-    guild : novus.models.abc.Snowflake | novus.models.Guild
+    guild : novus.abc.Snowflake | novus.Guild
         The guild (or a data container for the ID) that the emoji came from.
     """
 

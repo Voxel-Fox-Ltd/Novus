@@ -4,17 +4,17 @@ API Reference
 ABCs and Mixins
 ---------------------
 
-.. autoclass:: novus.models.abc.Snowflake
+.. autoclass:: novus.abc.Snowflake
 
-.. autoclass:: novus.models.abc.StateSnowflake
+.. autoclass:: novus.abc.StateSnowflake
 
-.. autoclass:: novus.models.mixins.Messageable
+.. autoclass:: novus.mixins.Messageable
     :members:
 
 Enums
 ------
 
-.. class:: novus.enums.Locale
+.. class:: novus.Locale
 
     .. list-table::
         :header-rows: 1
@@ -55,7 +55,7 @@ Enums
 Channel
 ~~~~~~~
 
-.. class:: novus.enums.ChannelType
+.. class:: novus.ChannelType
 
     .. list-table::
         :header-rows: 1
@@ -74,7 +74,7 @@ Channel
         * - ``guild_directory``
         * - ``guild_forum``
 
-.. class:: novus.enums.PermissionOverwriteType
+.. class:: novus.PermissionOverwriteType
 
     .. list-table::
         :header-rows: 1
@@ -86,7 +86,7 @@ Channel
 Guild
 ~~~~~~
 
-.. class:: novus.enums.NSFWLevel
+.. class:: novus.NSFWLevel
 
     .. list-table::
         :header-rows: 1
@@ -97,7 +97,7 @@ Guild
         * - ``safe``
         * - ``age_restricted``
 
-.. class:: novus.enums.PremiumTier
+.. class:: novus.PremiumTier
 
     .. list-table::
         :header-rows: 1
@@ -108,7 +108,7 @@ Guild
         * - ``tier_2``
         * - ``tier_3``
 
-.. class:: novus.enums.MFALevel
+.. class:: novus.MFALevel
 
     .. list-table::
         :header-rows: 1
@@ -117,7 +117,7 @@ Guild
         * - ``none``
         * - ``elevated``
 
-.. class:: novus.enums.ContentFilterLevel
+.. class:: novus.ContentFilterLevel
 
     .. list-table::
         :header-rows: 1
@@ -127,7 +127,7 @@ Guild
         * - ``members_without_roles``
         * - ``all_members``
 
-.. class:: novus.enums.VerificationLevel
+.. class:: novus.VerificationLevel
 
     .. list-table::
         :header-rows: 1
@@ -145,7 +145,7 @@ Guild
         * - ``very_high``
           - Must have a verified phone number.
 
-.. class:: novus.enums.NotificationLevel
+.. class:: novus.NotificationLevel
 
     .. list-table::
         :header-rows: 1
@@ -157,7 +157,7 @@ Guild
 Sticker
 ~~~~~~~
 
-.. class:: novus.enums.StickerType
+.. class:: novus.StickerType
 
     .. list-table::
         :header-rows: 1
@@ -166,7 +166,7 @@ Sticker
         * - ``standard``
         * - ``guild``
 
-.. class:: novus.enums.StickerFormat
+.. class:: novus.StickerFormat
 
     .. list-table::
         :header-rows: 1
@@ -180,7 +180,7 @@ Sticker
 User
 ~~~~~~~
 
-.. class:: novus.enums.UserPremiumType
+.. class:: novus.UserPremiumType
 
     .. list-table::
         :header-rows: 1
@@ -194,7 +194,7 @@ User
 Auto Moderation
 ~~~~~~~~~~~~~~~
 
-.. class:: novus.enums.AutoModerationKeywordPresetType
+.. class:: novus.AutoModerationKeywordPresetType
 
     .. list-table::
         :header-rows: 1
@@ -204,7 +204,7 @@ Auto Moderation
         * - ``sexual_content``
         * - ``slurs``
 
-.. class:: novus.enums.AutoModerationTriggerType
+.. class:: novus.AutoModerationTriggerType
 
     .. list-table::
         :header-rows: 1
@@ -215,7 +215,7 @@ Auto Moderation
         * - ``keyword_preset``
         * - ``mention_spam``
 
-.. class:: novus.enums.AutoModerationEventType
+.. class:: novus.AutoModerationEventType
 
     .. list-table::
         :header-rows: 1
@@ -223,7 +223,7 @@ Auto Moderation
         * - Attribute
         * - ``message_send``
 
-.. class:: novus.enums.AutoModerationActionType
+.. class:: novus.AutoModerationActionType
 
     .. list-table::
         :header-rows: 1
@@ -240,7 +240,7 @@ Flags
 Application
 ~~~~~~~~~~~~
 
-.. class:: novus.flags.ApplicationFlags
+.. class:: novus.ApplicationFlags
 
     The public flags for an application.
 
@@ -278,7 +278,7 @@ Application
 Message
 ~~~~~~~
 
-.. class:: novus.flags.MessageFlags
+.. class:: novus.MessageFlags
 
     .. list-table::
         :header-rows: 1
@@ -292,7 +292,7 @@ Message
 Guild
 ~~~~~~
 
-.. class:: novus.flags.SystemChannelFlags
+.. class:: novus.SystemChannelFlags
 
     Flags for a system channel within a guild.
 
@@ -305,7 +305,7 @@ Guild
         * - ``suppress_guild_reminder_notifications``
         * - ``suppress_join_notification_replies``
 
-.. class:: novus.flags.Permissions
+.. class:: novus.Permissions
 
     A permission set from Discord's API.
 
@@ -358,7 +358,7 @@ Guild
 User
 ~~~~
 
-.. class:: novus.flags.UserFlags
+.. class:: novus.UserFlags
 
     .. list-table::
         :header-rows: 1
@@ -383,7 +383,7 @@ User
 Audit Log
 ~~~~~~~~~
 
-.. class:: novus.flags.AuditLogEntryType
+.. class:: novus.AuditLogEntryType
 
     .. list-table::
         :header-rows: 1
@@ -459,7 +459,7 @@ Discord Models
 User
 ~~~~
 
-.. autoclass:: novus.models.User
+.. autoclass:: novus.User
     :members:
     :inherited-members:
     :no-members: __init__
@@ -467,7 +467,7 @@ User
 GuildMember
 ~~~~~~~~~~~
 
-.. autoclass:: novus.models.GuildMember
+.. autoclass:: novus.GuildMember
     :members:
     :inherited-members:
     :no-members: __init__
@@ -475,12 +475,12 @@ GuildMember
 Guild
 ~~~~~
 
-.. autoclass:: novus.models.Guild
+.. autoclass:: novus.Guild
     :members:
     :inherited-members:
     :no-members: __init__
 
-.. autoclass:: novus.models.PartialGuild
+.. autoclass:: novus.PartialGuild
     :members:
     :inherited-members:
     :no-members: __init__
@@ -488,7 +488,7 @@ Guild
 Invite
 ~~~~~~
 
-.. autoclass:: novus.models.Invite
+.. autoclass:: novus.Invite
     :members:
     :inherited-members:
     :no-members: __init__
@@ -496,22 +496,22 @@ Invite
 Audit Logs
 ~~~~~~~~~~
 
-.. autoclass:: novus.models.AuditLog
+.. autoclass:: novus.AuditLog
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.models.AuditLogEntry
+.. autoclass:: novus.AuditLogEntry
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.models.AuditLogContainer
+.. autoclass:: novus.AuditLogContainer
     :members:
     :no-members: __init__
 
 Sticker
 ~~~~~~~
 
-.. autoclass:: novus.models.Sticker
+.. autoclass:: novus.Sticker
     :members:
     :inherited-members:
     :no-members: __init__
@@ -519,7 +519,7 @@ Sticker
 Emoji
 ~~~~~
 
-.. autoclass:: novus.models.Emoji
+.. autoclass:: novus.Emoji
     :members:
     :inherited-members:
     :no-members: __init__
@@ -527,7 +527,7 @@ Emoji
 Role
 ~~~~
 
-.. autoclass:: novus.models.Role
+.. autoclass:: novus.Role
     :members:
     :inherited-members:
     :no-members: __init__
@@ -535,7 +535,7 @@ Role
 Message
 ~~~~~~~
 
-.. autoclass:: novus.models.Message
+.. autoclass:: novus.Message
     :members:
     :inherited-members:
     :no-members: __init__
@@ -543,7 +543,7 @@ Message
 Auto Moderation
 ~~~~~~~~~~~~~~~
 
-.. autoclass:: novus.models.AutoModerationRule
+.. autoclass:: novus.AutoModerationRule
     :members:
     :inherited-members:
     :no-members: __init__
@@ -554,7 +554,7 @@ Discord Oauth Models
 Oauth models are much the same as other models, but returned when you're
 authenticated via an Oauth access token.
 
-.. autoclass:: novus.models.OauthGuild
+.. autoclass:: novus.OauthGuild
     :members:
     :inherited-members:
     :no-members: __init__
@@ -564,35 +564,35 @@ Discord Data Containers
 
 These are models are designed for you to initialize yourself so as to use them in API methods. They may also be returned from API methods.
 
-.. autoclass:: novus.models.Object
+.. autoclass:: novus.Object
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.models.AllowedMentions
+.. autoclass:: novus.AllowedMentions
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.models.Embed
+.. autoclass:: novus.Embed
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.models.File
+.. autoclass:: novus.File
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.models.MessageReference
+.. autoclass:: novus.MessageReference
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.models.PermissionOverwrite
+.. autoclass:: novus.PermissionOverwrite
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.models.AutoModerationAction
+.. autoclass:: novus.AutoModerationAction
     :special-members: __init__
     :members:
 
-.. autoclass:: novus.models.AutoModerationTriggerMetadata
+.. autoclass:: novus.AutoModerationTriggerMetadata
     :special-members: __init__
     :members:
 
@@ -602,82 +602,82 @@ Proxy Objects
 
 These are models returned from the API that you aren't intended to make yourself.
 
-.. autoclass:: novus.models.WelcomeScreen
+.. autoclass:: novus.WelcomeScreen
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.models.GuildPreview
+.. autoclass:: novus.GuildPreview
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.models.GuildBan
+.. autoclass:: novus.GuildBan
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.models.Asset
+.. autoclass:: novus.Asset
     :members:
     :no-members: __init__
 
 API
 ----
 
-.. autoclass:: novus.api.Route
+.. autoclass:: novus.Route
 
-.. autoclass:: novus.api.HTTPConnection
+.. autoclass:: novus.HTTPConnection
     :no-members:
 
-.. autoclass:: novus.api.ApplicationRoleHTTPConnection
+.. autoclass:: novus.ApplicationRoleHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.AuditLogHTTPConnection
+.. autoclass:: novus.AuditLogHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.AutoModerationHTTPConnection
+.. autoclass:: novus.AutoModerationHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.ChannelHTTPConnection
+.. autoclass:: novus.ChannelHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.EmojiHTTPConnection
+.. autoclass:: novus.EmojiHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.GuildHTTPConnection
+.. autoclass:: novus.GuildHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.GuildEventHTTPConnection
+.. autoclass:: novus.GuildEventHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.GuildTemplateHTTPConnection
+.. autoclass:: novus.GuildTemplateHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.InviteHTTPConnection
+.. autoclass:: novus.InviteHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.StageHTTPConnection
+.. autoclass:: novus.StageHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.StickerHTTPConnection
+.. autoclass:: novus.StickerHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.UserHTTPConnection
+.. autoclass:: novus.UserHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.VoiceHTTPConnection
+.. autoclass:: novus.VoiceHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.api.WebhookHTTPConnection
+.. autoclass:: novus.WebhookHTTPConnection
     :members:
     :no-members: __init__

@@ -49,7 +49,7 @@ class Role:
         Whether the role is pinned in the user listing.
     icon_hash : str | None
         The hash associated with the role icon.
-    icon : novus.models.Asset | None
+    icon : novus.Asset | None
         The asset associated with the role icon.
     unicode_emoji : str | None
         The role unicode emoji.
@@ -61,7 +61,7 @@ class Role:
             The position of the role is calculated as a pair of the role's
             position attribute and it's ID attribute. Positions in a guild can
             be shared by multiple roles, or skipped entirely.
-    permissions : novus.flags.Permissions
+    permissions : novus.Permissions
         The permissions for the role.
     managed : bool
         Whether the role is managed by an integration.
@@ -69,7 +69,7 @@ class Role:
         Whether the role is mentionable.
     tags : list[dict]
         The tags associated with the role.
-    guild : novus.models.abc.Snowflake | novus.models.Guild
+    guild : novus.abc.Snowflake | novus.Guild
         The guild (or a data container for the ID) that the emoji came from.
     """
 
@@ -137,7 +137,7 @@ class Role:
         ----------
         name : str
             The new name of the role.
-        permissions : novus.flags.Permissions
+        permissions : novus.Permissions
             The permissions to be applied to the role.
         color : int
             The color to apply to the role.

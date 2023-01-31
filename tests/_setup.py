@@ -1,6 +1,7 @@
 import os
 
 import dotenv
+
 import novus
 
 __all__ = (
@@ -12,11 +13,11 @@ __all__ = (
 dotenv.load_dotenv()
 
 
-def get_connection() -> novus.api.HTTPConnection:
+def get_connection() -> novus.HTTPConnection:
     token = os.getenv("DISCORD_BOT_TOKEN")
     if not token:
         raise ValueError("Missing DISCORD_BOT_TOKEN from .env")
-    return novus.api.HTTPConnection(token)
+    return novus.HTTPConnection(token)
 
 
 def get_data() -> tuple[list[int], list[int]]:

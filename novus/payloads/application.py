@@ -58,7 +58,7 @@ class _ApplicationOptional(TypedDict, total=False):
     primary_sku_id: str
     slug: str
     cover_image: str
-    flags: int  # Added as novus.flags.ApplicationFlags
+    flags: int  # Added as novus.ApplicationFlags
     install_params: InstallParams
     custom_install_url: str
     role_connections_verification_url: str

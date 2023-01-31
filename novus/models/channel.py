@@ -43,7 +43,7 @@ __all__ = (
 )
 
 
-log = logging.getLogger("novus.models.channel")
+log = logging.getLogger("novus.channel")
 
 
 def channel_factory(
@@ -89,22 +89,22 @@ class PermissionOverwrite:
     ----------
     id : int
         The ID of the target.
-    type : novus.enums.PermissionOverwriteType
+    type : novus.PermissionOverwriteType
         The type of the target.
-    allow : novus.flags.Permissions
+    allow : novus.Permissions
         The permissions that the target is explicitly allowed.
-    deny : novus.flags.Permissions
+    deny : novus.Permissions
         The permissions that the target is explicitly denied.
 
     Attributes
     ----------
     id : int
         The ID of the target.
-    type : novus.enums.PermissionOverwriteType
+    type : novus.PermissionOverwriteType
         The type of the target.
-    allow : novus.flags.Permissions
+    allow : novus.Permissions
         The permissions that the target is explicitly allowed.
-    deny : novus.flags.Permissions
+    deny : novus.Permissions
         The permissions that the target is explicitly denied.
     """
 
@@ -248,14 +248,14 @@ class GuildTextChannel(GuildChannel, MessageableChannel):
     ----------
     id : int
         The ID of the channel.
-    type : novus.enums.ChannelType
+    type : novus.ChannelType
         The type of the channel.
     guild_id : int | None
         The ID of the guild associated with the channel. May be ``None`` for
         some channel objects received over gateway guild dispatches.
     position: int
         The sorting position of the channel (relative to its parent container).
-    permissions_overwrites: list[novus.models.PermissionOverwrite]
+    permissions_overwrites: list[novus.PermissionOverwrite]
         The overwrites assoicated with this channel.
     name : str
         The name of the channel.

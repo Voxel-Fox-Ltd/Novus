@@ -46,7 +46,7 @@ class InviteAPIMixin:
 
         Returns
         -------
-        novus.models.Invite
+        novus.Invite
             The invite associated with the code.
         """
 
@@ -83,7 +83,7 @@ class InviteAPIMixin:
 
         Returns
         -------
-        novus.models.Invite
+        novus.Invite
             The deleted invite object.
         """
 

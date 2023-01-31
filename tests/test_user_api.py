@@ -1,8 +1,8 @@
 import pytest
+
 import novus
 
 from ._setup import get_connection, get_data
-
 
 known_user_ids, known_guild_ids = get_data()
 
@@ -17,7 +17,7 @@ async def test_get_any_user(user_id: int):
     connection = get_connection()
     try:
         await connection.user.get_user(user_id)
-    except novus.errors.HTTPException:
+    except novus.HTTPException:
         assert False, "User with ID %s doesn't exist" % user_id
     else:
         assert True
@@ -43,7 +43,7 @@ async def test_fail_get_user(user_id: int):
     connection = get_connection()
     try:
         user = await connection.user.get_user(user_id)
-    except novus.errors.NotFound:
+    except novus.NotFound:
         assert True
     else:
         assert False, "User with ID %s does exist" % user.id

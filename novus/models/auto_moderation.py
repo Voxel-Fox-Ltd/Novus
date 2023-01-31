@@ -59,7 +59,7 @@ class AutoModerationTriggerMetadata:
         A list of regular expression patterns that will be matched against
         the content.
         Only rust flavored regex is supported.
-    presets : list[novus.enums.AutoModerationKeywordPresetType] | None
+    presets : list[novus.AutoModerationKeywordPresetType] | None
         A list of preset word lists that you want to match against.
     allow_list : list[str] | None
         A list of substrings which should not trigger the rule.
@@ -130,9 +130,9 @@ class AutoModerationAction:
 
     Parameters
     ----------
-    type : novus.enums.AutoModerationActionType
+    type : novus.AutoModerationActionType
         The type of action to be taken.
-    channel : int | novus.models.abc.Snowflake | None
+    channel : int | novus.abc.Snowflake | None
         The channel associated with the action. Can only be set if
         the action type is `AutoModerationActionType.send_alert_message`.
     duration : int | None
@@ -141,7 +141,7 @@ class AutoModerationAction:
 
     Attributes
     ----------
-    type : novus.enums.AutoModerationActionType
+    type : novus.AutoModerationActionType
         The type of action to be taken.
     channel_id : int | None
         The channel ID associated with the action. Will only be set if
@@ -212,13 +212,13 @@ class AutoModerationRule(AutoModerationAPIMixin):
         The name given to the rule.
     creator_id : int
         The ID of the user that created the rule.
-    event_type : novus.enums.AutoModerationEventType
+    event_type : novus.AutoModerationEventType
         The event type.
-    trigger_type : novus.enums.AutoModerationTriggerType
+    trigger_type : novus.AutoModerationTriggerType
         The trigger type for the rule.
-    trigger_metadata : novus.models.AutoModerationTriggerMetadata
+    trigger_metadata : novus.AutoModerationTriggerMetadata
         The metadata associated with the rule.
-    actions : list[novus.models.AutoModerationAction]
+    actions : list[novus.AutoModerationAction]
         A list of actions taken when the rule is triggered.
     enabled : bool
         Whether the rule is enabled.
@@ -226,7 +226,7 @@ class AutoModerationRule(AutoModerationAPIMixin):
         A list of IDs corresponding to roles that are exempt from this rule.
     exempt_channel_ids : list[int]
         A list of IDs corresponding to channels that are exempt from this rule.
-    guild : novus.models.abc.Snowflake
+    guild : novus.abc.Snowflake
         A guild object (or a snowflake object).
     """
 

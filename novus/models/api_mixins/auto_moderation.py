@@ -47,14 +47,14 @@ class AutoModerationAPIMixin:
         ----------
         state : HTTPConnection
             The API connection.
-        guild : int | novus.models.abc.Snowflake
+        guild : int | novus.abc.Snowflake
             An association to a guild that you want to get the rule from.
-        rule : int | novus.models.abc.Snowflake
+        rule : int | novus.abc.Snowflake
             An association to get the rule from.
 
         Returns
         -------
-        novus.models.AutoModerationRule
+        novus.AutoModerationRule
             The auto moderation rule.
         """
 
@@ -73,14 +73,14 @@ class AutoModerationAPIMixin:
 
         Parameters
         ----------
-        state : novus.api.HTTPConnection
+        state : novus.HTTPConnection
             The API connection to manage the entity with.
-        guild : int | novus.models.abc.Snowflake
+        guild : int | novus.abc.Snowflake
             An association to a guild that you want to get the rules from.
 
         Returns
         -------
-        list[novus.models.AutoModerationRule]
+        list[novus.AutoModerationRule]
             The list of auto moderation rules in the guild.
         """
 
@@ -107,26 +107,26 @@ class AutoModerationAPIMixin:
         ----------
         name : str
             The new name for the role.
-        event_type : novus.enums.AutoModerationEventType
+        event_type : novus.AutoModerationEventType
             The event type.
-        trigger_type : novus.enums.AutoModerationTriggerType
+        trigger_type : novus.AutoModerationTriggerType
             The trigger type.
-        trigger_metadata : novus.enums.AutoModerationTriggerMetadata
+        trigger_metadata : novus.AutoModerationTriggerMetadata
             The trigger metadata.
-        actions : list[novus.models.AutoModerationAction]
+        actions : list[novus.AutoModerationAction]
             The actions to be taken on trigger.
         enabled : bool
             Whether the rule is enabled or not.
-        exempt_roles : list[int | novus.models.abc.Snowflake]
+        exempt_roles : list[int | novus.abc.Snowflake]
             A list of roles that are exempt from the rule.
-        exempt_channels : list[int | novus.models.abc.Snowflake]
+        exempt_channels : list[int | novus.abc.Snowflake]
             A list of channels that are exempt from the rule.
         reason : str | None
             The reason shown in the audit log.
 
         Returns
         -------
-        novus.models.AutoModerationRule
+        novus.AutoModerationRule
             The updated rule.
         """
 
@@ -170,7 +170,7 @@ class AutoModerationAPIMixin:
 
         Returns
         -------
-        novus.models.AutoModerationRule
+        novus.AutoModerationRule
             The updated rule.
         """
 
@@ -201,32 +201,32 @@ class AutoModerationAPIMixin:
 
         Parameters
         ----------
-        state : novus.api.HTTPConnection
+        state : novus.HTTPConnection
             The API connection to create the entity with.
-        guild: int | novus.models.abc.Snowflake
+        guild: int | novus.abc.Snowflake
             The ID of the guild to create the object in.
         name : str
             The new name for the role.
-        event_type : novus.enums.AutoModerationEventType
+        event_type : novus.AutoModerationEventType
             The event type.
-        trigger_type : novus.enums.AutoModerationTriggerType
+        trigger_type : novus.AutoModerationTriggerType
             The trigger type.
-        trigger_metadata : novus.enums.AutoModerationTriggerMetadata | None
+        trigger_metadata : novus.AutoModerationTriggerMetadata | None
             The trigger metadata.
-        actions : list[novus.models.AutoModerationAction] | None
+        actions : list[novus.AutoModerationAction] | None
             The actions to be taken on trigger.
         enabled : bool
             Whether the rule is enabled or not.
-        exempt_roles : list[int | novus.models.abc.Snowflake] | None
+        exempt_roles : list[int | novus.abc.Snowflake] | None
             A list of roles that are exempt from the rule.
-        exempt_channels : list[int | novus.models.abc.Snowflake] | None
+        exempt_channels : list[int | novus.abc.Snowflake] | None
             A list of channels that are exempt from the rule.
         reason : str | None
             The reason shown in the audit log.
 
         Returns
         -------
-        novus.models.AutoModerationRule
+        novus.AutoModerationRule
             The updated rule.
         """
 

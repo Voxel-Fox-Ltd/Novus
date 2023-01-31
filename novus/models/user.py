@@ -58,7 +58,7 @@ class User(Hashable, UserAPIMixin):
         The discriminator of the user.
     avatar_hash : str | None
         The avatar hash of the user.
-    avatar : novus.models.Asset | None
+    avatar : novus.Asset | None
         The avatar of the user.
     bot : bool
         Whether or not the user is associated with an Oauth2 application.
@@ -69,11 +69,11 @@ class User(Hashable, UserAPIMixin):
         for when you're receiving your own user via an Oauth2 application.
     banner_hash : str | None
         The hash for the user banner.
-    banner : novus.models.Asset | None
+    banner : novus.Asset | None
         The asset for the user banner.
     accent_color : int
         The color associated with the user's accent color.
-    locale : novus.enums.Locale | None
+    locale : novus.Locale | None
         The locale for the user. Only set properly for when you're receiving
         your own user via an Oauth2 application.
     verified : bool
@@ -83,10 +83,10 @@ class User(Hashable, UserAPIMixin):
     email : str | None
         The email associated with the account. Only set properly for when
         you're receiving your own user via an Oauth2 application.
-    flags : novus.flags.UserFlags
+    flags : novus.UserFlags
         The flags associated with the user account. A combination of public and
         private.
-    premium_type : novus.enums.UserPremiumType
+    premium_type : novus.UserPremiumType
         The premium type associated with the account.
     """
 
@@ -149,7 +149,7 @@ class GuildMember(User, GuildMemberAPIMixin):
     """
     A model for a guild member object.
 
-    This model extends the `novus.models.User` object.
+    This model extends the `novus.User` object.
 
     Attributes
     ----------
@@ -157,7 +157,7 @@ class GuildMember(User, GuildMemberAPIMixin):
         The nickname for the user.
     guild_avatar_hash : str | None
         The guild avatar hash for the user.
-    guild_avatar : novus.models.Asset | None
+    guild_avatar : novus.Asset | None
         The guild avatar for the user.
     role_ids : list[int]
         A list of role IDs that the user has.
@@ -171,13 +171,13 @@ class GuildMember(User, GuildMemberAPIMixin):
         If the user is muted in voice channels.
     pending : bool
         If the user has not yet passed membership screening.
-    permissions : novus.flags.Permissions | None
+    permissions : novus.Permissions | None
         The total permissions for the user in the channel, including overwrites.
         Only returned within an interaction.
     timeout_until : datetime.datetime | None
         When the user's timeout will expire and the user will be able to
         communicate again.
-    guild : novus.models.abc.StateSnowflake | novus.models.Guild
+    guild : novus.abc.StateSnowflake | novus.Guild
         The guild that the member is part of.
     """
 

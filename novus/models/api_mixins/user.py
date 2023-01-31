@@ -48,7 +48,7 @@ class UserAPIMixin:
 
         Returns
         -------
-        novus.models.User
+        novus.User
             The user associated with the given ID.
         """
 
@@ -68,7 +68,7 @@ class UserAPIMixin:
 
         Returns
         -------
-        novus.models.User
+        novus.User
             The user associated with the given ID.
         """
 
@@ -102,7 +102,7 @@ class UserAPIMixin:
 
         Returns
         -------
-        list[novus.models.OauthGuild]
+        list[novus.OauthGuild]
             A list of guilds associated with the current user.
         """
 
@@ -124,7 +124,7 @@ class GuildMemberAPIMixin:
         """
         Get an instance of a user from the API.
 
-        .. seealso:: :func:`novus.models.Guild.fetch_member`
+        .. seealso:: :func:`novus.Guild.fetch_member`
 
         Parameters
         ----------
@@ -137,7 +137,7 @@ class GuildMemberAPIMixin:
 
         Returns
         -------
-        novus.models.GuildMember
+        novus.GuildMember
             The user associated with the given ID.
         """
 
@@ -154,7 +154,7 @@ class GuildMemberAPIMixin:
 
         .. note:: Only usable via Oauth with the ``guilds.members.read`` scope.
 
-        .. seealso:: :func:`novus.models.Guild.fetch_me`
+        .. seealso:: :func:`novus.Guild.fetch_me`
 
         Parameters
         ----------
@@ -165,7 +165,7 @@ class GuildMemberAPIMixin:
 
         Returns
         -------
-        novus.models.GuildMember
+        novus.GuildMember
             The member within the given guild.
         """
 
@@ -184,13 +184,13 @@ class GuildMemberAPIMixin:
         """
         Edit a guild member.
 
-        .. seealso:: :func:`novus.models.Guild.edit_member`
+        .. seealso:: :func:`novus.Guild.edit_member`
 
         Parameters
         ----------
         nick : str | None
             The nickname you want to set for the user.
-        roles : list[novus.models.abc.Snowflake]
+        roles : list[novus.abc.Snowflake]
             A list of roles that you want the user to have.
         mute : bool
             Whether or not the user is muted in voice channels. Will error if
@@ -198,7 +198,7 @@ class GuildMemberAPIMixin:
         deaf : bool
             Whether or not the user is deafened in voice channels. Will error
             if the user is not currently in a voice channel.
-        voice_channel : novus.models.abc.Snowflake | None
+        voice_channel : novus.abc.Snowflake | None
             The voice channel that the user is in.
         timeout_until : datetime.datetime | None
             When the user's timeout should expire (up to 28 days in the
@@ -237,11 +237,11 @@ class GuildMemberAPIMixin:
 
         Requires the ``MANAGE_ROLES`` permission.
 
-        .. seealso:: :func:`novus.models.Guild.add_member_role`
+        .. seealso:: :func:`novus.Guild.add_member_role`
 
         Parameters
         ----------
-        role : int | novus.models.abc.Snowflake
+        role : int | novus.abc.Snowflake
             The role you want to add.
         reason : str | None
             The reason shown in the audit log.
@@ -264,11 +264,11 @@ class GuildMemberAPIMixin:
 
         Requires the ``MANAGE_ROLES`` permission.
 
-        .. seealso:: :func:`novus.models.Guild.remove_member_role`
+        .. seealso:: :func:`novus.Guild.remove_member_role`
 
         Parameters
         ----------
-        role : int | novus.models.abc.Snowflake
+        role : int | novus.abc.Snowflake
             The role you want to remove.
         reason : str | None
             The reason shown in the audit log.
@@ -290,7 +290,7 @@ class GuildMemberAPIMixin:
 
         Requires the ``KICK_MEMBERS`` permission.
 
-        .. seealso:: :func:`novus.models.Guild.kick`
+        .. seealso:: :func:`novus.Guild.kick`
 
         Parameters
         ----------
@@ -314,7 +314,7 @@ class GuildMemberAPIMixin:
 
         Requires the ``BAN_MEMBERS`` permission.
 
-        .. seealso:: :func:`novus.models.Guild.ban`
+        .. seealso:: :func:`novus.Guild.ban`
 
         Parameters
         ----------

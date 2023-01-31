@@ -78,7 +78,7 @@ def try_id(given: int | Snowflake | None) -> int | None:
 
     Parameters
     ----------
-    given : int | novus.models.abc.Snowflake | None
+    given : int | novus.abc.Snowflake | None
         The object you want an ID from.
 
     Returns
@@ -107,13 +107,13 @@ def try_object(given: None) -> None:
 
 def try_object(given: int | Snowflake | None) -> Snowflake | None:
     """
-    Wrap the given ID in a ``novus.models.Object``, or return ``None`` if the
+    Wrap the given ID in a ``novus.Object``, or return ``None`` if the
     item is not an int (or if the object is a snowflake already, return it
     unchanged).
 
     Parameters
     ----------
-    given : int | novus.models.abc.Snowflake | None
+    given : int | novus.abc.Snowflake | None
         The object you want to wrap.
 
     Returns

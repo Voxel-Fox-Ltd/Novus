@@ -41,7 +41,7 @@ class Invite(InviteAPIMixin):
     ----------
     code : str
         The code associated with the invite.
-    channel : novus.models.Channel | None
+    channel : novus.Channel | None
         The channel that the invite leads to.
     uses : int | None
         How many times the invite has been used.
@@ -53,7 +53,7 @@ class Invite(InviteAPIMixin):
         Whether the invite only grants temporary membership.
     created_at : datetime.datetime | None
         The time that the invite was created.
-    guild : novus.models.PartialGuild | None
+    guild : novus.PartialGuild | None
         The guild that the invite leads to. Could be ``None`` if the invite
         leads to a group DM.
     """

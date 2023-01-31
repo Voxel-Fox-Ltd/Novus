@@ -53,7 +53,7 @@ class StateSnowflake(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.api.HTTPConection
+    _state : novus.HTTPConection
         The HTTP connection state.
     """
 
@@ -70,9 +70,9 @@ class StateSnowflakeWithGuild(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.api.HTTPConection
+    _state : novus.HTTPConection
         The HTTP connection state.
-    guild: novus.models.abc.Snowflake
+    guild: novus.abc.Snowflake
         An object containing the guild ID.
     """
 
@@ -90,7 +90,7 @@ class OauthStateSnowflake(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.api.HTTPConection
+    _state : novus.HTTPConection
         The HTTP connection state.
     """
 

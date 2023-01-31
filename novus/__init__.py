@@ -17,4 +17,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import api, enums, errors, flags, models, payloads, utils
+from . import payloads, utils
+from .api import *
+from .enums import *
+from .errors import *
+from .flags import *
+from .models import *

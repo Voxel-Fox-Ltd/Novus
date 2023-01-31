@@ -60,7 +60,7 @@ class AuditLogAPIMixin:
 
         Returns
         -------
-        novus.models.AuditLog
+        novus.AuditLog
             The audit log for the guild.
         """
 

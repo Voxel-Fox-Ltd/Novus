@@ -48,7 +48,7 @@ class EmojiAPIMixin:
 
         Parameters
         ----------
-        state : novus.api.HTTPConnection
+        state : novus.HTTPConnection
             The API connection to create the entity with.
         guild_id : int
             The ID of the guild that the emoji is to be created in.
@@ -56,14 +56,14 @@ class EmojiAPIMixin:
             The name of the emoji you want to add.
         image : str | bytes | io.IOBase
             The image that you want to add.
-        roles : list[int | novus.models.abc.Snowflake] | None
+        roles : list[int | novus.abc.Snowflake] | None
             A list of roles that are allowed to use the emoji.
         reason : str | None
             A reason you're adding the emoji.
 
         Returns
         -------
-        novus.models.Emoji
+        novus.Emoji
             The newly created emoji.
         """
 
@@ -95,7 +95,7 @@ class EmojiAPIMixin:
 
         Returns
         -------
-        novus.models.Emoji
+        novus.Emoji
             The emoji from the API.
         """
 
@@ -109,7 +109,7 @@ class EmojiAPIMixin:
         """
         Fetch all of the emojis from a guild.
 
-        .. seealso:: :func:`novus.models.Guild.fetch_emojis`
+        .. seealso:: :func:`novus.Guild.fetch_emojis`
 
         Parameters
         ----------
@@ -118,7 +118,7 @@ class EmojiAPIMixin:
 
         Returns
         -------
-        list[novus.models.Emoji]
+        list[novus.Emoji]
             The list of emojis that the guild has.
         """
 
@@ -157,14 +157,14 @@ class EmojiAPIMixin:
         ----------
         name : str
             The new name for the emoji.
-        roles : list[int | novus.models.abc.Snowflake]
+        roles : list[int | novus.abc.Snowflake]
             A list of the roles that can use the emoji.
         reason : str | None
             The reason shown in the audit log.
 
         Returns
         -------
-        novus.models.Emoji
+        novus.Emoji
             The newly updated emoji.
         """
 
