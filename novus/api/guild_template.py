@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 if TYPE_CHECKING:
     from ._http import HTTPConnection
@@ -31,3 +31,24 @@ class GuildTemplateHTTPConnection:
 
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
+
+    async def get_guild_template(self, template_code: str) -> NoReturn:
+        raise NotImplementedError()
+
+    async def create_guild_from_template(self, template_code: str) -> NoReturn:
+        raise NotImplementedError()
+
+    async def get_guild_templates(self, guild_id: int) -> NoReturn:
+        raise NotImplementedError()
+
+    async def create_guild_templatte(self, guild_id: int) -> NoReturn:
+        raise NotImplementedError()
+
+    async def sync_guild_template(self, guild_id: int, template_code: str) -> NoReturn:
+        raise NotImplementedError()
+
+    async def modify_guild_template(self, guild_id: int, template_code: str) -> NoReturn:
+        raise NotImplementedError()
+
+    async def delete_guild_template(self, guild_id: int, template_code: str) -> NoReturn:
+        raise NotImplementedError()
