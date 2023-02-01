@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -37,6 +35,129 @@ from .sticker import *
 from .user import *
 from .voice import *
 from .webhook import *
+
+__all__ = (
+    # _util
+    'Snowflake',
+    'Timestamp',
+    'HasLocalizations',
+
+    # application
+    'ApplicationTeamMember',
+    'ApplicationTeam',
+    'InstallParams',
+    'Application',
+
+    # audit_log
+    'AuditLogEvent',
+    'AuditEntryInfo',
+    'AuditLogChange',
+    'AuditLogEntry',
+    'AuditLog',
+
+    # auto_moderation
+    'AutoModerationTriggerType',
+    'AutoModerationKeywordPresetType',
+    'AutoModeratorEventType',
+    'AutoModerationActionType',
+    'AutoModerationActionMetadata',
+    'AutoModerationTriggerMetadata',
+    'AutoModerationAction',
+    'AutoModerationRule',
+
+    # channel
+    'Channel',
+    'ChannelType',
+    'ChannelOverwrite',
+    'ThreadMetadata',
+    'ThreadMember',
+
+    # components
+    'ComponentType',
+    'Button',
+    'SelectOption',
+    'SelectMenu',
+    'TextInput',
+    'ActionRow',
+    'MessageComponent',
+
+    # embed
+    'Embed',
+    'EmbedType',
+
+    # emoji
+    'Emoji',
+    'PartialEmoji',
+
+    # guild
+    'RoleTags',
+    'Role',
+    'GuildWidget',
+    'GuildPreview',
+    'UnavailableGuild',
+    'GuildWelcomeScreenChannel',
+    'GuildWelcomeScreen',
+    'GuildFeature',
+    'Guild',
+    'GatewayGuild',
+    'IntegrationApplication',
+    'IntegrationAccount',
+    'Integration',
+    'Ban',
+
+    # guild_scheduled_event
+    'GuildScheduledEvent',
+    'GuildScheduledEventEntityMetadata',
+    'GuildScheduledEventUser',
+
+    # guild_template
+    'GuildTemplate',
+
+    # interaction
+    'InteractionType',
+    'MessageInteraction',
+
+    # invite
+    'Invite',
+    'InviteWithMetadata',
+
+    # locale
+    'Locale',
+
+    # message
+    'Attachment',
+    'AllowedMentions',
+    'ChannelMention',
+    'Reaction',
+    'MessageActivity',
+    'MessageReference',
+    'Message',
+
+    # stage_instance
+    'StageInstance',
+
+    # sticker
+    'Sticker',
+    'PartialSticker',
+    'StickerPack',
+
+    # user
+    'PartialUser',
+    'User',
+    'GuildMember',
+    'UserConnection',
+    'ApplicationRoleConnectionMetadata',
+    'ApplicationRoleConnection',
+    'Activity',
+    'Presence',
+
+    # voice
+    'VoiceState',
+    'VoiceRegion',
+
+    # webhook
+    'Webhook',
+)
 
 """
 The payloads subpackage contains the payload classes for each payload type

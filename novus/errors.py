@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -18,3 +16,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from .api._http import HTTPException, NotFound, Unauthorized
+
+__all__ = (
+    # .api._http
+    'HTTPException',
+    'NotFound',
+    'Unauthorized',
+)

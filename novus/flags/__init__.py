@@ -1,5 +1,3 @@
-# flake8: noqa
-
 """
 Copyright (c) Kae Bartlett
 
@@ -22,3 +20,20 @@ from .guild import *
 from .message import *
 from .permissions import *
 from .user import *
+
+__all__ = (
+    # application
+    'ApplicationFlags',
+
+    # guild
+    'SystemChannelFlags',
+
+    # message
+    'MessageFlags',
+
+    # permissions
+    'Permissions',
+
+    # user
+    'UserFlags',
+)
