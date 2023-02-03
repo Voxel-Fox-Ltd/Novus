@@ -15,25 +15,35 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .cached_slots import *
-from .enums import *
-from .files import *
-from .missing import *
-from .repr import *
-from .snowflakes import *
-from .times import *
+from typing import Any, Callable, Literal
 
-__all__: tuple[str, ...] = (
-    'DiscordDatetime',
+__all__ = (
     'MISSING',
     'add_not_missing',
-    'bytes_to_base64_data',
-    'cached_slot_property',
-    'generate_repr',
-    'get_mime_type_for_image',
-    'parse_timestamp',
-    'try_enum',
-    'try_id',
-    'try_object',
-    'try_snowflake',
 )
+
+
+class MissingObject:
+
+    __slots__ = ()
+
+    def __bool__(self) -> Literal[False]:
+        return False
+
+    def __repr__(self) -> Literal['MISSING']:
+        return 'MISSING'
+
+
+MISSING: Any = MissingObject()
+
+
+def add_not_missing(
+        kwargs: dict[Any, Any],
+        key: str,
+        item: Any,
+        additional: Callable[..., Any] | None = None) -> None:
+    if item is not MISSING:
+        if additional is None:
+            kwargs[key] = item
+        else:
+            kwargs[key] = additional(item)

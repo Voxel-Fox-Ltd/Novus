@@ -86,6 +86,8 @@ class EmojiAPIMixin:
         """
         Fetch a specific emoji by its ID from the API.
 
+        .. seealso:: :func:`novus.Guild.fetch_emoji`
+
         Parameters
         ----------
         guild_id : int

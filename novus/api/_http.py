@@ -19,10 +19,11 @@ from __future__ import annotations
 
 import io
 import logging
-from typing import TYPE_CHECKING, Any, Iterable, TypedDict
+from typing import TYPE_CHECKING, Any, Iterable, TypedDict, cast
 
 import aiohttp
 
+from ..models import File
 from ..utils import bytes_to_base64_data
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
 from .audit_log import AuditLogHTTPConnection
@@ -171,51 +172,102 @@ class HTTPConnection:
             *,
             reason: str | None = None,
             params: dict | None = None,
-            data: dict | list | None = None) -> Any:
+            data: dict | list | None = None,
+            files: list[File] | None = None,
+            multipart: bool = False) -> Any:
         """
         Perform a web request.
         """
 
+        # Set headers
         headers = {
             "Authorization": self._token,
             "User-Agent": self._user_agent,
+            "Content-Type": "application/json",
         }
         if reason:
             headers['X-Audit-Log-Reason'] = reason
+
+        # Create multipart for files
+        writer: aiohttp.MultipartWriter | None = None
+        if files:
+            headers["Content-Type"] = "multipart/form-data"
+            writer = aiohttp.MultipartWriter()
+
+            # Add files
+            for index, f in enumerate(files):
+                part = writer.append(
+                    f.data,
+                    {"Content-Type": f.content_type},  # pyright: ignore
+                )
+                part.set_content_disposition(
+                    f'form-data; name="files[{index}]"; filename="{f.filename}"'
+                )
+                if data and isinstance(data, dict):
+                    (
+                        data
+                        .setdefault("attachments", list())
+                        .append(f._to_data(index))
+                    )
+
+            # Add json
+            part = writer.append_json(data)
+            part.set_content_disposition('form-data; name="payload_json"')
+            data = None
+
+        # Create multipart for forms
+        elif multipart:
+            headers["Content-Type"] = "multipart/form-data"
+            writer = aiohttp.MultipartWriter()
+            data = cast(dict, data)
+            for k, v in data.items():
+                if isinstance(data, File):
+                    part = writer.append(
+                        v.data,
+                        {"Content-Type": v.content_type},  # pyright: ignore
+                    )
+                else:
+                    part = writer.append(v)
+                part.set_content_disposition(f'form-data; name="{k}"')
+            data = None
+
+        # Send request
         log.debug(
             "Sending {0.method} {0.path} with {1}"
-            .format(route, data)
+            .format(route, data or writer)
         )
         session = await self.get_session()
         resp: aiohttp.ClientResponse = await session.request(
             route.method,
             route.url,
             params=params,
-            json=data,
+            data=data or writer,
             headers=headers,
             timeout=5,
         )
-        json: dict[Any, Any] | None
+
+        # Parse response
+        given: dict[Any, Any] | None
         try:
-            json = await resp.json()
+            given = await resp.json()
         except Exception:
             if resp.ok:
-                json = None
+                given = None
             else:
                 raise AssertionError("Cannot parse JSON from response.")
         if not resp.ok:
-            assert isinstance(json, dict)
+            assert isinstance(given, dict)
             if resp.status == 401:
-                raise Unauthorized(json)
+                raise Unauthorized(given)
             elif resp.status == 404:
-                raise NotFound(json)
+                raise NotFound(given)
             else:
-                raise HTTPException(json)
+                raise HTTPException(given)
         log.debug(
             "Response {0.method} {0.path} returned {1.status} {2}"
-            .format(route, resp, json)
+            .format(route, resp, given)
         )
-        return json
+        return given
 
     @classmethod
     def _get_kwargs(

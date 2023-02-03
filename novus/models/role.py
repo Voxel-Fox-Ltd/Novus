@@ -17,10 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from ..flags import Permissions
 from ..utils import cached_slot_property, try_snowflake
+from .api_mixins.role import RoleAPIMixin
 from .asset import Asset
 
 if TYPE_CHECKING:
@@ -33,7 +34,7 @@ __all__ = (
 )
 
 
-class Role:
+class Role(RoleAPIMixin):
     """
     A model for a guild role.
 
@@ -111,54 +112,3 @@ class Role:
         if self.icon_hash is None:
             return None
         return Asset.from_role(self)
-
-    async def delete(self, *, reason: str | None = None) -> None:
-        """
-        Delete the role from the guild.
-
-        Parameters
-        ----------
-        reason : str | None
-            The reason shown in the audit log.
-        """
-
-        from .guild import Guild
-        return await Guild.delete_role(
-            self.guild,
-            self.id,
-            reason=reason,
-        )
-
-    async def edit(self, *, reason: str | None = None, **kwargs: Any) -> Role:
-        """
-        Edit a role.
-
-        Parameters
-        ----------
-        name : str
-            The new name of the role.
-        permissions : novus.Permissions
-            The permissions to be applied to the role.
-        color : int
-            The color to apply to the role.
-        hoist : bool
-            If the role should be displayed seperately in the sidebar.
-        icon : str | bytes | io.IOBase | None
-            The role's icon image. Only usable if the guild has the
-            ``ROLE_ICONS`` feature.
-        unicode_emoji : str
-            The role's unicode emoji. Only usable if the guild has the
-            ``ROLE_ICONS`` feature.
-        mentionable : bool
-            If the role is mentionable.
-        reason : str | None
-            The reason to be shown in the audit log.
-        """
-
-        from .guild import Guild
-        return await Guild.edit_role(
-            self.guild,
-            self.id,
-            reason=reason,
-            **kwargs,
-        )

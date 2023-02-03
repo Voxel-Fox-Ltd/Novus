@@ -15,25 +15,34 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .cached_slots import *
-from .enums import *
-from .files import *
-from .missing import *
-from .repr import *
-from .snowflakes import *
-from .times import *
+import types
 
-__all__: tuple[str, ...] = (
-    'DiscordDatetime',
-    'MISSING',
-    'add_not_missing',
-    'bytes_to_base64_data',
-    'cached_slot_property',
-    'generate_repr',
-    'get_mime_type_for_image',
-    'parse_timestamp',
-    'try_enum',
-    'try_id',
-    'try_object',
-    'try_snowflake',
+from .audit_log import GuildAuditAPI
+from .auto_moderation import GuildAutomodAPI
+from .channel import GuildChannelAPI
+from .emoji import GuildEmojiAPI
+from .guild import GuildAPI
+from .role import GuildRoleAPI
+from .scheduled_event import GuildEventAPI
+from .sticker import GuildStickerAPI
+from .user import GuildUserAPI
+
+__all__ = (
+    'GuildAPIMixin',
+)
+
+
+GuildAPIMixin = types.new_class(
+    "GuildAPIMixin",
+    (
+        GuildAuditAPI,
+        GuildAutomodAPI,
+        GuildChannelAPI,
+        GuildEmojiAPI,
+        GuildAPI,
+        GuildRoleAPI,
+        GuildEventAPI,
+        GuildStickerAPI,
+        GuildUserAPI,
+    )
 )

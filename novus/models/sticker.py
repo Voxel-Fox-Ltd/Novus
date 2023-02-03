@@ -19,8 +19,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..enums import sticker as sticker_enums
+from ..enums import StickerFormat, StickerType
 from ..utils import cached_slot_property, try_snowflake
+from .api_mixins.sticker import StickerAPIMixin
 from .asset import Asset
 
 if TYPE_CHECKING:
@@ -33,7 +34,7 @@ __all__ = (
 )
 
 
-class Sticker:
+class Sticker(StickerAPIMixin):
     """
     A model for a sticker.
 
@@ -76,16 +77,21 @@ class Sticker:
         '_cs_asset',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: StickerPayload, guild: Snowflake):
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: StickerPayload,
+            guild: Snowflake):
         self._state = state
-        self.id = try_snowflake(data['id'])
-        self.pack_id = try_snowflake(data.get('pack_id'))
-        self.name = data['name']
-        self.description = data['description']
-        self.type = sticker_enums.StickerType(data['type'])
-        self.format_type = sticker_enums.StickerFormat(data['format_type'])
-        self.available = data.get('available', True)
-        self.guild = guild
+        self.id: int = try_snowflake(data['id'])
+        self.pack_id: int | None = try_snowflake(data.get('pack_id'))
+        self.name: str = data['name']
+        self.description: str | None = data['description']
+        self.type: StickerType = StickerType(data['type'])
+        self.format_type: StickerFormat = StickerFormat(data['format_type'])
+        self.available: bool = data.get('available', True)
+        self.guild: Snowflake = guild
 
     @cached_slot_property('_cs_asset')
     def asset(self) -> Asset:

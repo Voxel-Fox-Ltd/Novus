@@ -17,9 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, NoReturn
+
+from ..models import Object, Sticker
+from ._route import Route
 
 if TYPE_CHECKING:
+    from .. import payloads
     from ._http import HTTPConnection
 
 __all__ = (
@@ -31,3 +35,145 @@ class StickerHTTPConnection:
 
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
+
+    async def get_sticker(self, sticker_id: int) -> Sticker:
+        """
+        Get a sticker from the API via its ID.
+
+        This route shouldn't really be used, but is included for completeness
+        sake.
+        """
+
+        route = Route(
+            "GET",
+            "/stickers/{sticker_id}",
+            sticker_id=sticker_id,
+        )
+        data: payloads.Sticker = await self.parent.request(route)
+        return Sticker(state=self.parent, data=data, guild=None)  # pyright: ignore
+
+    async def list_nitro_sticker_packs(self) -> NoReturn:
+        raise NotImplementedError()
+
+    async def list_guild_stickers(self, guild_id: int) -> list[Sticker]:
+        """
+        List the stickers within a guild.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/stickers",
+            guild_id=guild_id,
+        )
+        data: list[payloads.Sticker] = await self.parent.request(route)
+        guild = Object(guild_id, state=self.parent)
+        return [
+            Sticker(state=self.parent, data=d, guild=guild)
+            for d in data
+        ]
+
+    async def get_guild_sticker(self, guild_id: int, sticker_id: int) -> Sticker:
+        """
+        Get a sticker form a guild.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/stickers/{sticker_id}",
+            guild_id=guild_id,
+            sticker_id=sticker_id,
+        )
+        data: payloads.Sticker = await self.parent.request(route)
+        guild = Object(guild_id, state=self.parent)
+        return Sticker(state=self.parent, data=data, guild=guild)
+
+    async def create_guild_sticker(
+            self,
+            guild_id: int,
+            *,
+            reason: str | None = None,
+            **kwargs: dict[str, Any]) -> Sticker:
+        """
+        Create a sticker within a guild.
+        """
+
+        route = Route(
+            "POST",
+            "/guilds/{guild_id}/stickers",
+            guild_id=guild_id,
+        )
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "description",
+                    "tags",
+                    "file",
+                ),
+            },
+            kwargs,
+        )
+        data: payloads.Sticker = await self.parent.request(
+            route,
+            data=post_data,
+            reason=reason,
+            multipart=True,
+        )
+        guild = Object(guild_id, state=self.parent)
+        return Sticker(state=self.parent, data=data, guild=guild)
+
+    async def modify_guild_sticker(
+            self,
+            guild_id: int,
+            sticker_id: int,
+            *,
+            reason: str | None = None,
+            **kwargs: dict[str, Any]) -> Sticker:
+        """
+        Edit a sticker within a guild.
+        """
+
+        route = Route(
+            "PATCH",
+            "/guilds/{guild_id}/stickers/{sticker_id}",
+            guild_id=guild_id,
+            sticker_id=sticker_id,
+        )
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "description",
+                    "tags",
+                ),
+            },
+            kwargs,
+        )
+        data: payloads.Sticker = await self.parent.request(
+            route,
+            data=post_data,
+            reason=reason,
+        )
+        guild = Object(guild_id, state=self.parent)
+        return Sticker(state=self.parent, data=data, guild=guild)
+
+    async def delete_guild_sticker(
+            self,
+            guild_id: int,
+            sticker_id: int,
+            *,
+            reason: str) -> None:
+        """
+        Delete a guild sticker.
+        """
+
+        route = Route(
+            "DELETE",
+            "/guilds/{guild_id}/stickers/{sticker_id}",
+            guild_id=guild_id,
+            sticker_id=sticker_id,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+        )
