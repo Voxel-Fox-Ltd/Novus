@@ -524,6 +524,14 @@ Invite
     :inherited-members:
     :no-members: __init__
 
+StageInstance
+~~~~~~~~~~~~~
+
+.. autoclass:: StageInstance
+    :members:
+    :inherited-members:
+    :no-members: __init__
+
 Audit Logs
 ~~~~~~~~~~
 

@@ -17,9 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
+
+from ..models import StageInstance
+from ._route import Route
 
 if TYPE_CHECKING:
+    from .. import payloads
     from ._http import HTTPConnection
 
 __all__ = (
@@ -31,3 +35,108 @@ class StageHTTPConnection:
 
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
+
+    async def create_stage_instance(
+            self,
+            *,
+            reason: str | None = None,
+            **kwargs: dict[str, Any]) -> StageInstance:
+        """
+        Create a stage instance aassociated with a stage channel.
+        """
+
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "topic",
+                    "send_start_notification",
+                ),
+                "snowflake": (
+                    ("channel_id", "channel",),
+                ),
+                "enum": (
+                    "privacy_level",
+                ),
+            },
+            kwargs,
+        )
+        route = Route(
+            "POST",
+            "/stage-instances",
+        )
+        data: payloads.StageInstance = await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data,
+        )
+        return StageInstance(state=self.parent, data=data)
+
+    async def get_stage_instance(
+            self,
+            channel_id: int) -> StageInstance:
+        """
+        Get a stage instance.
+        """
+
+        route = Route(
+            "GET",
+            "/stage-instances/{channel_id}",
+            channel_id=channel_id,
+        )
+        data: payloads.StageInstance = await self.parent.request(
+            route,
+        )
+        return StageInstance(state=self.parent, data=data)
+
+    async def modify_stage_instance(
+            self,
+            channel_id: int,
+            *,
+            reason: str | None = None,
+            **kwargs: dict[str, Any]) -> StageInstance:
+        """
+        Update a stage instance.
+        """
+
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "topic",
+                ),
+                "enum": (
+                    "privacy_level",
+                ),
+            },
+            kwargs,
+        )
+        route = Route(
+            "PATCH",
+            "/stage-instances/{channel_id}",
+            channel_id=channel_id,
+        )
+        data: payloads.StageInstance = await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data,
+        )
+        return StageInstance(state=self.parent, data=data)
+
+    async def delete_stage_instance(
+            self,
+            channel_id: int,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Delete a stage instance.
+        """
+
+        route = Route(
+            "DELETE",
+            "/stage-instances/{channel_id}",
+            channel_id=channel_id,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+        )
+        return

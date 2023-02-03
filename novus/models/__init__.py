@@ -27,6 +27,7 @@ from .message import *
 from .object import *
 from .role import *
 from .scheduled_event import *
+from .stage_instance import *
 from .sticker import *
 from .user import *
 from .welcome_screen import *
