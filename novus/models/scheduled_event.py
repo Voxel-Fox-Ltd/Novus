@@ -31,6 +31,10 @@ if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..payloads import GuildScheduledEvent as EventPayload
 
+__all__ = (
+    'ScheduledEvent',
+)
+
 
 class ScheduledEvent(ScheduledEventAPIMixin):
     """

@@ -668,63 +668,63 @@ These are models returned from the API that you aren't intended to make yourself
 API
 ----
 
-.. autoclass:: novus.Route
+.. autoclass:: novus.api._route.Route
 
-.. autoclass:: novus.HTTPConnection
+.. autoclass:: novus.api.HTTPConnection
     :no-members:
 
-.. autoclass:: novus.ApplicationRoleHTTPConnection
+.. autoclass:: novus.api.application_role_connection_metadata.ApplicationRoleHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.AuditLogHTTPConnection
+.. autoclass:: novus.api.audit_log.AuditLogHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.AutoModerationHTTPConnection
+.. autoclass:: novus.api.auto_moderation.AutoModerationHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.ChannelHTTPConnection
+.. autoclass:: novus.api.channel.ChannelHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.EmojiHTTPConnection
+.. autoclass:: novus.api.emoji.EmojiHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.GuildHTTPConnection
+.. autoclass:: novus.api.guild.GuildHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.GuildEventHTTPConnection
+.. autoclass:: novus.api.guild_scheduled_event.GuildEventHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.GuildTemplateHTTPConnection
+.. autoclass:: novus.api.guild_template.GuildTemplateHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.InviteHTTPConnection
+.. autoclass:: novus.api.invite.InviteHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.StageHTTPConnection
+.. autoclass:: novus.api.stage_instance.StageHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.StickerHTTPConnection
+.. autoclass:: novus.api.sticker.StickerHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.UserHTTPConnection
+.. autoclass:: novus.api.user.UserHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.VoiceHTTPConnection
+.. autoclass:: novus.api.voice.VoiceHTTPConnection
     :members:
     :no-members: __init__
 
-.. autoclass:: novus.WebhookHTTPConnection
+.. autoclass:: novus.api.webhook.WebhookHTTPConnection
     :members:
     :no-members: __init__

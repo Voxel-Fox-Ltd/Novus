@@ -25,6 +25,14 @@ if TYPE_CHECKING:
     import io
     import pathlib
 
+__all__ = (
+    'Embed',
+    'MessageReference',
+    'Message',
+    'AllowedMentions',
+    'File',
+)
+
 
 class Embed:
 
