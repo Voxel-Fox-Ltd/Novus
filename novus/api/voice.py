@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 if TYPE_CHECKING:
     from ._http import HTTPConnection
@@ -31,3 +31,6 @@ class VoiceHTTPConnection:
 
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
+
+    async def list_voice_regions(self) -> NoReturn:
+        raise NotImplementedError()
