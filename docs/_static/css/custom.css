@@ -18,7 +18,6 @@
 .py.class > .sig .sig-name:after,
 .py.method > .sig .sig-name:after{
     color: var(--color-api-keyword);
-/*     content: "(...)"; */
     margin-left: 2px;
 }
 
@@ -45,10 +44,6 @@
     overflow: clip;
 }
 
-/* .py.method > .sig:not(:has(.sig-param)) .sig-name:after {
-    content: "()";
-} */
-
 .sig-param {
     margin-left: 2em;
     display: block;
@@ -62,9 +57,9 @@
     content: ","
 }
 
-.sig-param:last-of-type:not(:has(+ .sig-paren)) {
+/* .sig-param:last-of-type:not(:has(+ .sig-paren)) {
     display: inline;
-}
+} */
 
 .sig-param:last-of-type:after {
     content: none;

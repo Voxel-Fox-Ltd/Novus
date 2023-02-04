@@ -493,7 +493,7 @@ User
 .. autoclass:: novus.User
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 GuildMember
 ~~~~~~~~~~~
@@ -501,7 +501,7 @@ GuildMember
 .. autoclass:: novus.GuildMember
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Guild
 ~~~~~
@@ -509,12 +509,12 @@ Guild
 .. autoclass:: novus.Guild
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.PartialGuild
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Invite
 ~~~~~~
@@ -522,7 +522,7 @@ Invite
 .. autoclass:: novus.Invite
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 StageInstance
 ~~~~~~~~~~~~~
@@ -530,22 +530,22 @@ StageInstance
 .. autoclass:: StageInstance
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Audit Logs
 ~~~~~~~~~~
 
 .. autoclass:: novus.AuditLog
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.AuditLogEntry
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.AuditLogContainer
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 Sticker
 ~~~~~~~
@@ -553,7 +553,7 @@ Sticker
 .. autoclass:: novus.Sticker
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Emoji
 ~~~~~
@@ -561,7 +561,7 @@ Emoji
 .. autoclass:: novus.Emoji
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Role
 ~~~~
@@ -569,7 +569,7 @@ Role
 .. autoclass:: novus.Role
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Message
 ~~~~~~~
@@ -577,7 +577,7 @@ Message
 .. autoclass:: novus.Message
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Auto Moderation
 ~~~~~~~~~~~~~~~
@@ -585,7 +585,7 @@ Auto Moderation
 .. autoclass:: novus.AutoModerationRule
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Auto Moderation
 ~~~~~~~~~~~~~~~
@@ -593,7 +593,7 @@ Auto Moderation
 .. autoclass:: novus.ScheduledEvent
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Discord Oauth Models
 ------------------------
@@ -604,7 +604,7 @@ authenticated via an Oauth access token.
 .. autoclass:: novus.OauthGuild
     :members:
     :inherited-members:
-    :no-members: __init__
+    :no-special-members:
 
 Discord Data Containers
 -----------------------
@@ -612,35 +612,27 @@ Discord Data Containers
 These are models are designed for you to initialize yourself so as to use them in API methods. They may also be returned from API methods.
 
 .. autoclass:: novus.Object
-    :special-members: __init__
     :members:
 
 .. autoclass:: novus.AllowedMentions
-    :special-members: __init__
     :members:
 
 .. autoclass:: novus.Embed
-    :special-members: __init__
     :members:
 
 .. autoclass:: novus.File
-    :special-members: __init__
     :members:
 
 .. autoclass:: novus.MessageReference
-    :special-members: __init__
     :members:
 
 .. autoclass:: novus.PermissionOverwrite
-    :special-members: __init__
     :members:
 
 .. autoclass:: novus.AutoModerationAction
-    :special-members: __init__
     :members:
 
 .. autoclass:: novus.AutoModerationTriggerMetadata
-    :special-members: __init__
     :members:
 
 
@@ -651,19 +643,19 @@ These are models returned from the API that you aren't intended to make yourself
 
 .. autoclass:: novus.WelcomeScreen
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.GuildPreview
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.GuildBan
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.Asset
     :members: get_url
-    :no-members: __init__
+    :no-special-members:
 
 API
 ----
@@ -675,56 +667,56 @@ API
 
 .. autoclass:: novus.api.application_role_connection_metadata.ApplicationRoleHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.audit_log.AuditLogHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.auto_moderation.AutoModerationHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.channel.ChannelHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.emoji.EmojiHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.guild.GuildHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.guild_scheduled_event.GuildEventHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.guild_template.GuildTemplateHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.invite.InviteHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.stage_instance.StageHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.sticker.StickerHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.user.UserHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.voice.VoiceHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
 
 .. autoclass:: novus.api.webhook.WebhookHTTPConnection
     :members:
-    :no-members: __init__
+    :no-special-members:
