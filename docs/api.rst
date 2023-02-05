@@ -527,7 +527,7 @@ Invite
 StageInstance
 ~~~~~~~~~~~~~
 
-.. autoclass:: StageInstance
+.. autoclass:: novus.StageInstance
     :members:
     :inherited-members:
     :no-special-members:

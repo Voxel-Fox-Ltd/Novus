@@ -113,24 +113,24 @@ class HTTPConnection:
     Attributes
     ----------
     application_role_connection_metadata: ApplicationRoleHTTPConnection
-    audit_log: Any
-    auto_moderation: Any
-    channel: Any
+    audit_log: AuditLogHTTPConnection
+    auto_moderation: AutoModerationHTTPConnection
+    channel: ChannelHTTPConnection
     emoji: EmojiHTTPConnection
     guild: GuildHTTPConnection
-    guild_scheduled_event: Any
-    guild_template: Any
-    invite: Any
-    stage_instance: Any
-    sticker: Any
+    guild_scheduled_event: GuildEventHTTPConnection
+    guild_template: GuildTemplateHTTPConnection
+    invite: InviteHTTPConnection
+    stage_instance: StageHTTPConnection
+    sticker: StickerHTTPConnection
     user: UserHTTPConnection
-    voice: Any
-    webhook: Any
+    voice: VoiceHTTPConnection
+    webhook: WebhookHTTPConnection
     """
 
     AUTH_PREFIX: str = "Bot"
 
-    def __init__(self, token: str):
+    def __init__(self, token: str, is_webhook_message: bool = False):
         self._session: aiohttp.ClientSession | None = None
         self._token = f"{self.AUTH_PREFIX} {token}"
         self._user_agent = (
@@ -152,6 +152,8 @@ class HTTPConnection:
         self.user = UserHTTPConnection(self)
         self.voice = VoiceHTTPConnection(self)
         self.webhook = WebhookHTTPConnection(self)
+        # if is_webhook_message:
+        #     self.channel.
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self._session:
