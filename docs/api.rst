@@ -587,10 +587,18 @@ Auto Moderation
     :inherited-members:
     :no-special-members:
 
-Auto Moderation
+Scheduled Event
 ~~~~~~~~~~~~~~~
 
 .. autoclass:: novus.ScheduledEvent
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+Webhook
+~~~~~~~
+
+.. autoclass:: novus.Webhook
     :members:
     :inherited-members:
     :no-special-members:

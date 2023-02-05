@@ -21,7 +21,7 @@ from dataclasses import dataclass
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Any
 
-from ..utils import cached_slot_property, get_mime_type_for_image
+from ..utils import cached_slot_property, get_mime_type_for_image, parse_timestamp
 
 if TYPE_CHECKING:
     import io
@@ -253,7 +253,7 @@ class Embed:
     def _from_data(cls, data: EmbedPayload) -> Embed:
         timestamp = data.get("timestamp")
         if timestamp is not None:
-            timestamp = dt.fromisoformat(timestamp)
+            timestamp = parse_timestamp(timestamp)
         embed = cls(
             title=data.get("title"),
             type=data.get("type") or "rich",

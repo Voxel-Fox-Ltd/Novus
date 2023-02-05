@@ -22,10 +22,8 @@ from typing import TYPE_CHECKING, Any
 from ...utils import MISSING
 
 if TYPE_CHECKING:
-    import io
-
     from ...flags import Permissions
-    from .. import Role
+    from .. import File, Role
     from ..abc import StateSnowflakeWithGuild
 
 
@@ -59,8 +57,8 @@ class RoleAPIMixin:
             permissions: Permissions = MISSING,
             color: int = MISSING,
             hoist: bool = MISSING,
-            icon: str | bytes | io.IOBase | None = MISSING,
-            unicode_emoji: str = MISSING,
+            icon: File | None = MISSING,
+            unicode_emoji: str | None = MISSING,
             mentionable: bool = MISSING) -> Role:
         """
         Edit a role.
@@ -75,10 +73,11 @@ class RoleAPIMixin:
             The color to apply to the role.
         hoist : bool
             If the role should be displayed seperately in the sidebar.
-        icon : str | bytes | io.IOBase | None
+        icon : discord.File | None
             The role's icon image. Only usable if the guild has the
-            ``ROLE_ICONS`` feature.
-        unicode_emoji : str
+            ``ROLE_ICONS`` feature. All aside from the data itself is
+            discarded.
+        unicode_emoji : str | None
             The role's unicode emoji. Only usable if the guild has the
             ``ROLE_ICONS`` feature.
         mentionable : bool
@@ -98,7 +97,9 @@ class RoleAPIMixin:
         if hoist is not MISSING:
             update['hoist'] = hoist
         if icon is not MISSING:
-            update['icon'] = icon
+            update['icon'] = None
+            if icon is not None:
+                update['icon'] = icon.data
         if unicode_emoji is not MISSING:
             update['unicode_emoji'] = unicode_emoji
         if mentionable is not MISSING:

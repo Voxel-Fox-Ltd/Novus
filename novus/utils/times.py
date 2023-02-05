@@ -28,10 +28,30 @@ __all__ = (
 
 
 class DiscordDatetime(dt):
+    """
+    A simple wrapper around the `datetime.datetime` object with a ``naive``
+    property so as to add a timezone object.
+
+    Properties
+    ----------
+    naive : novus.utils.DiscordDatetime
+    """
 
     @property
     def naive(self) -> DiscordDatetime:
-        return self.replace(tzinfo=timezone.utc)
+        return self.astimezone(timezone.utc).replace(tzinfo=None)
+
+    def deconstruct(self: dt) -> tuple:
+        return (
+            self.year,
+            self.month,
+            self.day,
+            self.hour,
+            self.minute,
+            self.second,
+            self.microsecond,
+            self.tzinfo,
+        )
 
 
 @overload
@@ -44,13 +64,13 @@ def parse_timestamp(timestamp: None) -> None:
     ...
 
 
-def parse_timestamp(timestamp: str | None) -> dt | None:
+def parse_timestamp(timestamp: dt | str | None) -> dt | None:
     """
     Parse an isoformat timestamp from Discord.
 
     Parameters
     ----------
-    timestamp : str
+    timestamp : datetime.datetime | str | None
         The parsed timestamp.
 
     Returns
@@ -61,6 +81,12 @@ def parse_timestamp(timestamp: str | None) -> dt | None:
 
     if timestamp is None:
         return None
-    parsed = DiscordDatetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%f+00:00")
-    parsed.replace(tzinfo=timezone.utc)
+    elif isinstance(timestamp, str):
+        parsed = DiscordDatetime.strptime(
+            timestamp,
+            "%Y-%m-%dT%H:%M:%S.%f+00:00",
+        )
+        parsed.replace(tzinfo=timezone.utc)
+    elif isinstance(timestamp, dt):
+        parsed = DiscordDatetime(*DiscordDatetime.deconstruct(timestamp))
     return parsed

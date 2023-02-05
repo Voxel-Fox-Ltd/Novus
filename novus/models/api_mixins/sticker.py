@@ -58,8 +58,7 @@ class StickerAPIMixin:
             Description of the sticker.
         image : novus.File
             The image to be uploaded. All aside from the data itself is
-            discarded - the name and description are taken from the other
-            parameters.
+            discarded.
         reason : str | None
             The reason shown in the audit log.
 

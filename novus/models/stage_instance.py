@@ -27,6 +27,10 @@ if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..payloads import StageInstance as StageInstancePayload
 
+__all__ = (
+    'StageInstance',
+)
+
 
 class StageInstance(StageInstanceAPIMixin):
     """

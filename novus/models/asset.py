@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from .scheduled_event import ScheduledEvent
     from .sticker import Sticker
     from .user import GuildMember, User
+    from .webhook import Webhook
 
 __all__ = (
     'Asset',
@@ -128,7 +129,7 @@ class Asset:
         return cls(f"/stickers/{sticker.id}")
 
     @classmethod
-    def from_user_avatar(cls, user: User) -> Asset:
+    def from_user_avatar(cls, user: User | Webhook) -> Asset:
         return cls(f"/avatars/{user.id}/{user.avatar_hash}")
 
     @classmethod
