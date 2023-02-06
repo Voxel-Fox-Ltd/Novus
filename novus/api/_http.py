@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import io
+import json
 import logging
 from typing import TYPE_CHECKING, Any, Iterable, TypedDict, cast
 
@@ -107,7 +108,7 @@ class HTTPConnection:
 
     Parameters
     ----------
-    token : str
+    token : str | None
         The token to use.
 
     Attributes
@@ -130,10 +131,15 @@ class HTTPConnection:
 
     AUTH_PREFIX: str = "Bot"
 
-    def __init__(self, token: str, is_webhook_message: bool = False):
+    def __init__(
+            self,
+            token: str | None = None,
+            is_webhook_message: bool = False):
         self._session: aiohttp.ClientSession | None = None
-        self._token = f"{self.AUTH_PREFIX} {token}"
-        self._user_agent = (
+        self._token: str | None = None
+        if token:
+            self._token = f"{self.AUTH_PREFIX} {token}"
+        self._user_agent: str = (
             "DiscordBot (Python, Novus, https://github.com/Voxel-Fox-Ltd/Novus)"
         )
 
@@ -152,8 +158,6 @@ class HTTPConnection:
         self.user = UserHTTPConnection(self)
         self.voice = VoiceHTTPConnection(self)
         self.webhook = WebhookHTTPConnection(self)
-        # if is_webhook_message:
-        #     self.channel.
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self._session:
@@ -187,6 +191,8 @@ class HTTPConnection:
             "User-Agent": self._user_agent,
             "Content-Type": "application/json",
         }
+        if self._token is None:
+            del headers["Authorization"]
         if reason:
             headers['X-Audit-Log-Reason'] = reason
 
@@ -234,16 +240,19 @@ class HTTPConnection:
             data = None
 
         # Send request
+        data_str: str | None = None
+        if data:
+            data_str = json.dumps(data)
         log.debug(
             "Sending {0.method} {0.path} with {1}"
-            .format(route, data or writer)
+            .format(route, data_str or writer)
         )
         session = await self.get_session()
         resp: aiohttp.ClientResponse = await session.request(
             route.method,
             route.url,
             params=params,
-            data=data or writer,
+            data=data_str or writer,
             headers=headers,
             timeout=5,
         )

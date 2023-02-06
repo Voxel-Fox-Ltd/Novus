@@ -206,9 +206,9 @@ class WebhookHTTPConnection:
             webhook_id: int,
             token: str,
             *,
-            wait: Literal[False] = ...,
-            thread_id: int | None = ...,
-            **kwargs: dict[str, Any]) -> None:
+            wait: Literal[True],
+            thread_id: int | None,
+            **kwargs: dict[str, Any]) -> Message:
         ...
 
     @overload
@@ -217,9 +217,9 @@ class WebhookHTTPConnection:
             webhook_id: int,
             token: str,
             *,
-            wait: Literal[True] = ...,
-            thread_id: int | None = ...,
-            **kwargs: dict[str, Any]) -> Message:
+            wait: Literal[False],
+            thread_id: int | None,
+            **kwargs: dict[str, Any]) -> None:
         ...
 
     async def execute_webhook(
