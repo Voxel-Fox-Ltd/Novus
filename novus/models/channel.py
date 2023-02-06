@@ -81,6 +81,11 @@ def channel_factory(
             return MessageableChannel
 
 
+def channel_builder(*, state: HTTPConnection, data: ChannelPayload) -> Channel:
+    factory = channel_factory(data['type'])
+    return factory(state=state, data=data)
+
+
 class PermissionOverwrite:
     """
     A class representing a permission overwrite for a guild channel.
@@ -153,11 +158,6 @@ class Channel(Hashable):
         self.guild: StateSnowflake | None = None
 
     __repr__ = generate_repr(('id', 'type',))
-
-    @staticmethod
-    def _from_data(*, state: HTTPConnection, data: ChannelPayload) -> Channel:
-        factory = channel_factory(data['type'])
-        return factory(state=state, data=data)
 
 
 class MessageableChannel(Channel, Messageable):

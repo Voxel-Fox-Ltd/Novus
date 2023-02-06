@@ -19,9 +19,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from ..models.channel import channel_builder
 from ..utils import generate_repr, parse_timestamp
 from .api_mixins.invite import InviteAPIMixin
-from .channel import Channel
 from .guild import PartialGuild
 
 if TYPE_CHECKING:
@@ -66,7 +66,7 @@ class Invite(InviteAPIMixin):
         if channel:
             if 'guild' in data:
                 channel['guild_id'] = data['guild']['id']
-            self.channel = Channel._from_data(state=self._state, data=channel)
+            self.channel = channel_builder(state=self._state, data=channel)
         self.uses = data.get('uses')
         self.max_uses = data.get('max_uses')
         self.max_age = data.get('max_age')

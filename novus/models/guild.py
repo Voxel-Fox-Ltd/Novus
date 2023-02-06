@@ -30,6 +30,7 @@ from ..enums import (
     VerificationLevel,
 )
 from ..flags import Permissions, SystemChannelFlags
+from ..models.channel import channel_builder
 from ..utils import cached_slot_property, generate_repr, try_snowflake
 from .api_mixins.guild import GuildAPIMixin
 from .asset import Asset
@@ -210,9 +211,9 @@ class Guild(Hashable, GuildAPIMixin):
         'max_video_channel_users',
         'approximate_member_count',
         'welcome_screen',
-        'emojis',
-        'stickers',
 
+        '_emojis',
+        '_stickers',
         '_roles',
         '_members',
         '_guild_scheduled_events',
@@ -275,7 +276,7 @@ class Guild(Hashable, GuildAPIMixin):
         self._threads: dict[int, None] = {}
         self._voice_states: dict[int, None] = {}
         self._channels: dict[int, Channel] = {}
-        self._sync(data=data)  # type: ignore
+        self._sync(data=data)  # pyright: ignore
 
     def _sync(self, *, data: GatewayGuildPayload) -> None:
         """
@@ -324,7 +325,7 @@ class Guild(Hashable, GuildAPIMixin):
         if 'channels' in data:
             for d in data.get('channels', ()):
                 id = int(d['id'])
-                self._channels[id] = c = Channel._from_data(
+                self._channels[id] = c = channel_builder(
                     state=self._state,
                     data=d,
                 )

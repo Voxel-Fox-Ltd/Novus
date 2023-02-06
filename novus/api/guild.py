@@ -31,6 +31,7 @@ from ..models import (
     Thread,
     User,
 )
+from ..models.channel import channel_builder
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -204,7 +205,7 @@ class GuildHTTPConnection:
             route,
         )
         return [
-            Channel._from_data(state=self.parent, data=d)
+            channel_builder(state=self.parent, data=d)
             for d in data
         ]
 
@@ -254,7 +255,7 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        return Channel._from_data(state=self.parent, data=data)
+        return channel_builder(state=self.parent, data=data)
 
     async def move_guild_channels(self, guild_id: int) -> NoReturn:
         raise NotImplementedError()

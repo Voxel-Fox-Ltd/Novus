@@ -19,7 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ..models import Channel, DMChannel, GuildMember, OauthGuild, Object, User
+from ..models import DMChannel, GuildMember, OauthGuild, Object, User
+from ..models.channel import channel_builder
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -195,7 +196,7 @@ class UserHTTPConnection:
             route,
             data=json,
         )
-        created = Channel._from_data(state=self.parent, data=data)
+        created = channel_builder(state=self.parent, data=data)
         if not isinstance(created, DMChannel):
             raise TypeError("Created channel was not a DM channel.")
         return created

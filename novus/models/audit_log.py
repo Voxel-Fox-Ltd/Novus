@@ -20,10 +20,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Generator
 
 from ..enums import AuditLogEventType
+from ..models.channel import channel_builder
 from ..utils import cached_slot_property, generate_repr, try_snowflake
 from .api_mixins.audit_log import AuditLogAPIMixin
+from .auto_moderation import AutoModerationRule
 from .channel import Channel
+from .scheduled_event import ScheduledEvent
 from .user import User
+from .webhook import Webhook
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -131,7 +135,7 @@ class AuditLogEntry:
             self.options = AuditLogContainer()
             for k, v in data['options'].items():
                 if k.endswith("_id") or k == "id":
-                    v = int(v)  # type: ignore
+                    v = int(v)  # pyright: ignore
                 setattr(self.options, k, v)
 
         self.before: AuditLogContainer | None = AuditLogContainer()
@@ -156,7 +160,7 @@ class AuditLogEntry:
                 assert nv is not None
                 for k, v in nv[0].items():
                     if k == "id":
-                        v = int(v)  # type: ignore
+                        v = int(v)  # pyright: ignore
                     setattr(change_obj, k, v)
                 continue
 
@@ -268,38 +272,38 @@ class AuditLog(AuditLogAPIMixin):
             for d in data['audit_log_entries']
         ]
 
-        self._application_commands = {}
-        self._auto_moderation_rules = {}
-        self._guild_scheduled_events = {}
-        self._integrations = {}
+        self._application_commands: dict[int, Any | None] = {}
+        self._auto_moderation_rules: dict[int, AutoModerationRule | None] = {}
+        self._guild_scheduled_events: dict[int, ScheduledEvent | None] = {}
+        self._integrations: dict[int, Any | None] = {}
         self._threads: dict[int, Channel | None] = {}
         self._users: dict[int, User | None] = {}
-        self._webhooks = {}
+        self._webhooks: dict[int, Webhook | None] = {}
 
     __repr__ = generate_repr(('guild',))
 
     def __iter__(self) -> Iterator[AuditLogEntry]:
         return iter(self.entries)
 
-    def _get_application_command(self, id: int):
+    def _get_application_command(self, id: int) -> Any | None:
         if id in self._application_commands:
             return self._application_commands[id]
-        # TODO
+        raise NotImplementedError()
 
-    def _get_auto_moderation_rule(self, id: int):
+    def _get_auto_moderation_rule(self, id: int) -> AutoModerationRule | None:
         if id in self._auto_moderation_rules:
             return self._auto_moderation_rules[id]
-        # TODO
+        raise NotImplementedError()
 
-    def _get_guild_scheduled_event(self, id: int):
+    def _get_guild_scheduled_event(self, id: int) -> ScheduledEvent | None:
         if id in self._guild_scheduled_events:
             return self._guild_scheduled_events[id]
-        # TODO
+        raise NotImplementedError()
 
-    def _get_integration(self, id: int):
+    def _get_integration(self, id: int) -> Any | None:
         if id in self._integrations:
             return self._integrations[id]
-        # TODO
+        raise NotImplementedError()
 
     def _get_thread(self, id: int) -> Channel | None:
         if id in self._threads:
@@ -307,7 +311,7 @@ class AuditLog(AuditLogAPIMixin):
         if id in self._targets['threads']:
             self._threads[id] = None
             return None
-        self._threads[id] = u = Channel._from_data(
+        self._threads[id] = u = channel_builder(
             data=self._targets['threads'][id],
             state=self._state,
         )
@@ -325,7 +329,7 @@ class AuditLog(AuditLogAPIMixin):
         )
         return u
 
-    def _get_webhook(self, id: int):
+    def _get_webhook(self, id: int) -> Webhook | None:
         if id in self._webhooks:
             return self._webhooks[id]
-        # TODO
+        raise NotImplementedError()
