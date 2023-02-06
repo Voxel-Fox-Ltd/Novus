@@ -20,7 +20,9 @@ from .asset import *
 from .audit_log import *
 from .auto_moderation import *
 from .channel import *
+from .embed import *
 from .emoji import *
+from .file import *
 from .guild import *
 from .invite import *
 from .message import *
