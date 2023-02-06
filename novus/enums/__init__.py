@@ -20,44 +20,31 @@ from .auto_moderation import *
 from .channel import *
 from .guild import *
 from .locale import *
+from .message import *
 from .scheduled_event import *
 from .sticker import *
 from .user import *
 
-__all__ = (
-    # audit_log
+__all__: tuple[str, ...] = (
     'AuditLogEventType',
-
-    # auto_moderation
+    'AutoModerationActionType',
+    'AutoModerationEventType',
     'AutoModerationKeywordPresetType',
     'AutoModerationTriggerType',
-    'AutoModerationEventType',
-    'AutoModerationActionType',
-
-    # channel
     'ChannelType',
-    'PermissionOverwriteType',
-
-    # guild
-    'NSFWLevel',
-    'PremiumTier',
-    'MFALevel',
     'ContentFilterLevel',
-    'VerificationLevel',
-    'NotificationLevel',
-
-    # locale
-    'Locale',
-
-    # scheduled_event
+    'EventEntityType',
     'EventPrivacyLevel',
     'EventStatus',
-    'EventEntityType',
-
-    # sticker
-    'StickerType',
+    'Locale',
+    'MFALevel',
+    'MessageType',
+    'NSFWLevel',
+    'NotificationLevel',
+    'PermissionOverwriteType',
+    'PremiumTier',
     'StickerFormat',
-
-    # user
+    'StickerType',
     'UserPremiumType',
+    'VerificationLevel',
 )
