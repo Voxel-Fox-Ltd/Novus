@@ -21,19 +21,10 @@ from .message import *
 from .permissions import *
 from .user import *
 
-__all__ = (
-    # application
+__all__: tuple[str, ...] = (
     'ApplicationFlags',
-
-    # guild
-    'SystemChannelFlags',
-
-    # message
     'MessageFlags',
-
-    # permissions
     'Permissions',
-
-    # user
+    'SystemChannelFlags',
     'UserFlags',
 )

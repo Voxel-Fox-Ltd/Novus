@@ -24,6 +24,7 @@ from ..utils import MISSING
 if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..flags import MessageFlags
+    from .abc import StateSnowflake
     from .message import AllowedMentions, Embed, File, Message
     from .sticker import Sticker
 
@@ -71,7 +72,7 @@ class Messageable:
         raise NotImplementedError()
 
     async def send(
-            self,
+            self: StateSnowflake | Messageable,
             content: str = MISSING,
             *,
             tts: bool = MISSING,
@@ -94,7 +95,7 @@ class Messageable:
             The embeds you want added to the message.
         allowed_mentions : novus.AllowedMentions
             The mentions you want parsed in the message.
-        message_reference : novus.MessageReference
+        message_reference : novus.Message
             A reference to a message you want replied to.
         stickers : list[novus.Sticker]
             A list of stickers to add to the message.
@@ -104,7 +105,12 @@ class Messageable:
             The flags to be sent with the message.
         """
 
-        channel_id = await self._get_channel()
+        try:
+            channel_id = await self._get_channel()  # pyright: ignore
+        except NotImplementedError:
+            raise
+        except AttributeError:
+            channel_id = self.id  # type: ignore
 
         data: dict[str, Any] = {}
 
@@ -127,5 +133,5 @@ class Messageable:
 
         return await self._state.channel.create_message(
             channel_id,
-            data,
+            **data,
         )

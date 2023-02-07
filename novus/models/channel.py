@@ -78,7 +78,7 @@ def channel_factory(
                 "Unknown channel type %s"
                 % channel_type
             )
-            return MessageableChannel
+            return Channel
 
 
 def channel_builder(*, state: HTTPConnection, data: ChannelPayload) -> Channel:
@@ -135,10 +135,21 @@ class PermissionOverwrite:
     __repr__ = generate_repr(('id', 'type', 'allow', 'deny',))
 
 
-class Channel(Hashable):
+class Channel(Hashable, Messageable):
     """
     The base channel object that all other channels inherit from. This is also
     the object that will be returned if there is an unknown channel type.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the channel.
+    type : novus.ChannelType
+        The type of the channel.
+    guild : novus.abc.Snowflake | None
+        The guild that the channel is attached to.
+    raw : dict
+        The raw data usede to construct the channel object.
     """
 
     __slots__ = (
@@ -146,27 +157,46 @@ class Channel(Hashable):
         'id',
         'type',
         'guild',
-
         'raw',
     )
 
     def __init__(self, *, state: HTTPConnection, data: ChannelPayload):
         self._state = state
         self.id = try_snowflake(data['id'])
-        self.type = ChannelType(data['type'])
+        self.type = ChannelType(data.get('type', 0))
         self.raw = data
         self.guild: StateSnowflake | None = None
 
     __repr__ = generate_repr(('id', 'type',))
 
-
-class MessageableChannel(Channel, Messageable):
-
     async def _get_channel(self) -> int:
         return self.id
 
+    @classmethod
+    def partial(cls, state: HTTPConnection, id: int) -> Channel:
+        """
+        Create a partial channel object that you can use to run API methods on.
 
-class DMChannel(MessageableChannel):
+        Parameters
+        ----------
+        state : novus.api.HTTPConnection
+            The API connection.
+        id : int
+            The ID of the channel.
+
+        Returns
+        -------
+        novus.Channel
+            The channel object.
+        """
+
+        return cls(
+            state=state,
+            data={"id": id}  # pyright: ignore
+        )
+
+
+class DMChannel(Channel):
     """
     A channel associated with a user's DMs.
 
@@ -177,14 +207,15 @@ class DMChannel(MessageableChannel):
     """
 
 
-class GroupDMChannel(MessageableChannel):
+class GroupDMChannel(Channel):
     """
     A channel associated with a group DM.
 
     Attributes
     ----------
     id : int
-        The ID of the channel.
+        The
+         ID of the channel.
     """
 
 
@@ -240,7 +271,7 @@ class GuildChannel(Channel):
     __repr__ = generate_repr(('id', 'guild_id', 'name',))
 
 
-class GuildTextChannel(GuildChannel, MessageableChannel):
+class GuildTextChannel(GuildChannel):
     """
     A text channel inside of a guild.
 

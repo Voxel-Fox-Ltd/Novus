@@ -181,7 +181,7 @@ class WebhookAPIMixin:
             thread: int | Snowflake | None = None,
             tts: bool = MISSING,
             embeds: list[Embed] = MISSING,
-            components: Any = MISSING,
+            components: list[Any] = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
             message_reference: Message = MISSING,
             stickers: list[Sticker] = MISSING,
@@ -225,6 +225,8 @@ class WebhookAPIMixin:
             data["tts"] = tts
         if embeds is not MISSING:
             data["embeds"] = embeds
+        if components is not MISSING:
+            data["components"] = components
         if allowed_mentions is not MISSING:
             data["allowed_mentions"] = allowed_mentions
         if message_reference is not MISSING:

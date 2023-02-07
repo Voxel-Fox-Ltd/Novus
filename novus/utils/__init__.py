@@ -25,6 +25,7 @@ from .times import *
 
 __all__: tuple[str, ...] = (
     'DiscordDatetime',
+    'ME',
     'MISSING',
     'add_not_missing',
     'bytes_to_base64_data',

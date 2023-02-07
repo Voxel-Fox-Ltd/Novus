@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from ._http import *
 
 __all__ = (
-    # _http
     'HTTPConnection',
     'OauthHTTPConnection',
 )

@@ -8,9 +8,6 @@ ABCs and Mixins
 
 .. autoclass:: novus.abc.StateSnowflake
 
-.. autoclass:: novus.mixins.Messageable
-    :members:
-
 Enums
 ------
 
@@ -484,6 +481,10 @@ Utils
 
 .. autofunction:: novus.utils.try_object
 
+.. attribute:: novus.utils.ME
+
+    Used when you want to refer to the user object in certain places.
+
 Discord Models
 --------------
 
@@ -637,9 +638,6 @@ These are models are designed for you to initialize yourself so as to use them i
     :members:
 
 .. autoclass:: novus.File
-    :members:
-
-.. autoclass:: novus.MessageReference
     :members:
 
 .. autoclass:: novus.PermissionOverwrite
