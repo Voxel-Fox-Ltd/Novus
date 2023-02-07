@@ -26,6 +26,7 @@ __all__ = (
     'Snowflake',
     'StateSnowflake',
     'StateSnowflakeWithGuild',
+    'StateSnowflakeWithChannel',
     'OauthStateSnowflake',
 )
 
@@ -79,6 +80,26 @@ class StateSnowflakeWithGuild(Protocol):
     id: int
     _state: HTTPConnection
     guild: Snowflake
+
+
+@runtime_checkable
+class StateSnowflakeWithChannel(Protocol):
+    """
+    An ABC for Discord models that has a state attached.
+
+    Attributes
+    ----------
+    id : int
+        The model's unique ID.
+    _state : novus.HTTPConection
+        The HTTP connection state.
+    channel: novus.abc.Snowflake
+        An object containing the channel ID.
+    """
+
+    id: int
+    _state: HTTPConnection
+    channel: Snowflake
 
 
 @runtime_checkable

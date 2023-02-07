@@ -261,8 +261,7 @@ class WebhookHTTPConnection:
             },
             kwargs,
         )
-
-        files = post_data.pop("kwargs", [])
+        files = post_data.pop("files", [])
 
         params: dict[str, str] = {}
         if wait is not None:
@@ -349,8 +348,7 @@ class WebhookHTTPConnection:
             },
             kwargs,
         )
-
-        files = post_data.pop("kwargs", [])
+        files = post_data.pop("files", [])
 
         params: dict[str, str] = {}
         if thread_id is not None:

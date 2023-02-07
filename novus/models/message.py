@@ -21,8 +21,10 @@ from typing import TYPE_CHECKING, Any
 
 from .. import enums, flags
 from ..utils import generate_repr, parse_timestamp, try_snowflake
+from .api_mixins.message import MessageAPIMixin
 from .channel import channel_builder
 from .embed import Embed
+from .object import Object
 from .sticker import Sticker
 from .user import User
 
@@ -34,7 +36,6 @@ if TYPE_CHECKING:
     from ..payloads import Message as MessagePayload
 
 __all__ = (
-    'MessageReference',
     'Message',
     'AllowedMentions',
     'Attachment',
@@ -42,13 +43,7 @@ __all__ = (
 )
 
 
-class MessageReference:
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        ...
-
-
-class Message:
+class Message(MessageAPIMixin):
     """
     A model representing a message from Discord.
 
@@ -58,6 +53,8 @@ class Message:
         The ID of the message.
     channel_id : int
         The ID of the channel that the message was sent in.
+    channel : novus.abc.Snowflake
+        A snowflake channel object.
     author : novus.User
         The author of the message.
     content : str
@@ -118,6 +115,7 @@ class Message:
         '_state',
         'id',
         'channel_id',
+        'channel',
         'author',
         'content',
         'timestamp',
@@ -152,6 +150,7 @@ class Message:
         self._state = state
         self.id: int = try_snowflake(data["id"])
         self.channel_id: int = try_snowflake(data["channel_id"])
+        self.channel: Object = Object(self.channel_id, state=self._state)
         self.author: User = User(state=self._state, data=data["author"])
         self.content: str = data.get("content", "")
         self.timestamp: dt = parse_timestamp(data.get("timestamp"))
@@ -188,9 +187,6 @@ class Message:
         # self.activity = data["activity"]
         # self.application = data["application"]
         self.application_id: int | None = try_snowflake(data.get("application_id"))
-        self.message_reference: MessageReference | None = None
-        if "message_reference" in data:
-            self.message_reference = MessageReference(data["message_reference"])
         self.flags: flags.MessageFlags = flags.MessageFlags(data.get("flags", 0))
         self.referenced_message: Message | None = None
         if "referenced_message" in data and data["referenced_message"]:

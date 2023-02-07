@@ -181,6 +181,7 @@ class WebhookAPIMixin:
             thread: int | Snowflake | None = None,
             tts: bool = MISSING,
             embeds: list[Embed] = MISSING,
+            components: Any = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
             message_reference: Message = MISSING,
             stickers: list[Sticker] = MISSING,
@@ -202,6 +203,8 @@ class WebhookAPIMixin:
             If you want the message to be sent with the TTS flag.
         embeds : list[novus.Embed]
             The embeds you want added to the message.
+        components : novus.Component
+            The components that you want added to the message.
         allowed_mentions : novus.AllowedMentions
             The mentions you want parsed in the message.
         message_reference : novus.MessageReference

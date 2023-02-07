@@ -19,6 +19,7 @@ from typing import Any, Callable, Literal
 
 __all__ = (
     'MISSING',
+    'ME',
     'add_not_missing',
 )
 
@@ -34,16 +35,25 @@ class MissingObject:
         return 'MISSING'
 
 
+class MeObject:
+
+    __slots__ = ()
+
+    def __repr__(self) -> Literal['ME']:
+        return 'ME'
+
+
 MISSING: Any = MissingObject()
+ME: Any = MeObject()
 
 
 def add_not_missing(
         kwargs: dict[Any, Any],
         key: str,
         item: Any,
-        additional: Callable[..., Any] | None = None) -> None:
+        to_call: Callable[..., Any] | None = None) -> None:
     if item is not MISSING:
-        if additional is None:
+        if to_call is None:
             kwargs[key] = item
         else:
-            kwargs[key] = additional(item)
+            kwargs[key] = to_call(item)

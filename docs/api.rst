@@ -503,6 +503,14 @@ GuildMember
     :inherited-members:
     :no-special-members:
 
+ThreadMember
+~~~~~~~~~~~~
+
+.. autoclass:: novus.ThreadMember
+    :members:
+    :inherited-members:
+    :no-special-members:
+
 Guild
 ~~~~~
 

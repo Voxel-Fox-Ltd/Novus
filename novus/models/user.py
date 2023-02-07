@@ -35,12 +35,14 @@ from .mixins import Hashable
 if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..payloads import GuildMember as GuildMemberPayload
+    from ..payloads import ThreadMember as ThreadMemberPayload
     from ..payloads import User as UserPayload
     from .abc import StateSnowflake
 
 __all__ = (
     'User',
     'GuildMember',
+    'ThreadMember',
 )
 
 
@@ -177,8 +179,9 @@ class GuildMember(User, GuildMemberAPIMixin):
     timeout_until : datetime.datetime | None
         When the user's timeout will expire and the user will be able to
         communicate again.
-    guild : novus.abc.StateSnowflake | novus.Guild
-        The guild that the member is part of.
+    guild : novus.abc.StateSnowflake | novus.Guild | None
+        The guild that the member is part of. May be ``None`` in some rare
+        cases (such as when getting raw API requests).
     """
 
     __slots__ = (
@@ -235,3 +238,36 @@ class GuildMember(User, GuildMemberAPIMixin):
         if self.guild_avatar_hash is None:
             return None
         return Asset.from_guild_member_avatar(self)
+
+
+class ThreadMember:
+    """
+    A model representing a member inside of a thread.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the user.
+    thread_id : int
+        The ID of the thread.
+    join_timestamp : datetime.datetime
+        The time that the user joined the thread.
+    member : novus.GuildMember | None
+        The guild member object.
+    """
+
+    def __init__(self, *, state: HTTPConnection, data: ThreadMemberPayload):
+        self._state = state
+
+        # either set here or updated elsewhere
+        self.thread_id: int = try_snowflake(data.get("id"))  # pyright: ignore
+        self.id: int = try_snowflake(data.get("user_id"))  # pyright: ignore
+
+        self.join_timestamp = parse_timestamp(data["join_timestamp"])
+        self.member: GuildMember | None = None
+        if "member" in data:
+            self.member = GuildMember(
+                state=self._state,
+                data=data["member"],
+                guild=None,  # pyright: ignore
+            )

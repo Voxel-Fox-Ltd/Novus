@@ -59,7 +59,6 @@ __all__: tuple[str, ...] = (
     'GuildTextChannel',
     'Invite',
     'Message',
-    'MessageReference',
     'OauthGuild',
     'Object',
     'PartialGuild',
