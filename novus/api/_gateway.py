@@ -25,7 +25,7 @@ import random
 import zlib
 from typing import TYPE_CHECKING, Any
 from typing import AsyncGenerator as AG
-from typing import TypeAlias, TypeVar, cast
+from typing import cast
 from urllib.parse import urlencode
 
 import aiohttp
@@ -39,25 +39,27 @@ from ._route import Route
 if TYPE_CHECKING:
     from ._http import HTTPConnection
 
-    N = TypeVar("N")
-    T: TypeAlias = dict[
-        str,
-        str | int | bool | None | list[N] | dict[str, N],
-    ]
-    # AnyJSON: TypeAlias = T | T[T] | T[T[T]]  # | T[T[T[T]]] | T[T[T[T[T]]]]
-    AnyJSON: TypeAlias = dict  # | T[T[T[T]]] | T[T[T[T[T]]]]
-
 
 log = logging.getLogger("novus.websocket")
 dump = json.dumps
 
 
-class GatewaySocket:
+class GatewayException(Exception):
+    """
+    When you get a generic gateway exception.
+    """
 
-    def __init__(self, socket: aiohttp.ClientWebSocketResponse):
-        self.socket = socket
-        self._buffer = bytearray()
-        self._zlib = zlib.decompressobj()
+
+class GatewayUnauthorized(GatewayException):
+    """
+    If you try and identify with an invalid token.
+    """
+
+
+class GatewayInvalidIntents(GatewayException):
+    """
+    Disallowed intents.
+    """
 
 
 class GatewayConnection:
@@ -84,12 +86,15 @@ class GatewayConnection:
     async def messages(
             self) -> AG[tuple[GatewayOpcode, str | None, int | None, dict[Any, Any]], None]:
         while True:
-            d = await self.receive()
+            try:
+                d = await self.receive()
+            except Exception:
+                return
             if d is None:
                 return
             yield d
 
-    async def send(self, opcode: GatewayOpcode, data: AnyJSON | None = None) -> None:
+    async def send(self, opcode: GatewayOpcode, data: dict | None = None) -> None:
         """
         Send a heartbeat to the connected socket.
         Will raise if there is no valid connected socket.
@@ -113,17 +118,49 @@ class GatewayConnection:
         Receive a message from the gateway.
         """
 
+        # Make sure we have a socket
         if self.socket is None:
             raise ValueError("Cannot receive messages from non-existing socket")
         elif self.socket.closed:
             raise ValueError("Cannot receive messages from closed socket")
+
+        # Loop until we have a whole message
         while True:
+
+            # Read data from the socket
             try:
                 data = await self.socket.receive()
-            except Exception:
+            except Exception as e:
+                log.error("Failed to read websocket", exc_info=e)
                 return None
+
+            # Catch any errors
+            if data.type == aiohttp.WSMsgType.ERROR:
+                log.info("Got error from socket %s" % data)
+                return None
+            elif data.type == aiohttp.WSMsgType.CLOSING:
+                log.info("Websocket closing apparently")
+                continue
+            elif data.type == aiohttp.WSMsgType.CLOSE:
+                log.info("Socket forced to close (%s %s)" % (data, data.extra))
+                match data.data:
+                    case 4004:
+                        raise GatewayUnauthorized()
+                    case 4014:
+                        raise GatewayInvalidIntents()
+                    case _:
+                        raise GatewayException()
+            elif data.type == aiohttp.WSMsgType.CLOSED:
+                log.info("Socket closed")
+                raise GatewayException()
+
+            # Decode data
             data_bytes = data.data
-            self._buffer.extend(data_bytes)
+            try:
+                self._buffer.extend(data_bytes)
+            except Exception as e:
+                log.critical("Failed to extend buffer %s" % str(data), exc_info=e)
+                raise
             if data_bytes[-4:] == b"\x00\x00\xff\xff":
                 decompressed = self._zlib.decompress(self._buffer)
                 decoded = decompressed.decode()

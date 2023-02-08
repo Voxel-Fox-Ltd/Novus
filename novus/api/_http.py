@@ -135,9 +135,10 @@ class HTTPConnection:
 
     def __init__(self, token: str | None = None):
         self._session: aiohttp.ClientSession | None = None
-        self._token: str | None = None
+        self._token: str | None = token
+        self._prefixed_token: str | None = None
         if token:
-            self._token = f"{self.AUTH_PREFIX} {token}"
+            self._prefixed_token = f"{self.AUTH_PREFIX} {token}"
         self._user_agent: str = (
             "DiscordBot (Python, Novus, https://github.com/Voxel-Fox-Ltd/Novus)"
         )
@@ -190,7 +191,7 @@ class HTTPConnection:
 
         # Set headers
         headers = {
-            "Authorization": self._token,
+            "Authorization": self._prefixed_token,
             "User-Agent": self._user_agent,
             "Content-Type": "application/json",
         }
