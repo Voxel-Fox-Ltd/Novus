@@ -40,6 +40,8 @@ __all__ = (
     'GroupDMChannel',
     'Thread',
     'ForumTag',
+    'GuildVoiceChannel',
+    'GuildCategory',
 )
 
 
@@ -53,12 +55,12 @@ def channel_factory(
             return GuildTextChannel
         case ChannelType.dm.value:
             return DMChannel
-        # case ChannelType.guild_voice.value:
-        #     return MessageableChannel
+        case ChannelType.guild_voice.value:
+            return GuildVoiceChannel
         case ChannelType.group_dm.value:
             return GroupDMChannel
-        # case ChannelType.guild_category.value:
-        #     return Channel
+        case ChannelType.guild_category.value:
+            return GuildCategory
         # case ChannelType.guild_announcement.value:
         #     return GuildTextChannel
         # case ChannelType.announcement_thread.value:
@@ -81,9 +83,15 @@ def channel_factory(
             return Channel
 
 
-def channel_builder(*, state: HTTPConnection, data: ChannelPayload) -> Channel:
+def channel_builder(
+        *,
+        state: HTTPConnection,
+        data: ChannelPayload,
+        guild: StateSnowflake | None = None) -> Channel:
     factory = channel_factory(data['type'])
-    return factory(state=state, data=data)
+    if guild is None or GuildChannel not in factory.mro():
+        return factory(state=state, data=data)
+    return factory(state=state, data=data, guild=guild)  # type: ignore
 
 
 class PermissionOverwrite:
@@ -239,10 +247,15 @@ class GuildChannel(Channel):
 
     guild: StateSnowflake
 
-    def __init__(self, *, state: HTTPConnection, data: ChannelPayload):
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: ChannelPayload,
+            guild: int | StateSnowflake | None = None):
         super().__init__(state=state, data=data)
         del self.raw  # Not needed for known types)
-        guild_id = try_snowflake(data.get('guild_id'))
+        guild_id = try_snowflake(data.get('guild_id')) or guild
         if guild_id is None:
             raise ValueError("Missing guild ID from guild channel %s" % data)
         self.position = data.get('position', 0)
@@ -266,7 +279,10 @@ class GuildChannel(Channel):
         self.last_message_id = try_snowflake(data.get('last_message_id'))
         self.parent_id = try_snowflake(data.get('parent_id'))
         self.rate_limit_per_user: int | None = data.get('rate_limit_per_user')
-        self.guild = Object(guild_id, state=self._state)
+        if isinstance(guild_id, int):
+            self.guild = Object(guild_id, state=self._state)
+        else:
+            self.guild = guild_id
 
     __repr__ = generate_repr(('id', 'guild_id', 'name',))
 
@@ -299,6 +315,67 @@ class GuildTextChannel(GuildChannel):
         an existing or valid message or thread.
     parent_id : int | None
         The ID of the parent container channel.
+    rate_limit_per_user: int | None
+        The amount of seconds a user has to wait before sending another
+        message.
+    """
+
+
+class GuildVoiceChannel(GuildChannel):
+    """
+    A text channel inside of a guild.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the channel.
+    type : novus.ChannelType
+        The type of the channel.
+    guild_id : int | None
+        The ID of the guild associated with the channel. May be ``None`` for
+        some channel objects received over gateway guild dispatches.
+    position: int
+        The sorting position of the channel (relative to its parent container).
+    permissions_overwrites: list[novus.PermissionOverwrite]
+        The overwrites assoicated with this channel.
+    name : str
+        The name of the channel.
+    topic : str | None
+        The topic set in the channel.
+    nsfw : bool
+        Whether or not the channel is marked as NSFW.
+    last_message_id : int | None
+        The ID of the last message sent in the channel. May or may not point to
+        an existing or valid message or thread.
+    parent_id : int | None
+        The ID of the parent container channel.
+    rate_limit_per_user: int | None
+        The amount of seconds a user has to wait before sending another
+        message.
+    """
+
+
+class GuildCategory(GuildChannel):
+    """
+    A guild category channel.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the channel.
+    type : novus.ChannelType
+        The type of the channel.
+    guild_id : int | None
+        The ID of the guild associated with the channel. May be ``None`` for
+        some channel objects received over gateway guild dispatches.
+    position: int
+        The sorting position of the channel (relative to its parent container).
+    permissions_overwrites: list[novus.PermissionOverwrite]
+        The overwrites assoicated with this channel.
+    name : str
+        The name of the channel.
+    nsfw : bool
+        Whether or not the channel is marked as NSFW.
     rate_limit_per_user: int | None
         The amount of seconds a user has to wait before sending another
         message.

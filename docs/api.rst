@@ -265,6 +265,35 @@ Scheduled Event
 Flags
 ------
 
+Intents
+~~~~~~~
+
+.. class:: novus.Intents
+
+    .. list-table::
+        :header-rows: 1
+
+        * - Attribute
+        * - ``guilds``
+        * - ``guild_members``
+        * - ``guild_moderation``
+        * - ``guild_emojis_and_stickers``
+        * - ``guild_integrations``
+        * - ``guild_webhooks``
+        * - ``guild_invites``
+        * - ``guild_voice_states``
+        * - ``guild_presences``
+        * - ``guild_messages``
+        * - ``guild_message_reactions``
+        * - ``guild_message_typing``
+        * - ``direct_messages``
+        * - ``direct_message_reactions``
+        * - ``direct_message_typing``
+        * - ``message_content``
+        * - ``guild_scheduled_events``
+        * - ``auto_moderation_configuration``
+        * - ``auto_moderation_execution``
+
 Application
 ~~~~~~~~~~~~
 

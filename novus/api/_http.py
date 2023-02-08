@@ -26,6 +26,8 @@ import aiohttp
 
 from ..models import File
 from ..utils import bytes_to_base64_data
+from ._cache import APICache
+from ._gateway import GatewayConnection
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
 from .audit_log import AuditLogHTTPConnection
 from .auto_moderation import AutoModerationHTTPConnection
@@ -131,10 +133,7 @@ class HTTPConnection:
 
     AUTH_PREFIX: str = "Bot"
 
-    def __init__(
-            self,
-            token: str | None = None,
-            is_webhook_message: bool = False):
+    def __init__(self, token: str | None = None):
         self._session: aiohttp.ClientSession | None = None
         self._token: str | None = None
         if token:
@@ -142,8 +141,9 @@ class HTTPConnection:
         self._user_agent: str = (
             "DiscordBot (Python, Novus, https://github.com/Voxel-Fox-Ltd/Novus)"
         )
+        self.cache = APICache(self)
 
-        # Specific routes
+        # Add API routes
         self.application_role_connection_metadata = ApplicationRoleHTTPConnection(self)
         self.audit_log = AuditLogHTTPConnection(self)
         self.auto_moderation = AutoModerationHTTPConnection(self)
@@ -158,6 +158,9 @@ class HTTPConnection:
         self.user = UserHTTPConnection(self)
         self.voice = VoiceHTTPConnection(self)
         self.webhook = WebhookHTTPConnection(self)
+
+        # Add gateway
+        self.gateway = GatewayConnection(self)
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self._session:
@@ -244,6 +247,10 @@ class HTTPConnection:
         if data:
             data_str = json.dumps(data)
         log.debug(
+            "Sending {0.method} {0.path} with {1}"
+            .format(route, data_str or writer)
+        )
+        print(
             "Sending {0.method} {0.path} with {1}"
             .format(route, data_str or writer)
         )

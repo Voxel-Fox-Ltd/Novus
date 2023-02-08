@@ -127,7 +127,7 @@ class User(Hashable, UserAPIMixin):
         self.locale = try_enum(Locale, data.get('locale'))
         self.verified = data.get('verified', False)
         self.email = data.get('email')
-        self.flags = None
+        self.flags = UserFlags(0)
         if 'flags' in data or 'public_flags' in data:
             self.flags = UserFlags(data.get('flags', 0) | data.get('public_flags', 0))
         self.premium_type = try_enum(UserPremiumType, data.get('premium_type', 0))
@@ -238,6 +238,28 @@ class GuildMember(User, GuildMemberAPIMixin):
         if self.guild_avatar_hash is None:
             return None
         return Asset.from_guild_member_avatar(self)
+
+    @property
+    def _user(self) -> User:
+        return User(
+            state=self._state,
+            data={
+                "id": str(self.id),
+                "username": self.username,
+                "discriminator": self.discriminator,
+                "avatar": self.avatar_hash,
+                "bot": self.bot,
+                "system": self.system,
+                "mfa_enabled": self.mfa_enabled,
+                "banner": self.banner_hash,
+                "accent_color": self.accent_color,
+                # "locale": self.locale.value if self.locale else None,
+                "verified": self.verified,
+                "email": self.email,
+                "flags": self.flags.value,
+                "premium_type": self.premium_type.value,
+            }
+        )
 
 
 class ThreadMember:

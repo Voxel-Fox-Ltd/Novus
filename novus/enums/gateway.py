@@ -15,18 +15,24 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .application import *
-from .gateway import *
-from .guild import *
-from .message import *
-from .permissions import *
-from .user import *
+from .utils import Enum
 
-__all__: tuple[str, ...] = (
-    'ApplicationFlags',
-    'Intents',
-    'MessageFlags',
-    'Permissions',
-    'SystemChannelFlags',
-    'UserFlags',
+__all__ = (
+    'GatewayOpcode',
 )
+
+
+class GatewayOpcode(Enum):
+    dispatch = 0
+    heartbeat = 1
+    identify = 2
+    presence = 3
+    voice_state = 4
+    voice_ping = 5
+    resume = 6
+    reconnect = 7
+    request_members = 8
+    invalidate_session = 9
+    hello = 10
+    heartbeat_ack = 11
+    guild_sync = 12

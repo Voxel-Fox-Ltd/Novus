@@ -63,7 +63,11 @@ class Route:
     BASE = os.getenv(
         "NOVUS_API_URL",
         "https://discord.com/api/v10",
-    )
+    ).rstrip("/")
+    WS_BASE = os.getenv(
+        "NOVUS_WS_URL",
+        "wss://gateway.discord.gg",
+    ).rstrip("/")
 
     def __init__(self, method: str, resource: str, **kwargs: str | int) -> None:
         self.method: str = method

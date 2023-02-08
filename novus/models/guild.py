@@ -17,6 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import asyncio
+import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, TypeAlias
 
@@ -34,21 +36,21 @@ from ..models.channel import channel_builder
 from ..utils import cached_slot_property, generate_repr, try_snowflake
 from .api_mixins.guild import GuildAPIMixin
 from .asset import Asset
-from .channel import Channel
+from .channel import Channel, Thread
 from .emoji import Emoji
 from .mixins import Hashable
 from .role import Role
+from .scheduled_event import ScheduledEvent
 from .sticker import Sticker
+from .user import GuildMember
 from .welcome_screen import WelcomeScreen
 
 if TYPE_CHECKING:
     import io
 
+    from .. import payloads
     from ..api import HTTPConnection
-    from ..payloads import GatewayGuild as GatewayGuildPayload
-    from ..payloads import Guild as APIGuildPayload
-    from ..payloads import GuildPreview as GuildPreviewPayload
-    from .user import GuildMember, User
+    from .user import User
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
@@ -59,6 +61,9 @@ __all__ = (
     'OauthGuild',
     'GuildPreview',
 )
+
+
+log = logging.getLogger("novus.guild")
 
 
 @dataclass
@@ -227,7 +232,7 @@ class Guild(Hashable, GuildAPIMixin):
         '_cs_banner',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: APIGuildPayload):
+    def __init__(self, *, state: HTTPConnection, data: payloads.Guild):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
@@ -272,13 +277,12 @@ class Guild(Hashable, GuildAPIMixin):
         self._stickers: dict[int, Sticker] = {}
         self._roles: dict[int, Role] = {}
         self._members: dict[int, GuildMember] = {}
-        self._guild_scheduled_events: dict[int, None] = {}
-        self._threads: dict[int, None] = {}
+        self._guild_scheduled_events: dict[int, ScheduledEvent] = {}
+        self._threads: dict[int, Thread] = {}
         self._voice_states: dict[int, None] = {}
         self._channels: dict[int, Channel] = {}
-        self._sync(data=data)  # pyright: ignore
 
-    def _sync(self, *, data: GatewayGuildPayload) -> None:
+    async def _sync(self, *, data: payloads.GatewayGuild) -> None:
         """
         Sync the cached state with the given gateway payload.
         """
@@ -287,13 +291,25 @@ class Guild(Hashable, GuildAPIMixin):
         if 'emojis' in data:
             for d in data['emojis']:
                 if d['id'] is None:
-                    continue
+                    return
                 id = int(d['id'])
-                self._emojis[id] = Emoji(state=self._state, data=d, guild=self)
+                self._emojis[id] = Emoji(
+                    state=self._state,
+                    data=d,
+                    guild=self,
+                )
+                await asyncio.sleep(0)
+
         if 'stickers' in data:
             for d in data['stickers']:
                 id = int(d['id'])
-                self._stickers[id] = Sticker(state=self._state, data=d, guild=self)
+                self._stickers[id] = Sticker(
+                    state=self._state,
+                    data=d,
+                    guild=self,
+                )
+                await asyncio.sleep(0)
+
         if 'roles' in data:
             for d in data['roles']:
                 id = int(d['id'])
@@ -302,6 +318,8 @@ class Guild(Hashable, GuildAPIMixin):
                     data=d,
                     guild=self,
                 )
+                await asyncio.sleep(0)
+
         if 'members' in data:
             for d in data.get('members', ()):
                 id = int(d['user']['id'])
@@ -310,26 +328,51 @@ class Guild(Hashable, GuildAPIMixin):
                     data=d,
                     guild=self,
                 )
+                await asyncio.sleep(0)
+
         if 'guild_scheduled_events' in data:
             for d in data.get('guild_scheduled_events', ()):
                 id = int(d['id'])
-                self._guild_scheduled_events[id] = None
-        if 'threads' in data:
-            for d in data.get('threads', ()):
-                id = int(d['id'])
-                self._threads[id] = None
-        if 'voice_states' in data:
-            for d in data.get('voice_states', ()):
-                id = int(d['user_id'])
-                self._voice_states[id] = None
-        if 'channels' in data:
-            for d in data.get('channels', ()):
-                id = int(d['id'])
-                self._channels[id] = c = channel_builder(
+                self._guild_scheduled_events[id] = ScheduledEvent(
                     state=self._state,
                     data=d,
                 )
-                c.guild = self
+                await asyncio.sleep(0)
+
+        if 'threads' in data:
+            for d in data.get('threads', ()):
+                id = int(d['id'])
+                self._threads[id] = t = Thread(
+                    state=self._state,
+                    data=d,
+                )
+                t.guild = self
+                await asyncio.sleep(0)
+
+        if 'voice_states' in data:
+            for d in data.get('voice_states', ()):
+                id = int(d['user_id'])
+                self._voice_states[id] = None  # TODO
+                await asyncio.sleep(0)
+
+        if 'channels' in data:
+            for d in data.get('channels', ()):
+                id = int(d['id'])
+                try:
+                    c = channel_builder(
+                        state=self._state,
+                        data=d,
+                        guild=self,
+                    )
+                except ValueError as e:
+                    log.error(
+                        "Error building channel in guild %s" % self.id,
+                        exc_info=e,
+                    )
+                else:
+                    self._channels[id] = c
+                    c.guild = self
+                await asyncio.sleep(0)
 
     __repr__ = generate_repr(('id', 'name',))
 
@@ -388,7 +431,7 @@ class OauthGuild(GuildAPIMixin):
         '_cs_icon',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: APIGuildPayload) -> None:
+    def __init__(self, *, state: HTTPConnection, data: payloads.Guild) -> None:
         self._state: HTTPConnection = state
         self.id: int = try_snowflake(data['id'])
         self.name: str = data['name']
@@ -474,7 +517,7 @@ class PartialGuild(GuildAPIMixin):
         '_cs_icon',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: APIGuildPayload):
+    def __init__(self, *, state: HTTPConnection, data: payloads.Guild):
         self._state = state
         self.id: int = try_snowflake(data['id'])
         self.name: str = data['name']
@@ -558,7 +601,7 @@ class GuildPreview(GuildAPIMixin):
         '_cs_discovery_splash',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: GuildPreviewPayload):
+    def __init__(self, *, state: HTTPConnection, data: payloads.GuildPreview):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
