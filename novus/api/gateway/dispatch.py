@@ -22,7 +22,7 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 
-from ...models import Channel, Guild, GuildMember, Invite, Message, User
+from ...models import Channel, Guild, GuildMember, Invite, Message, Role, User
 from ...models.channel import channel_builder
 from ...utils import try_snowflake
 
@@ -80,9 +80,9 @@ class GatewayDispatch:
             # "Guild member remove": None,
             # "Guild member update": None,
             # "Guild members chunk": None,
-            # "Guild role create": None,
-            # "Guild role update": None,
-            # "Guild role delete": None,
+            "GUILD_ROLE_CREATE": self._handle_role_create,
+            "GUILD_ROLE_UPDATE": self._handle_role_update,
+            "GUILD_ROLE_DELETE": self._handle_role_delete,
             # "Guild scheduled event create": None,
             # "Guild scheduled event update": None,
             # "Guild scheduled event delete": None,
@@ -171,19 +171,30 @@ class GatewayDispatch:
         self.cache.events.update(guild._guild_scheduled_events)
         return "guild_create", guild
 
-    async def _handle_guild_update(self, data: payloads.GatewayGuild) -> tuple[str, Guild] | None:
+    async def _handle_guild_update(self, data: payloads.GatewayGuild) -> tuple[str, tuple[Guild, Guild]] | None:
         guild = Guild(state=self.parent, data=data)
         await guild._sync(data=data)
         current = self.cache.guilds.get(guild.id, None)
         if current is not None:
             guild._members = current._members
+            current._channels = guild._channels
+            current._threads = guild._threads
+            current._emojis = guild._emojis
+            current._stickers = guild._stickers
+            current._guild_scheduled_events = guild._guild_scheduled_events
         self.cache.guilds[guild.id] = guild
         self.cache.channels.update(guild._channels)
         self.cache.channels.update(guild._threads)
         self.cache.emojis.update(guild._emojis)
         self.cache.stickers.update(guild._stickers)
         self.cache.events.update(guild._guild_scheduled_events)
-        return "guild_update", guild
+        if current is None:
+            log.info(
+                "Failed to get cached guild %s, ignoring guild update"
+                % guild.id
+            )
+            return None
+        return "guild_update", (current, guild)
 
     async def _handle_typing(self, data: dict[Any, Any]) -> tuple[str, User | GuildMember] | None:
         # This event isn't good for a lot, but it DOES give us a new
@@ -193,7 +204,7 @@ class GatewayDispatch:
             guild = self.cache.guilds.get(data["guild_id"])
             if guild is None:
                 log.info(
-                    "Failed to get cached guild %s, ignoring typing event"
+                    "Failed to get cached guild %s, ignoring typing"
                     % data["guild_id"]
                 )
                 return None
@@ -208,7 +219,7 @@ class GatewayDispatch:
         user = self.cache.users.get(data["user_id"])
         if user is None:
             log.info(
-                "Failed to get cached user %s, ignoring typing event"
+                "Failed to get cached user %s, ignoring typing"
                 % data["user_id"]
             )
             return None
@@ -239,13 +250,16 @@ class GatewayDispatch:
         return "message_delete", (int(data["channel_id"]), int(data["id"]),)
 
     async def _handle_channel_pins_update(self, data: dict[str, str]) -> None:
-        return None
+        log.debug("Ignoring channel pins update %s" % dump(data))
+        return None  # TODO
 
     async def _handle_presence_update(self, data: dict[Any, Any]) -> None:
-        log.debug("Ignoring presence update %s" % dump(data))  # TODO
+        log.debug("Ignoring presence update %s" % dump(data))
+        return None  # TODO
 
-    async def _handle_channel_generic(self, data: payloads.Channel) -> Channel | None:
+    async def _handle_channel_generic(self, data: payloads.Channel) -> tuple[Channel | None, Channel] | None:
         channel = channel_builder(state=self.parent, data=data)
+        current = None
         if "guild_id" in data:
             guild = self.cache.guilds.get(int(data["guild_id"]))
             if guild is None:
@@ -255,21 +269,28 @@ class GatewayDispatch:
                 )
                 return None
             channel.guild = guild
+            current = guild._channels.get(channel.id, None)
             guild._channels[channel.id] = channel
             self.cache.channels[channel.id] = channel
-        return channel
+        return current, channel
 
     async def _handle_channel_create(self, data: payloads.Channel) -> tuple[str, Channel] | None:
         channel = await self._handle_channel_generic(data)
         if channel is None:
             return None
-        return "channel_create", channel
+        return "channel_create", channel[1]
 
-    async def _handle_channel_update(self, data: payloads.Channel) -> tuple[str, Channel] | None:
+    async def _handle_channel_update(self, data: payloads.Channel) -> tuple[str, tuple[Channel, Channel]] | None:
         channel = await self._handle_channel_generic(data)
         if channel is None:
             return None
-        return "channel_update", channel
+        if channel[0] is None:
+            log.info(
+                "Failed to get channel %s from cache, ignoring channel update"
+                % channel[1].id
+            )
+            return None
+        return "channel_update", channel  # pyright: ignore
 
     async def _handle_channel_delete(self, data: payloads.Channel) -> tuple[str, Channel] | None:
         # Though we do get a channel in the payload, we'll try and get the one
@@ -319,3 +340,51 @@ class GatewayDispatch:
             int(data["guild_id"]),
             data["code"],
         )
+
+    async def _handle_role_create(self, data: dict[str, Any]) -> tuple[str, Role] | None:
+        guild = self.cache.guilds.get(int(data["guild_id"]))
+        if guild is None:
+            log.info(
+                "Failed to get guild %s from cache, ignoring role create"
+                % data["guild_id"]
+            )
+            return None
+        role = Role(state=self.parent, data=data["role"], guild=guild)
+        guild._roles[role.id] = role
+        return "role_create", role
+
+    async def _handle_role_update(self, data: dict[str, Any]) -> tuple[str, tuple[Role, Role]] | None:
+        guild = self.cache.guilds.get(int(data["guild_id"]))
+        if guild is None:
+            log.info(
+                "Failed to get guild %s from cache, ignoring role update"
+                % data["guild_id"]
+            )
+            return None
+        role = Role(state=self.parent, data=data["role"], guild=guild)
+        current = guild._roles.get(int(data["role_id"]), None)
+        guild._roles[role.id] = role
+        if current is None:
+            log.info(
+                "Failed to get role %s from cache, ignoring role update"
+                % data["role_id"]
+            )
+            return None
+        return "role_create", (current, role)
+
+    async def _handle_role_delete(self, data: dict[str, Any]) -> tuple[str, Role] | None:
+        guild = self.cache.guilds.get(int(data["guild_id"]))
+        if guild is None:
+            log.info(
+                "Failed to get guild %s from cache, ignoring role delete"
+                % data["guild_id"]
+            )
+            return None
+        role = guild._roles.pop(int(data["role_id"]), None)
+        if role is None:
+            log.info(
+                "Failed to get role %s from cache, ignoring role delete"
+                % data["role_id"]
+            )
+            return None
+        return "role_create", role
