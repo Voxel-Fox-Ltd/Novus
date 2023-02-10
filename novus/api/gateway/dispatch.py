@@ -60,7 +60,7 @@ class GatewayDispatch:
             "CHANNEL_CREATE": self._handle_channel_create,
             "CHANNEL_UPDATE": self._handle_channel_update,
             "CHANNEL_DELETE": self._handle_channel_delete,
-            # "Channel pins update": None,
+            "CHANNEL_PINS_UPDATE": self._handle_channel_pins_update,
             # "Thread create": None,
             # "Thread update": None,
             # "Thread delete": None,
@@ -96,7 +96,7 @@ class GatewayDispatch:
             # "Invite delete": None,
             "MESSAGE_CREATE": self._handle_message_create,
             "MESSAGE_UPDATE": self._handle_message_edit,
-            # "Message delete": None,
+            "MESSAGE_DELETE": self._handle_message_delete,
             # "Message delete bulk": None,
             # "Message reaction add": None,
             # "Message reaction remove": None,
@@ -234,6 +234,12 @@ class GatewayDispatch:
     async def _handle_message_edit(self, data: payloads.Message) -> tuple[str, Message]:
         message = await self._handle_message_generic(data)
         return "message_edit", message
+
+    async def _handle_message_delete(self, data: payloads.Message) -> tuple[str, tuple[int, int]]:
+        return "message_delete", (int(data["channel_id"]), int(data["id"]),)
+
+    async def _handle_channel_pins_update(self, data: dict[str, str]) -> None:
+        return None
 
     async def _handle_presence_update(self, data: dict[Any, Any]) -> None:
         log.debug("Ignoring presence update %s" % dump(data))  # TODO
