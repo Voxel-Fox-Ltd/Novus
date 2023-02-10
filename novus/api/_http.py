@@ -28,12 +28,12 @@ from ..models import File
 from ..utils import bytes_to_base64_data
 from ._cache import APICache
 from ._errors import HTTPException, NotFound, Unauthorized
-from ._gateway import GatewayConnection
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
 from .audit_log import AuditLogHTTPConnection
 from .auto_moderation import AutoModerationHTTPConnection
 from .channel import ChannelHTTPConnection
 from .emoji import EmojiHTTPConnection
+from .gateway.gateway import GatewayConnection
 from .guild import GuildHTTPConnection
 from .guild_scheduled_event import GuildEventHTTPConnection
 from .guild_template import GuildTemplateHTTPConnection
