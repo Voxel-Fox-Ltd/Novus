@@ -327,6 +327,12 @@ class GatewayConnection:
             },
         )
 
+    async def handle_dispatch(self, event_name: str, message: dict) -> None:
+        try:
+            await self.dispatch.handle_dispatch(event_name, message)
+        except Exception as e:
+            log.error("Error in dispatch (%s) (%s)" % (event_name, message), exc_info=e)
+
     async def message_handler(self) -> None:
         """
         Handle new incomming messages from the gateway.
@@ -345,10 +351,10 @@ class GatewayConnection:
                     event_name = cast(str, event_name)
                     sequence = cast(int, sequence)
                     self.sequence = sequence
-                    try:
-                        await self.dispatch.handle_dispatch(event_name, message)
-                    except Exception as e:
-                        print(e)
+                    asyncio.create_task(
+                        self.handle_dispatch(event_name, message),
+                        name="Dispatch handler for sequence %s" % sequence
+                    )
 
                 # Deal with reconnects
                 case GatewayOpcode.reconnect:
