@@ -22,7 +22,7 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 
-from ...models import Channel, Guild, GuildMember, Message, User
+from ...models import Channel, Guild, GuildMember, Invite, Message, User
 from ...models.channel import channel_builder
 from ...utils import try_snowflake
 
@@ -92,8 +92,8 @@ class GatewayDispatch:
             # "Integration update": None,
             # "Integration delete": None,
             # "Interaction create": None,
-            # "Invite create": None,
-            # "Invite delete": None,
+            "INVITE_CREATE": self._handle_invite_create,
+            "INVITE_DELETE": self._handle_invite_delete,
             "MESSAGE_CREATE": self._handle_message_create,
             "MESSAGE_UPDATE": self._handle_message_edit,
             "MESSAGE_DELETE": self._handle_message_delete,
@@ -304,3 +304,18 @@ class GatewayDispatch:
     async def _handle_guild_unban(self, data: dict[str, Any]) -> tuple[str, tuple[int, User]]:
         user = User(state=self.parent, data=data["user"])
         return "guild_unban", (int(data["guild_id"]), user,)
+
+    async def _handle_invite_create(self, data: payloads.Invite) -> tuple[str, Invite]:
+        invite = Invite(state=self.parent, data=data)  # pyright: ignore
+        if invite.channel:
+            channel = self.cache.channels.get(invite.channel.id, None)
+            if channel:
+                invite.channel = channel
+        return "invite_create", invite
+
+    async def _handle_invite_delete(self, data: dict[str, str]) -> tuple[str, tuple[int, int, str]]:
+        return "invite_delete", (
+            int(data["channel_id"]),
+            int(data["guild_id"]),
+            data["code"],
+        )
