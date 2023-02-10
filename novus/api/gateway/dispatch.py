@@ -71,8 +71,8 @@ class GatewayDispatch:
             "GUILD_UPDATE": self._handle_guild_update,
             # "Guild delete": None,
             # "Guild audit log entry create": None,
-            # "Guild ban add": None,
-            # "Guild ban remove": None,
+            "GUILD_BAN_ADD": self._handle_guild_ban,
+            "GUILD_BAN_REMOVE": self._handle_guild_unban,
             # "Guild emojis update": None,
             # "Guild stickers update": None,
             # "Guild integrations update": None,
@@ -294,3 +294,13 @@ class GatewayDispatch:
                 return None
             channel.guild = guild
         return "channel_delete", channel
+
+    async def _handle_guild_ban(self, data: dict[str, Any]) -> tuple[str, tuple[int, User]]:
+        # Here we're going to build the user from scratch; guild member remove
+        # will handle the user in cache
+        user = User(state=self.parent, data=data["user"])
+        return "guild_ban", (int(data["guild_id"]), user,)
+
+    async def _handle_guild_unban(self, data: dict[str, Any]) -> tuple[str, tuple[int, User]]:
+        user = User(state=self.parent, data=data["user"])
+        return "guild_unban", (int(data["guild_id"]), user,)
