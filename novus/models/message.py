@@ -31,7 +31,7 @@ from .user import User
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    from .. import Channel, Thread
+    from .. import Channel, GuildMember, Thread, abc
     from ..api import HTTPConnection
     from ..payloads import Message as MessagePayload
 
@@ -62,6 +62,7 @@ class Message(MessageAPIMixin):
     timestamp : datetime.datetime
         When the message was sent.
     edited_timestamp : datetime.datetime | None
+        When the message was last edited.
     tts : bool
         Whether or not the message was sent with TTS.
     mention_everyone : bool
@@ -109,6 +110,10 @@ class Message(MessageAPIMixin):
         An integer representin the approximate position in the thread.
     role_subscription_data : novus.RoleSubscription | None
         Data of the role subscription purchase.
+    guild_id : int | None
+        The guild associated with the message.
+    guild : novus.abc.Snowflake | None
+        The guild associated with the message.
     """
 
     __slots__ = (
@@ -144,6 +149,8 @@ class Message(MessageAPIMixin):
         'stickers',
         'position',
         'role_subscription_data',
+        'guild_id',
+        'guild',
     )
 
     def __init__(self, *, state: HTTPConnection, data: MessagePayload) -> None:
@@ -151,7 +158,14 @@ class Message(MessageAPIMixin):
         self.id: int = try_snowflake(data["id"])
         self.channel_id: int = try_snowflake(data["channel_id"])
         self.channel: Object = Object(self.channel_id, state=self._state)
-        self.author: User = User(state=self._state, data=data["author"])
+        self.author: User | GuildMember = User(state=self._state, data=data["author"])
+        self.guild_id: int | None = try_snowflake(data.get("guild_id"))
+        self.guild: abc.StateSnowflake | None = None
+        if self.guild_id:
+            self.guild = Object(self.guild_id, state=self._state)
+        if "member" in data:
+            assert self.guild
+            self.author._upgrade(data["member"], self.guild)
         self.content: str = data.get("content", "")
         self.timestamp: dt = parse_timestamp(data.get("timestamp"))
         self.edited_timestamp: dt | None = parse_timestamp(data.get("edited_timestamp"))
