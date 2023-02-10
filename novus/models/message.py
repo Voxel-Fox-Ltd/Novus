@@ -185,7 +185,7 @@ class Message(MessageAPIMixin):
         ]
         self.attachments: list[Attachment] = [
             Attachment(data=d)
-            for d in data["attachments"]
+            for d in data.get("attachments", [])
         ]
         self.embeds: list[Embed] = [
             Embed._from_data(d)
@@ -197,7 +197,7 @@ class Message(MessageAPIMixin):
         ]
         self.pinned: bool = data.get("pinned")
         self.webhook_id: int | None = try_snowflake(data.get("webhook_id"))
-        self.type: enums.MessageType = enums.MessageType(data["type"])
+        self.type: enums.MessageType = enums.MessageType(data.get("type", 0))
         # self.activity = data["activity"]
         # self.application = data["application"]
         self.application_id: int | None = try_snowflake(data.get("application_id"))

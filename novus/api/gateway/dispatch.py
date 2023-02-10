@@ -20,7 +20,7 @@ from __future__ import annotations
 import json
 import logging
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any, NoReturn, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from ...models import Channel, Guild, GuildMember, Invite, Message, Role, User
 from ...models.channel import channel_builder
@@ -76,9 +76,9 @@ class GatewayDispatch:
             # "Guild emojis update": None,
             # "Guild stickers update": None,
             # "Guild integrations update": None,
-            # "Guild member add": None,
-            # "Guild member remove": None,
-            # "Guild member update": None,
+            "GUILD_MEMBER_ADD": self._handle_guild_member_add,
+            "GUILD_MEMBER_REMOVE": self._handle_guild_member_remove,
+            "GUILD_MEMBER_UPDATE": self._handle_guild_member_update,
             # "Guild members chunk": None,
             "GUILD_ROLE_CREATE": self._handle_role_create,
             "GUILD_ROLE_UPDATE": self._handle_role_update,
@@ -113,9 +113,6 @@ class GatewayDispatch:
             # "Webhooks update": None,
         }
 
-    async def _placeholder(self, _: dict[Any, Any]) -> NoReturn:
-        raise NotImplementedError()
-
     async def handle_dispatch(self, event_name: str, data: dict) -> None:
         """
         Handle a Dispatch message from Discord.
@@ -129,13 +126,19 @@ class GatewayDispatch:
             return None
 
         coro = self.EVENT_HANDLER.get(event_name)
+        result: tuple[str, Any] | None = None
         if coro is None:
             log.warning(
                 "Failed to parse event %s %s"
                 % (event_name, dump(data))
             )
         else:
-            await coro(data)
+            result = await coro(data)
+        if result is None:
+            pass
+        else:
+            human_event_name, event_data = result
+            log.info(f"{human_event_name}: {event_data!r}")
 
         if event_name in [
                 "PRESENCE_UPDATE",
@@ -146,6 +149,7 @@ class GatewayDispatch:
                 "TYPING_START",
                 "CHANNEL_UPDATE",
                 "MESSAGE_UPDATE",
+                "GUILD_MEMBER_UPDATE",
                 "MESSAGE_DELETE"]:
             return None
         import os
@@ -225,8 +229,10 @@ class GatewayDispatch:
             return None
         return "typing", user
 
-    async def _handle_message_generic(self, data: payloads.Message) -> Message:
+    async def _handle_message_generic(self, data: payloads.Message) -> Message | None:
         """Handle message create and message edit."""
+        if "author" not in data:
+            return None  # We don't get anything interesting if we have no content intent
         message = Message(state=self.parent, data=data)
         author = message.author
         self.cache.users[message.author.id] = author._to_user()
@@ -240,10 +246,13 @@ class GatewayDispatch:
 
     async def _handle_message_create(self, data: payloads.Message) -> tuple[str, Message]:
         message = await self._handle_message_generic(data)
+        assert message
         return "message", message
 
-    async def _handle_message_edit(self, data: payloads.Message) -> tuple[str, Message]:
+    async def _handle_message_edit(self, data: payloads.Message) -> tuple[str, Message] | None:
         message = await self._handle_message_generic(data)
+        if message is None:
+            return None
         return "message_edit", message
 
     async def _handle_message_delete(self, data: payloads.Message) -> tuple[str, tuple[int, int]]:
@@ -264,7 +273,7 @@ class GatewayDispatch:
             guild = self.cache.guilds.get(int(data["guild_id"]))
             if guild is None:
                 log.info(
-                    "Failed to get guild %s from cache, ignoring channel create"
+                    "Failed to get guild %s from cache, ignoring channel event"
                     % data["guild_id"]
                 )
                 return None
@@ -341,36 +350,42 @@ class GatewayDispatch:
             data["code"],
         )
 
-    async def _handle_role_create(self, data: dict[str, Any]) -> tuple[str, Role] | None:
+    async def _handle_role_generic(self, data: dict[str, Any]) -> tuple[Role | None, Role] | None:
         guild = self.cache.guilds.get(int(data["guild_id"]))
         if guild is None:
             log.info(
-                "Failed to get guild %s from cache, ignoring role create"
+                "Failed to get guild %s from cache, ignoring role event"
                 % data["guild_id"]
             )
             return None
         role = Role(state=self.parent, data=data["role"], guild=guild)
-        guild._roles[role.id] = role
-        return "role_create", role
-
-    async def _handle_role_update(self, data: dict[str, Any]) -> tuple[str, tuple[Role, Role]] | None:
-        guild = self.cache.guilds.get(int(data["guild_id"]))
-        if guild is None:
-            log.info(
-                "Failed to get guild %s from cache, ignoring role update"
-                % data["guild_id"]
-            )
-            return None
-        role = Role(state=self.parent, data=data["role"], guild=guild)
-        current = guild._roles.get(int(data["role_id"]), None)
+        current = guild._roles.get(role.id, None)
         guild._roles[role.id] = role
         if current is None:
             log.info(
-                "Failed to get role %s from cache, ignoring role update"
-                % data["role_id"]
+                "Failed to get role %s from cache, ignoring role event"
+                % role.id
             )
             return None
-        return "role_create", (current, role)
+        return current, role
+
+    async def _handle_role_create(self, data: dict[str, Any]) -> tuple[str, Role] | None:
+        role = await self._handle_role_generic(data)
+        if role is None:
+            return None
+        return "role_create", role[1]
+
+    async def _handle_role_update(self, data: dict[str, Any]) -> tuple[str, tuple[Role, Role]] | None:
+        role = await self._handle_role_generic(data)
+        if role is None:
+            return None
+        if role[0] is None:
+            log.info(
+                "Failed to get role %s from cache, ignoring role update"
+                % role[1].id
+            )
+            return None
+        return "role_update", role  # pyright: ignore
 
     async def _handle_role_delete(self, data: dict[str, Any]) -> tuple[str, Role] | None:
         guild = self.cache.guilds.get(int(data["guild_id"]))
@@ -388,3 +403,63 @@ class GatewayDispatch:
             )
             return None
         return "role_create", role
+
+    async def _handle_guild_member_generic(
+            self,
+            data: payloads.GuildMember) -> tuple[GuildMember | None, GuildMember] | None:
+        guild = self.cache.guilds.get(int(data["guild_id"]))
+        if guild is None:
+            log.info(
+                "Failed to get guild %s from cache, ignoring member event"
+                % data["guild_id"]
+            )
+            return None
+        member = GuildMember(state=self.parent, data=data, guild=guild)
+        current = guild._members.get(member.id, None)
+        guild._members[member.id] = member
+        if current is None:
+            log.info(
+                "Failed to get guild member %s-%s from cache, ignoring member event"
+                % (member.guild.id, member.id)
+            )
+            return None
+        return current, member
+
+    async def _handle_guild_member_add(
+            self,
+            data: payloads.GuildMember) -> tuple[str, GuildMember] | None:
+        member = await self._handle_guild_member_generic(data)
+        if member is None:
+            return None
+        return "guild_member_add", member[1]
+
+    async def _handle_guild_member_update(
+            self,
+            data: payloads.GuildMember) -> tuple[str, tuple[GuildMember, GuildMember]] | None:
+        member = await self._handle_guild_member_generic(data)
+        if member is None:
+            return None
+        if member[0] is None:
+            log.info(
+                "Failed to get guild member %s-%s from cache, ignoring member update"
+                % (member[1].guild.id, member[1].id)
+            )
+            return None
+        return "guild_member_update", member  # pyright: ignore
+
+    async def _handle_guild_member_remove(self, data: dict[str, Any]) -> tuple[str, GuildMember] | None:
+        guild = self.cache.guilds.get(int(data["guild_id"]))
+        if guild is None:
+            log.info(
+                "Failed to get guild %s from cache, ignoring member remove"
+                % data["guild_id"]
+            )
+            return None
+        member = guild._members.pop(int(data["user"]["id"]), None)
+        if member is None:
+            log.info(
+                "Failed to get guild member %s-%s from cache, ignoring member remove"
+                % (data["guild_id"], data["user"]["id"])
+            )
+            return None
+        return "guild_member_remove", member
