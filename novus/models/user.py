@@ -146,6 +146,39 @@ class User(Hashable, UserAPIMixin):
             return None
         return Asset.from_user_banner(self)
 
+    def _upgrade(self, data: GuildMemberPayload, guild: StateSnowflake) -> GuildMember:
+        """
+        Upgrade a user member to a guild member if we can.
+        """
+
+        return GuildMember(
+            state=self._state,
+            data=data,
+            user=self._to_data(),
+            guild=guild,
+        )
+
+    def _to_user(self) -> User:
+        return self
+
+    def _to_data(self) -> UserPayload:
+        return {
+            "id": str(self.id),
+            "username": self.username,
+            "discriminator": self.discriminator,
+            "avatar": self.avatar_hash,
+            "bot": self.bot,
+            "system": self.system,
+            "mfa_enabled": self.mfa_enabled,
+            "banner": self.banner_hash,
+            "accent_color": self.accent_color,
+            # "locale": self.locale.value if self.locale else None,
+            "verified": self.verified,
+            "email": self.email,
+            "flags": self.flags.value,
+            "premium_type": self.premium_type.value,
+        }
+
 
 class GuildMember(User, GuildMemberAPIMixin):
     """
@@ -239,8 +272,7 @@ class GuildMember(User, GuildMemberAPIMixin):
             return None
         return Asset.from_guild_member_avatar(self)
 
-    @property
-    def _user(self) -> User:
+    def _to_user(self) -> User:
         return User(
             state=self._state,
             data={
