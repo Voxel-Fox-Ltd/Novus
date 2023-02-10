@@ -30,36 +30,23 @@ from urllib.parse import urlencode
 
 import aiohttp
 
-from ..enums import GatewayOpcode
-from ..flags import Intents
-from ..models import Guild, User
-from ..utils import try_snowflake
-from ._route import Route
+from ...enums import GatewayOpcode
+from ...flags import Intents
+from ...utils import MISSING
+from .._errors import GatewayClose, GatewayException
+from .._route import Route
+from .dispatch import GatewayDispatch
 
 if TYPE_CHECKING:
-    from ._http import HTTPConnection
+    from .._http import HTTPConnection
+
+__all__ = (
+    'GatewayConnection',
+)
 
 
-log = logging.getLogger("novus.websocket")
+log = logging.getLogger("novus.gateway")
 dump = json.dumps
-
-
-class GatewayException(Exception):
-    """
-    When you get a generic gateway exception.
-    """
-
-
-class GatewayUnauthorized(GatewayException):
-    """
-    If you try and identify with an invalid token.
-    """
-
-
-class GatewayInvalidIntents(GatewayException):
-    """
-    Disallowed intents.
-    """
 
 
 class GatewayConnection:
@@ -72,6 +59,13 @@ class GatewayConnection:
             "compress": "zlib-stream",
         })
         self.cache = self.parent.cache
+        self.dispatch = GatewayDispatch(self.parent)
+
+        # Initial identify data (for entire reconnects)
+        self.shard_id: int = 0
+        self.shard_count: int = 1
+        self.presence: None = None
+        self.intents: Intents = Intents.none()
 
         # Websocket data
         self.socket: aiohttp.ClientWebSocketResponse
@@ -80,21 +74,40 @@ class GatewayConnection:
 
         # Cached data
         self.heartbeat_task: asyncio.Task | None = None
-        self.sequence: int = -1
+        self.sequence: int | None = None
         self.resume_url = self.ws_url
+        self.session_id = None
 
     async def messages(
-            self) -> AG[tuple[GatewayOpcode, str | None, int | None, dict[Any, Any]], None]:
+            self) -> AG[tuple[GatewayOpcode, str | None, int | None, Any], None]:
         while True:
+            d = MISSING
+
+            # Get data
             try:
                 d = await self.receive()
+            except GatewayClose:
+                log.info("Gateway closing.")
+                return
+            except GatewayException as e:
+                if not e.reconnect:
+                    log.info("Cannot reconnect - starting a new session")
+                    await self.close()
+                    await self.connect()
+                    return
+                await self.reconnect()
+                continue
             except Exception:
                 return
+
+            # Yield data
             if d is None:
                 return
+            elif d is MISSING:
+                continue
             yield d
 
-    async def send(self, opcode: GatewayOpcode, data: dict | None = None) -> None:
+    async def send(self, opcode: GatewayOpcode, data: Any = MISSING) -> None:
         """
         Send a heartbeat to the connected socket.
         Will raise if there is no valid connected socket.
@@ -107,10 +120,18 @@ class GatewayConnection:
         sendable: dict[Any, Any] = {
             "op": opcode.value,
         }
-        if data is not None:
+        if data is not MISSING:
             sendable["d"] = data
-        log.debug("Sending websocket data %s" % dump(sendable))
-        await self.socket.send_json(sendable)
+        log.debug(
+            "Sending websocket data %s"
+            % dump(sendable).replace(self.parent._token or "\u200b", "TOKEN_REDACTED")
+        )
+        dumped = dump(
+            sendable,
+            separators=(',', ':'),
+            ensure_ascii=True,
+        )
+        await self.socket.send_str(dumped)
 
     async def receive(
             self) -> tuple[GatewayOpcode, str | None, int | None, dict[Any, Any]] | None:
@@ -139,17 +160,17 @@ class GatewayConnection:
                 log.info("Got error from socket %s" % data)
                 return None
             elif data.type == aiohttp.WSMsgType.CLOSING:
-                log.info("Websocket closing apparently")
-                continue
+                log.info(
+                    "Websocket closing apparently (%s %s)"
+                    % (data, data.extra)
+                )
+                raise GatewayClose()
             elif data.type == aiohttp.WSMsgType.CLOSE:
-                log.info("Socket forced to close (%s %s)" % (data, data.extra))
-                match data.data:
-                    case 4004:
-                        raise GatewayUnauthorized()
-                    case 4014:
-                        raise GatewayInvalidIntents()
-                    case _:
-                        raise GatewayException()
+                log.info(
+                    "Socket forced to close (%s %s)"
+                    % (data, data.extra)
+                )
+                raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
                 log.info("Socket closed")
                 raise GatewayException()
@@ -174,24 +195,46 @@ class GatewayConnection:
                     parsed.get("d"),
                 )
 
+    async def reconnect(self) -> None:
+        """
+        Reconnect to the gateway.
+        """
+
+        await self.close()
+        await self.connect(
+            self.ws_url,
+            reconnect=True,
+        )
+
     async def connect(
             self,
-            shard_id: int = 0,
-            shard_count: int = 1,
-            presence: None = None,
-            intents: Intents = Intents.none()) -> None:
+            ws_url: str | None = None,
+            reconnect: bool = False,
+            shard_id: int = MISSING,
+            shard_count: int = MISSING,
+            presence: None = MISSING,
+            intents: Intents = MISSING) -> None:
         """
         Create a connection to the gateway.
         """
 
+        # Cache the connect data
+        if reconnect is False:
+            self.shard_id = shard_id if shard_id is not MISSING else self.shard_id
+            self.shard_count = shard_count if shard_count is not MISSING else self.shard_count
+            self.presence = presence if presence is not MISSING else self.presence
+            self.intents = intents if intents is not MISSING else self.intents
+
         # Open socket
+        if reconnect is False:
+            self.sequence = None
         session = await self.parent.get_session()
-        log.info("Creating websocket connection to %s" % self.ws_url)
-        ws = await session.ws_connect(self.ws_url)
+        log.info("Creating websocket connection to %s" % ws_url or self.ws_url)
+        ws = await session.ws_connect(ws_url or self.ws_url)
         self.socket = ws
 
         # Send hello
-        got = await self.receive()  # pyright: ignore
+        got = await self.receive()
         if got is None:
             return
         _, _, _, data = got
@@ -200,17 +243,15 @@ class GatewayConnection:
         # Start heartbeat
         heartbeat_interval = data["heartbeat_interval"]
         self.heartbeat_task = asyncio.create_task(
-            self.heartbeat(heartbeat_interval, jitter=True)
+            self.heartbeat(heartbeat_interval, jitter=not reconnect)
         )
 
-        # Send identify
-        await self.identify(
-            shard_id=shard_id,
-            shard_count=shard_count,
-            presence=presence,
-            intents=intents,
-        )
-        self.message_task = asyncio.create_task(self.message_handler())
+        # Send identify or resume
+        if reconnect:
+            await self.resume()
+        else:
+            await self.identify()
+            self.message_task = asyncio.create_task(self.message_handler())
 
     async def close(self) -> None:
         """
@@ -237,20 +278,21 @@ class GatewayConnection:
         wait = heartbeat_interval
         if jitter:
             wait = heartbeat_interval * random.random()
+        log.info(
+            (
+                f"Starting heartbeat - initial {wait / 100:.2f}s, "
+                f"normally {heartbeat_interval / 100:.2f}s"
+            )
+        )
         while True:
             try:
                 await asyncio.sleep(wait / 1_000)
             except asyncio.CancelledError:
                 return
-            await self.send(GatewayOpcode.heartbeat)
+            await self.send(GatewayOpcode.heartbeat, self.sequence)
             wait = heartbeat_interval
 
-    async def identify(
-            self,
-            shard_id: int = 0,
-            shard_count: int = 1,
-            presence: None = None,
-            intents: Intents = Intents.none()) -> None:
+    async def identify(self) -> None:
         """
         Send an identify to Discord.
         """
@@ -265,40 +307,25 @@ class GatewayConnection:
                     "browser": "Novus",
                     "device": "Novus",
                 },
-                "shard": [shard_id, shard_count],
-                "intents": str(intents.value),
+                "shard": [self.shard_id, self.shard_count],
+                "intents": str(self.intents.value),
             },
         )
 
-    async def handle_dispatch(self, event_name: str, data: dict) -> None:
+    async def resume(self) -> None:
         """
-        Handle a Dispatch message from Discord.
+        Send a resume to Discord.
         """
 
-        match event_name:
-            case "READY":
-                self.cache.user = User(state=self.parent, data=data['user'])
-                self.cache.application_id = try_snowflake(data['application']['id'])
-
-            case "GUILD_CREATE":
-                guild = Guild(state=self.parent, data=data)  # pyright: ignore
-                await guild._sync(data=data)  # pyright: ignore
-                self.cache.guilds[guild.id] = guild
-                self.cache.users.update({
-                    k: v._user
-                    for k, v in guild._members.items()
-                })
-                self.cache.channels.update(guild._channels)
-                self.cache.channels.update(guild._threads)
-                self.cache.emojis.update(guild._emojis)
-                self.cache.stickers.update(guild._stickers)
-                self.cache.events.update(guild._guild_scheduled_events)
-
-            case "PRESENCE_UPDATE":
-                log.debug("Ignoring presence update %s" % dump(data))
-
-            case _:
-                print("Failed to parse event %s %s" % (event_name, dump(data)))
+        token = cast(str, self.parent._token)
+        await self.send(
+            GatewayOpcode.resume,
+            {
+                "token": token,
+                "session_id": self.session_id,
+                "seq": self.sequence,
+            },
+        )
 
     async def message_handler(self) -> None:
         """
@@ -319,9 +346,23 @@ class GatewayConnection:
                     sequence = cast(int, sequence)
                     self.sequence = sequence
                     try:
-                        await self.handle_dispatch(event_name, message)
+                        await self.dispatch.handle_dispatch(event_name, message)
                     except Exception as e:
                         print(e)
+
+                # Deal with reconnects
+                case GatewayOpcode.reconnect:
+                    await self.reconnect()
+
+                # Deal with invalid sesions
+                case GatewayOpcode.invalidate_session:
+                    if message is True:
+                        await self.reconnect()
+                    else:
+                        log.info("Session invalidated - creating a new session")
+                        await self.close()
+                        await self.connect()
+                        return  # Cancel this task so a new one will be created
 
                 # Everything else
                 case _:
