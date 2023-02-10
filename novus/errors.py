@@ -15,11 +15,26 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .api._http import HTTPException, NotFound, Unauthorized
+from .api._errors import *
 
 __all__ = (
-    # .api._http
     'HTTPException',
     'NotFound',
     'Unauthorized',
+    'GatewayException',
+    'GatewayUnknownError',
+    'GatewayUnknownOpcode',
+    'GatewayDecodeError',
+    'GatewayNotAuthenticated',
+    'GatewayAuthenticationFailed',
+    'GatewayAlreadyAuthenticated',
+    'GatewayInvalidSeq',
+    'GatewayRateLimited',
+    'GatewaySessionTimeout',
+    'GatewayInvalidShard',
+    'GatewayShardingRequired',
+    'GatewayInvalidAPIVersion',
+    'GatewayInvalidIntents',
+    'GatewayDisallowedIntents',
+    'GatewayClose',
 )

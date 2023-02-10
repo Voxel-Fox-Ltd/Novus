@@ -27,6 +27,7 @@ import aiohttp
 from ..models import File
 from ..utils import bytes_to_base64_data
 from ._cache import APICache
+from ._errors import HTTPException, NotFound, Unauthorized
 from ._gateway import GatewayConnection
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
 from .audit_log import AuditLogHTTPConnection
@@ -63,29 +64,6 @@ class FixableKwargs(TypedDict, total=False):
     object: Iterable[tuple[str, str] | str]
     timestamp: Iterable[tuple[str, str] | str]
     flags: Iterable[tuple[str, str] | str]
-
-
-class HTTPException(Exception):
-    """
-    Generic base class for all HTTP errors.
-    """
-
-    def __init__(self, payload: dict):
-        self.payload: dict = payload
-        self.message: str = payload['message']
-        self.code: int = payload['code']
-
-
-class NotFound(HTTPException):
-    """
-    When a resource cannot be found on the server.
-    """
-
-
-class Unauthorized(HTTPException):
-    """
-    When you are missing relevant permissions to access a resource.
-    """
 
 
 class HTTPConnection:
