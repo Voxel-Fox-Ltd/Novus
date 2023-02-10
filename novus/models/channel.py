@@ -41,7 +41,10 @@ __all__ = (
     'Thread',
     'ForumTag',
     'GuildVoiceChannel',
+    'GuildStageChannel',
     'GuildCategory',
+    'GuildAnnouncementChannel',
+    'GuildForumChannel',
 )
 
 
@@ -61,20 +64,20 @@ def channel_factory(
             return GroupDMChannel
         case ChannelType.guild_category.value:
             return GuildCategory
-        # case ChannelType.guild_announcement.value:
-        #     return GuildTextChannel
-        # case ChannelType.announcement_thread.value:
-        #     return GuildTextChannel
+        case ChannelType.guild_announcement.value:
+            return GuildAnnouncementChannel
+        case ChannelType.announcement_thread.value:
+            return GuildAnnouncementChannel
         case ChannelType.public_thread.value:
             return Thread
         case ChannelType.private_thread.value:
             return Thread
-        # case ChannelType.guild_stage_voice.value:
-        #     return Channel
+        case ChannelType.guild_stage_voice.value:
+            return GuildStageChannel
         # case ChannelType.guild_directory.value:
         #     return Channel
-        # case ChannelType.guild_forum.value:
-        #     return Channel
+        case ChannelType.guild_forum.value:
+            return GuildForumChannel
         case _:
             log.warning(
                 "Unknown channel type %s"
@@ -321,7 +324,7 @@ class GuildTextChannel(GuildChannel):
     """
 
 
-class GuildVoiceChannel(GuildChannel):
+class GuildVoiceChannel(GuildTextChannel):
     """
     A text channel inside of a guild.
 
@@ -355,6 +358,12 @@ class GuildVoiceChannel(GuildChannel):
     """
 
 
+class GuildStageChannel(GuildChannel):
+    """
+    A stage channel within a guild.
+    """
+
+
 class GuildCategory(GuildChannel):
     """
     A guild category channel.
@@ -379,6 +388,18 @@ class GuildCategory(GuildChannel):
     rate_limit_per_user: int | None
         The amount of seconds a user has to wait before sending another
         message.
+    """
+
+
+class GuildAnnouncementChannel(GuildTextChannel):
+    """
+    An announcement channel within a guild.
+    """
+
+
+class GuildForumChannel(GuildTextChannel):
+    """
+    A forum channel within a guild.
     """
 
 

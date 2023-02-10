@@ -255,8 +255,8 @@ class GuildMember(User, GuildMemberAPIMixin):
         ]
         self.joined_at = parse_timestamp(data['joined_at'])
         self.premium_since = parse_timestamp(data.get('premium_since'))
-        self.deaf = data['deaf']
-        self.mute = data['mute']
+        self.deaf = data.get('deaf', False)
+        self.mute = data.get('mute', False)
         self.pending = data.get('pending', False)
         self.permissions = None
         if 'permissions' in data:

@@ -82,6 +82,7 @@ class GuildMember(_GuildMemberOptional):
     joined_at: Timestamp
     deaf: bool
     mute: bool
+    guild_id: Snowflake
 
 
 class _UserConnectionOptional(TypedDict, total=False):

@@ -87,7 +87,7 @@ class Sticker(StickerAPIMixin):
         self.id: int = try_snowflake(data['id'])
         self.pack_id: int | None = try_snowflake(data.get('pack_id'))
         self.name: str = data['name']
-        self.description: str | None = data['description']
+        self.description: str | None = data.get('description')
         self.type: StickerType = StickerType(data['type'])
         self.format_type: StickerFormat = StickerFormat(data['format_type'])
         self.available: bool = data.get('available', True)
