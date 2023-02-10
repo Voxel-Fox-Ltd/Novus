@@ -1,4 +1,5 @@
 tests/env.yaml
+_GATEWAY/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

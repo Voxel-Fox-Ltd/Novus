@@ -22,7 +22,8 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, NoReturn, cast
 
-from ...models import Guild, GuildMember, Message, User
+from ...models import Channel, Guild, GuildMember, Message, User
+from ...models.channel import channel_builder
 from ...utils import try_snowflake
 
 if TYPE_CHECKING:
@@ -56,9 +57,9 @@ class GatewayDispatch:
             # "Auto moderation rule update": None,
             # "Auto moderation rule delete": None,
             # "Auto moderation action execution": None,
-            # "Channel create": None,
-            # "Channel update": None,
-            # "Channel delete": None,
+            "CHANNEL_CREATE": self._handle_channel_create,
+            "CHANNEL_UPDATE": self._handle_channel_update,
+            "CHANNEL_DELETE": self._handle_channel_delete,
             # "Channel pins update": None,
             # "Thread create": None,
             # "Thread update": None,
@@ -67,7 +68,7 @@ class GatewayDispatch:
             # "Thread member update": None,
             # "Thread members update": None,
             "GUILD_CREATE": self._handle_guild_create,
-            # "Guild update": None,
+            "GUILD_UPDATE": self._handle_guild_update,
             # "Guild delete": None,
             # "Guild audit log entry create": None,
             # "Guild ban add": None,
@@ -143,12 +144,13 @@ class GatewayDispatch:
                 "VOICE_STATE_UPDATE",
                 "READY",
                 "TYPING_START",
+                "CHANNEL_UPDATE",
                 "MESSAGE_UPDATE",
                 "MESSAGE_DELETE"]:
             return None
         import os
         import pathlib
-        base = pathlib.Path(__file__).parent.parent.parent
+        base = pathlib.Path(__file__).parent.parent.parent.parent
         evt = base / "_GATEWAY" / event_name
         os.makedirs(evt, exist_ok=True)
         with open(evt / f"{self.parent.gateway.sequence}_{self.session_id}.json", "w") as a:
@@ -168,6 +170,20 @@ class GatewayDispatch:
         self.cache.stickers.update(guild._stickers)
         self.cache.events.update(guild._guild_scheduled_events)
         return "guild_create", guild
+
+    async def _handle_guild_update(self, data: payloads.GatewayGuild) -> tuple[str, Guild] | None:
+        guild = Guild(state=self.parent, data=data)
+        await guild._sync(data=data)
+        current = self.cache.guilds.get(guild.id, None)
+        if current is not None:
+            guild._members = current._members
+        self.cache.guilds[guild.id] = guild
+        self.cache.channels.update(guild._channels)
+        self.cache.channels.update(guild._threads)
+        self.cache.emojis.update(guild._emojis)
+        self.cache.stickers.update(guild._stickers)
+        self.cache.events.update(guild._guild_scheduled_events)
+        return "guild_update", guild
 
     async def _handle_typing(self, data: dict[Any, Any]) -> tuple[str, User | GuildMember] | None:
         # This event isn't good for a lot, but it DOES give us a new
@@ -221,3 +237,54 @@ class GatewayDispatch:
 
     async def _handle_presence_update(self, data: dict[Any, Any]) -> None:
         log.debug("Ignoring presence update %s" % dump(data))  # TODO
+
+    async def _handle_channel_generic(self, data: payloads.Channel) -> Channel | None:
+        channel = channel_builder(state=self.parent, data=data)
+        if "guild_id" in data:
+            guild = self.cache.guilds.get(int(data["guild_id"]))
+            if guild is None:
+                log.info(
+                    "Failed to get guild %s from cache, ignoring channel create"
+                    % data["guild_id"]
+                )
+                return None
+            channel.guild = guild
+            guild._channels[channel.id] = channel
+            self.cache.channels[channel.id] = channel
+        return channel
+
+    async def _handle_channel_create(self, data: payloads.Channel) -> tuple[str, Channel] | None:
+        channel = await self._handle_channel_generic(data)
+        if channel is None:
+            return None
+        return "channel_create", channel
+
+    async def _handle_channel_update(self, data: payloads.Channel) -> tuple[str, Channel] | None:
+        channel = await self._handle_channel_generic(data)
+        if channel is None:
+            return None
+        return "channel_update", channel
+
+    async def _handle_channel_delete(self, data: payloads.Channel) -> tuple[str, Channel] | None:
+        # Though we do get a channel in the payload, we'll try and get the one
+        # from cache as a first point of contact instead of constructing a new
+        # object
+        channel_id = int(data["id"])
+        channel = self.cache.channels.pop(channel_id, None)
+        if channel:
+            if isinstance(channel.guild, Guild):
+                channel.guild._channels.pop(channel_id, None)
+            return "channel_delete", channel
+
+        # It's not cached - let's just build a new one
+        channel = channel_builder(state=self.parent, data=data)
+        if "guild_id" in data:
+            guild = self.cache.guilds.get(int(data["guild_id"]))
+            if guild is None:
+                log.info(
+                    "Failed to get guild %s from cache, ignoring channel delete"
+                    % data["guild_id"]
+                )
+                return None
+            channel.guild = guild
+        return "channel_delete", channel
