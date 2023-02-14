@@ -25,13 +25,20 @@ import dotenv
 from ..utils import MISSING, generate_repr
 
 if TYPE_CHECKING:
-    from .emoji import Emoji
-    from .guild import Guild, GuildPreview, OauthGuild, PartialGuild
-    from .role import Role
-    from .scheduled_event import ScheduledEvent
-    from .sticker import Sticker
-    from .user import GuildMember, User
-    from .webhook import Webhook
+    from . import (
+        Emoji,
+        Guild,
+        GuildMember,
+        GuildPreview,
+        OauthGuild,
+        PartialEmoji,
+        PartialGuild,
+        Role,
+        ScheduledEvent,
+        Sticker,
+        User,
+        Webhook,
+    )
 
 __all__ = (
     'Asset',
@@ -117,7 +124,7 @@ class Asset:
         return cls(f"/banners/{guild.id}/{guild.banner_hash}")
 
     @classmethod
-    def from_emoji(cls, emoji: Emoji) -> Asset:
+    def from_emoji(cls, emoji: Emoji | PartialEmoji) -> Asset:
         return cls(f"/emojis/{emoji.id}", animated=emoji.animated)
 
     @classmethod
