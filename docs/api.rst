@@ -596,7 +596,17 @@ Sticker
 Emoji
 ~~~~~
 
+.. autoclass:: novus.PartialEmoji
+    :members:
+    :inherited-members:
+    :no-special-members:
+
 .. autoclass:: novus.Emoji
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.Reaction
     :members:
     :inherited-members:
     :no-special-members:
