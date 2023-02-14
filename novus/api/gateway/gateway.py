@@ -225,6 +225,28 @@ class GatewayConnection:
             self.presence = presence if presence is not MISSING else self.presence
             self.intents = intents if intents is not MISSING else self.intents
 
+            # This is our first connection; let's update the cache based on the
+            # intents
+            if not intents.guilds:
+                self.cache.add_guilds = self.cache.do_nothing
+                self.cache.guilds.clear()
+                self.cache.add_channels = self.cache.do_nothing
+                self.cache.channels.clear()
+            if not intents.guild_members:
+                self.cache.add_users = self.cache.do_nothing
+                self.cache.users.clear()
+            if not intents.guild_scheduled_events:
+                self.cache.add_events = self.cache.do_nothing
+                self.cache.events.clear()
+            if not intents.guild_emojis_and_stickers:
+                self.cache.add_emojis = self.cache.do_nothing
+                self.cache.emojis.clear()
+                self.cache.add_stickers = self.cache.do_nothing
+                self.cache.stickers.clear()
+            if not intents.message_content:
+                self.cache.add_messages = self.cache.do_nothing
+                self.cache.messages.clear()
+
         # Open socket
         if reconnect is False:
             self.sequence = None
@@ -365,7 +387,7 @@ class GatewayConnection:
                     if message is True:
                         await self.reconnect()
                     else:
-                        log.info("Session invalidated - creating a new session")
+                        log.warning("Session invalidated - creating a new session")
                         await self.close()
                         await self.connect()
                         return  # Cancel this task so a new one will be created
