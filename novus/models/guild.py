@@ -313,6 +313,7 @@ class Guild(Hashable, GuildAPIMixin):
             created = member
         else:
             created = GuildMember(state=self._state, data=member, guild=self)
+        created.guild = self
         user = self._state.cache.get_user(created.id)  # get cached user
         self._state.cache.add_users(created._user)  # add new user
         if user is not None:

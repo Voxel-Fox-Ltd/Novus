@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeVar, cast
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeVar
 
 from ...models import (
     Channel,
@@ -269,23 +269,37 @@ class GatewayDispatch:
         if "author" not in data:
             return None, None
 
+        # Create our initial message
         message = Message(state=self.parent, data=data)
-        author = message.author
         current = self.cache.get_message(message.id)
         self.cache.add_messages(message)
 
-        # Update member and guild if we have the correct intent
+        # Update channel with cached
         channel = self.cache.get_channel(message.channel.id)
         if channel is not None:
             message.channel = channel
+
+        # Update guild with cached
         if message.guild is not None:
-            author = cast(GuildMember, author)
-            guild = self.cache.get_guild(message.guild.id)
-            if guild is not None:
-                message.guild = guild
-                guild._add_member(author)
-                if channel is not None:
-                    channel.guild = guild
+            guild = self.cache.get_guild(message.guild.id, or_object=True)
+            message.guild = guild
+
+            # Update author with member
+            constructed: bool = False
+            cached_member: GuildMember | None = None
+            if isinstance(guild, Guild):
+                cached_member = guild.get_member(message.author.id)
+            if cached_member is None:
+                constructed = True
+                cached_member = GuildMember(
+                    state=self.parent,
+                    data=data["member"],  # pyright: ignore
+                    user=data["author"],  # pyright: ignore
+                    guild=guild,
+                )
+            if isinstance(guild, Guild) and constructed:
+                guild._add_member(cached_member)
+            message.author = cached_member
 
         return current, message
 
