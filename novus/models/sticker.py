@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ..enums import StickerFormat, StickerType
+from ..enums import StickerFormat
 from ..utils import cached_slot_property, try_snowflake
 from .api_mixins.sticker import StickerAPIMixin
 from .asset import Asset
@@ -48,8 +48,6 @@ class Sticker(StickerAPIMixin):
         The name of the sticker.
     description : str
         The description of the sticker.
-    type : novus.StickerType
-        The type of the sticker.
     format_type : novus.StickerFormat
         The format for the sticker.
     available : bool
@@ -88,7 +86,7 @@ class Sticker(StickerAPIMixin):
         self.pack_id: int | None = try_snowflake(data.get('pack_id'))
         self.name: str = data['name']
         self.description: str | None = data.get('description')
-        self.type: StickerType = StickerType(data['type'])
+        # self.type: StickerType = StickerType(data['type'])
         self.format_type: StickerFormat = StickerFormat(data['format_type'])
         self.available: bool = data.get('available', True)
         self.guild: Snowflake = guild
