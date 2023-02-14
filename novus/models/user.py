@@ -31,6 +31,7 @@ from ..utils import (
 from .api_mixins.user import GuildMemberAPIMixin, UserAPIMixin
 from .asset import Asset
 from .mixins import Hashable
+from .object import Object
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
@@ -239,7 +240,7 @@ class GuildMember(User, GuildMemberAPIMixin):
             *,
             state: HTTPConnection,
             data: GuildMemberPayload,
-            guild: StateSnowflake,
+            guild: StateSnowflake | int,
             user: UserPayload | None = None):
         if user is not None:
             super().__init__(state=state, data=user)
@@ -264,7 +265,11 @@ class GuildMember(User, GuildMemberAPIMixin):
         self.timeout_until = None
         if 'communication_disabled_until' in data:
             self.timeout_until = parse_timestamp(data['communication_disabled_until'])
-        self.guild = guild
+        self.guild = (
+            Object(guild, state=self._state)
+            if isinstance(guild, int)
+            else guild
+        )
 
     @cached_slot_property('_cs_guild_avatar')
     def guild_avatar(self) -> Asset | None:
