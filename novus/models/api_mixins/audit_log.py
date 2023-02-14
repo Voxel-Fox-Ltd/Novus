@@ -24,6 +24,10 @@ if TYPE_CHECKING:
     from ...enums import AuditLogEventType
     from ..audit_log import AuditLog
 
+__all__ = (
+    'AuditLogAPIMixin',
+)
+
 
 class AuditLogAPIMixin:
 

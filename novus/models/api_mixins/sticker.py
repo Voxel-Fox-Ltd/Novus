@@ -24,8 +24,12 @@ from ...utils import MISSING, try_id
 if TYPE_CHECKING:
     from ...api import HTTPConnection
     from ..abc import Snowflake, StateSnowflakeWithGuild
-    from ..message import File
+    from ..file import File
     from ..sticker import Sticker
+
+__all__ = (
+    'StickerAPIMixin',
+)
 
 
 class StickerAPIMixin:

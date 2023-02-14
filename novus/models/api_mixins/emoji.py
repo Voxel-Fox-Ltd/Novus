@@ -30,6 +30,10 @@ if TYPE_CHECKING:
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
+__all__ = (
+    'EmojiAPIMixin',
+)
+
 
 class EmojiAPIMixin:
 

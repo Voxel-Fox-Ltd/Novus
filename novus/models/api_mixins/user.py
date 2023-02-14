@@ -29,6 +29,11 @@ if TYPE_CHECKING:
     from ..guild import OauthGuild
     from ..user import GuildMember, User
 
+__all__ = (
+    'UserAPIMixin',
+    'GuildMemberAPIMixin',
+)
+
 
 class UserAPIMixin:
 

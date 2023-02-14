@@ -31,6 +31,10 @@ if TYPE_CHECKING:
         AutoModerationTriggerMetadata,
     )
 
+__all__ = (
+    'AutoModerationAPIMixin',
+)
+
 
 class AutoModerationAPIMixin:
 

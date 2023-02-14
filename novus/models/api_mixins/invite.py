@@ -24,6 +24,10 @@ if TYPE_CHECKING:
     from ...api import HTTPConnection
     from ..invite import Invite
 
+__all__ = (
+    'InviteAPIMixin',
+)
+
 
 class InviteAPIMixin:
 
@@ -62,7 +66,7 @@ class InviteAPIMixin:
         return await state.invite.get_invite(code)
 
     async def delete(
-            self: Invite,  # type: ignore
+            self: Invite,  # pyright: ignore
             *,
             reason: str | None = None) -> Invite:
         """

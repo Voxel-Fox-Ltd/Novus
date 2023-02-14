@@ -26,6 +26,10 @@ if TYPE_CHECKING:
     from .. import File, Role
     from ..abc import StateSnowflakeWithGuild
 
+__all__ = (
+    'RoleAPIMixin',
+)
+
 
 class RoleAPIMixin:
 

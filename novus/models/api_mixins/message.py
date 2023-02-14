@@ -27,6 +27,10 @@ if TYPE_CHECKING:
     from .. import AllowedMentions, Embed, Emoji, File, Sticker, User, abc
     from ..message import Message
 
+__all__ = (
+    'MessageAPIMixin',
+)
+
 
 class MessageAPIMixin:
 

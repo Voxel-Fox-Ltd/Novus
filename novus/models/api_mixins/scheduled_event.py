@@ -31,6 +31,10 @@ if TYPE_CHECKING:
     from ..scheduled_event import ScheduledEvent
     from ..user import GuildMember, User
 
+__all__ = (
+    'ScheduledEventAPIMixin',
+)
+
 
 class ScheduledEventAPIMixin:
 

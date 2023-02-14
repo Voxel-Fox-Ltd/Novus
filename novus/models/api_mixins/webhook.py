@@ -29,6 +29,10 @@ if TYPE_CHECKING:
     from .. import AllowedMentions, Embed, File, Message, Sticker, Webhook
     from ..abc import Snowflake, StateSnowflake
 
+__all__ = (
+    'WebhookAPIMixin',
+)
+
 
 class WebhookAPIMixin:
 

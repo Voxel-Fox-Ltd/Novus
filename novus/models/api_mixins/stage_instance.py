@@ -27,6 +27,10 @@ if TYPE_CHECKING:
     from .. import StageInstance
     from ..abc import Snowflake, StateSnowflake
 
+__all__ = (
+    'StageInstanceAPIMixin',
+)
+
 
 class StageInstanceAPIMixin:
 
