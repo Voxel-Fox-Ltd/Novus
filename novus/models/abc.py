@@ -103,6 +103,29 @@ class StateSnowflakeWithChannel(Protocol):
 
 
 @runtime_checkable
+class StateSnowflakeWithGuildChannel(Protocol):
+    """
+    An ABC for Discord models that has a state attached.
+
+    Attributes
+    ----------
+    id : int
+        The model's unique ID.
+    _state : novus.HTTPConection
+        The HTTP connection state.
+    guild: novus.abc.Snowflake | None
+        An object containing the guild ID (or ``None``).
+    channel: novus.abc.Snowflake
+        An object containing the channel ID.
+    """
+
+    id: int
+    _state: HTTPConnection
+    guild: Snowflake | None
+    channel: Snowflake
+
+
+@runtime_checkable
 class OauthStateSnowflake(Protocol):
     """
     An ABC for Discord models that has an oauth state attached.

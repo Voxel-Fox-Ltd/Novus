@@ -21,7 +21,17 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeVar, cast
 
-from ...models import Channel, Guild, GuildMember, Invite, Message, Role, User
+from ...models import (
+    Channel,
+    Guild,
+    GuildMember,
+    Invite,
+    Message,
+    Object,
+    Reaction,
+    Role,
+    User,
+)
 from ...models.channel import channel_builder
 from ...utils import try_snowflake
 
@@ -62,7 +72,6 @@ class GatewayDispatch:
             str,
             Callable[
                 [Any],  # dict, but we know about it
-                # Awaitable[tuple[str, Any] | None],
                 OptRet,
             ]
         ]
@@ -113,10 +122,10 @@ class GatewayDispatch:
             "MESSAGE_UPDATE": self._handle_message_edit,
             "MESSAGE_DELETE": self._handle_message_delete,
             # "Message delete bulk": None,
-            # "MESSAGE_REACTION_ADD": self._handle_message_reaction_add,
-            # "Message reaction remove": None,
-            # "Message reaction remove all": None,
-            # "Message reaction remove emoji": None,
+            "MESSAGE_REACTION_ADD": self._handle_message_reaction_add,
+            "MESSAGE_REACTION_REMOVE": self._handle_message_reaction_remove,
+            "MESSAGE_REACTION_REMOVE_ALL": self._handle_message_reaction_remove_all,
+            "MESSAGE_REACTION_REMOVE_EMOJI": self._handle_message_reaction_remove_all_emoji,
             "PRESENCE_UPDATE": self._handle_presence_update,
             # "Stage instance create": None,
             # "Stage instance update": None,
@@ -265,13 +274,18 @@ class GatewayDispatch:
         current = self.cache.get_message(message.id)
         self.cache.add_messages(message)
 
-        # Update member if we have the correct intent
-        if message.guild_id:
+        # Update member and guild if we have the correct intent
+        channel = self.cache.get_channel(message.channel.id)
+        if channel is not None:
+            message.channel = channel
+        if message.guild is not None:
             author = cast(GuildMember, author)
-            guild = self.cache.guilds.get(message.guild_id)
+            guild = self.cache.get_guild(message.guild.id)
             if guild is not None:
                 message.guild = guild
                 guild._add_member(author)
+                if channel is not None:
+                    channel.guild = guild
 
         return current, message
 
@@ -281,7 +295,9 @@ class GatewayDispatch:
         """Handle message create event."""
 
         message = await self._handle_message_generic(data)
-        yield "message", message[1]  # pyright: ignore
+        if message[1] is None:
+            return
+        yield "message", message[1]
 
     async def _handle_message_edit(
             self,
@@ -289,30 +305,33 @@ class GatewayDispatch:
         """Handle message edit event."""
 
         message = await self._handle_message_generic(data)
-        yield "message_edit", message  # pyright: ignore
+        if message[1] is None:
+            return
+        else:
+            yield "message_edit", (message[0], message[1])
 
     async def _handle_message_delete(
             self,
-            data: payloads.Message) -> Ret[tuple[Channel, int | Message]]:
+            data: payloads.Message) -> Ret[tuple[Channel, Message]]:
         """Handle message delete; returns channel and either cached message or
         the message ID."""
 
-        channel = (
-            self.cache.get_channel(data["channel_id"])
-            or Channel.partial(self.parent, data["channel_id"])
-        )
+        channel = self.cache.get_channel(data["channel_id"], or_object=True)
         message = self.cache.messages.pop(int(data["id"]), None)
-        yield "message_delete", (
-            channel,
-            message or int(data["id"]),
-        )
+        if message is None:
+            message = Object.with_api((Message,), data["id"], state=self.parent)
+        yield "message_delete", (channel, message,)
 
-    async def _handle_channel_pins_update(self, data: gw.ChannelPinsUpdate) -> AI[None]:
+    async def _handle_channel_pins_update(
+            self,
+            data: gw.ChannelPinsUpdate) -> AI[None]:
         """Handle a pin update. Doesn't even tell us what the pins are."""
 
         yield None
 
-    async def _handle_presence_update(self, data: dict[Any, Any]) -> AI[None]:
+    async def _handle_presence_update(
+            self,
+            data: dict[Any, Any]) -> AI[None]:
         """Handle updating presences for users."""
 
         log.debug("Ignoring presence update %s" % dump(data))
@@ -329,6 +348,7 @@ class GatewayDispatch:
             guild = self.cache.get_guild(data["guild_id"], or_object=True)
         if isinstance(guild, Guild):
             channel = guild._add_channel(data)
+            channel.guild = guild
         else:
             channel = channel_builder(state=self.parent, data=data)
         return current, channel
@@ -339,7 +359,7 @@ class GatewayDispatch:
         """Handle channel create event."""
 
         channel = await self._handle_channel_generic(data)
-        yield "channel_create", channel[1]  # pyright: ignore
+        yield "channel_create", channel[1]
 
     async def _handle_channel_update(
             self,
@@ -380,13 +400,14 @@ class GatewayDispatch:
             data: dict[str, Any]) -> Ret[tuple[Guild, User | GuildMember]]:
         """Handle guild ban event."""
 
-        # Here we're going to build the user from scratch; guild member remove
-        # will handle the user in cache
         user = self.cache.get_user(data["user"]["id"])
         if user is None:
-            # We aren't going to add this user to cache
             user = User(state=self.parent, data=data["user"])
         guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        try:
+            user._guilds.remove(guild.id)
+        except KeyError:
+            pass
         if isinstance(guild, Guild):
             member = guild.get_member(user)
             if member is not None:
@@ -413,6 +434,7 @@ class GatewayDispatch:
 
         # Because this creates both a channel AND a guild object, we're gonna
         # try and get those from the cache
+        channel: Channel | None = None
         if invite.channel:
             channel = self.cache.get_channel(invite.channel.id)
             if channel:
@@ -421,6 +443,8 @@ class GatewayDispatch:
             guild = self.cache.get_guild(invite.guild.id)
             if guild:
                 invite.guild = guild
+            if channel:
+                channel.guild = guild
 
         yield "invite_create", invite
 
@@ -431,6 +455,7 @@ class GatewayDispatch:
 
         guild = self.cache.get_guild(data["guild_id"], or_object=True)
         channel = self.cache.get_channel(data["channel_id"], or_object=True)
+        channel.guild = guild
         yield "invite_delete", (
             guild,
             channel,
@@ -468,16 +493,17 @@ class GatewayDispatch:
 
     async def _handle_role_delete(
             self,
-            data: gw.RoleDelete) -> Ret[int | Role]:
+            data: gw.RoleDelete) -> Ret[Role]:
         """Handle role delete."""
 
         guild = self.cache.get_guild(data["guild_id"])
-        role: Role | int | None = None
+        role: Role | None = None
         if guild is not None:
             role = guild._roles.pop(int(data["role_id"]), None)
         if role is None:
-            role = int(data["role_id"])
-        yield "role_create", role
+            role = Object.with_api((Role,), data["role_id"], state=self.parent)
+            role.guild = guild
+        yield "role_delete", role
 
     async def _handle_guild_member_generic(
             self,
@@ -518,12 +544,78 @@ class GatewayDispatch:
         if isinstance(guild, Guild):
             user = guild._members.pop(int(data["user"]["id"]), None)
             if user:
-                user._user._guilds.remove(guild.id)
+                try:
+                    user._user._guilds.remove(guild.id)
+                except KeyError:
+                    pass
+                if not user._user._guilds:
+                    self.cache.users.pop(user.id, None)
         if user is None:
-            user = User(state=self.parent, data=data["user"])
+            user = User(state=self.parent, data=data["user"])  # don't cache
         yield "guild_member_remove", (guild, user,)
 
-    # async def _handle_message_reaction_add(
-    #         self,
-    #         data: gw.ReactionAdd) -> Ret[Reaction]:
-    #     yield
+    async def _handle_message_reaction_generic(
+            self,
+            data: gw.ReactionAddRemove) -> tuple[GuildMember | User | None, Reaction]:
+        """Handle reaction add or remove."""
+
+        created = Reaction(state=self.parent, data=data)
+
+        message = self.cache.get_message(created.message.id)
+        if message:
+            created.message = message
+        elif created.message.channel:
+            channel = self.cache.get_channel(created.message.channel.id)
+            if channel:
+                created.message.channel = channel
+        elif created.message.guild:
+            guild = self.cache.get_guild(created.message.guild.id)
+            if guild:
+                created.message.guild = guild
+                created.message.channel.guild = guild  # pyright: ignore
+
+        user: User | GuildMember | None = None
+        if created.message is not None and "member" in data:
+            user = GuildMember(
+                state=self.parent,
+                data=data["member"],
+                guild=created.message.guild,
+            )
+        if user is None and "user_id" in data:
+            user = self.cache.get_user(data["user_id"], or_object=True)
+
+        return user, created
+
+    async def _handle_message_reaction_add(
+            self,
+            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User, Reaction]]:
+        """Handle reaction add."""
+
+        created = await self._handle_message_reaction_generic(data)
+        assert created[0]
+        yield "reaction_add", (created[0], created[1],)
+
+    async def _handle_message_reaction_remove(
+            self,
+            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User, Reaction]]:
+        """Handle reaction remove."""
+
+        created = await self._handle_message_reaction_generic(data)
+        assert created[0]
+        yield "reaction_remove", (created[0], created[1],)
+
+    async def _handle_message_reaction_remove_all(
+            self,
+            data: gw.ReactionAddRemove) -> Ret[tuple[bool, Message]]:
+        """Handle reaction remove all."""
+
+        message = self.cache.get_message(data["message_id"], or_object=True)
+        yield "reaction_clear", (data.get("burst", False), message)
+
+    async def _handle_message_reaction_remove_all_emoji(
+            self,
+            data: gw.ReactionAddRemove) -> Ret[Reaction]:
+        """Handle reaction remove all for emoji."""
+
+        created = await self._handle_message_reaction_generic(data)
+        yield "reaction_clear", created[1]

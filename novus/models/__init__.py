@@ -27,6 +27,7 @@ from .guild import *
 from .invite import *
 from .message import *
 from .object import *
+from .reaction import *
 from .role import *
 from .scheduled_event import *
 from .stage_instance import *
@@ -70,7 +71,6 @@ __all__: tuple[str, ...] = (
     'PartialEmoji',
     'PartialGuild',
     'PermissionOverwrite',
-    'Reaction',
     'Reaction',
     'Role',
     'ScheduledEvent',

@@ -22,10 +22,11 @@ from typing import TYPE_CHECKING, Any, Literal, overload
 
 from ..models.channel import Channel
 from ..models.guild import Guild
+from ..models.message import Message
 from ..models.object import Object
 
 if TYPE_CHECKING:
-    from .. import DMChannel, Emoji, GuildChannel, Message, ScheduledEvent, Sticker, User
+    from .. import DMChannel, Emoji, GuildChannel, ScheduledEvent, Sticker, User
     from ._http import HTTPConnection
 
 __all__ = (
@@ -163,8 +164,21 @@ class APICache:
     def get_event(self, id: int | str) -> ScheduledEvent | None:
         return self.events.get(int(id))
 
-    def get_message(self, id: int | str) -> Message | None:
-        return self.messages.get(int(id))
+    @overload
+    def get_message(self, id: int | str, or_object: Literal[True] = ...) -> Message:
+        ...
+
+    @overload
+    def get_message(self, id: int | str, or_object: Literal[False] = ...) -> Message | None:
+        ...
+
+    def get_message(self, id: int | str, or_object: bool = False) -> Message | None:
+        v = self.messages.get(int(id))
+        if v:
+            return v
+        if or_object is False:
+            return None
+        return Object.with_api((Message,), id, state=self.parent)
 
     def clear(self) -> None:
         self.user = None
@@ -172,6 +186,7 @@ class APICache:
         self.guilds.clear()
         self.users.clear()
         self.channels.clear()
+        self.messages.clear()
         self.emojis.clear()
         self.stickers.clear()
         self.events.clear()

@@ -17,27 +17,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 
 from ..utils import cached_slot_property, generate_repr, try_snowflake
 from .api_mixins.emoji import EmojiAPIMixin
 from .asset import Asset
 from .mixins import Hashable
-from .user import GuildMember
 
 if TYPE_CHECKING:
     import io
 
     from ..api import HTTPConnection
     from ..payloads import Emoji as EmojiPayload
-    from . import Message, abc
+    from . import abc
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
 __all__ = (
     'PartialEmoji',
     'Emoji',
-    'Reaction',
 )
 
 
@@ -140,57 +138,3 @@ class Emoji(PartialEmoji, EmojiAPIMixin):
         self.managed = data.get('managed', False)
         self.available = data.get('available', True)
         self.guild: abc.Snowflake | None = guild
-
-
-class Reaction:
-    """
-    A reaction container class.
-
-    Attributes
-    ----------
-    user_id : int
-        The ID of the user who reacted.
-    message_id : int
-        The ID of the message that was reacted on.
-    emoji : novus.PartialEmoji
-        The emoji that was added to the message. This will only ever be a
-        partial emoji (ie it will only have ID, name, and animated attributes
-        set).
-    channel_id
-    burst
-    guild_id
-    member
-    """
-
-    def __init__(self, *, state: HTTPConnection, data: Any):
-        self._state = state
-        self.user_id: int = try_snowflake(data["user_id"])
-        self.message_id: int = try_snowflake(data["message_id"])
-        self.emoji: PartialEmoji = PartialEmoji(data=data["emoji"])
-        self.channel_id: int = try_snowflake(data["channel_id"])
-        self.burst: bool = data.get("burst", False)
-
-        self.guild_id: int | None = try_snowflake(data.get("guild_id"))
-        self.member: GuildMember | None
-        if self.guild_id is not None:
-            self.member = GuildMember(
-                state=state,
-                data=data["member"],
-                guild=self.guild_id,
-            )
-
-    async def fetch_message(self) -> Message:
-        """
-        Get the message associated with the reaction. Generally not required if
-        you just need to run some API methods on an object.
-
-        Returns
-        -------
-        novus.Message
-            The message instance for the reaction.
-        """
-
-        return await self._state.channel.get_channel_message(
-            self.channel_id,
-            self.message_id,
-        )

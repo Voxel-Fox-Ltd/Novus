@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'TypingStart',
-    'ReactionAdd',
+    'ReactionAddRemove',
     'ChannelPinsUpdate',
     'RoleCreateUpdate',
     'RoleDelete',
@@ -42,7 +42,7 @@ class TypingStart(TypedDict):
     member: NotRequired[GuildMember]
 
 
-class ReactionAdd(TypedDict):
+class ReactionAddRemove(TypedDict):
     user_id: Snowflake
     message_id: Snowflake
     emoji: PartialEmoji

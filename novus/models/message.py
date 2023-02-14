@@ -22,16 +22,18 @@ from typing import TYPE_CHECKING, Any
 from .. import enums, flags
 from ..utils import generate_repr, parse_timestamp, try_snowflake
 from .api_mixins.message import MessageAPIMixin
-from .channel import channel_builder
+from .channel import Channel, channel_builder
 from .embed import Embed
+from .guild import Guild
 from .object import Object
+from .reaction import Reaction
 from .sticker import Sticker
 from .user import User
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    from .. import Channel, GuildMember, Thread, abc
+    from .. import GuildMember, Thread, abc
     from ..api import HTTPConnection
     from ..payloads import Message as MessagePayload
 
@@ -39,7 +41,6 @@ __all__ = (
     'Message',
     'AllowedMentions',
     'Attachment',
-    'Reaction',
 )
 
 
@@ -51,11 +52,15 @@ class Message(MessageAPIMixin):
     ----------
     id : int
         The ID of the message.
-    channel_id : int
-        The ID of the channel that the message was sent in.
     channel : novus.abc.Snowflake
         A snowflake channel object.
-    author : novus.User
+    guild : novus.abc.Snowflake | None
+        The guild associated with the message.
+
+        .. note::
+
+            If the item is fetched via the API, the guild will set to ``None``.
+    author : novus.User | novus.GuildMember
         The author of the message.
     content : str
         The content of the message.
@@ -110,16 +115,11 @@ class Message(MessageAPIMixin):
         An integer representin the approximate position in the thread.
     role_subscription_data : novus.RoleSubscription | None
         Data of the role subscription purchase.
-    guild_id : int | None
-        The guild associated with the message.
-    guild : novus.abc.Snowflake | None
-        The guild associated with the message.
     """
 
     __slots__ = (
         '_state',
         'id',
-        'channel_id',
         'channel',
         'author',
         'content',
@@ -156,16 +156,25 @@ class Message(MessageAPIMixin):
     def __init__(self, *, state: HTTPConnection, data: MessagePayload) -> None:
         self._state = state
         self.id: int = try_snowflake(data["id"])
-        self.channel_id: int = try_snowflake(data["channel_id"])
-        self.channel: Object = Object(self.channel_id, state=self._state)
-        self.author: User | GuildMember = User(state=self._state, data=data["author"])
-        self.guild_id: int | None = try_snowflake(data.get("guild_id"))
+        self.channel: abc.Snowflake = Channel.partial(
+            id=data["channel_id"],
+            state=self._state,
+        )
+        self.author: User | GuildMember = User(
+            state=self._state,
+            data=data["author"],  # pyright: ignore
+        )
         self.guild: abc.StateSnowflake | None = None
-        if self.guild_id:
-            self.guild = Object(self.guild_id, state=self._state)
+        if "guild_id" in data:
+            self.guild = Object.with_api(
+                (Guild,),
+                data["guild_id"],
+                state=self._state,
+            )
+            self.channel.guild = self.guild
         if "member" in data:
             assert self.guild
-            self.author._upgrade(data["member"], self.guild)
+            self.author = self.author._upgrade(data["member"], self.guild)
         self.content: str = data.get("content", "")
         self.timestamp: dt = parse_timestamp(data.get("timestamp"))
         self.edited_timestamp: dt | None = parse_timestamp(data.get("edited_timestamp"))
@@ -192,7 +201,7 @@ class Message(MessageAPIMixin):
             for d in data.get("embeds", [])
         ]
         self.reactions: list[Reaction] = [
-            Reaction(data=d)
+            Reaction(state=self._state, data=d)
             for d in data.get("reactions", [])
         ]
         self.pinned: bool = data.get("pinned")
@@ -233,12 +242,6 @@ class AllowedMentions:
 
 
 class Attachment:
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        ...
-
-
-class Reaction:
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         ...

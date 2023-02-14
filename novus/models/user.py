@@ -154,12 +154,14 @@ class User(Hashable, UserAPIMixin):
         Upgrade a user member to a guild member if we can.
         """
 
-        return GuildMember(
+        v = GuildMember(
             state=self._state,
             data=data,
             user=self,
             guild=guild,
         )
+        self._guilds.add(v.guild.id)
+        return v
 
     def _to_user(self) -> User:
         return self
@@ -327,7 +329,6 @@ class GuildMember(GuildMemberAPIMixin):
             if isinstance(guild, int)
             else guild
         )
-        self._user._guilds.add(self.guild.id)
 
     __repr__ = generate_repr(('id', 'username', 'bot', 'guild',))
 

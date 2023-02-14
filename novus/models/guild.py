@@ -308,6 +308,7 @@ class Guild(Hashable, GuildAPIMixin):
         return created
 
     def _add_member(self, member: payloads.GuildMember | GuildMember) -> GuildMember:
+        """Add member to cache. Will cache/update the user object as well."""
         if isinstance(member, GuildMember):
             created = member
         else:
@@ -316,6 +317,7 @@ class Guild(Hashable, GuildAPIMixin):
         self._state.cache.add_users(created._user)  # add new user
         if user is not None:
             created._user._guilds.update(user._guilds)  # update guild ids
+        created._user._guilds.add(self.id)
         self._members[created.id] = created
         return created
 

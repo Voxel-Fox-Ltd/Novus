@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from .emoji import Emoji
     from .interaction import MessageInteraction
     from .sticker import PartialSticker
-    from .user import PartialUser, User
+    from .user import GuildMember, PartialUser, User
 
 __all__ = (
     'Attachment',
@@ -108,6 +108,8 @@ class _MessageOptional(TypedDict, total=False):
     components: list[MessageComponent]
     sticker_items: list[PartialSticker]
     position: int
+    guild_id: Snowflake
+    member: GuildMember
 
 
 class Message(_MessageOptional):
