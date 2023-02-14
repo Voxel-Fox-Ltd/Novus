@@ -33,7 +33,7 @@ class Intents(Flags):
 
     if TYPE_CHECKING:
 
-        def __init__(self, value: int = 0, **kwargs: dict[str, bool]) -> None:
+        def __init__(self, value: int = 0, **kwargs: bool) -> None:
             ...
 
         guilds: bool
