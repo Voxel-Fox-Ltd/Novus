@@ -15,6 +15,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from . import gateway
 from ._util import *
 from .application import *
 from .audit_log import *
@@ -36,128 +37,91 @@ from .user import *
 from .voice import *
 from .webhook import *
 
-__all__ = (
-    # _util
-    'Snowflake',
-    'Timestamp',
-    'HasLocalizations',
-
-    # application
-    'ApplicationTeamMember',
-    'ApplicationTeam',
-    'InstallParams',
+__all__: tuple[str, ...] = (
+    'ActionRow',
+    'Activity',
+    'AllowedMentions',
     'Application',
-
-    # audit_log
-    'AuditLogEvent',
+    'ApplicationRoleConnection',
+    'ApplicationRoleConnectionMetadata',
+    'ApplicationTeam',
+    'ApplicationTeamMember',
+    'Attachment',
     'AuditEntryInfo',
+    'AuditLog',
     'AuditLogChange',
     'AuditLogEntry',
-    'AuditLog',
-
-    # auto_moderation
-    'AutoModerationTriggerType',
-    'AutoModerationKeywordPresetType',
-    'AutoModeratorEventType',
-    'AutoModerationActionType',
-    'AutoModerationActionMetadata',
-    'AutoModerationTriggerMetadata',
+    'AuditLogEvent',
     'AutoModerationAction',
+    'AutoModerationActionMetadata',
+    'AutoModerationActionType',
+    'AutoModerationKeywordPresetType',
     'AutoModerationRule',
-
-    # channel
-    'Channel',
-    'ChannelType',
-    'ChannelOverwrite',
-    'ThreadMetadata',
-    'ThreadMember',
-
-    # components
-    'ComponentType',
+    'AutoModerationTriggerMetadata',
+    'AutoModerationTriggerType',
+    'AutoModeratorEventType',
+    'Ban',
     'Button',
-    'SelectOption',
-    'SelectMenu',
-    'TextInput',
-    'ActionRow',
-    'MessageComponent',
-
-    # embed
+    'Channel',
+    'ChannelMention',
+    'ChannelOverwrite',
+    'ChannelType',
+    'ComponentType',
     'Embed',
     'EmbedType',
-
-    # emoji
     'Emoji',
-    'PartialEmoji',
-
-    # guild
-    'RoleTags',
-    'Role',
-    'GuildWidget',
-    'GuildPreview',
-    'UnavailableGuild',
-    'GuildWelcomeScreenChannel',
-    'GuildWelcomeScreen',
-    'GuildFeature',
-    'Guild',
     'GatewayGuild',
-    'IntegrationApplication',
-    'IntegrationAccount',
-    'Integration',
-    'Ban',
-
-    # guild_scheduled_event
+    'Guild',
+    'GuildFeature',
+    'GuildMember',
+    'GuildPreview',
     'GuildScheduledEvent',
     'GuildScheduledEventEntityMetadata',
     'GuildScheduledEventUser',
-
-    # guild_template
     'GuildTemplate',
-
-    # interaction
+    'GuildWelcomeScreen',
+    'GuildWelcomeScreenChannel',
+    'GuildWidget',
+    'HasLocalizations',
+    'InstallParams',
+    'Integration',
+    'IntegrationAccount',
+    'IntegrationApplication',
     'InteractionType',
-    'MessageInteraction',
-
-    # invite
     'Invite',
     'InviteWithMetadata',
-
-    # locale
     'Locale',
-
-    # message
-    'Attachment',
-    'AllowedMentions',
-    'ChannelMention',
-    'Reaction',
-    'MessageActivity',
-    'MessageReference',
     'Message',
-
-    # stage_instance
-    'StageInstance',
-
-    # sticker
-    'Sticker',
+    'MessageActivity',
+    'MessageComponent',
+    'MessageInteraction',
+    'MessageReference',
+    'PartialEmoji',
     'PartialSticker',
-    'StickerPack',
-
-    # user
     'PartialUser',
-    'User',
-    'GuildMember',
-    'UserConnection',
-    'ApplicationRoleConnectionMetadata',
-    'ApplicationRoleConnection',
-    'Activity',
     'Presence',
-
-    # voice
-    'VoiceState',
+    'Reaction',
+    'Role',
+    'RoleTags',
+    'SelectMenu',
+    'SelectOption',
+    'Snowflake',
+    'StageInstance',
+    'Sticker',
+    'StickerPack',
+    'TextInput',
+    'ThreadMember',
+    'ThreadMetadata',
+    'Timestamp',
+    'UnavailableGuild',
+    'User',
+    'UserConnection',
     'VoiceRegion',
-
-    # webhook
+    'VoiceState',
     'Webhook',
+    'gateway',
 )
+
 
 """
 The payloads subpackage contains the payload classes for each payload type

@@ -184,7 +184,7 @@ class Channel(Hashable, Messageable):
         return self.id
 
     @classmethod
-    def partial(cls, state: HTTPConnection, id: int) -> Channel:
+    def partial(cls, state: HTTPConnection, id: int | str) -> Channel:
         """
         Create a partial channel object that you can use to run API methods on.
 

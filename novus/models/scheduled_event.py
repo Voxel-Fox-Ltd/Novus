@@ -29,7 +29,8 @@ from .user import User
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
-    from ..payloads import GuildScheduledEvent as EventPayload
+    from ..models.abc import StateSnowflake
+    from ..payloads.guild_scheduled_event import GuildScheduledEvent as EventPayload
 
 __all__ = (
     'ScheduledEvent',
@@ -44,8 +45,6 @@ class ScheduledEvent(ScheduledEventAPIMixin):
     ----------
     id : int
         The ID of the event.
-    guild_id : int
-        The ID of the guild that the event is part of.
     guild : novus.abc.Snowflake
         A object wrapper for the guild ID.
     channel_id : int | None
@@ -87,7 +86,6 @@ class ScheduledEvent(ScheduledEventAPIMixin):
     __slots__ = (
         '_state',
         'id',
-        'guild_id',
         'guild',
         'channel_id',
         'creator_id',
@@ -106,11 +104,10 @@ class ScheduledEvent(ScheduledEventAPIMixin):
         '_cs_image',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: EventPayload):
+    def __init__(self, *, state: HTTPConnection, data: EventPayload, guild: StateSnowflake):
         self._state = state
         self.id: int = try_snowflake(data['id'])
-        self.guild_id: int = try_snowflake(data['guild_id'])
-        self.guild = Object(self.guild_id, state=self._state)
+        self.guild: StateSnowflake = Object(try_snowflake(data['guild_id']), state=self._state)
         self.channel_id: int | None = try_snowflake(data.get('channel_id'))
         self.creator_id: int | None = try_snowflake(data.get('creator_id'))
         self.name: str = data['name']

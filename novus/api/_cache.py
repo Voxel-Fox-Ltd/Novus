@@ -18,10 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, overload
+
+from ..models.channel import Channel
+from ..models.guild import Guild
+from ..models.object import Object
 
 if TYPE_CHECKING:
-    from .. import Channel, Emoji, Guild, Message, ScheduledEvent, Sticker, User
+    from .. import DMChannel, Emoji, GuildChannel, Message, ScheduledEvent, Sticker, User
     from ._http import HTTPConnection
 
 __all__ = (
@@ -42,19 +46,6 @@ class MaxLenDict(OrderedDict):
 
 
 class APICache:
-
-    __slots__ = (
-        'parent',
-        'user',
-        'application_id',
-        'guilds',
-        'users',
-        'channels',
-        'emojis',
-        'stickers',
-        'events',
-        'messages',
-    )
 
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
@@ -99,6 +90,8 @@ class APICache:
 
     def add_emojis(self, *items: Emoji) -> None:
         for i in items:
+            if i.id is None:
+                continue
             self.emojis[i.id] = i
 
     def add_stickers(self, *items: Sticker) -> None:
@@ -112,6 +105,66 @@ class APICache:
     def add_messages(self, *items: Message) -> None:
         for i in items:
             self.messages[i.id] = i
+
+    @overload
+    def get_guild(self, id: int | str, or_object: Literal[True] = ...) -> Guild:
+        ...
+
+    @overload
+    def get_guild(self, id: int | str, or_object: Literal[False] = ...) -> Guild | None:
+        ...
+
+    def get_guild(self, id: int | str, or_object: bool = False) -> Guild | None:
+        v = self.guilds.get(int(id))
+        if v:
+            return v
+        if or_object is False:
+            return None
+        return Object.with_api((Guild,), id, state=self.parent)
+
+    @overload
+    def get_user(self, id: int | str, or_object: Literal[True] = ...) -> User:
+        ...
+
+    @overload
+    def get_user(self, id: int | str, or_object: Literal[False] = ...) -> User | None:
+        ...
+
+    def get_user(self, id: int | str, or_object: bool = False) -> User | None:
+        v = self.users.get(int(id))
+        if v:
+            return v
+        if or_object is False:
+            return None
+        return Object.with_api((User,), id, state=self.parent)
+
+    @overload
+    def get_channel(self, id: int | str, or_object: Literal[True] = ...) -> GuildChannel | DMChannel:
+        ...
+
+    @overload
+    def get_channel(self, id: int | str, or_object: Literal[False] = ...) -> GuildChannel | DMChannel | None:
+        ...
+
+    def get_channel(self, id: int | str, or_object: bool = False) -> GuildChannel | DMChannel | None:
+        v = self.channels.get(int(id))
+        if v:
+            return v  # pyright: ignore
+        if or_object is False:
+            return None
+        return Object.with_api((Channel,), id, state=self.parent)  # pyright: ignore
+
+    def get_emoji(self, id: int | str) -> Emoji | None:
+        return self.emojis.get(int(id))
+
+    def get_sticker(self, id: int | str) -> Sticker | None:
+        return self.stickers.get(int(id))
+
+    def get_event(self, id: int | str) -> ScheduledEvent | None:
+        return self.events.get(int(id))
+
+    def get_message(self, id: int | str) -> Message | None:
+        return self.messages.get(int(id))
 
     def clear(self) -> None:
         self.user = None

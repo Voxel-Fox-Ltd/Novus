@@ -136,11 +136,11 @@ class Asset:
         return cls(f"/stickers/{sticker.id}")
 
     @classmethod
-    def from_user_avatar(cls, user: User | Webhook) -> Asset:
+    def from_user_avatar(cls, user: User | GuildMember | Webhook) -> Asset:
         return cls(f"/avatars/{user.id}/{user.avatar_hash}")
 
     @classmethod
-    def from_user_banner(cls, user: User) -> Asset:
+    def from_user_banner(cls, user: User | GuildMember) -> Asset:
         return cls(f"/banners/{user.id}/{user.avatar_hash}")
 
     @classmethod

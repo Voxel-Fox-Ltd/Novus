@@ -33,7 +33,7 @@ from ..enums import (
 )
 from ..flags import Permissions, SystemChannelFlags
 from ..models.channel import channel_builder
-from ..utils import cached_slot_property, generate_repr, try_snowflake
+from ..utils import cached_slot_property, generate_repr, try_id, try_snowflake
 from .api_mixins.guild import GuildAPIMixin
 from .asset import Asset
 from .channel import Channel, Thread
@@ -50,6 +50,7 @@ if TYPE_CHECKING:
 
     from .. import payloads
     from ..api import HTTPConnection
+    from .abc import Snowflake
     from .user import User
 
     FileT: TypeAlias = str | bytes | io.IOBase
@@ -282,6 +283,75 @@ class Guild(Hashable, GuildAPIMixin):
         self._voice_states: dict[int, None] = {}
         self._channels: dict[int, Channel] = {}
 
+    def _add_emoji(self, emoji: payloads.Emoji) -> Emoji | None:
+        if emoji.get("id") is None:
+            return None
+        created = Emoji(state=self._state, data=emoji, guild=self)
+        assert created.id
+        self._state.cache.add_emojis(created)
+        self._emojis[created.id] = created
+        return created
+
+    def _add_sticker(self, sticker: payloads.Sticker) -> Sticker:
+        created = Sticker(state=self._state, data=sticker, guild=self)
+        self._state.cache.add_stickers(created)
+        self._stickers[created.id] = created
+        return created
+
+    def _add_role(self, role: payloads.Role | Role) -> Role:
+        if isinstance(role, Role):
+            created = role
+            created.guild = self
+        else:
+            created = Role(state=self._state, data=role, guild=self)
+        self._roles[created.id] = created
+        return created
+
+    def _add_member(self, member: payloads.GuildMember | GuildMember) -> GuildMember:
+        if isinstance(member, GuildMember):
+            created = member
+        else:
+            created = GuildMember(state=self._state, data=member, guild=self)
+        user = self._state.cache.get_user(created.id)  # get cached user
+        self._state.cache.add_users(created._user)  # add new user
+        if user is not None:
+            created._user._guilds.update(user._guilds)  # update guild ids
+        self._members[created.id] = created
+        return created
+
+    def _add_guild_scheduled_event(self, event: payloads.GuildScheduledEvent) -> ScheduledEvent:
+        created = ScheduledEvent(state=self._state, data=event, guild=self)
+        self._state.cache.add_events(created)
+        self._guild_scheduled_events[created.id] = created
+        return created
+
+    def _add_thread(self, thread: payloads.Channel) -> Thread:
+        created = Thread(state=self._state, data=thread, guild=self)
+        self._state.cache.add_channels(created)
+        self._threads[created.id] = created
+        return created
+
+    def _add_voice_state(self, voice_state: Any) -> None:
+        pass
+
+    def _add_channel(self, channel: payloads.Channel) -> Channel:
+        try:
+            created = channel_builder(
+                state=self._state,
+                data=channel,
+                guild=self,
+            )
+        except ValueError as e:
+            log.error(
+                "Error building channel in guild %s" % self.id,
+                exc_info=e,
+            )
+            raise
+        else:
+            self._state.cache.add_channels(created)
+            self._channels[created.id] = created
+            return created
+
     async def _sync(self, *, data: payloads.GatewayGuild) -> None:
         """
         Sync the cached state with the given gateway payload.
@@ -290,91 +360,72 @@ class Guild(Hashable, GuildAPIMixin):
         d: Any
         if 'emojis' in data:
             for d in data['emojis']:
-                if d['id'] is None:
-                    return
-                id = int(d['id'])
-                self._emojis[id] = Emoji(
-                    state=self._state,
-                    data=d,
-                    guild=self,
-                )
+                self._add_emoji(d)
                 await asyncio.sleep(0)
-
         if 'stickers' in data:
             for d in data['stickers']:
-                id = int(d['id'])
-                self._stickers[id] = Sticker(
-                    state=self._state,
-                    data=d,
-                    guild=self,
-                )
+                self._add_sticker(d)
                 await asyncio.sleep(0)
-
         if 'roles' in data:
             for d in data['roles']:
-                id = int(d['id'])
-                self._roles[id] = Role(
-                    state=self._state,
-                    data=d,
-                    guild=self,
-                )
+                self._add_role(d)
                 await asyncio.sleep(0)
-
         if 'members' in data:
             for d in data.get('members', ()):
-                id = int(d['user']['id'])
-                self._members[id] = GuildMember(
-                    state=self._state,
-                    data=d,
-                    guild=self,
-                )
+                self._add_member(d)
                 await asyncio.sleep(0)
-
         if 'guild_scheduled_events' in data:
             for d in data.get('guild_scheduled_events', ()):
-                id = int(d['id'])
-                self._guild_scheduled_events[id] = ScheduledEvent(
-                    state=self._state,
-                    data=d,
-                )
+                self._add_guild_scheduled_event(d)
                 await asyncio.sleep(0)
-
         if 'threads' in data:
             for d in data.get('threads', ()):
-                id = int(d['id'])
-                self._threads[id] = t = Thread(
-                    state=self._state,
-                    data=d,
-                )
-                t.guild = self
+                self._add_thread(d)
                 await asyncio.sleep(0)
-
         if 'voice_states' in data:
             for d in data.get('voice_states', ()):
-                id = int(d['user_id'])
-                self._voice_states[id] = None  # TODO
+                self._add_voice_state(d)
                 await asyncio.sleep(0)
-
         if 'channels' in data:
             for d in data.get('channels', ()):
-                id = int(d['id'])
-                try:
-                    c = channel_builder(
-                        state=self._state,
-                        data=d,
-                        guild=self,
-                    )
-                except ValueError as e:
-                    log.error(
-                        "Error building channel in guild %s" % self.id,
-                        exc_info=e,
-                    )
-                else:
-                    self._channels[id] = c
-                    c.guild = self
+                self._add_channel(d)
                 await asyncio.sleep(0)
 
     __repr__ = generate_repr(('id', 'name',))
+
+    def get_member(self, id: int | Snowflake) -> GuildMember | None:
+        """
+        Get a guild member from cache.
+
+        Parameters
+        ----------
+        id : int | novus.abc.Snowflake
+            The identifier for the user we want to get.
+
+        Returns
+        -------
+        novus.GuildMember | None
+            A guild member object, if one was cached.
+        """
+
+        return self._members.get(try_id(id))
+
+    def get_role(self, id: int | Snowflake) -> Role | None:
+        """
+        Get a role from cache.
+
+        Parameters
+        ----------
+        id : int | novus.abc.Snowflake
+            The identifier for the role we want to get.
+
+        Returns
+        -------
+        novus.GuildMember | None
+            A role object, if one was cached.
+        """
+
+        return self._roles.get(try_id(id))
 
     @cached_slot_property('_cs_icon')
     def icon(self) -> Asset:

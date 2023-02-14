@@ -19,16 +19,17 @@ from __future__ import annotations
 
 import json
 import logging
-from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeVar, cast
 
 from ...models import Channel, Guild, GuildMember, Invite, Message, Role, User
 from ...models.channel import channel_builder
 from ...utils import try_snowflake
 
 if TYPE_CHECKING:
-    from ... import payloads
+    from ... import Intents, payloads
+    from ...payloads import gateway as gw
     from .._http import HTTPConnection
+
 
 __all__ = (
     'GatewayDispatch',
@@ -37,6 +38,19 @@ __all__ = (
 
 log = logging.getLogger("novus.gateway.dispatch")
 dump = json.dumps
+
+
+ReturnType = TypeVar("ReturnType")
+AI = AsyncIterator
+Ret: TypeAlias = AI[tuple[str, ReturnType]]
+OptRet: TypeAlias = AI[tuple[str, ReturnType] | None]
+
+
+class Event:
+
+    def __init__(self, name: str, data: Any):
+        self.name = name
+        self.data = data
 
 
 class GatewayDispatch:
@@ -48,7 +62,8 @@ class GatewayDispatch:
             str,
             Callable[
                 [Any],  # dict, but we know about it
-                Awaitable[tuple[str, Any] | None]
+                # Awaitable[tuple[str, Any] | None],
+                OptRet,
             ]
         ]
         self.EVENT_HANDLER = {
@@ -98,7 +113,7 @@ class GatewayDispatch:
             "MESSAGE_UPDATE": self._handle_message_edit,
             "MESSAGE_DELETE": self._handle_message_delete,
             # "Message delete bulk": None,
-            # "Message reaction add": None,
+            # "MESSAGE_REACTION_ADD": self._handle_message_reaction_add,
             # "Message reaction remove": None,
             # "Message reaction remove all": None,
             # "Message reaction remove emoji": None,
@@ -113,6 +128,10 @@ class GatewayDispatch:
             # "Webhooks update": None,
         }
 
+    @property
+    def intents(self) -> Intents:
+        return self.parent.gateway.intents
+
     async def handle_dispatch(self, event_name: str, data: dict) -> None:
         """
         Handle a Dispatch message from Discord.
@@ -126,19 +145,22 @@ class GatewayDispatch:
             return None
 
         coro = self.EVENT_HANDLER.get(event_name)
-        result: tuple[str, Any] | None = None
+        results: list[tuple[str, Any]] = []
         if coro is None:
             log.warning(
                 "Failed to parse event %s %s"
                 % (event_name, dump(data))
             )
         else:
-            result = await coro(data)
-        if result is None:
+            async for i in coro(data):
+                if i is None:
+                    continue
+                results.append(i)
+        if not results:
             pass
         else:
-            human_event_name, event_data = result
-            log.info(f"{human_event_name}: {event_data!r}")
+            for human_event_name, event_data in results:
+                log.info(f"{human_event_name}: {event_data!r}")
 
         if event_name in [
                 "PRESENCE_UPDATE",
@@ -160,19 +182,21 @@ class GatewayDispatch:
         with open(evt / f"{self.parent.gateway.sequence}_{self.session_id}.json", "w") as a:
             json.dump(data, a, indent=4, sort_keys=True)
 
-    async def _handle_guild_create(self, data: payloads.GatewayGuild) -> tuple[str, Guild] | None:
+    async def _handle_guild_create(
+            self,
+            data: payloads.GatewayGuild) -> OptRet[Guild]:
+        """Listen for guild create."""
+
         guild = Guild(state=self.parent, data=data)
         await guild._sync(data=data)
         self.cache.add_guilds(guild)
-        self.cache.add_users(*(i._to_user() for i in guild._members.values()))
-        self.cache.add_channels(*guild._channels.values())
-        self.cache.add_channels(*guild._threads.values())
-        self.cache.add_emojis(*guild._emojis.values())
-        self.cache.add_stickers(*guild._stickers.values())
-        self.cache.add_events(*guild._guild_scheduled_events.values())
-        return "guild_create", guild
+        yield "guild_create", guild
 
-    async def _handle_guild_update(self, data: payloads.GatewayGuild) -> tuple[str, tuple[Guild, Guild]] | None:
+    async def _handle_guild_update(
+            self,
+            data: payloads.GatewayGuild) -> OptRet[tuple[Guild, Guild]]:
+        """Listen for guild update; pop old guild from cache; return both."""
+
         guild = Guild(state=self.parent, data=data)
         await guild._sync(data=data)
         current = self.cache.guilds.get(guild.id, None)
@@ -184,267 +208,322 @@ class GatewayDispatch:
             current._stickers = guild._stickers
             current._guild_scheduled_events = guild._guild_scheduled_events
         self.cache.add_guilds(guild)
-        self.cache.add_channels(*guild._channels.values())
-        self.cache.add_channels(*guild._threads.values())
-        self.cache.add_emojis(*guild._emojis.values())
-        self.cache.add_stickers(*guild._stickers.values())
-        self.cache.add_events(*guild._guild_scheduled_events.values())
-        if current is None:
+        if current is None and self.intents.guilds:
             log.warning(
                 "Failed to get cached guild %s, ignoring guild update"
                 % guild.id
             )
-            return None
-        return "guild_update", (current, guild)
+            return
+        elif current is None:
+            return
+        yield "guild_update", (current, guild)
 
-    async def _handle_typing(self, data: dict[Any, Any]) -> tuple[str, User | GuildMember] | None:
+    async def _handle_typing(
+            self,
+            data: gw.TypingStart) -> OptRet[tuple[Channel, GuildMember | User]]:
+        """Handle the typing event; return the guild, channel, and user IDs."""
+
+        guild: Guild | None = None
+        if "guild_id" in data:
+            guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        channel = self.cache.get_channel(data['channel_id'])
+        if channel is None:
+            channel = Channel.partial(
+                state=self.parent,
+                id=int(data['channel_id']),
+            )
+            channel.guild = guild
+
         # This event isn't good for a lot, but it DOES give us a new
         # member payload if the typing was started in a guild
-        if "member" in data:
+        if "member" in data and "guild_id" in data:
             _member: payloads.GuildMember = data["member"]
-            guild = self.cache.guilds.get(data["guild_id"])
-            if guild is None:
-                log.warning(
-                    "Failed to get cached guild %s, ignoring typing"
-                    % data["guild_id"]
+            if isinstance(guild, Guild):
+                member = guild._add_member(_member)  # adds to cache
+            else:
+                member = GuildMember(
+                    state=self.parent,
+                    data=_member,
+                    guild=guild,  # pyright: ignore
                 )
-                return None
-            member = GuildMember(
-                state=self.parent,
-                data=_member,
-                guild=guild,
-            )
-            guild._members[member.id] = member
-            self.cache.add_users(member._to_user())
-            return "typing", member
-        user = self.cache.users.get(data["user_id"])
-        if user is None:
-            log.warning(
-                "Failed to get cached user %s, ignoring typing"
-                % data["user_id"]
-            )
-            return None
-        return "typing", user
+            yield "typing", (channel, member,)
+            return
+        user = self.cache.get_user(data["user_id"], or_object=True)
+        yield "typing", (channel, user,)
 
-    async def _handle_message_generic(self, data: payloads.Message) -> Message | None:
+    async def _handle_message_generic(
+            self,
+            data: payloads.Message) -> tuple[Message | None, Message | None]:
         """Handle message create and message edit."""
+
+        # We don't get anything interesting if we have no content intent
         if "author" not in data:
-            return None  # We don't get anything interesting if we have no content intent
+            return None, None
+
         message = Message(state=self.parent, data=data)
         author = message.author
-        self.cache.add_users(author._to_user())
+        current = self.cache.get_message(message.id)
+        self.cache.add_messages(message)
+
+        # Update member if we have the correct intent
         if message.guild_id:
             author = cast(GuildMember, author)
             guild = self.cache.guilds.get(message.guild_id)
             if guild is not None:
                 message.guild = guild
-                guild._members[author.id] = author
-        return message
+                guild._add_member(author)
 
-    async def _handle_message_create(self, data: payloads.Message) -> tuple[str, Message]:
+        return current, message
+
+    async def _handle_message_create(
+            self,
+            data: payloads.Message) -> Ret[Message]:
+        """Handle message create event."""
+
         message = await self._handle_message_generic(data)
-        assert message
-        return "message", message
+        yield "message", message[1]  # pyright: ignore
 
-    async def _handle_message_edit(self, data: payloads.Message) -> tuple[str, Message] | None:
+    async def _handle_message_edit(
+            self,
+            data: payloads.Message) -> OptRet[tuple[Message | None, Message]]:
+        """Handle message edit event."""
+
         message = await self._handle_message_generic(data)
-        if message is None:
-            return None
-        return "message_edit", message
+        yield "message_edit", message  # pyright: ignore
 
-    async def _handle_message_delete(self, data: payloads.Message) -> tuple[str, tuple[int, int]]:
-        return "message_delete", (int(data["channel_id"]), int(data["id"]),)
+    async def _handle_message_delete(
+            self,
+            data: payloads.Message) -> Ret[tuple[Channel, int | Message]]:
+        """Handle message delete; returns channel and either cached message or
+        the message ID."""
 
-    async def _handle_channel_pins_update(self, data: dict[str, str]) -> None:
-        log.debug("Ignoring channel pins update %s" % dump(data))
-        return None  # TODO
+        channel = (
+            self.cache.get_channel(data["channel_id"])
+            or Channel.partial(self.parent, data["channel_id"])
+        )
+        message = self.cache.messages.pop(int(data["id"]), None)
+        yield "message_delete", (
+            channel,
+            message or int(data["id"]),
+        )
 
-    async def _handle_presence_update(self, data: dict[Any, Any]) -> None:
+    async def _handle_channel_pins_update(self, data: gw.ChannelPinsUpdate) -> AI[None]:
+        """Handle a pin update. Doesn't even tell us what the pins are."""
+
+        yield None
+
+    async def _handle_presence_update(self, data: dict[Any, Any]) -> AI[None]:
+        """Handle updating presences for users."""
+
         log.debug("Ignoring presence update %s" % dump(data))
-        return None  # TODO
+        yield None
 
-    async def _handle_channel_generic(self, data: payloads.Channel) -> tuple[Channel | None, Channel] | None:
-        channel = channel_builder(state=self.parent, data=data)
-        current = None
+    async def _handle_channel_generic(
+            self,
+            data: payloads.Channel) -> tuple[Channel | None, Channel]:
+        """Handle channel create and update events."""
+
+        current = self.cache.get_channel(data["id"])
+        guild: Guild | None = None
         if "guild_id" in data:
-            guild = self.cache.guilds.get(int(data["guild_id"]))
-            if guild is None:
-                log.warning(
-                    "Failed to get guild %s from cache, ignoring channel event"
-                    % data["guild_id"]
-                )
-                return None
-            channel.guild = guild
-            current = guild._channels.get(channel.id, None)
-            guild._channels[channel.id] = channel
-            self.cache.add_channels(channel)
+            guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        if isinstance(guild, Guild):
+            channel = guild._add_channel(data)
+        else:
+            channel = channel_builder(state=self.parent, data=data)
         return current, channel
 
-    async def _handle_channel_create(self, data: payloads.Channel) -> tuple[str, Channel] | None:
-        channel = await self._handle_channel_generic(data)
-        if channel is None:
-            return None
-        return "channel_create", channel[1]
+    async def _handle_channel_create(
+            self,
+            data: payloads.Channel) -> Ret[Channel]:
+        """Handle channel create event."""
 
-    async def _handle_channel_update(self, data: payloads.Channel) -> tuple[str, tuple[Channel, Channel]] | None:
         channel = await self._handle_channel_generic(data)
-        if channel is None:
-            return None
-        if channel[0] is None:
-            log.warning(
-                "Failed to get channel %s from cache, ignoring channel update"
-                % channel[1].id
-            )
-            return None
-        return "channel_update", channel  # pyright: ignore
+        yield "channel_create", channel[1]  # pyright: ignore
 
-    async def _handle_channel_delete(self, data: payloads.Channel) -> tuple[str, Channel] | None:
+    async def _handle_channel_update(
+            self,
+            data: payloads.Channel) -> Ret[tuple[Channel | None, Channel]]:
+        """Handle channel update event."""
+
+        channel = await self._handle_channel_generic(data)
+        yield "channel_update", channel
+
+    async def _handle_channel_delete(
+            self,
+            data: payloads.Channel) -> Ret[Channel]:
+        """Handle channel delete event."""
+
         # Though we do get a channel in the payload, we'll try and get the one
         # from cache as a first point of contact instead of constructing a new
         # object
         channel_id = int(data["id"])
         channel = self.cache.channels.pop(channel_id, None)
         if channel:
-            if isinstance(channel.guild, Guild):
-                channel.guild._channels.pop(channel_id, None)
-            return "channel_delete", channel
+            if channel.guild:
+                guild = self.cache.get_guild(channel.guild.id)
+                if isinstance(guild, Guild):
+                    guild._channels.pop(channel_id, None)
+                channel.guild = guild
+            yield "channel_delete", channel
+            return
 
         # It's not cached - let's just build a new one
         channel = channel_builder(state=self.parent, data=data)
         if "guild_id" in data:
-            guild = self.cache.guilds.get(int(data["guild_id"]))
-            if guild is None:
-                log.warning(
-                    "Failed to get guild %s from cache, ignoring channel delete"
-                    % data["guild_id"]
-                )
-                return None
+            guild = self.cache.get_guild(data["guild_id"], or_object=True)
             channel.guild = guild
-        return "channel_delete", channel
+        yield "channel_delete", channel
 
-    async def _handle_guild_ban(self, data: dict[str, Any]) -> tuple[str, tuple[int, User]]:
+    async def _handle_guild_ban(
+            self,
+            data: dict[str, Any]) -> Ret[tuple[Guild, User | GuildMember]]:
+        """Handle guild ban event."""
+
         # Here we're going to build the user from scratch; guild member remove
         # will handle the user in cache
-        user = User(state=self.parent, data=data["user"])
-        return "guild_ban", (int(data["guild_id"]), user,)
+        user = self.cache.get_user(data["user"]["id"])
+        if user is None:
+            # We aren't going to add this user to cache
+            user = User(state=self.parent, data=data["user"])
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        if isinstance(guild, Guild):
+            member = guild.get_member(user)
+            if member is not None:
+                user = member
+        yield "guild_ban", (guild, user,)
 
-    async def _handle_guild_unban(self, data: dict[str, Any]) -> tuple[str, tuple[int, User]]:
-        user = User(state=self.parent, data=data["user"])
-        return "guild_unban", (int(data["guild_id"]), user,)
+    async def _handle_guild_unban(
+            self,
+            data: dict[str, Any]) -> Ret[tuple[Guild, User]]:
+        """Handle guild unban event."""
 
-    async def _handle_invite_create(self, data: payloads.Invite) -> tuple[str, Invite]:
+        # We're gonna assume we don't have this user and just build them from
+        # scratch
+        user = User(state=self.parent, data=data["user"])
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        yield "guild_unban", (guild, user,)
+
+    async def _handle_invite_create(
+            self,
+            data: payloads.Invite) -> Ret[Invite]:
+        """Handle invite create event."""
+
         invite = Invite(state=self.parent, data=data)  # pyright: ignore
+
+        # Because this creates both a channel AND a guild object, we're gonna
+        # try and get those from the cache
         if invite.channel:
-            channel = self.cache.channels.get(invite.channel.id, None)
+            channel = self.cache.get_channel(invite.channel.id)
             if channel:
                 invite.channel = channel
-        return "invite_create", invite
+        if invite.guild:
+            guild = self.cache.get_guild(invite.guild.id)
+            if guild:
+                invite.guild = guild
 
-    async def _handle_invite_delete(self, data: dict[str, str]) -> tuple[str, tuple[int, int, str]]:
-        return "invite_delete", (
-            int(data["channel_id"]),
-            int(data["guild_id"]),
+        yield "invite_create", invite
+
+    async def _handle_invite_delete(
+            self,
+            data: dict[str, str]) -> Ret[tuple[Guild, Channel, str]]:
+        """Handle an invite delete."""
+
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        channel = self.cache.get_channel(data["channel_id"], or_object=True)
+        yield "invite_delete", (
+            guild,
+            channel,
             data["code"],
         )
 
-    async def _handle_role_generic(self, data: dict[str, Any]) -> tuple[Role | None, Role] | None:
-        guild = self.cache.guilds.get(int(data["guild_id"]))
-        if guild is None:
-            log.warning(
-                "Failed to get guild %s from cache, ignoring role event"
-                % data["guild_id"]
-            )
-            return None
+    async def _handle_role_generic(
+            self,
+            data: gw.RoleCreateUpdate) -> tuple[Role | None, Role]:
+        """Handle a role being created."""
+
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
         role = Role(state=self.parent, data=data["role"], guild=guild)
-        current = guild._roles.get(role.id, None)
-        guild._roles[role.id] = role
+        current: Role | None = None
+        if isinstance(guild, Guild):
+            current = guild.get_role(role.id)
+            guild._add_role(role)
         return current, role
 
-    async def _handle_role_create(self, data: dict[str, Any]) -> tuple[str, Role] | None:
-        role = await self._handle_role_generic(data)
-        if role is None:
-            return None
-        return "role_create", role[1]
+    async def _handle_role_create(
+            self,
+            data: gw.RoleCreateUpdate) -> Ret[Role]:
+        """Handle role create."""
 
-    async def _handle_role_update(self, data: dict[str, Any]) -> tuple[str, tuple[Role, Role]] | None:
         role = await self._handle_role_generic(data)
-        if role is None:
-            return None
-        if role[0] is None:
-            log.warning(
-                "Failed to get role %s from cache, ignoring role update"
-                % role[1].id
-            )
-            return None
-        return "role_update", role  # pyright: ignore
+        yield "role_create", role[1]
 
-    async def _handle_role_delete(self, data: dict[str, Any]) -> tuple[str, Role] | None:
-        guild = self.cache.guilds.get(int(data["guild_id"]))
-        if guild is None:
-            log.warning(
-                "Failed to get guild %s from cache, ignoring role delete"
-                % data["guild_id"]
-            )
-            return None
-        role = guild._roles.pop(int(data["role_id"]), None)
+    async def _handle_role_update(
+            self,
+            data: gw.RoleCreateUpdate) -> Ret[tuple[Role | None, Role]]:
+        """Handle role update."""
+
+        role = await self._handle_role_generic(data)
+        yield "role_update", role
+
+    async def _handle_role_delete(
+            self,
+            data: gw.RoleDelete) -> Ret[int | Role]:
+        """Handle role delete."""
+
+        guild = self.cache.get_guild(data["guild_id"])
+        role: Role | int | None = None
+        if guild is not None:
+            role = guild._roles.pop(int(data["role_id"]), None)
         if role is None:
-            log.warning(
-                "Failed to get role %s from cache, ignoring role delete"
-                % data["role_id"]
-            )
-            return None
-        return "role_create", role
+            role = int(data["role_id"])
+        yield "role_create", role
 
     async def _handle_guild_member_generic(
             self,
-            data: payloads.GuildMember) -> tuple[GuildMember | None, GuildMember] | None:
-        guild = self.cache.guilds.get(int(data["guild_id"]))
-        if guild is None:
-            log.warning(
-                "Failed to get guild %s from cache, ignoring member event"
-                % data["guild_id"]
-            )
-            return None
+            data: payloads.GuildMember) -> tuple[GuildMember | None, GuildMember]:
+        """Handle member create and update."""
+
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
         member = GuildMember(state=self.parent, data=data, guild=guild)
-        current = guild._members.get(member.id, None)
-        guild._members[member.id] = member
+        current: GuildMember | None = None
+        if isinstance(guild, Guild):
+            current = guild.get_member(member.id)
+            guild._add_member(member)
         return current, member
 
     async def _handle_guild_member_add(
             self,
-            data: payloads.GuildMember) -> tuple[str, GuildMember] | None:
+            data: payloads.GuildMember) -> Ret[GuildMember]:
+        """Handle guild member create."""
+
         member = await self._handle_guild_member_generic(data)
-        if member is None:
-            return None
-        return "guild_member_add", member[1]
+        yield "guild_member_add", member[1]
 
     async def _handle_guild_member_update(
             self,
-            data: payloads.GuildMember) -> tuple[str, tuple[GuildMember, GuildMember]] | None:
-        member = await self._handle_guild_member_generic(data)
-        if member is None:
-            return None
-        if member[0] is None:
-            log.warning(
-                "Failed to get guild member %s-%s from cache, ignoring member update"
-                % (member[1].guild.id, member[1].id)
-            )
-            return None
-        return "guild_member_update", member  # pyright: ignore
+            data: payloads.GuildMember) -> OptRet[tuple[GuildMember | None, GuildMember]]:
+        """Handle guild member update."""
 
-    async def _handle_guild_member_remove(self, data: dict[str, Any]) -> tuple[str, GuildMember] | None:
-        guild = self.cache.guilds.get(int(data["guild_id"]))
-        if guild is None:
-            log.warning(
-                "Failed to get guild %s from cache, ignoring member remove"
-                % data["guild_id"]
-            )
-            return None
-        member = guild._members.pop(int(data["user"]["id"]), None)
-        if member is None:
-            log.warning(
-                "Failed to get guild member %s-%s from cache, ignoring member remove"
-                % (data["guild_id"], data["user"]["id"])
-            )
-            return None
-        return "guild_member_remove", member
+        member = await self._handle_guild_member_generic(data)
+        yield "guild_member_update", member
+
+    async def _handle_guild_member_remove(
+            self,
+            data: dict[str, Any]) -> Ret[tuple[Guild, GuildMember | User]]:
+        """Handle guild member being removed."""
+
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        user: GuildMember | User | None = None
+        if isinstance(guild, Guild):
+            user = guild._members.pop(int(data["user"]["id"]), None)
+            if user:
+                user._user._guilds.remove(guild.id)
+        if user is None:
+            user = User(state=self.parent, data=data["user"])
+        yield "guild_member_remove", (guild, user,)
+
+    # async def _handle_message_reaction_add(
+    #         self,
+    #         data: gw.ReactionAdd) -> Ret[Reaction]:
+    #     yield

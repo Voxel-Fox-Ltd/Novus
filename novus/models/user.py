@@ -17,7 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import operator
+from typing import TYPE_CHECKING, Any
 
 from ..enums import Locale, UserPremiumType
 from ..flags import Permissions, UserFlags
@@ -109,9 +110,9 @@ class User(Hashable, UserAPIMixin):
         'email',
         'flags',
         'premium_type',
-
         '_cs_avatar',
         '_cs_banner',
+        '_guilds',
     )
 
     def __init__(self, *, state: HTTPConnection, data: UserPayload):
@@ -132,6 +133,7 @@ class User(Hashable, UserAPIMixin):
         if 'flags' in data or 'public_flags' in data:
             self.flags = UserFlags(data.get('flags', 0) | data.get('public_flags', 0))
         self.premium_type = try_enum(UserPremiumType, data.get('premium_type', 0))
+        self._guilds: set[int] = set()
 
     __repr__ = generate_repr(('id', 'username', 'bot',))
 
@@ -155,40 +157,61 @@ class User(Hashable, UserAPIMixin):
         return GuildMember(
             state=self._state,
             data=data,
-            user=self._to_data(),
+            user=self,
             guild=guild,
         )
 
     def _to_user(self) -> User:
         return self
 
-    def _to_data(self) -> UserPayload:
-        return {
-            "id": str(self.id),
-            "username": self.username,
-            "discriminator": self.discriminator,
-            "avatar": self.avatar_hash,
-            "bot": self.bot,
-            "system": self.system,
-            "mfa_enabled": self.mfa_enabled,
-            "banner": self.banner_hash,
-            "accent_color": self.accent_color,
-            # "locale": self.locale.value if self.locale else None,
-            "verified": self.verified,
-            "email": self.email,
-            "flags": self.flags.value,
-            "premium_type": self.premium_type.value,
-        }
 
-
-class GuildMember(User, GuildMemberAPIMixin):
+class GuildMember(GuildMemberAPIMixin):
     """
     A model for a guild member object.
 
-    This model extends the `novus.User` object.
+    This model does not extend the `novus.User` object, but but has the same
+    methods and attributes.
 
     Attributes
     ----------
+    id : int
+        The ID of the user.
+    username : str
+        The username of the user.
+    discriminator : str
+        The discriminator of the user.
+    avatar_hash : str | None
+        The avatar hash of the user.
+    avatar : novus.Asset | None
+        The avatar of the user.
+    bot : bool
+        Whether or not the user is associated with an Oauth2 application.
+    system : bool
+        Whether or not the user is associated with a Discord system message.
+    mfa_enabled : bool
+        Whether or not there's MFA available on the account. Only set properly
+        for when you're receiving your own user via an Oauth2 application.
+    banner_hash : str | None
+        The hash for the user banner.
+    banner : novus.Asset | None
+        The asset for the user banner.
+    accent_color : int
+        The color associated with the user's accent color.
+    locale : novus.Locale | None
+        The locale for the user. Only set properly for when you're receiving
+        your own user via an Oauth2 application.
+    verified : bool
+        Whether or not the user has a verified username attached. Only set
+        properly for when you're receiving your own user via an Oauth2
+        application.
+    email : str | None
+        The email associated with the account. Only set properly for when
+        you're receiving your own user via an Oauth2 application.
+    flags : novus.UserFlags
+        The flags associated with the user account. A combination of public and
+        private.
+    premium_type : novus.UserPremiumType
+        The premium type associated with the account.
     nick : str | None
         The nickname for the user.
     guild_avatar_hash : str | None
@@ -219,7 +242,25 @@ class GuildMember(User, GuildMemberAPIMixin):
     """
 
     __slots__ = (
-        *User.__slots__,
+        '_state',
+        'id',
+        'username',
+        'discriminator',
+        'avatar_hash',
+        'bot',
+        'system',
+        'mfa_enabled',
+        'banner_hash',
+        'accent_color',
+        'locale',
+        'verified',
+        'email',
+        'flags',
+        'premium_type',
+        '_cs_avatar',
+        '_cs_banner',
+
+        '_user',
         'nick',
         'guild_avatar_hash',
         'role_ids',
@@ -231,9 +272,21 @@ class GuildMember(User, GuildMemberAPIMixin):
         'permissions',
         'timeout_until',
         'guild',
-
         '_cs_guild_avatar',
     )
+
+    def __new__(cls, *args: Any, **kwargs: Any) -> GuildMember:
+        obj = super().__new__(cls)
+        for attr in User.__slots__:
+            if attr.startswith("_"):
+                continue
+            getter = operator.attrgetter('_user.' + attr)
+            setattr(
+                cls,
+                attr,
+                property(getter, doc=f'Equivalent to :attr:`novus.User.{attr}`')
+            )
+        return obj
 
     def __init__(
             self,
@@ -241,11 +294,15 @@ class GuildMember(User, GuildMemberAPIMixin):
             state: HTTPConnection,
             data: GuildMemberPayload,
             guild: StateSnowflake | int,
-            user: UserPayload | None = None):
-        if user is not None:
-            super().__init__(state=state, data=user)
+            user: User | UserPayload | None = None):
+        self._state = state
+        self._user: User
+        if isinstance(user, User):
+            self._user = user
+        elif user is not None:
+            self._user = User(state=state, data=user)
         elif 'user' in data:
-            super().__init__(state=state, data=data['user'])
+            self._user = User(state=state, data=data['user'])
         else:
             raise ValueError("Missing user data from member init")
         self.nick = data.get('nick')
@@ -270,6 +327,23 @@ class GuildMember(User, GuildMemberAPIMixin):
             if isinstance(guild, int)
             else guild
         )
+        self._user._guilds.add(self.guild.id)
+
+    __repr__ = generate_repr(('id', 'username', 'bot', 'guild',))
+
+    # Copied straight from the user object
+    @cached_slot_property('_cs_avatar')
+    def avatar(self) -> Asset | None:
+        if self.avatar_hash is None:
+            return None
+        return Asset.from_user_avatar(self)
+
+    # Copied straight from the user object
+    @cached_slot_property('_cs_banner')
+    def banner(self) -> Asset | None:
+        if self.banner_hash is None:
+            return None
+        return Asset.from_user_banner(self)
 
     @cached_slot_property('_cs_guild_avatar')
     def guild_avatar(self) -> Asset | None:
@@ -278,25 +352,7 @@ class GuildMember(User, GuildMemberAPIMixin):
         return Asset.from_guild_member_avatar(self)
 
     def _to_user(self) -> User:
-        return User(
-            state=self._state,
-            data={
-                "id": str(self.id),
-                "username": self.username,
-                "discriminator": self.discriminator,
-                "avatar": self.avatar_hash,
-                "bot": self.bot,
-                "system": self.system,
-                "mfa_enabled": self.mfa_enabled,
-                "banner": self.banner_hash,
-                "accent_color": self.accent_color,
-                # "locale": self.locale.value if self.locale else None,
-                "verified": self.verified,
-                "email": self.email,
-                "flags": self.flags.value,
-                "premium_type": self.premium_type.value,
-            }
-        )
+        return self._user
 
 
 class ThreadMember:
