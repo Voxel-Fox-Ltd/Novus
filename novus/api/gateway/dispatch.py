@@ -93,7 +93,7 @@ class GatewayDispatch:
             # "Thread members update": None,
             "GUILD_CREATE": self._handle_guild_create,
             "GUILD_UPDATE": self._handle_guild_update,
-            # "Guild delete": None,
+            "GUILD_DELETE": self._handle_guild_delete,
             # "Guild audit log entry create": None,
             "GUILD_BAN_ADD": self._handle_guild_ban,
             "GUILD_BAN_REMOVE": self._handle_guild_unban,
@@ -226,6 +226,52 @@ class GatewayDispatch:
         elif current is None:
             return
         yield "guild_update", (current, guild)
+
+    async def _handle_guild_delete(self, data: dict[str, str]) -> Ret[Guild | int]:
+        """Handle being removed from a guild."""
+
+        # Get from cache if we can
+        current = self.cache.guilds.pop(int(data["id"]), None)
+        if not current:
+            yield "guild_delete", int(data["id"])
+            return
+
+        def try_delete(dict: dict, key: int) -> None:
+            try:
+                del dict[key]
+            except KeyError:
+                pass
+
+        # Remove all cached stuff that we can
+        for id in list(current._emojis.keys()):
+            try_delete(self.cache.emojis, id)
+            del current._emojis[id]
+        for id in list(current._stickers.keys()):
+            try_delete(self.cache.stickers, id)
+            del current._stickers[id]
+        for id in list(current._roles.keys()):
+            del current._roles[id]
+        for id, member in list(current._members.items()):
+            try:
+                member._user._guilds.remove(current.id)
+            except KeyError:
+                pass
+            if not member._user._guilds:
+                try_delete(self.cache.users, id)
+            del current._members[id]
+        for id in list(current._guild_scheduled_events.keys()):
+            try_delete(self.cache.events, id)
+            del current._guild_scheduled_events[id]
+        for id in list(current._threads.keys()):
+            try_delete(self.cache.channels, id)
+            del current._threads[id]
+        for id in list(current._voice_states.keys()):
+            pass
+        for id in list(current._channels.keys()):
+            try_delete(self.cache.channels, id)
+            del current._channels[id]
+
+        yield "guild_delete", current
 
     async def _handle_typing(
             self,
