@@ -33,7 +33,7 @@ from .user import User
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    from .. import GuildMember, Thread, abc
+    from .. import GuildMember, Thread
     from ..api import HTTPConnection
     from ..payloads import Message as MessagePayload
 
@@ -156,7 +156,7 @@ class Message(MessageAPIMixin):
     def __init__(self, *, state: HTTPConnection, data: MessagePayload) -> None:
         self._state = state
         self.id: int = try_snowflake(data["id"])
-        self.channel: abc.Snowflake = Channel.partial(
+        self.channel: Channel = Channel.partial(
             id=data["channel_id"],
             state=self._state,
         )
@@ -164,7 +164,7 @@ class Message(MessageAPIMixin):
             state=self._state,
             data=data["author"],  # pyright: ignore
         )
-        self.guild: abc.StateSnowflake | None = None
+        self.guild: Guild | None = None
         if "guild_id" in data:
             self.guild = Object.with_api(
                 (Guild,),

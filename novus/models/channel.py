@@ -23,13 +23,14 @@ from typing import TYPE_CHECKING, Type
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import Permissions
 from ..utils import generate_repr, try_snowflake
-from .mixins import Hashable, Messageable
+from .api_mixins.channel import ChannelAPIMixin
+from .mixins import HasChannel, Hashable
 from .object import Object
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..payloads import Channel as ChannelPayload
-    from .abc import StateSnowflake
+    from . import Guild, abc
 
 __all__ = (
     'PermissionOverwrite',
@@ -90,7 +91,7 @@ def channel_builder(
         *,
         state: HTTPConnection,
         data: ChannelPayload,
-        guild: StateSnowflake | None = None) -> Channel:
+        guild: abc.StateSnowflake | None = None) -> Channel:
     factory = channel_factory(data['type'])
     if guild is None or GuildChannel not in factory.mro():
         return factory(state=state, data=data)
@@ -146,7 +147,7 @@ class PermissionOverwrite:
     __repr__ = generate_repr(('id', 'type', 'allow', 'deny',))
 
 
-class Channel(Hashable, Messageable):
+class Channel(Hashable, HasChannel, ChannelAPIMixin):
     """
     The base channel object that all other channels inherit from. This is also
     the object that will be returned if there is an unknown channel type.
@@ -176,7 +177,7 @@ class Channel(Hashable, Messageable):
         self.id = try_snowflake(data['id'])
         self.type = ChannelType(data.get('type', 0))
         self.raw = data
-        self.guild: StateSnowflake | None = None
+        self.guild: Guild | None = None
 
     __repr__ = generate_repr(('id',))
 
@@ -248,14 +249,14 @@ class GuildChannel(Channel):
         'rate_limit_per_user',
     )
 
-    guild: StateSnowflake
+    guild: Guild
 
     def __init__(
             self,
             *,
             state: HTTPConnection,
             data: ChannelPayload,
-            guild: int | StateSnowflake | None = None):
+            guild: int | Guild | None = None):
         super().__init__(state=state, data=data)
         del self.raw  # Not needed for known types)
         guild_id = try_snowflake(data.get('guild_id')) or guild
@@ -283,7 +284,8 @@ class GuildChannel(Channel):
         self.parent_id = try_snowflake(data.get('parent_id'))
         self.rate_limit_per_user: int | None = data.get('rate_limit_per_user')
         if isinstance(guild_id, int):
-            self.guild = Object(guild_id, state=self._state)
+            from .guild import Guild
+            self.guild = Object.with_api((Guild,), guild_id, state=self._state)
         else:
             self.guild = guild_id
 

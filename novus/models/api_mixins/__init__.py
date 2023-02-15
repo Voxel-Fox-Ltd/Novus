@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from .audit_log import *
 from .auto_moderation import *
+from .channel import *
 from .emoji import *
 from .guild import *
 from .invite import *
@@ -31,6 +32,7 @@ from .webhook import *
 __all__: tuple[str, ...] = (
     'AuditLogAPIMixin',
     'AutoModerationAPIMixin',
+    'ChannelAPIMixin',
     'EmojiAPIMixin',
     'GuildAPIMixin',
     'GuildMemberAPIMixin',
