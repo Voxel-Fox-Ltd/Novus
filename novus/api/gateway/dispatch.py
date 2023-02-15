@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeV
 
 from ...models import (
     Channel,
+    Emoji,
     Guild,
     GuildMember,
     Invite,
@@ -97,8 +98,8 @@ class GatewayDispatch:
             # "Guild audit log entry create": None,
             "GUILD_BAN_ADD": self._handle_guild_ban,
             "GUILD_BAN_REMOVE": self._handle_guild_unban,
-            # "Guild emojis update": None,
-            # "Guild stickers update": None,
+            "GUILD_EMOJIS_UPDATE": self._handle_guild_emojis_update,
+            "GUILD_STICKERS_UPDATE": self._handle_guild_stickers_update,
             # "Guild integrations update": None,
             "GUILD_MEMBER_ADD": self._handle_guild_member_add,
             "GUILD_MEMBER_REMOVE": self._handle_guild_member_remove,
@@ -273,6 +274,52 @@ class GatewayDispatch:
 
         yield "guild_delete", current
 
+    async def _handle_guild_emojis_update(
+            self,
+            data: gw.GuildEmojisUpdate) -> Ret[tuple[Guild, list[Emoji]]]:
+        """Handle guild emojis update. For whatever reason Discord gives us
+        the entire guild emoji list for every update."""
+
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        if isinstance(guild, Guild):
+            for k in guild._emojis.keys():
+                try:
+                    self.cache.emojis.pop(k)
+                except KeyError:
+                    pass
+        emojis = [
+            Emoji(state=self.parent, data=d, guild=guild)
+            for d in data["emojis"]
+        ]
+        if isinstance(guild, Guild):
+            guild._emojis.clear()
+            for e in emojis:
+                guild._add_emoji(e)
+        yield "emojis_update", (guild, emojis,)
+
+    async def _handle_guild_stickers_update(
+            self,
+            data: gw.GuildStickersUpdate) -> Ret[tuple[Guild, list[Emoji]]]:
+        """Handle guild stickers update. For whatever reason Discord gives us
+        the entire guild stickers list for every update."""
+
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        if isinstance(guild, Guild):
+            for k in guild._stickers.keys():
+                try:
+                    self.cache.stickers.pop(k)
+                except KeyError:
+                    pass
+        stickers = [
+            Emoji(state=self.parent, data=d, guild=guild)
+            for d in data["stickers"]
+        ]
+        if isinstance(guild, Guild):
+            guild._stickers.clear()
+            for e in stickers:
+                guild._add_emoji(e)
+        yield "stickers_update", (guild, stickers,)
+
     async def _handle_typing(
             self,
             data: gw.TypingStart) -> OptRet[tuple[Channel, GuildMember | User]]:
@@ -332,17 +379,19 @@ class GatewayDispatch:
 
             # Update author with member
             constructed: bool = False
-            cached_member: GuildMember | None = None
+            cached_member: GuildMember | User | None = None
             if isinstance(guild, Guild):
                 cached_member = guild.get_member(message.author.id)
-            if cached_member is None:
+            if cached_member is None and "member" in data:
                 constructed = True
                 cached_member = GuildMember(
                     state=self.parent,
-                    data=data["member"],  # pyright: ignore
+                    data=data["member"],
                     user=data["author"],  # pyright: ignore
                     guild=guild,
                 )
+            elif cached_member is None:
+                cached_member = message.author
             if isinstance(guild, Guild) and constructed:
                 guild._add_member(cached_member)
             message.author = cached_member

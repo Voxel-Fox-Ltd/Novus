@@ -283,11 +283,15 @@ class Guild(Hashable, GuildAPIMixin):
         self._voice_states: dict[int, None] = {}
         self._channels: dict[int, Channel] = {}
 
-    def _add_emoji(self, emoji: payloads.Emoji) -> Emoji | None:
-        if emoji.get("id") is None:
-            return None
-        created = Emoji(state=self._state, data=emoji, guild=self)
+    def _add_emoji(self, emoji: payloads.Emoji | Emoji) -> Emoji | None:
+        if isinstance(emoji, Emoji):
+            created = emoji
+        else:
+            if emoji.get("id") is None:
+                return None
+            created = Emoji(state=self._state, data=emoji, guild=self)
         assert created.id
+        created.guild = self
         self._state.cache.add_emojis(created)
         self._emojis[created.id] = created
         return created

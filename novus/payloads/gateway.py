@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, TypedDict
 from typing_extensions import NotRequired
 
 if TYPE_CHECKING:
-    from . import GuildMember, PartialEmoji, Role
+    from . import Emoji, GuildMember, PartialEmoji, Role, Sticker
     from ._util import Snowflake, Timestamp
 
 __all__ = (
@@ -31,6 +31,7 @@ __all__ = (
     'ChannelPinsUpdate',
     'RoleCreateUpdate',
     'RoleDelete',
+    'GuildEmojisUpdate',
 )
 
 
@@ -66,3 +67,13 @@ class RoleCreateUpdate(TypedDict):
 class RoleDelete(TypedDict):
     guild_id: Snowflake
     role_id: Snowflake
+
+
+class GuildEmojisUpdate(TypedDict):
+    emojis: list[Emoji]
+    guild_id: Snowflake
+
+
+class GuildStickersUpdate(TypedDict):
+    stickers: list[Sticker]
+    guild_id: Snowflake

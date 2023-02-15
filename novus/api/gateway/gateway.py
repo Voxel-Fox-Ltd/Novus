@@ -45,7 +45,7 @@ __all__ = (
 )
 
 
-log = logging.getLogger("novus.gateway")
+log = logging.getLogger("novus.gateway.socket")
 dump = json.dumps
 
 
@@ -346,7 +346,7 @@ class GatewayConnection:
         try:
             await self.dispatch.handle_dispatch(event_name, message)
         except Exception as e:
-            log.error("Error in dispatch (%s) (%s)" % (event_name, message), exc_info=e)
+            log.error("Error in dispatch (%s) (%s)" % (event_name, dump(message)), exc_info=e)
 
     async def message_handler(self) -> None:
         """
