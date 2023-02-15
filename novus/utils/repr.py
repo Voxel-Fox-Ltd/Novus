@@ -23,7 +23,8 @@ __all__ = (
 
 
 def generate_repr(
-        args: Iterable[str | tuple[str, str]]) -> Callable[..., str]:
+        args: Iterable[str | tuple[str, str]],
+        len_args: Iterable[str | tuple[str, str]] | None = None) -> Callable[..., str]:
     """
     Easily add a __repr__ to a class.
     """
@@ -38,5 +39,13 @@ def generate_repr(
             if not hasattr(instance, self_name):
                 continue
             generated_args.append(f"{kwarg_name}={getattr(instance, self_name)!r}")
+        for pair in len_args or ():
+            if isinstance(pair, tuple):
+                kwarg_name, self_name = pair
+            else:
+                kwarg_name, self_name = pair, pair
+            if not hasattr(instance, self_name):
+                continue
+            generated_args.append(f"{kwarg_name}[{len(getattr(instance, self_name))}]")
         return f"<{instance.__class__.__name__} {' '.join(generated_args)}>"
     return wrapper

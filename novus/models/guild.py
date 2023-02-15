@@ -283,6 +283,38 @@ class Guild(Hashable, GuildAPIMixin):
         self._voice_states: dict[int, None] = {}
         self._channels: dict[int, Channel] = {}
 
+    @property
+    def emojis(self) -> list[Emoji]:
+        return list(self._emojis.values())
+
+    @property
+    def stickers(self) -> list[Sticker]:
+        return list(self._stickers.values())
+
+    @property
+    def roles(self) -> list[Role]:
+        return list(self._roles.values())
+
+    @property
+    def members(self) -> list[GuildMember]:
+        return list(self._members.values())
+
+    @property
+    def guild_scheduled_events(self) -> list[ScheduledEvent]:
+        return list(self._guild_scheduled_events.values())
+
+    @property
+    def threads(self) -> list[Thread]:
+        return list(self._threads.values())
+
+    @property
+    def voice_states(self) -> list[Any]:
+        return list(self._voice_states.values())
+
+    @property
+    def channels(self) -> list[Channel]:
+        return list(self._channels.values())
+
     def _add_emoji(self, emoji: payloads.Emoji | Emoji) -> Emoji | None:
         if isinstance(emoji, Emoji):
             created = emoji
@@ -398,7 +430,27 @@ class Guild(Hashable, GuildAPIMixin):
                 self._add_channel(d)
                 await asyncio.sleep(0)
 
-    __repr__ = generate_repr(('id', 'name',))
+    __repr__ = generate_repr(
+        ('id', 'name',),
+        ('channels', 'stickers', 'roles', 'members',),
+    )
+
+    def sticker(self, id: int | Snowflake) -> Sticker | None:
+        """
+        Get a sticker from cache.
+
+        Parameters
+        ----------
+        id : int | novus.abc.Snowflake
+            The identifier for the sticker we want to get.
+
+        Returns
+        -------
+        novus.Sticker | None
+            A sticker object, if one was cached.
+        """
+
+        return self._stickers.get(try_id(id))
 
     def get_member(self, id: int | Snowflake) -> GuildMember | None:
         """
@@ -434,6 +486,57 @@ class Guild(Hashable, GuildAPIMixin):
 
         return self._roles.get(try_id(id))
 
+    def get_event(self, id: int | Snowflake) -> ScheduledEvent | None:
+        """
+        Get a scheduled event from cache.
+
+        Parameters
+        ----------
+        id : int | novus.abc.Snowflake
+            The identifier for the event we want to get.
+
+        Returns
+        -------
+        novus.ScheduledEvent | None
+            A scheduled event object, if one was cached.
+        """
+
+        return self._guild_scheduled_events.get(try_id(id))
+
+    def get_thread(self, id: int | Snowflake) -> Thread | None:
+        """
+        Get a thread from cache.
+
+        Parameters
+        ----------
+        id : int | novus.abc.Snowflake
+            The identifier for the thread we want to get.
+
+        Returns
+        -------
+        novus.Thread | None
+            A thread object, if one was cached.
+        """
+
+        return self._threads.get(try_id(id))
+
+    def get_channel(self, id: int | Snowflake) -> Channel | None:
+        """
+        Get a channel from cache.
+
+        Parameters
+        ----------
+        id : int | novus.abc.Snowflake
+            The identifier for the channel we want to get.
+
+        Returns
+        -------
+        novus.Channel | None
+            A channel object, if one was cached.
+        """
+
+        return self._channels.get(try_id(id))
+
     @cached_slot_property('_cs_icon')
     def icon(self) -> Asset:
         return Asset.from_guild_icon(self)
@@ -449,13 +552,6 @@ class Guild(Hashable, GuildAPIMixin):
     @cached_slot_property('_cs_banner')
     def banner(self) -> Asset:
         return Asset.from_guild_banner(self)
-
-    def roles(self) -> list[Role]:
-        return [
-            i
-            for i in
-            self._roles.values()
-        ]
 
 
 class OauthGuild(GuildAPIMixin):

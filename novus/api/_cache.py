@@ -153,7 +153,7 @@ class APICache:
             return v  # pyright: ignore
         if or_object is False:
             return None
-        return Object.with_api((Channel,), id, state=self.parent)  # pyright: ignore
+        return Channel.partial(self.parent, id)  # pyright: ignore
 
     def get_emoji(self, id: int | str) -> Emoji | None:
         return self.emojis.get(int(id))

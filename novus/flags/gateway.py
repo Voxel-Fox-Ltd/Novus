@@ -56,6 +56,11 @@ class Intents(Flags):
         auto_moderation_configuration: bool
         auto_moderation_execution: bool
 
+        messages: bool
+        reactions: bool
+        typing: bool
+        privileged: bool
+
     CREATE_FLAGS = {
         "guilds": 1 << 0,
         "guild_members": 1 << 1,
@@ -76,4 +81,9 @@ class Intents(Flags):
         "guild_scheduled_events": 1 << 16,
         "auto_moderation_configuration": 1 << 20,
         "auto_moderation_execution": 1 << 21,
+
+        "messages": 1 << 9 | 1 << 12,
+        "reactions": 1 << 10 | 1 << 13,
+        "typing": 1 << 11 | 1 << 14,
+        "privileged": 1 << 8 | 1 << 15,
     }
