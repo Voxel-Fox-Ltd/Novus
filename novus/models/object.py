@@ -57,6 +57,11 @@ class Object:
 
     __repr__ = generate_repr(('id', 'guild', 'bases',))
 
+    def __str__(self) -> str:
+        if self.bases:
+            return f"<({', '.join((i.__name__ for i in self.bases))}) Object[{self.id}]>"
+        return f"<Object ({self.id})>"
+
     @classmethod
     def with_api(
             cls,

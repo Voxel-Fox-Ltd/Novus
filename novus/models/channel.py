@@ -178,7 +178,7 @@ class Channel(Hashable, Messageable):
         self.raw = data
         self.guild: StateSnowflake | None = None
 
-    __repr__ = generate_repr(('id', 'type',))
+    __repr__ = generate_repr(('id',))
 
     async def _get_channel(self) -> int:
         return self.id
@@ -288,6 +288,13 @@ class GuildChannel(Channel):
             self.guild = guild_id
 
     __repr__ = generate_repr(('id', 'guild_id', 'name',))
+
+    def __str__(self) -> str:
+        return f"#{self.name}"
+
+    @property
+    def mention(self) -> str:
+        return f"<#{self.id}>"
 
 
 class GuildTextChannel(GuildChannel):

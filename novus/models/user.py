@@ -137,6 +137,17 @@ class User(Hashable, UserAPIMixin):
 
     __repr__ = generate_repr(('id', 'username', 'bot',))
 
+    def __str__(self) -> str:
+        return f"{self.username}#{self.discriminator}"
+
+    @property
+    def mention(self) -> str:
+        """
+        A ping for the user.
+        """
+
+        return f"<@{self.id}>"
+
     @cached_slot_property('_cs_avatar')
     def avatar(self) -> Asset | None:
         if self.avatar_hash is None:
@@ -331,6 +342,17 @@ class GuildMember(GuildMemberAPIMixin):
         )
 
     __repr__ = generate_repr(('id', 'username', 'bot', 'guild',))
+
+    def __str__(self) -> str:
+        return f"{self.username}#{self.discriminator}"
+
+    @property
+    def mention(self) -> str:
+        """
+        A ping for the user.
+        """
+
+        return f"<@{self.id}>"
 
     # Copied straight from the user object
     @cached_slot_property('_cs_avatar')

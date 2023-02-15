@@ -121,6 +121,7 @@ class HTTPConnection:
             "DiscordBot (Python, Novus, https://github.com/Voxel-Fox-Ltd/Novus)"
         )
         self.cache = APICache(self)
+        self.dispatch = lambda event_name, *data: None
 
         # Add API routes
         self.application_role_connection_metadata = ApplicationRoleHTTPConnection(self)
@@ -226,10 +227,6 @@ class HTTPConnection:
         if data:
             data_str = json.dumps(data)
         log.debug(
-            "Sending {0.method} {0.path} with {1}"
-            .format(route, data_str or writer)
-        )
-        print(
             "Sending {0.method} {0.path} with {1}"
             .format(route, data_str or writer)
         )

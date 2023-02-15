@@ -155,7 +155,6 @@ class GatewayDispatch:
             return None
 
         coro = self.EVENT_HANDLER.get(event_name)
-        results: list[tuple[str, Any]] = []
         if coro is None:
             log.warning(
                 "Failed to parse event %s %s"
@@ -165,32 +164,27 @@ class GatewayDispatch:
             async for i in coro(data):
                 if i is None:
                     continue
-                results.append(i)
-        if not results:
-            pass
-        else:
-            for human_event_name, event_data in results:
-                log.info(f"{human_event_name}: {event_data!r}")
+                self.parent.dispatch(*i)  # type: ignore
 
-        if event_name in [
-                "PRESENCE_UPDATE",
-                "GUILD_CREATE",
-                "MESSAGE_CREATE",
-                "VOICE_STATE_UPDATE",
-                "READY",
-                "TYPING_START",
-                "CHANNEL_UPDATE",
-                "MESSAGE_UPDATE",
-                "GUILD_MEMBER_UPDATE",
-                "MESSAGE_DELETE"]:
-            return None
-        import os
-        import pathlib
-        base = pathlib.Path(__file__).parent.parent.parent.parent
-        evt = base / "_GATEWAY" / event_name
-        os.makedirs(evt, exist_ok=True)
-        with open(evt / f"{self.parent.gateway.sequence}_{self.session_id}.json", "w") as a:
-            json.dump(data, a, indent=4, sort_keys=True)
+        # if event_name in [
+        #         "PRESENCE_UPDATE",
+        #         "GUILD_CREATE",
+        #         "MESSAGE_CREATE",
+        #         "VOICE_STATE_UPDATE",
+        #         "READY",
+        #         "TYPING_START",
+        #         "CHANNEL_UPDATE",
+        #         "MESSAGE_UPDATE",
+        #         "GUILD_MEMBER_UPDATE",
+        #         "MESSAGE_DELETE"]:
+        #     return None
+        # import os
+        # import pathlib
+        # base = pathlib.Path(__file__).parent.parent.parent.parent
+        # evt = base / "_GATEWAY" / event_name
+        # os.makedirs(evt, exist_ok=True)
+        # with open(evt / f"{self.parent.gateway.sequence}_{self.session_id}.json", "w") as a:
+        #     json.dump(data, a, indent=4, sort_keys=True)
 
     async def _handle_guild_create(
             self,

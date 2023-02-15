@@ -82,8 +82,8 @@ class Intents(Flags):
         "auto_moderation_configuration": 1 << 20,
         "auto_moderation_execution": 1 << 21,
 
-        "messages": 1 << 9 | 1 << 12,
-        "reactions": 1 << 10 | 1 << 13,
-        "typing": 1 << 11 | 1 << 14,
-        "privileged": 1 << 8 | 1 << 15,
+        "messages": (1 << 9) | (1 << 12),
+        "reactions": (1 << 10) | (1 << 13),
+        "typing": (1 << 11) | (1 << 14),
+        "privileged": (1 << 8) | (1 << 15),
     }

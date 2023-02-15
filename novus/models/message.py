@@ -52,9 +52,9 @@ class Message(MessageAPIMixin):
     ----------
     id : int
         The ID of the message.
-    channel : novus.abc.Snowflake
+    channel : novus.Channel
         A snowflake channel object.
-    guild : novus.abc.Snowflake | None
+    guild : novus.Guild | None
         The guild associated with the message.
 
         .. note::
