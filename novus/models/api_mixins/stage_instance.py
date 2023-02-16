@@ -34,6 +34,9 @@ __all__ = (
 
 class StageInstanceAPIMixin:
 
+    id: int
+    _state: HTTPConnection
+
     @classmethod
     async def create(
             cls,

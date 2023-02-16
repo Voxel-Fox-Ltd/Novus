@@ -24,7 +24,8 @@ from ...utils import ME, MISSING, add_not_missing, try_id
 if TYPE_CHECKING:
     from ...api import HTTPConnection
     from ...flags import MessageFlags
-    from .. import AllowedMentions, Embed, Emoji, File, Sticker, User, abc
+    from .. import AllowedMentions, Channel, Embed, Emoji, File, Guild, Sticker, User, abc
+    from .. import api_mixins as amix
     from ..message import Message
 
 __all__ = (
@@ -33,6 +34,11 @@ __all__ = (
 
 
 class MessageAPIMixin:
+
+    id: int
+    _state: HTTPConnection
+    channel: Channel
+    guild: Guild | amix.GuildAPIMixin | None
 
     @classmethod
     async def create(

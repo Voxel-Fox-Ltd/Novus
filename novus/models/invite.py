@@ -27,6 +27,8 @@ from .guild import PartialGuild
 if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..payloads import InviteWithMetadata as InviteMetadataPayload
+    from . import api_mixins as amix
+    from .guild import Guild
 
 __all__ = (
     'Invite',
@@ -72,7 +74,7 @@ class Invite(InviteAPIMixin):
         self.max_age = data.get('max_age')
         self.temporary = data.get('temporary')
         self.created_at = parse_timestamp(data.get('created_at'))
-        self.guild = None
+        self.guild: Guild | PartialGuild | amix.GuildAPIMixin | None = None
         if 'guild' in data:
             self.guild = PartialGuild(state=self._state, data=data['guild'])
             if self.channel:

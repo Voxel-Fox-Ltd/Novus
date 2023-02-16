@@ -24,6 +24,7 @@ from .embed import *
 from .emoji import *
 from .file import *
 from .guild import *
+from .guild_member import *
 from .invite import *
 from .message import *
 from .object import *

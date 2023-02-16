@@ -27,6 +27,7 @@ from ..models.object import Object
 
 if TYPE_CHECKING:
     from .. import DMChannel, Emoji, GuildChannel, ScheduledEvent, Sticker, User
+    from ..models import api_mixins as amix
     from ._http import HTTPConnection
 
 __all__ = (
@@ -108,52 +109,52 @@ class APICache:
             self.messages[i.id] = i
 
     @overload
-    def get_guild(self, id: int | str, or_object: Literal[True] = ...) -> Guild:
+    def get_guild(self, id: int | str, or_object: Literal[True] = ...) -> Guild | amix.GuildAPIMixin:
         ...
 
     @overload
     def get_guild(self, id: int | str, or_object: Literal[False] = ...) -> Guild | None:
         ...
 
-    def get_guild(self, id: int | str, or_object: bool = False) -> Guild | None:
+    def get_guild(self, id: int | str, or_object: bool = False) -> Guild | amix.GuildAPIMixin | None:
         v = self.guilds.get(int(id))
         if v:
             return v
         if or_object is False:
             return None
-        return Object.with_api((Guild,), id, state=self.parent)
+        return Object(id, state=self.parent).add_api(Guild)
 
     @overload
-    def get_user(self, id: int | str, or_object: Literal[True] = ...) -> User:
+    def get_user(self, id: int | str, or_object: Literal[True] = ...) -> User | amix.UserAPIMixin:
         ...
 
     @overload
     def get_user(self, id: int | str, or_object: Literal[False] = ...) -> User | None:
         ...
 
-    def get_user(self, id: int | str, or_object: bool = False) -> User | None:
+    def get_user(self, id: int | str, or_object: bool = False) -> User | amix.UserAPIMixin | None:
         v = self.users.get(int(id))
         if v:
             return v
         if or_object is False:
             return None
-        return Object.with_api((User,), id, state=self.parent)
+        return Object(id, state=self.parent).add_api(User)
 
     @overload
-    def get_channel(self, id: int | str, or_object: Literal[True] = ...) -> GuildChannel | DMChannel:
+    def get_channel(self, id: int | str, or_object: Literal[True] = ...) -> GuildChannel | DMChannel | Channel:
         ...
 
     @overload
-    def get_channel(self, id: int | str, or_object: Literal[False] = ...) -> GuildChannel | DMChannel | None:
+    def get_channel(self, id: int | str, or_object: Literal[False] = ...) -> GuildChannel | DMChannel | Channel | None:
         ...
 
-    def get_channel(self, id: int | str, or_object: bool = False) -> GuildChannel | DMChannel | None:
+    def get_channel(self, id: int | str, or_object: bool = False) -> GuildChannel | DMChannel | Channel | None:
         v = self.channels.get(int(id))
         if v:
-            return v  # pyright: ignore
+            return v
         if or_object is False:
             return None
-        return Channel.partial(self.parent, id)  # pyright: ignore
+        return Channel.partial(self.parent, id)
 
     def get_emoji(self, id: int | str) -> Emoji | None:
         return self.emojis.get(int(id))
@@ -165,20 +166,20 @@ class APICache:
         return self.events.get(int(id))
 
     @overload
-    def get_message(self, id: int | str, or_object: Literal[True] = ...) -> Message:
+    def get_message(self, id: int | str, or_object: Literal[True] = ...) -> Message | amix.MessageAPIMixin:
         ...
 
     @overload
     def get_message(self, id: int | str, or_object: Literal[False] = ...) -> Message | None:
         ...
 
-    def get_message(self, id: int | str, or_object: bool = False) -> Message | None:
+    def get_message(self, id: int | str, or_object: bool = False) -> Message | amix.MessageAPIMixin | None:
         v = self.messages.get(int(id))
         if v:
             return v
         if or_object is False:
             return None
-        return Object.with_api((Message,), id, state=self.parent)
+        return Object(id, state=self.parent).add_api(Message)
 
     def clear(self) -> None:
         self.user = None

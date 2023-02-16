@@ -31,6 +31,9 @@ __all__ = (
 
 class AuditLogAPIMixin:
 
+    id: int
+    _state: HTTPConnection
+
     @classmethod
     async def fetch(
             cls,

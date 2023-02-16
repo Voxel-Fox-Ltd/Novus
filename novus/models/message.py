@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from datetime import datetime as dt
 
     from .. import GuildMember, Thread
+    from .. import api_mixins as amix
     from ..api import HTTPConnection
     from ..payloads import Message as MessagePayload
 
@@ -59,7 +60,7 @@ class Message(MessageAPIMixin):
 
         .. note::
 
-            If the item is fetched via the API, the guild will set to ``None``.
+            If the message is fetched via the API, the guild will set to ``None``.
     author : novus.User | novus.GuildMember
         The author of the message.
     content : str
@@ -149,7 +150,6 @@ class Message(MessageAPIMixin):
         'stickers',
         'position',
         'role_subscription_data',
-        'guild_id',
         'guild',
     )
 
@@ -164,13 +164,9 @@ class Message(MessageAPIMixin):
             state=self._state,
             data=data["author"],  # pyright: ignore
         )
-        self.guild: Guild | None = None
+        self.guild: Guild | amix.GuildAPIMixin | None = None
         if "guild_id" in data:
-            self.guild = Object.with_api(
-                (Guild,),
-                data["guild_id"],
-                state=self._state,
-            )
+            self.guild = Object(data["guild_id"], state=self._state).add_api(Guild)
             self.channel.guild = self.guild
         if "member" in data:
             assert self.guild

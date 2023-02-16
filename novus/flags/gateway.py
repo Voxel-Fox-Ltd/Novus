@@ -32,10 +32,6 @@ class Intents(Flags):
     """
 
     if TYPE_CHECKING:
-
-        def __init__(self, value: int = 0, **kwargs: bool) -> None:
-            ...
-
         guilds: bool
         guild_members: bool
         guild_moderation: bool

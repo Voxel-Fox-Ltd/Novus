@@ -38,6 +38,9 @@ __all__ = (
 
 class ScheduledEventAPIMixin:
 
+    id: int
+    _state: HTTPConnection
+
     @classmethod
     async def create(
             cls,

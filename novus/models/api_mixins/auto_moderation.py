@@ -38,6 +38,9 @@ __all__ = (
 
 class AutoModerationAPIMixin:
 
+    id: int
+    _state: HTTPConnection
+
     @classmethod
     async def fetch(
             cls,

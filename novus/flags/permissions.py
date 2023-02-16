@@ -27,10 +27,6 @@ __all__ = (
 class Permissions(Flags):
 
     if TYPE_CHECKING:
-
-        def __init__(self, value: int = 0, **kwargs: bool) -> None:
-            ...
-
         create_instant_invite: bool
         kick_members: bool
         ban_members: bool

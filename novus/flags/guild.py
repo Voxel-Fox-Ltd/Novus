@@ -27,10 +27,6 @@ __all__ = (
 class SystemChannelFlags(Flags):
 
     if TYPE_CHECKING:
-
-        def __init__(self, value: int = 0, **kwargs: bool) -> None:
-            ...
-
         suppress_join_notifications: bool
         suppress_premium_subscriptions: bool
         suppress_guild_reminder_notifications: bool

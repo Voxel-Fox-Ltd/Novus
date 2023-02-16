@@ -31,6 +31,7 @@ if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..payloads import Channel as ChannelPayload
     from . import Guild, abc
+    from . import api_mixins as amix
 
 __all__ = (
     'PermissionOverwrite',
@@ -177,7 +178,7 @@ class Channel(Hashable, HasChannel, ChannelAPIMixin):
         self.id = try_snowflake(data['id'])
         self.type = ChannelType(data.get('type', 0))
         self.raw = data
-        self.guild: Guild | None = None
+        self.guild: Guild | amix.GuildAPIMixin | None = None
 
     __repr__ = generate_repr(('id',))
 
@@ -249,7 +250,7 @@ class GuildChannel(Channel):
         'rate_limit_per_user',
     )
 
-    guild: Guild
+    guild: Guild | amix.GuildAPIMixin
 
     def __init__(
             self,
@@ -285,7 +286,7 @@ class GuildChannel(Channel):
         self.rate_limit_per_user: int | None = data.get('rate_limit_per_user')
         if isinstance(guild_id, int):
             from .guild import Guild
-            self.guild = Object.with_api((Guild,), guild_id, state=self._state)
+            self.guild = Object(guild_id, state=self._state).add_api(Guild)
         else:
             self.guild = guild_id
 

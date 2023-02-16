@@ -37,6 +37,9 @@ __all__ = (
 
 class UserAPIMixin:
 
+    id: int
+    _state: HTTPConnection
+
     @classmethod
     async def fetch(
             cls,
@@ -132,6 +135,8 @@ class UserAPIMixin:
 
 
 class GuildMemberAPIMixin:
+
+    id: int
 
     @classmethod
     async def fetch(
@@ -354,3 +359,5 @@ class GuildMemberAPIMixin:
             **updates
         )
         return
+
+    create_dm_channel = UserAPIMixin.create_dm_channel  # pyright: ignore

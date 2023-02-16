@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     import io
 
     from ..api import HTTPConnection
+    from . import api_mixins as amix
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
@@ -56,22 +57,14 @@ class Reaction:
     def __init__(self, *, state: HTTPConnection, data: Any):
         self._state = state
         from .message import Message  # circular import :(
-        message = Object.with_api(
-            (Message,),
-            data["message_id"],
-            state=self._state,
-        )
+        message = Object(data["message_id"], state=self._state).add_api(Message)
         channel = Channel.partial(
             state=self._state,
             id=try_snowflake(data["channel_id"]),
         )
         message.channel = channel
         if "guild_id" in data:
-            channel.guild = message.guild = Object.with_api(
-                (Guild,),
-                try_snowflake(data.get("guild_id")),
-                state=self._state,
-            )
-        self.message: Message = message
+            channel.guild = message.guild = Object(data["guild_id"], state=self._state).add_api(Guild)
+        self.message: Message | amix.MessageAPIMixin = message
         self.emoji: PartialEmoji = PartialEmoji(data=data["emoji"])
         self.burst: bool = data.get("burst", False)

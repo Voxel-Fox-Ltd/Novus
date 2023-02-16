@@ -31,6 +31,7 @@ from ...models import (
     Object,
     Reaction,
     Role,
+    Sticker,
     User,
 )
 from ...models.channel import channel_builder
@@ -38,6 +39,7 @@ from ...utils import try_snowflake
 
 if TYPE_CHECKING:
     from ... import Intents, payloads
+    from ...models import api_mixins as amix
     from ...payloads import gateway as gw
     from .._http import HTTPConnection
 
@@ -164,7 +166,7 @@ class GatewayDispatch:
             async for i in coro(data):
                 if i is None:
                     continue
-                self.parent.dispatch(*i)  # type: ignore
+                self.parent.dispatch(*i)
 
         # if event_name in [
         #         "PRESENCE_UPDATE",
@@ -198,7 +200,7 @@ class GatewayDispatch:
 
     async def _handle_guild_update(
             self,
-            data: payloads.GatewayGuild) -> OptRet[tuple[Guild, Guild]]:
+            data: payloads.GatewayGuild) -> OptRet[tuple[Guild | None, Guild]]:
         """Listen for guild update; pop old guild from cache; return both."""
 
         guild = Guild(state=self.parent, data=data)
@@ -217,8 +219,6 @@ class GatewayDispatch:
                 "Failed to get cached guild %s, ignoring guild update"
                 % guild.id
             )
-            return
-        elif current is None:
             return
         yield "guild_update", (current, guild)
 
@@ -270,7 +270,7 @@ class GatewayDispatch:
 
     async def _handle_guild_emojis_update(
             self,
-            data: gw.GuildEmojisUpdate) -> Ret[tuple[Guild, list[Emoji]]]:
+            data: gw.GuildEmojisUpdate) -> Ret[tuple[Guild | amix.GuildAPIMixin, list[Emoji]]]:
         """Handle guild emojis update. For whatever reason Discord gives us
         the entire guild emoji list for every update."""
 
@@ -293,7 +293,7 @@ class GatewayDispatch:
 
     async def _handle_guild_stickers_update(
             self,
-            data: gw.GuildStickersUpdate) -> Ret[tuple[Guild, list[Emoji]]]:
+            data: gw.GuildStickersUpdate) -> Ret[tuple[Guild | amix.GuildAPIMixin, list[Sticker]]]:
         """Handle guild stickers update. For whatever reason Discord gives us
         the entire guild stickers list for every update."""
 
@@ -305,21 +305,21 @@ class GatewayDispatch:
                 except KeyError:
                     pass
         stickers = [
-            Emoji(state=self.parent, data=d, guild=guild)
+            Sticker(state=self.parent, data=d, guild=guild)
             for d in data["stickers"]
         ]
         if isinstance(guild, Guild):
             guild._stickers.clear()
             for e in stickers:
-                guild._add_emoji(e)
+                guild._add_sticker(e)
         yield "stickers_update", (guild, stickers,)
 
     async def _handle_typing(
             self,
-            data: gw.TypingStart) -> OptRet[tuple[Channel, GuildMember | User]]:
+            data: gw.TypingStart) -> OptRet[tuple[Channel, GuildMember | User | amix.UserAPIMixin]]:
         """Handle the typing event; return the guild, channel, and user IDs."""
 
-        guild: Guild | None = None
+        guild: Guild | amix.GuildAPIMixin | None = None
         if "guild_id" in data:
             guild = self.cache.get_guild(data["guild_id"], or_object=True)
         channel = self.cache.get_channel(data['channel_id'])
@@ -344,21 +344,24 @@ class GatewayDispatch:
                 )
             yield "typing", (channel, member,)
             return
+
+        # Unfortunately it tells us nothing about a user so we just have to
+        # build something that acts like it if they don't exist in cache.
         user = self.cache.get_user(data["user_id"], or_object=True)
         yield "typing", (channel, user,)
 
     async def _handle_message_generic(
             self,
-            data: payloads.Message) -> tuple[Message | None, Message | None]:
+            data: payloads.Message) -> tuple[Message | None, Message] | None:
         """Handle message create and message edit."""
 
-        # We don't get anything interesting if we have no content intent
+        # If there's no author, it's a webhook message being edited
         if "author" not in data:
-            return None, None
+            return None
 
         # Create our initial message
         message = Message(state=self.parent, data=data)
-        current = self.cache.get_message(message.id)
+        current = self.cache.get_message(message.id, or_object=False)
         self.cache.add_messages(message)
 
         # Update channel with cached
@@ -387,6 +390,7 @@ class GatewayDispatch:
             elif cached_member is None:
                 cached_member = message.author
             if isinstance(guild, Guild) and constructed:
+                assert isinstance(cached_member, GuildMember)
                 guild._add_member(cached_member)
             message.author = cached_member
 
@@ -398,7 +402,7 @@ class GatewayDispatch:
         """Handle message create event."""
 
         message = await self._handle_message_generic(data)
-        if message[1] is None:
+        if message is None:
             return
         yield "message", message[1]
 
@@ -408,21 +412,20 @@ class GatewayDispatch:
         """Handle message edit event."""
 
         message = await self._handle_message_generic(data)
-        if message[1] is None:
+        if message is None:
             return
-        else:
-            yield "message_edit", (message[0], message[1])
+        yield "message_edit", (message[0], message[1])
 
     async def _handle_message_delete(
             self,
-            data: payloads.Message) -> Ret[tuple[Channel, Message]]:
+            data: payloads.Message) -> Ret[tuple[Channel, Message | Object]]:
         """Handle message delete; returns channel and either cached message or
         the message ID."""
 
         channel = self.cache.get_channel(data["channel_id"], or_object=True)
         message = self.cache.messages.pop(int(data["id"]), None)
         if message is None:
-            message = Object.with_api((Message,), data["id"], state=self.parent)
+            message = Object(data["id"], state=self.parent)
         yield "message_delete", (channel, message,)
 
     async def _handle_channel_pins_update(
@@ -446,14 +449,14 @@ class GatewayDispatch:
         """Handle channel create and update events."""
 
         current = self.cache.get_channel(data["id"])
-        guild: Guild | None = None
+        guild: Guild | amix.GuildAPIMixin | None = None
         if "guild_id" in data:
             guild = self.cache.get_guild(data["guild_id"], or_object=True)
         if isinstance(guild, Guild):
             channel = guild._add_channel(data)
             channel.guild = guild
         else:
-            channel = channel_builder(state=self.parent, data=data)
+            channel = channel_builder(state=self.parent, data=data, guild=guild)
         return current, channel
 
     async def _handle_channel_create(
@@ -500,10 +503,10 @@ class GatewayDispatch:
 
     async def _handle_guild_ban(
             self,
-            data: dict[str, Any]) -> Ret[tuple[Guild, User | GuildMember]]:
+            data: dict[str, Any]) -> Ret[tuple[Guild | amix.GuildAPIMixin, User | GuildMember]]:
         """Handle guild ban event."""
 
-        user = self.cache.get_user(data["user"]["id"])
+        user = self.cache.get_user(data["user"]["id"], or_object=False)
         if user is None:
             user = User(state=self.parent, data=data["user"])
         guild = self.cache.get_guild(data["guild_id"], or_object=True)
@@ -519,7 +522,7 @@ class GatewayDispatch:
 
     async def _handle_guild_unban(
             self,
-            data: dict[str, Any]) -> Ret[tuple[Guild, User]]:
+            data: dict[str, Any]) -> Ret[tuple[Guild | amix.GuildAPIMixin, User]]:
         """Handle guild unban event."""
 
         # We're gonna assume we don't have this user and just build them from
@@ -553,17 +556,13 @@ class GatewayDispatch:
 
     async def _handle_invite_delete(
             self,
-            data: dict[str, str]) -> Ret[tuple[Guild, Channel, str]]:
+            data: dict[str, str]) -> Ret[tuple[Guild | amix.GuildAPIMixin, Channel, str]]:
         """Handle an invite delete."""
 
         guild = self.cache.get_guild(data["guild_id"], or_object=True)
         channel = self.cache.get_channel(data["channel_id"], or_object=True)
         channel.guild = guild
-        yield "invite_delete", (
-            guild,
-            channel,
-            data["code"],
-        )
+        yield "invite_delete", (guild, channel, data["code"],)
 
     async def _handle_role_generic(
             self,
@@ -596,15 +595,15 @@ class GatewayDispatch:
 
     async def _handle_role_delete(
             self,
-            data: gw.RoleDelete) -> Ret[Role]:
+            data: gw.RoleDelete) -> Ret[Role | amix.RoleAPIMixin]:
         """Handle role delete."""
 
-        guild = self.cache.get_guild(data["guild_id"])
-        role: Role | None = None
-        if guild is not None:
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        role: Role | amix.RoleAPIMixin | None = None
+        if isinstance(guild, Guild):
             role = guild._roles.pop(int(data["role_id"]), None)
         if role is None:
-            role = Object.with_api((Role,), data["role_id"], state=self.parent)
+            role = Object(data["role_id"], state=self.parent).add_api(Role)
             role.guild = guild
         yield "role_delete", role
 
@@ -639,7 +638,7 @@ class GatewayDispatch:
 
     async def _handle_guild_member_remove(
             self,
-            data: dict[str, Any]) -> Ret[tuple[Guild, GuildMember | User]]:
+            data: dict[str, Any]) -> Ret[tuple[Guild | amix.GuildAPIMixin, GuildMember | User]]:
         """Handle guild member being removed."""
 
         guild = self.cache.get_guild(data["guild_id"], or_object=True)
@@ -659,61 +658,62 @@ class GatewayDispatch:
 
     async def _handle_message_reaction_generic(
             self,
-            data: gw.ReactionAddRemove) -> tuple[GuildMember | User | None, Reaction]:
+            data: gw.ReactionAddRemove) -> tuple[GuildMember | User | amix.UserAPIMixin, Reaction]:
         """Handle reaction add or remove."""
 
         created = Reaction(state=self.parent, data=data)
+        message = self.cache.get_message(created.message.id, or_object=False)
 
-        message = self.cache.get_message(created.message.id)
         if message:
             created.message = message
-        elif created.message.channel:
-            channel = self.cache.get_channel(created.message.channel.id)
-            if channel:
-                created.message.channel = channel
-        elif created.message.guild:
-            guild = self.cache.get_guild(created.message.guild.id)
-            if guild:
-                created.message.guild = guild
-                created.message.channel.guild = guild  # pyright: ignore
+        else:
+            channel = self.cache.get_channel(data["channel_id"], or_object=True)
+            created.message.channel = channel
 
-        user: User | GuildMember | None = None
+        guild: Guild | amix.GuildAPIMixin | None = None
+        if "guild_id" in data:
+            guild = self.cache.get_guild(data["guild_id"], or_object=True)
+            created.message.guild = guild
+            created.message.channel.guild = guild  # pyright: ignore  # no DM channels here
+
+        user: User | GuildMember | amix.UserAPIMixin | None = None
         if created.message is not None and "member" in data:
+            assert guild
             user = GuildMember(
                 state=self.parent,
                 data=data["member"],
-                guild=created.message.guild,
+                guild=guild,
             )
-        if user is None and "user_id" in data:
+            if isinstance(guild, Guild):
+                guild._add_member(user)
+        if user is None:
             user = self.cache.get_user(data["user_id"], or_object=True)
 
         return user, created
 
     async def _handle_message_reaction_add(
             self,
-            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User, Reaction]]:
+            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User | amix.UserAPIMixin, Reaction]]:
         """Handle reaction add."""
 
         created = await self._handle_message_reaction_generic(data)
-        assert created[0]
         yield "reaction_add", (created[0], created[1],)
 
     async def _handle_message_reaction_remove(
             self,
-            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User, Reaction]]:
+            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User | amix.UserAPIMixin, Reaction]]:
         """Handle reaction remove."""
 
         created = await self._handle_message_reaction_generic(data)
-        assert created[0]
         yield "reaction_remove", (created[0], created[1],)
 
     async def _handle_message_reaction_remove_all(
             self,
-            data: gw.ReactionAddRemove) -> Ret[tuple[bool, Message]]:
+            data: gw.ReactionAddRemove) -> Ret[Message | amix.MessageAPIMixin]:
         """Handle reaction remove all."""
 
         message = self.cache.get_message(data["message_id"], or_object=True)
-        yield "reaction_clear", (data.get("burst", False), message)
+        yield "reaction_clear", message
 
     async def _handle_message_reaction_remove_all_emoji(
             self,

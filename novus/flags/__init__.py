@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from .application import *
+from .channel import *
 from .gateway import *
 from .guild import *
 from .message import *
@@ -24,6 +25,7 @@ from .user import *
 
 __all__: tuple[str, ...] = (
     'ApplicationFlags',
+    'ChannelFlags',
     'Intents',
     'MessageFlags',
     'Permissions',

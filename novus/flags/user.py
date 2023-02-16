@@ -27,10 +27,6 @@ __all__ = (
 class UserFlags(Flags):
 
     if TYPE_CHECKING:
-
-        def __init__(self, value: int = 0, **kwargs: bool) -> None:
-            ...
-
         staff: bool
         partner: bool
         hypesquad: bool

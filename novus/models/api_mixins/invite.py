@@ -31,6 +31,8 @@ __all__ = (
 
 class InviteAPIMixin:
 
+    id: int
+    _state: HTTPConnection
     INVITE_LINK_REGEX = re.compile(r"(?:https?://)?discord\.gg/(?P<code>[a-zA-Z0-9]+)")
 
     @classmethod

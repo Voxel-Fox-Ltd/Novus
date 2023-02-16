@@ -15,7 +15,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import types
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from .audit_log import GuildAuditAPI
 from .auto_moderation import GuildAutomodAPI
@@ -27,14 +29,15 @@ from .scheduled_event import GuildEventAPI
 from .sticker import GuildStickerAPI
 from .user import GuildUserAPI
 
+if TYPE_CHECKING:
+    from ....api import HTTPConnection
+
 __all__ = (
     'GuildAPIMixin',
 )
 
 
-GuildAPIMixin = types.new_class(
-    "GuildAPIMixin",
-    (
+class GuildAPIMixin(
         GuildAuditAPI,
         GuildAutomodAPI,
         GuildChannelAPI,
@@ -43,6 +46,6 @@ GuildAPIMixin = types.new_class(
         GuildRoleAPI,
         GuildEventAPI,
         GuildStickerAPI,
-        GuildUserAPI,
-    )
-)
+        GuildUserAPI):
+    id: int
+    _state: HTTPConnection

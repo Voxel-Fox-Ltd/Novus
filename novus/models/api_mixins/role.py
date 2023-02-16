@@ -22,8 +22,10 @@ from typing import TYPE_CHECKING, Any
 from ...utils import MISSING
 
 if TYPE_CHECKING:
+    from ...api import HTTPConnection
     from ...flags import Permissions
-    from .. import File, Role
+    from ...models import api_mixins as amix
+    from .. import File, Guild, Role
     from ..abc import StateSnowflakeWithGuild
 
 __all__ = (
@@ -32,6 +34,10 @@ __all__ = (
 
 
 class RoleAPIMixin:
+
+    id: int
+    _state: HTTPConnection
+    guild: Guild | amix.GuildAPIMixin
 
     async def delete(
             self: StateSnowflakeWithGuild,

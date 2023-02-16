@@ -27,10 +27,6 @@ __all__ = (
 class MessageFlags(Flags):
 
     if TYPE_CHECKING:
-
-        def __init__(self, value: int = 0, **kwargs: bool) -> None:
-            ...
-
         crossposted: bool
         is_crosspost: bool
         suppress_embeds: bool

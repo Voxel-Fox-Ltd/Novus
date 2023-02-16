@@ -36,6 +36,9 @@ __all__ = (
 
 class WebhookAPIMixin:
 
+    id: int
+    _state: HTTPConnection
+
     @classmethod
     async def fetch(
             cls,

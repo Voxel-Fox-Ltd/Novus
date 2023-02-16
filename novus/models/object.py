@@ -18,19 +18,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import types
-from typing import TYPE_CHECKING, Any, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Type, overload
 
 from ..utils import generate_repr
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
+    from ..models import Channel, Emoji, Guild, GuildMember, Message, Role, User
+    from ..models import api_mixins as amix
 
 __all__ = (
     'Object',
 )
-
-
-APIT = TypeVar("APIT")
 
 
 class Object:
@@ -43,7 +42,7 @@ class Object:
             self,
             id: int | str,
             *,
-            state: HTTPConnection,
+            state: HTTPConnection = None,  # pyright: ignore
             guild_id: int | None = None,
             bases: tuple[Any] | None = None):
         self.id = int(id)
@@ -62,23 +61,41 @@ class Object:
             return f"<({', '.join((i.__name__ for i in self.bases))}) Object[{self.id}]>"
         return f"<Object ({self.id})>"
 
-    @classmethod
-    def with_api(
-            cls,
-            bases: tuple[Type[APIT], ...],
-            id: int | str,
-            *,
-            state: HTTPConnection,
-            guild_id: int | None = None) -> APIT:
-        """
-        Return an object instance with an API built into it.
-        """
+    @overload
+    def add_api(self, base: Type[Guild]) -> amix.GuildAPIMixin:
+        ...
 
-        base_inheritance = []
-        for i in bases:
-            base_inheritance.extend(i.mro())
+    @overload
+    def add_api(self, base: Type[Channel]) -> amix.ChannelAPIMixin:
+        ...
+
+    @overload
+    def add_api(self, base: Type[Emoji]) -> amix.EmojiAPIMixin:
+        ...
+
+    @overload
+    def add_api(self, base: Type[Message]) -> amix.MessageAPIMixin:
+        ...
+
+    @overload
+    def add_api(self, base: Type[Role]) -> amix.RoleAPIMixin:
+        ...
+
+    @overload
+    def add_api(self, base: Type[User]) -> amix.UserAPIMixin:
+        ...
+
+    @overload
+    def add_api(self, base: Type[GuildMember]) -> amix.GuildMemberAPIMixin:
+        ...
+
+    def add_api(self, base: Any) -> Any:
+        base_inheritance = base.mro()
         api_bases = [i for i in base_inheritance if "APIMixin" in i.__name__]
         if not api_bases:
             raise TypeError("Missing 'APIMixin' class from mro")
-        NewObject = types.new_class("ObjectType", (cls, *api_bases))
-        return NewObject(id, state=state, guild_id=guild_id, bases=bases)
+        NewObject = types.new_class("NewObject", (Object, *api_bases))
+        v = NewObject(self.id, state=self._state, bases=(base,))
+        if hasattr(self, 'guild'):
+            v.guild = self.guild
+        return v

@@ -27,10 +27,6 @@ __all__ = (
 class ApplicationFlags(Flags):
 
     if TYPE_CHECKING:
-
-        def __init__(self, value: int = 0, **kwargs: bool) -> None:
-            ...
-
         gateway_presence: bool
         gateway_presence_limited: bool
         gateway_guild_members: bool

@@ -20,6 +20,8 @@ from .utils import Enum
 __all__ = (
     'ChannelType',
     'PermissionOverwriteType',
+    'ForumSortOrder',
+    'ForumLayout',
 )
 
 
@@ -41,3 +43,14 @@ class ChannelType(Enum):
 class PermissionOverwriteType(Enum):
     role = 0
     member = 1
+
+
+class ForumSortOrder(Enum):
+    latest_activity = 0
+    creation_date = 1
+
+
+class ForumLayout(Enum):
+    not_set = 0
+    list_view = 1
+    gallery_view = 2

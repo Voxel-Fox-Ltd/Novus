@@ -38,11 +38,12 @@ from .api_mixins.guild import GuildAPIMixin
 from .asset import Asset
 from .channel import Channel, Thread
 from .emoji import Emoji
+from .guild_member import GuildMember
 from .mixins import Hashable
 from .role import Role
 from .scheduled_event import ScheduledEvent
 from .sticker import Sticker
-from .user import GuildMember
+from .user import User
 from .welcome_screen import WelcomeScreen
 
 if TYPE_CHECKING:
@@ -51,7 +52,6 @@ if TYPE_CHECKING:
     from .. import payloads
     from ..api import HTTPConnection
     from .abc import Snowflake
-    from .user import User
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
@@ -328,8 +328,11 @@ class Guild(Hashable, GuildAPIMixin):
         self._emojis[created.id] = created
         return created
 
-    def _add_sticker(self, sticker: payloads.Sticker) -> Sticker:
-        created = Sticker(state=self._state, data=sticker, guild=self)
+    def _add_sticker(self, sticker: payloads.Sticker | Sticker) -> Sticker:
+        if isinstance(sticker, Sticker):
+            created = sticker
+        else:
+            created = Sticker(state=self._state, data=sticker, guild=self)
         self._state.cache.add_stickers(created)
         self._stickers[created.id] = created
         return created
@@ -352,7 +355,7 @@ class Guild(Hashable, GuildAPIMixin):
         created.guild = self
         user = self._state.cache.get_user(created.id)  # get cached user
         self._state.cache.add_users(created._user)  # add new user
-        if user is not None:
+        if user is not None and isinstance(user, User):
             created._user._guilds.update(user._guilds)  # update guild ids
         created._user._guilds.add(self.id)
         self._members[created.id] = created
@@ -688,15 +691,21 @@ class PartialGuild(GuildAPIMixin):
     __repr__ = generate_repr(('id', 'name',))
 
     @cached_slot_property('_cs_icon')
-    def icon(self) -> Asset:
+    def icon(self) -> Asset | None:
+        if self.icon_hash is None:
+            return None
         return Asset.from_guild_icon(self)
 
     @cached_slot_property('_cs_splash')
-    def splash(self) -> Asset:
+    def splash(self) -> Asset | None:
+        if self.splash_hash is None:
+            return None
         return Asset.from_guild_splash(self)
 
     @cached_slot_property('_cs_banner')
-    def banner(self) -> Asset:
+    def banner(self) -> Asset | None:
+        if self.banner_hash is None:
+            return None
         return Asset.from_guild_banner(self)
 
 

@@ -37,6 +37,8 @@ __all__: tuple[str, ...] = (
     'EventEntityType',
     'EventPrivacyLevel',
     'EventStatus',
+    'ForumLayout',
+    'ForumSortOrder',
     'GatewayOpcode',
     'Locale',
     'MFALevel',
