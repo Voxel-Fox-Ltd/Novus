@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Type
 
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import Permissions
-from ..utils import generate_repr, try_snowflake
+from ..utils import generate_repr, parse_timestamp, try_snowflake
 from .api_mixins.channel import (
     AnnouncementChannelAPIMixin,
     ChannelAPIMixin,
@@ -31,11 +31,14 @@ from .api_mixins.channel import (
 )
 from .mixins import HasChannel, Hashable
 from .object import Object
+from .user import User
 
 if TYPE_CHECKING:
+    from datetime import datetime as dt
+
     from ..api import HTTPConnection
     from ..payloads import Channel as ChannelPayload
-    from . import Guild, abc
+    from . import Guild, GuildMember, abc
     from . import api_mixins as amix
 
 __all__ = (
@@ -470,6 +473,71 @@ class Thread(GuildTextChannel):
     """
     A model representing a thread.
     """
+
+    __slots__ = (
+        '_state',
+        'id',
+        'type',
+        'guild',
+        'position',
+        'overwrites',
+        'name',
+        'topic',
+        'nsfw',
+        'last_message_id',
+        'parent',
+        'rate_limit_per_user',
+        '_members',
+        'owner',
+        'member_count',
+        'message_count',
+        'total_message_sent',
+        'applied_tags',
+        'archived',
+        'auto_archive_duration',
+        'archive_timestamp',
+        'locked',
+    )
+
+    owner: GuildMember | User | amix.UserAPIMixin
+    member_count: int
+    message_count: int
+    total_message_sent: int
+    applied_tags: list[int]
+    archived: bool
+    auto_archive_duration: int
+    archive_timestamp: dt | None
+    locked: bool
+
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: ChannelPayload,
+            guild: int | Guild | None = None):
+        super().__init__(state=state, data=data, guild=guild)
+        self._members: dict[int, GuildMember] = {}
+        assert "owner_id" in data
+        self.owner = Object(data["owner_id"], state=self._state).add_api(User)
+        self.member_count = data.get("member_count", 0)
+        self.message_count = data.get("message_count", 0)
+        self.total_message_sent = data.get("total_message_sent", 0)
+        self.applied_tags
+        metadata = data.get("thread_metadata", {})
+        self.archived = metadata.get("archived", False)
+        self.auto_archive_duration = metadata.get("auto_archive_duration", 0)
+        self.archive_timestamp = parse_timestamp(metadata.get("archive_timestamp"))
+        self.locked = metadata.get("locked", False)
+
+    def _add_member(self, member: GuildMember) -> None:
+        self._members[member.id] = member
+
+    def _remove_member(self, id: int | str) -> None:
+        self._members.pop(try_snowflake(id), None)
+
+    @property
+    def members(self) -> list[GuildMember]:
+        return list(self._members.values())
 
 
 class ForumTag:

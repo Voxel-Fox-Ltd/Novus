@@ -30,7 +30,7 @@ __all__ = (
 
 
 @overload
-def try_snowflake(given: str) -> int:
+def try_snowflake(given: str | int) -> int:
     ...
 
 
@@ -39,7 +39,7 @@ def try_snowflake(given: None) -> None:
     ...
 
 
-def try_snowflake(given: str | None) -> int | None:
+def try_snowflake(given: str | int | None) -> int | None:
     """
     Try and turn a given string into a snowflake, returning ``None`` if the
     given value is ``None``.
@@ -62,12 +62,12 @@ def try_snowflake(given: str | None) -> int | None:
 
 
 @overload
-def try_id(given: int | Snowflake) -> int:
+def try_id(given: None) -> None:
     ...
 
 
 @overload
-def try_id(given: None) -> None:
+def try_id(given: int | Snowflake) -> int:
     ...
 
 
@@ -126,5 +126,5 @@ def try_object(given: int | Snowflake | None) -> Snowflake | None:
         return None
     if isinstance(given, int):
         from ..models import Object  # Circular import :(
-        return Object(given, state=None)  # type: ignore
+        return Object(given, state=None)  # pyright: ignore
     return given

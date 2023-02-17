@@ -32,6 +32,7 @@ __all__ = (
     'RoleCreateUpdate',
     'RoleDelete',
     'GuildEmojisUpdate',
+    'ThreadMemberListUpdate',
 )
 
 
@@ -77,3 +78,11 @@ class GuildEmojisUpdate(TypedDict):
 class GuildStickersUpdate(TypedDict):
     stickers: list[Sticker]
     guild_id: Snowflake
+
+
+class ThreadMemberListUpdate(TypedDict):
+    member_count: int
+    id: Snowflake
+    guild_id: Snowflake
+    added_members: NotRequired[list[GuildMember]]
+    removed_member_ids: NotRequired[list[Snowflake]]

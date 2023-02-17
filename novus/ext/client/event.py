@@ -57,7 +57,7 @@ class EventBuilder:
 
     @classmethod
     def message(cls, func: Callable[[Self, novus.Message], AA]) -> EL:
-        return EventListener("message", func)
+        return EventListener("MESSAGE_CREATE", func)
 
     @staticmethod
     def __call__(event_name: str) -> Callable[..., EL]:
