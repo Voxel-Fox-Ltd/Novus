@@ -18,16 +18,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from datetime import datetime as dt
-from typing import TYPE_CHECKING, Any, NoReturn, Type
+from typing import TYPE_CHECKING, Any, Literal, NoReturn, Type
 from urllib.parse import quote_plus
 
 from ..flags import Permissions
 from ..models import (
     Channel,
-    Emoji,
     GuildMember,
     Invite,
     Message,
+    PartialEmoji,
     Role,
     ThreadMember,
     User,
@@ -262,7 +262,7 @@ class ChannelHTTPConnection:
             self,
             channel_id: int,
             message_id: int,
-            emoji: str | Emoji) -> None:
+            emoji: str | PartialEmoji) -> None:
         """
         Create a reaction on a message.
         """
@@ -270,7 +270,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, Emoji):
+        elif isinstance(emoji, PartialEmoji):
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -287,7 +287,7 @@ class ChannelHTTPConnection:
             self,
             channel_id: int,
             message_id: int,
-            emoji: str | Emoji) -> None:
+            emoji: str | PartialEmoji) -> None:
         """
         Remove your own reaction to a message.
         """
@@ -295,7 +295,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, Emoji):
+        elif isinstance(emoji, PartialEmoji):
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -312,7 +312,7 @@ class ChannelHTTPConnection:
             self,
             channel_id: int,
             message_id: int,
-            emoji: str | Emoji,
+            emoji: str | PartialEmoji,
             user_id: int) -> None:
         """
         Remove another user's reaction from a message.
@@ -321,7 +321,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, Emoji):
+        elif isinstance(emoji, PartialEmoji):
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -339,7 +339,7 @@ class ChannelHTTPConnection:
             self,
             channel_id: int,
             message_id: int,
-            emoji: str | Emoji) -> list[User]:
+            emoji: str | PartialEmoji) -> list[User]:
         """
         Get a list of users who reacted to a message with a particular emoji.
         """
@@ -347,7 +347,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, Emoji):
+        elif isinstance(emoji, PartialEmoji):
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -383,7 +383,7 @@ class ChannelHTTPConnection:
             self,
             channel_id: int,
             message_id: int,
-            emoji: str | Emoji) -> None:
+            emoji: str | PartialEmoji) -> None:
         """
         Remove all reactions for the given emoji on a message.
         """
@@ -391,7 +391,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, Emoji):
+        elif isinstance(emoji, PartialEmoji):
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -825,7 +825,7 @@ class ChannelHTTPConnection:
     async def add_thread_member(
             self,
             channel_id: int,
-            user_id: int) -> None:
+            user_id: int | Literal["@me"]) -> None:
         """
         Add a member to a thread.
         """
@@ -838,24 +838,10 @@ class ChannelHTTPConnection:
         )
         await self.parent.request(route)
 
-    async def leave_thread(
-            self,
-            channel_id: int) -> None:
-        """
-        Remove your user from a thread.
-        """
-
-        route = Route(
-            "DELETE",
-            "/channels/{channel_id}/thread-members/@me",
-            channel_id=channel_id,
-        )
-        await self.parent.request(route)
-
     async def remove_thread_member(
             self,
             channel_id: int,
-            user_id: int) -> None:
+            user_id: int | Literal["@me"]) -> None:
         """
         Remove another user from a thread.
         """

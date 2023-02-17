@@ -17,14 +17,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
-from ...utils import ME, MISSING, add_not_missing, try_id
+from ...utils import MISSING, add_not_missing, try_id
 
 if TYPE_CHECKING:
     from ...api import HTTPConnection
     from ...flags import MessageFlags
-    from .. import AllowedMentions, Channel, Embed, Emoji, File, Guild, Sticker, User, abc
+    from .. import (
+        AllowedMentions,
+        Channel,
+        Embed,
+        Emoji,
+        File,
+        Guild,
+        Sticker,
+        Thread,
+        User,
+        abc,
+    )
     from .. import api_mixins as amix
     from ..message import Message
 
@@ -57,6 +68,8 @@ class MessageAPIMixin:
             flags: MessageFlags = MISSING) -> Message:
         """
         Send a message to the given channel.
+
+        .. seealso:: :func:`novus.Channel.send`
 
         Parameters
         ----------
@@ -112,6 +125,8 @@ class MessageAPIMixin:
             message: int | abc.Snowflake) -> Message:
         """
         Get an existing message.
+
+        .. seealso:: :func:`novus.Channel.fetch_message`
 
         Parameters
         ----------
@@ -183,7 +198,7 @@ class MessageAPIMixin:
     async def remove_reaction(
             self: abc.StateSnowflakeWithChannel,
             emoji: str | Emoji,
-            user: int | abc.Snowflake | ME) -> None:
+            user: int | abc.Snowflake) -> None:
         """
         Remove a reaction from a message.
 
@@ -191,16 +206,16 @@ class MessageAPIMixin:
         ----------
         emoji : str | novus.Emoji
             The emoji to remove from the message.
-        user : int | novus.abc.Snowflake | novus.utils.ME
+        user : int | novus.abc.Snowflake
             The user whose reaction you want to remove.
         """
 
-        if user is ME:
-            return await self._state.channel.delete_own_reaction(
-                self.channel.id,
-                self.id,
-                emoji,
-            )
+        # if user is ME:
+        #     return await self._state.channel.delete_own_reaction(
+        #         self.channel.id,
+        #         self.id,
+        #         emoji,
+        #     )
         return await self._state.channel.delete_user_reaction(
             self.channel.id,
             self.id,
@@ -344,4 +359,38 @@ class MessageAPIMixin:
             self.channel.id,
             self.id,
             reason=reason,
+        )
+
+    async def create_thread(
+            self: abc.StateSnowflakeWithChannel,
+            name: str,
+            *,
+            reason: str | None = None,
+            auto_archive_duration: Literal[60, 1_440, 4_320, 10_080] = MISSING,
+            rate_limit_per_user: int = MISSING) -> Thread:
+        """
+        Create a thread from the message.
+
+        Parameters
+        ----------
+        name : str
+            The name of the thread.
+        auto_archive_duration : int
+            The auto archive duration for the thread.
+        rate_limit_per_user : int
+            The number of seconds a user has to wait before sending another
+            message.
+        reason : str | None
+            The reason shown in the audit log.
+        """
+
+        params: dict[str, str | int] = {}
+        params["name"] = name
+        add_not_missing(params, "auto_archive_duration", auto_archive_duration)
+        add_not_missing(params, "rate_limit_per_user", rate_limit_per_user)
+        return await self._state.channel.start_thread_from_message(
+            self.channel.id,
+            self.id,
+            reason=reason,
+            **params,
         )

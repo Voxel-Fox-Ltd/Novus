@@ -30,10 +30,12 @@ from .user import *
 from .webhook import *
 
 __all__: tuple[str, ...] = (
+    'AnnouncementChannelAPIMixin',
     'AuditLogAPIMixin',
     'AutoModerationAPIMixin',
     'ChannelAPIMixin',
     'EmojiAPIMixin',
+    'ForumChannelAPIMixin',
     'GuildAPIMixin',
     'GuildMemberAPIMixin',
     'InviteAPIMixin',
@@ -42,6 +44,7 @@ __all__: tuple[str, ...] = (
     'ScheduledEventAPIMixin',
     'StageInstanceAPIMixin',
     'StickerAPIMixin',
+    'TextChannelAPIMixin',
     'UserAPIMixin',
     'WebhookAPIMixin',
 )

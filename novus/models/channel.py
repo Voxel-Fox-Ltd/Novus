@@ -23,7 +23,12 @@ from typing import TYPE_CHECKING, Type
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import Permissions
 from ..utils import generate_repr, try_snowflake
-from .api_mixins.channel import ChannelAPIMixin
+from .api_mixins.channel import (
+    AnnouncementChannelAPIMixin,
+    ChannelAPIMixin,
+    ForumChannelAPIMixin,
+    TextChannelAPIMixin,
+)
 from .mixins import HasChannel, Hashable
 from .object import Object
 
@@ -85,7 +90,7 @@ def channel_factory(
                 "Unknown channel type %s"
                 % channel_type
             )
-            return Channel
+            return TextChannel
 
 
 def channel_builder(
@@ -162,23 +167,21 @@ class Channel(Hashable, HasChannel, ChannelAPIMixin):
     guild : novus.abc.Snowflake | None
         The guild that the channel is attached to.
     raw : dict
-        The raw data usede to construct the channel object.
+        The raw data used to construct the channel object.
     """
 
-    __slots__ = (
-        '_state',
-        'id',
-        'type',
-        'guild',
-        'raw',
-    )
+    id: int
+    type: ChannelType
+    raw: ChannelPayload
+    guild: Guild | amix.GuildAPIMixin | None
 
     def __init__(self, *, state: HTTPConnection, data: ChannelPayload):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.type = ChannelType(data.get('type', 0))
         self.raw = data
-        self.guild: Guild | amix.GuildAPIMixin | None = None
+        if "guild" in self.__slots__:
+            self.guild = None
 
     __repr__ = generate_repr(('id',))
 
@@ -186,7 +189,7 @@ class Channel(Hashable, HasChannel, ChannelAPIMixin):
         return self.id
 
     @classmethod
-    def partial(cls, state: HTTPConnection, id: int | str) -> Channel:
+    def partial(cls, state: HTTPConnection, id: int | str) -> TextChannel:
         """
         Create a partial channel object that you can use to run API methods on.
 
@@ -199,58 +202,76 @@ class Channel(Hashable, HasChannel, ChannelAPIMixin):
 
         Returns
         -------
-        novus.Channel
-            The channel object.
+        novus.TextChannel
+            A created channel object.
         """
 
-        return cls(
+        return TextChannel(
             state=state,
             data={"id": id}  # pyright: ignore
         )
 
 
-class DMChannel(Channel):
+class TextChannel(Channel, TextChannelAPIMixin):
+    """
+    An abstract channel class.
+
+    Represents any channel that has messages.
+    """
+
+
+class VoiceChannel(Channel):
+    """
+    An abstract channel class.
+
+    Represents any channel that has voice capability.
+    """
+
+
+class DMChannel(TextChannel):
     """
     A channel associated with a user's DMs.
-
-    Attributes
-    ----------
-    id : int
-        The ID of the channel.
     """
-
-
-class GroupDMChannel(Channel):
-    """
-    A channel associated with a group DM.
-
-    Attributes
-    ----------
-    id : int
-        The
-         ID of the channel.
-    """
-
-
-class GuildChannel(Channel):
 
     __slots__ = (
         '_state',
         'id',
         'type',
-        'guild',
-        'guild_id',
-        'position',
-        'permissions_overwrites',
-        'name',
-        'topic',
-        'nsfw',
-        'last_message_id',
-        'parent_id',
-        'rate_limit_per_user',
+        'raw',
     )
 
+
+class GroupDMChannel(TextChannel):
+    """
+    A channel associated with a group DM.
+    """
+
+    __slots__ = (
+        '_state',
+        'id',
+        'type',
+        'raw',
+    )
+
+
+class GuildChannel(Channel):
+    """
+    An abstract channel class.
+
+    Any channel inside of a guild.
+    """
+
+    id: int
+    type: ChannelType
     guild: Guild | amix.GuildAPIMixin
+    position: int
+    overwrites: list[PermissionOverwrite]
+    name: str
+    topic: str | None
+    nsfw: bool
+    last_message_id: int | None
+    parent: Channel | None
+    rate_limit_per_user: int | None
 
     def __init__(
             self,
@@ -259,12 +280,12 @@ class GuildChannel(Channel):
             data: ChannelPayload,
             guild: int | Guild | None = None):
         super().__init__(state=state, data=data)
-        del self.raw  # Not needed for known types)
+        del self.raw  # Not needed for known types
         guild_id = try_snowflake(data.get('guild_id')) or guild
         if guild_id is None:
             raise ValueError("Missing guild ID from guild channel %s" % data)
         self.position = data.get('position', 0)
-        self.permissions_overwrites = [
+        self.overwrites = [
             PermissionOverwrite(
                 id=int(d['id']),
                 type=PermissionOverwriteType(d['type']),
@@ -273,7 +294,7 @@ class GuildChannel(Channel):
             )
             for d in data.get('permission_overwrites', list())
         ]
-        if 'name' not in data:
+        if "name" not in data:
             raise TypeError(
                 "Missing channel name from channel payload %s"
                 % data
@@ -282,15 +303,19 @@ class GuildChannel(Channel):
         self.topic = data.get('topic', None)
         self.nsfw = data.get('nsfw', False)
         self.last_message_id = try_snowflake(data.get('last_message_id'))
-        self.parent_id = try_snowflake(data.get('parent_id'))
-        self.rate_limit_per_user: int | None = data.get('rate_limit_per_user')
+        parent_id = try_snowflake(data.get('parent_id'))
+        if parent_id:
+            self.parent = Channel.partial(self._state, parent_id)
+        else:
+            self.parent = None
+        self.rate_limit_per_user = data.get('rate_limit_per_user')
         if isinstance(guild_id, int):
             from .guild import Guild
             self.guild = Object(guild_id, state=self._state).add_api(Guild)
         else:
             self.guild = guild_id
 
-    __repr__ = generate_repr(('id', 'guild_id', 'name',))
+    __repr__ = generate_repr(('id', 'guild', 'name',))
 
     def __str__(self) -> str:
         return f"#{self.name}"
@@ -300,7 +325,7 @@ class GuildChannel(Channel):
         return f"<#{self.id}>"
 
 
-class GuildTextChannel(GuildChannel):
+class GuildTextChannel(GuildChannel, TextChannel):
     """
     A text channel inside of a guild.
 
@@ -310,13 +335,13 @@ class GuildTextChannel(GuildChannel):
         The ID of the channel.
     type : novus.ChannelType
         The type of the channel.
-    guild_id : int | None
+    guild : novus.Guild | novus.Object | None
         The ID of the guild associated with the channel. May be ``None`` for
         some channel objects received over gateway guild dispatches.
     position: int
         The sorting position of the channel (relative to its parent container).
-    permissions_overwrites: list[novus.PermissionOverwrite]
-        The overwrites assoicated with this channel.
+    overwrites: list[novus.PermissionOverwrite]
+        The permission overwrites assoicated with this channel.
     name : str
         The name of the channel.
     topic : str | None
@@ -326,17 +351,32 @@ class GuildTextChannel(GuildChannel):
     last_message_id : int | None
         The ID of the last message sent in the channel. May or may not point to
         an existing or valid message or thread.
-    parent_id : int | None
-        The ID of the parent container channel.
+    parent : novus.Channel | None
+        The parent container channel.
     rate_limit_per_user: int | None
         The amount of seconds a user has to wait before sending another
         message.
     """
 
+    __slots__ = (
+        '_state',
+        'id',
+        'type',
+        'guild',
+        'position',
+        'overwrites',
+        'name',
+        'topic',
+        'nsfw',
+        'last_message_id',
+        'parent',
+        'rate_limit_per_user',
+    )
 
-class GuildVoiceChannel(GuildTextChannel):
+
+class GuildVoiceChannel(GuildTextChannel, VoiceChannel):
     """
-    A text channel inside of a guild.
+    A voice channel inside of a guild.
 
     Attributes
     ----------
@@ -344,13 +384,13 @@ class GuildVoiceChannel(GuildTextChannel):
         The ID of the channel.
     type : novus.ChannelType
         The type of the channel.
-    guild_id : int | None
+    guild : novus.Guild | novus.Object | None
         The ID of the guild associated with the channel. May be ``None`` for
         some channel objects received over gateway guild dispatches.
     position: int
         The sorting position of the channel (relative to its parent container).
-    permissions_overwrites: list[novus.PermissionOverwrite]
-        The overwrites assoicated with this channel.
+    overwrites: list[novus.PermissionOverwrite]
+        The permission overwrites assoicated with this channel.
     name : str
         The name of the channel.
     topic : str | None
@@ -360,15 +400,49 @@ class GuildVoiceChannel(GuildTextChannel):
     last_message_id : int | None
         The ID of the last message sent in the channel. May or may not point to
         an existing or valid message or thread.
-    parent_id : int | None
-        The ID of the parent container channel.
+    parent : novus.Channel | None
+        The parent container channel.
     rate_limit_per_user: int | None
         The amount of seconds a user has to wait before sending another
         message.
+    bitrate : int
+        The bitrate (in bits) of the voice channel.
+    user_limit : int | None
+        The user limit of the voice channel.
     """
 
+    __slots__ = (
+        '_state',
+        'id',
+        'type',
+        'guild',
+        'position',
+        'overwrites',
+        'name',
+        'topic',
+        'nsfw',
+        'last_message_id',
+        'parent',
+        'rate_limit_per_user',
+        'bitrate',
+        'user_limit',
+    )
 
-class GuildStageChannel(GuildChannel):
+    bitrate: int
+    user_limit: int | None
+
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: ChannelPayload,
+            guild: int | Guild | None = None):
+        super().__init__(state=state, data=data, guild=guild)
+        self.bitrate = data.get("bitrate", 0)
+        self.user_limit = data.get("user_limit")
+
+
+class GuildStageChannel(GuildChannel, VoiceChannel):
     """
     A stage channel within a guild.
     """
@@ -377,37 +451,16 @@ class GuildStageChannel(GuildChannel):
 class GuildCategory(GuildChannel):
     """
     A guild category channel.
-
-    Attributes
-    ----------
-    id : int
-        The ID of the channel.
-    type : novus.ChannelType
-        The type of the channel.
-    guild_id : int | None
-        The ID of the guild associated with the channel. May be ``None`` for
-        some channel objects received over gateway guild dispatches.
-    position: int
-        The sorting position of the channel (relative to its parent container).
-    permissions_overwrites: list[novus.PermissionOverwrite]
-        The overwrites assoicated with this channel.
-    name : str
-        The name of the channel.
-    nsfw : bool
-        Whether or not the channel is marked as NSFW.
-    rate_limit_per_user: int | None
-        The amount of seconds a user has to wait before sending another
-        message.
     """
 
 
-class GuildAnnouncementChannel(GuildTextChannel):
+class GuildAnnouncementChannel(GuildTextChannel, AnnouncementChannelAPIMixin):
     """
     An announcement channel within a guild.
     """
 
 
-class GuildForumChannel(GuildTextChannel):
+class GuildForumChannel(GuildChannel, ForumChannelAPIMixin):
     """
     A forum channel within a guild.
     """

@@ -1,15 +1,15 @@
 API Reference
-==============
+=============
 
 ABCs and Mixins
----------------------
+---------------
 
 .. autoclass:: novus.abc.Snowflake
 
 .. autoclass:: novus.abc.StateSnowflake
 
 Enums
-------
+-----
 
 .. class:: novus.Locale
 
@@ -81,7 +81,7 @@ Channel
         * - ``member``
 
 Guild
-~~~~~~
+~~~~~
 
 .. class:: novus.NSFWLevel
 
@@ -175,7 +175,7 @@ Sticker
         * - ``gif``
 
 User
-~~~~~~~
+~~~~
 
 .. class:: novus.UserPremiumType
 
@@ -516,6 +516,64 @@ Utils
 
 Discord Models
 --------------
+
+Channels
+~~~~~~~~
+
+.. autoclass:: novus.Channel
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.GuildChannel
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.GuildTextChannel
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.DMChannel
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.GroupDMChannel
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.Thread
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.GuildVoiceChannel
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.GuildStageChannel
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.GuildCategory
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.GuildAnnouncementChannel
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.GuildForumChannel
+    :members:
+    :inherited-members:
+    :no-special-members:
 
 User
 ~~~~
