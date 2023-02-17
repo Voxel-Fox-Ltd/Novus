@@ -183,7 +183,12 @@ class GatewayConnection:
                 log.critical("Failed to extend buffer %s" % str(data), exc_info=e)
                 raise
             if data_bytes[-4:] == b"\x00\x00\xff\xff":
-                decompressed = self._zlib.decompress(self._buffer)
+                try:
+                    decompressed = self._zlib.decompress(self._buffer)
+                except Exception:
+                    self._buffer.clear()
+                    log.warning("Failed to decompress buffer")
+                    continue
                 decoded = decompressed.decode()
                 parsed = json.loads(decoded)
                 log.debug("Received data from gateway %s" % dump(parsed))

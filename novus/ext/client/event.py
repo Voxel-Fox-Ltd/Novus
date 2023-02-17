@@ -15,8 +15,13 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 from collections.abc import Awaitable
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, TypeAlias
+
+if TYPE_CHECKING:
+    import novus
 
 __all__ = (
     'event',
@@ -41,7 +46,24 @@ class EventListener:
         self.owner: Any = None
 
 
-def event(event_name: str) -> Callable[..., EventListener]:
-    def wrapper(func: Callable[..., Awaitable[Any]]) -> EventListener:
-        return EventListener(event_name, func)
-    return wrapper  # pyright: ignore
+Self = Any  # Self
+AA = Awaitable[Any]
+EL: TypeAlias = EventListener
+
+
+class EventBuilder:
+
+    __slots__ = ()
+
+    @classmethod
+    def message(cls, func: Callable[[Self, novus.Message], AA]) -> EL:
+        return EventListener("message", func)
+
+    @staticmethod
+    def __call__(event_name: str) -> Callable[..., EL]:
+        def wrapper(func: Callable[..., AA]) -> EL:
+            return EventListener(event_name, func)
+        return wrapper  # pyright: ignore
+
+
+event = EventBuilder()
