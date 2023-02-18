@@ -22,10 +22,10 @@ from typing import TYPE_CHECKING, Any
 from .. import enums, flags
 from ..utils import generate_repr, parse_timestamp, try_snowflake
 from .api_mixins.message import MessageAPIMixin
-from .channel import Channel, channel_builder
+from .channel import Channel, Thread
 from .embed import Embed
 from .guild import Guild
-from .object import Object
+from .guild_member import GuildMember
 from .reaction import Reaction
 from .sticker import Sticker
 from .user import User
@@ -33,10 +33,9 @@ from .user import User
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    from .. import GuildMember, Thread
-    from .. import api_mixins as amix
     from ..api import HTTPConnection
     from ..payloads import Message as MessagePayload
+    from . import api_mixins as amix
 
 __all__ = (
     'Message',
@@ -153,79 +152,104 @@ class Message(MessageAPIMixin):
         'guild',
     )
 
+    id: int
+    channel: Channel
+    author: User | GuildMember
+    guild: Guild | amix.GuildAPIMixin | None
+    content: str
+    timestamp: dt
+    edited_timestamp: dt | None
+    tts: bool
+    mention_everyone: bool
+    mentions: list[User]
+    mention_roles: list[int]
+    mention_channels: list[Channel]
+    attachments: list[Attachment]
+    embeds: list[Embed]
+    reactions: list[Reaction]
+    pinned: bool
+    webhook_id: int | None
+    type: enums.MessageType
+    application_id: int | None
+    flags: flags.MessageFlags
+    referenced_message: Message | None
+    thread: Thread | None
+    sticker_items: list[Sticker]
+    position: int | None
+
     def __init__(self, *, state: HTTPConnection, data: MessagePayload) -> None:
         self._state = state
-        self.id: int = try_snowflake(data["id"])
-        self.channel: Channel = Channel.partial(
-            id=data["channel_id"],
-            state=self._state,
-        )
-        self.author: User | GuildMember = User(
-            state=self._state,
-            data=data["author"],  # pyright: ignore
-        )
-        self.guild: Guild | amix.GuildAPIMixin | None = None
+        self.id = try_snowflake(data["id"])
+        self.channel = self._state.cache.get_channel(data["channel_id"], or_object=True)
+        self.guild = None
         if "guild_id" in data:
-            self.guild = Object(data["guild_id"], state=self._state).add_api(Guild)
-            self.channel.guild = self.guild
+            self.guild = self._state.cache.get_guild(data["guild_id"], or_object=True)
+        self.author = User(state=self._state, data=data["author"])
         if "member" in data:
             assert self.guild
-            self.author = self.author._upgrade(data["member"], self.guild)
-        self.content: str = data.get("content", "")
-        self.timestamp: dt = parse_timestamp(data.get("timestamp"))
-        self.edited_timestamp: dt | None = parse_timestamp(data.get("edited_timestamp"))
-        self.tts: bool = data.get("tts", False)
-        self.mention_everyone: bool = data.get("mention_everyone", False)
-        self.mentions: list[User] = [
+            self.author = GuildMember(
+                state=self._state,
+                data=data["member"],
+                user=self.author,
+                guild_id=self.guild.id,
+            )
+        self.content = data.get("content", "")
+        self.timestamp = parse_timestamp(data.get("timestamp"))
+        self.edited_timestamp = parse_timestamp(data.get("edited_timestamp"))
+        self.tts = data.get("tts", False)
+        self.mention_everyone = data.get("mention_everyone", False)
+        self.mentions = [
             User(state=self._state, data=d)
             for d in data.get("mentions", [])
         ]
-        self.mention_roles: list[int] = [
+        self.mention_roles = [
             try_snowflake(d)
             for d in data.get("mention_roles", [])
         ]
-        self.mention_channels: list[Channel] = [
-            channel_builder(state=self._state, data=d)  # pyright: ignore
+        self.mention_channels = [
+            Channel.partial(
+                state=self._state,
+                id=d["id"],
+                type=enums.ChannelType(d["type"]),
+            )
             for d in data.get("mention_channels", [])
         ]
-        self.attachments: list[Attachment] = [
+        self.attachments = [
             Attachment(data=d)
             for d in data.get("attachments", [])
         ]
-        self.embeds: list[Embed] = [
+        self.embeds = [
             Embed._from_data(d)
             for d in data.get("embeds", [])
         ]
-        self.reactions: list[Reaction] = [
+        self.reactions = [
             Reaction(state=self._state, data=d)
             for d in data.get("reactions", [])
         ]
-        self.pinned: bool = data.get("pinned")
-        self.webhook_id: int | None = try_snowflake(data.get("webhook_id"))
-        self.type: enums.MessageType = enums.MessageType(data.get("type", 0))
+        self.pinned = data.get("pinned")
+        self.webhook_id = try_snowflake(data.get("webhook_id"))
+        self.type = enums.MessageType(data.get("type", 0))
         # self.activity = data["activity"]
         # self.application = data["application"]
-        self.application_id: int | None = try_snowflake(data.get("application_id"))
-        self.flags: flags.MessageFlags = flags.MessageFlags(data.get("flags", 0))
-        self.referenced_message: Message | None = None
+        self.application_id = try_snowflake(data.get("application_id"))
+        self.flags = flags.MessageFlags(data.get("flags", 0))
+        self.referenced_message = None
         if "referenced_message" in data and data["referenced_message"]:
             self.referenced_message = Message(
                 state=self._state,
                 data=data["referenced_message"],
             )
         # self.interaction = data["interaction"]
-        self.thread: Thread | None = None
+        self.thread = None
         if "thread" in data:
-            self.thread = channel_builder(
-                state=self._state,
-                data=data["thread"],
-            )  # pyright: ignore
+            assert self.guild
+            self.thread = Thread(state=self._state, data=data["thread"])
         # self.components = data["components"]
-        self.sticker_items: list[Sticker] = [
-            Sticker(state=self._state, data=d, guild=None)  # pyright: ignore
+        self.sticker_items = [
+            Sticker(state=self._state, data=d)
             for d in data.get("sticker_items", [])
         ]
-        self.position: int | None = data.get("position")
+        self.position = data.get("position")
         # self.role_subscription_data = data["role_subscription_data"]
 
     __repr__ = generate_repr(('id',))

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ..models import DMChannel, GuildMember, OauthGuild, Object, User
+from ..models import DMChannel, GuildMember, OauthGuild, User
 from ..models.channel import channel_builder
 from ._route import Route
 
@@ -155,12 +155,7 @@ class UserHTTPConnection:
         data: payloads.GuildMember = await self.parent.request(
             route,
         )
-        guild = Object(guild_id, state=self.parent)
-        return GuildMember(
-            state=self.parent,
-            data=data,
-            guild=guild,
-        )
+        return GuildMember(state=self.parent, data=data)
 
     async def leave_guild(
             self,
@@ -174,9 +169,7 @@ class UserHTTPConnection:
             "/users/@me/guild/{guild_id}",
             guild_id=guild_id,
         )
-        await self.parent.request(
-            route,
-        )
+        await self.parent.request(route)
 
     async def create_dm(
             self,

@@ -20,13 +20,10 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Any, Literal, overload
 
-from ..models.channel import Channel
-from ..models.guild import Guild
-from ..models.message import Message
-from ..models.object import Object
+from ..models import Channel, Guild, Message, Object, User
 
 if TYPE_CHECKING:
-    from .. import DMChannel, Emoji, GuildChannel, ScheduledEvent, Sticker, User
+    from .. import DMChannel, Emoji, GuildChannel, ScheduledEvent, Sticker
     from ..models import api_mixins as amix
     from ._http import HTTPConnection
 

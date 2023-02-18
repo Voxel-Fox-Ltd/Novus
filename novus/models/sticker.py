@@ -25,9 +25,9 @@ from .api_mixins.sticker import StickerAPIMixin
 from .asset import Asset
 
 if TYPE_CHECKING:
+    from .. import Guild, payloads
     from ..api import HTTPConnection
-    from ..payloads import Sticker as StickerPayload
-    from .abc import Snowflake
+    from . import api_mixins as amix
 
 __all__ = (
     'Sticker',
@@ -53,12 +53,11 @@ class Sticker(StickerAPIMixin):
     available : bool
         Whether or not the sticker can be used. May be ``False`` due to loss of
         nitro boosts.
-    guild_id : int | None
-        The ID of the guild associated with the sticker.
     asset : novus.Asset
         The asset associated with the sticker.
-    guild : novus.abc.Snowflake | novus.Guild
+    guild : novus.Guild | None
         The guild (or a data container for the ID) that the emoji came from.
+        May be ``None`` if the sticker does not come from a guild.
     """
 
     __slots__ = (
@@ -67,7 +66,7 @@ class Sticker(StickerAPIMixin):
         'pack_id',
         'name',
         'description',
-        'type',
+        # 'type',
         'format_type',
         'available',
         'guild',
@@ -75,12 +74,19 @@ class Sticker(StickerAPIMixin):
         '_cs_asset',
     )
 
+    id: int
+    pack_id: int | None
+    name: str
+    description: str | None
+    format_type: StickerFormat
+    available: bool
+    guild: Guild | amix.GuildAPIMixin | None
+
     def __init__(
             self,
             *,
             state: HTTPConnection,
-            data: StickerPayload,
-            guild: Snowflake):
+            data: payloads.Sticker | payloads.PartialSticker):
         self._state = state
         self.id: int = try_snowflake(data['id'])
         self.pack_id: int | None = try_snowflake(data.get('pack_id'))
@@ -89,7 +95,12 @@ class Sticker(StickerAPIMixin):
         # self.type: StickerType = StickerType(data['type'])
         self.format_type: StickerFormat = StickerFormat(data['format_type'])
         self.available: bool = data.get('available', True)
-        self.guild: Snowflake = guild
+        self.guild = None
+        if "guild_id" in data:
+            self.guild = self._state.cache.get_guild(
+                data["guild_id"],  # pyright: ignore  # Thanks Pyright
+                or_object=True,
+            )
 
     @cached_slot_property('_cs_asset')
     def asset(self) -> Asset:

@@ -30,7 +30,6 @@ from .api_mixins.channel import (
     TextChannelAPIMixin,
 )
 from .mixins import HasChannel, Hashable
-from .object import Object
 from .user import User
 
 if TYPE_CHECKING:
@@ -38,7 +37,7 @@ if TYPE_CHECKING:
 
     from ..api import HTTPConnection
     from ..payloads import Channel as ChannelPayload
-    from . import Guild, GuildMember, abc
+    from . import Guild, GuildMember
     from . import api_mixins as amix
 
 __all__ = (
@@ -100,11 +99,11 @@ def channel_builder(
         *,
         state: HTTPConnection,
         data: ChannelPayload,
-        guild: abc.StateSnowflake | None = None) -> Channel:
+        guild_id: int | None = None) -> Channel:
     factory = channel_factory(data['type'])
-    if guild is None or GuildChannel not in factory.mro():
-        return factory(state=state, data=data)
-    return factory(state=state, data=data, guild=guild)  # type: ignore
+    if guild_id:
+        return factory(state=state, data=data, guild_id=guild_id)  # type: ignore
+    return factory(state=state, data=data)
 
 
 class PermissionOverwrite:
@@ -192,7 +191,11 @@ class Channel(Hashable, HasChannel, ChannelAPIMixin):
         return self.id
 
     @classmethod
-    def partial(cls, state: HTTPConnection, id: int | str) -> TextChannel:
+    def partial(
+            cls,
+            state: HTTPConnection,
+            id: int | str,
+            type: ChannelType = ChannelType.guild_text) -> TextChannel:
         """
         Create a partial channel object that you can use to run API methods on.
 
@@ -211,7 +214,7 @@ class Channel(Hashable, HasChannel, ChannelAPIMixin):
 
         return TextChannel(
             state=state,
-            data={"id": id}  # pyright: ignore
+            data={"id": id, "type": type.value}  # pyright: ignore
         )
 
 
@@ -281,12 +284,13 @@ class GuildChannel(Channel):
             *,
             state: HTTPConnection,
             data: ChannelPayload,
-            guild: int | Guild | None = None):
+            guild_id: int | None = None):
         super().__init__(state=state, data=data)
         del self.raw  # Not needed for known types
-        guild_id = try_snowflake(data.get('guild_id')) or guild
+        guild_id = try_snowflake(data.get('guild_id')) or guild_id
         if guild_id is None:
             raise ValueError("Missing guild ID from guild channel %s" % data)
+        self.guild = self._state.cache.get_guild(guild_id)
         self.position = data.get('position', 0)
         self.overwrites = [
             PermissionOverwrite(
@@ -307,16 +311,10 @@ class GuildChannel(Channel):
         self.nsfw = data.get('nsfw', False)
         self.last_message_id = try_snowflake(data.get('last_message_id'))
         parent_id = try_snowflake(data.get('parent_id'))
+        self.parent = None
         if parent_id:
-            self.parent = Channel.partial(self._state, parent_id)
-        else:
-            self.parent = None
+            self.parent = self._state.cache.get_channel(parent_id, or_object=True)
         self.rate_limit_per_user = data.get('rate_limit_per_user')
-        if isinstance(guild_id, int):
-            from .guild import Guild
-            self.guild = Object(guild_id, state=self._state).add_api(Guild)
-        else:
-            self.guild = guild_id
 
     __repr__ = generate_repr(('id', 'guild', 'name',))
 
@@ -439,8 +437,8 @@ class GuildVoiceChannel(GuildTextChannel, VoiceChannel):
             *,
             state: HTTPConnection,
             data: ChannelPayload,
-            guild: int | Guild | None = None):
-        super().__init__(state=state, data=data, guild=guild)
+            guild_id: int | None = None):
+        super().__init__(state=state, data=data, guild_id=guild_id)
         self.bitrate = data.get("bitrate", 0)
         self.user_limit = data.get("user_limit")
 
@@ -514,15 +512,20 @@ class Thread(GuildTextChannel):
             *,
             state: HTTPConnection,
             data: ChannelPayload,
-            guild: int | Guild | None = None):
-        super().__init__(state=state, data=data, guild=guild)
+            guild_id: int | None = None):
+        super().__init__(state=state, data=data, guild_id=guild_id)
         self._members: dict[int, GuildMember] = {}
         assert "owner_id" in data
-        self.owner = Object(data["owner_id"], state=self._state).add_api(User)
+        try:
+            self.owner = self.guild.get_member(data["owner_id"])  # pyright: ignore
+            if self.owner is None:
+                raise ValueError
+        except (AttributeError, ValueError):
+            self.owner = self._state.cache.get_user(data["owner_id"], or_object=True)
         self.member_count = data.get("member_count", 0)
         self.message_count = data.get("message_count", 0)
         self.total_message_sent = data.get("total_message_sent", 0)
-        self.applied_tags
+        self.applied_tags = []
         metadata = data.get("thread_metadata", {})
         self.archived = metadata.get("archived", False)
         self.auto_archive_duration = metadata.get("auto_archive_duration", 0)

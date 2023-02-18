@@ -27,7 +27,8 @@ from .asset import Asset
 if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..payloads import Role as RolePayload
-    from .abc import StateSnowflake
+    from . import Guild
+    from . import api_mixins as amix
 
 __all__ = (
     'Role',
@@ -70,7 +71,7 @@ class Role(RoleAPIMixin):
         Whether the role is mentionable.
     tags : list[dict]
         The tags associated with the role.
-    guild : novus.abc.Snowflake | novus.Guild
+    guild : novus.Guild
         The guild (or a data container for the ID) that the emoji came from.
     """
 
@@ -92,7 +93,26 @@ class Role(RoleAPIMixin):
         '_cs_icon',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: RolePayload, guild: StateSnowflake):
+    id: int
+    name: str
+    color: int
+    hoist: bool
+    icon_hash: str | None
+    unicode_emoji: str | None
+    position: int
+    permissions: Permissions
+    managed: bool
+    mentionable: bool
+    tags: list[str]
+    guild: Guild | amix.GuildAPIMixin
+
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: RolePayload,
+            guild_id: int | None = None,
+            guild: Guild | None = None):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
@@ -105,7 +125,12 @@ class Role(RoleAPIMixin):
         self.managed = data['managed']
         self.mentionable = data['mentionable']
         self.tags = data.get('role_tags', list())
-        self.guild: StateSnowflake = guild
+        if guild:
+            self.guild = guild
+        elif guild_id:
+            self.guild = self._state.cache.get_guild(guild_id)
+        else:
+            raise ValueError("Missing guild from role init")
 
     @cached_slot_property('_cs_icon')
     def icon(self) -> Asset | None:

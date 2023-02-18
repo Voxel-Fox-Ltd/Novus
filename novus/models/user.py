@@ -27,11 +27,9 @@ from .asset import Asset
 from .mixins import Hashable
 
 if TYPE_CHECKING:
+    from .. import payloads
     from ..api import HTTPConnection
-    from ..payloads import GuildMember as GuildMemberPayload
-    from ..payloads import User as UserPayload
-    from .abc import StateSnowflake
-    from .guild_member import GuildMember
+    from . import GuildMember
 
 __all__ = (
     'User',
@@ -105,7 +103,11 @@ class User(Hashable, UserAPIMixin):
         '_guilds',
     )
 
-    def __init__(self, *, state: HTTPConnection, data: UserPayload):
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: payloads.User | payloads.PartialUser):
         self._state = state
         self.id = try_snowflake(data['id'])
         self.username = data['username']
@@ -152,9 +154,9 @@ class User(Hashable, UserAPIMixin):
             return None
         return Asset.from_user_banner(self)
 
-    def _upgrade(self, data: GuildMemberPayload, guild: StateSnowflake) -> GuildMember:
+    def _upgrade(self, data: payloads.GuildMember) -> GuildMember:
         """
-        Upgrade a user member to a guild member if we can.
+        Upgrade a user member to a guild member if we can. Adds to guild cache.
         """
 
         from .guild_member import GuildMember
@@ -162,7 +164,6 @@ class User(Hashable, UserAPIMixin):
             state=self._state,
             data=data,
             user=self,
-            guild=guild,
         )
         self._guilds.add(v.guild.id)
         return v

@@ -236,6 +236,17 @@ class Guild(Hashable, GuildAPIMixin):
     def __init__(self, *, state: HTTPConnection, data: payloads.Guild):
         self._state = state
         self.id = try_snowflake(data['id'])
+        self._emojis: dict[int, Emoji] = {}
+        self._stickers: dict[int, Sticker] = {}
+        self._roles: dict[int, Role] = {}
+        self._members: dict[int, GuildMember] = {}
+        self._guild_scheduled_events: dict[int, ScheduledEvent] = {}
+        self._threads: dict[int, Thread] = {}
+        self._voice_states: dict[int, None] = {}
+        self._channels: dict[int, Channel] = {}
+        self._update(data)
+
+    def _update(self, data: payloads.Guild | payloads.GatewayGuild) -> None:
         self.name = data['name']
         self.icon_hash = data['icon'] or data.get('icon_hash')
         self.splash_hash = data['splash']
@@ -273,16 +284,6 @@ class Guild(Hashable, GuildAPIMixin):
         if 'welcome_screen' in data:
             self.welcome_screen = WelcomeScreen(data=data['welcome_screen'])
 
-        # Gateway attributes
-        self._emojis: dict[int, Emoji] = {}
-        self._stickers: dict[int, Sticker] = {}
-        self._roles: dict[int, Role] = {}
-        self._members: dict[int, GuildMember] = {}
-        self._guild_scheduled_events: dict[int, ScheduledEvent] = {}
-        self._threads: dict[int, Thread] = {}
-        self._voice_states: dict[int, None] = {}
-        self._channels: dict[int, Channel] = {}
-
     @property
     def emojis(self) -> list[Emoji]:
         return list(self._emojis.values())
@@ -315,7 +316,10 @@ class Guild(Hashable, GuildAPIMixin):
     def channels(self) -> list[Channel]:
         return list(self._channels.values())
 
-    def _add_emoji(self, emoji: payloads.Emoji | Emoji) -> Emoji | None:
+    def _add_emoji(
+            self,
+            emoji: payloads.Emoji | Emoji,
+            new_cache: dict[int, Any] | None = None) -> Emoji | None:
         if isinstance(emoji, Emoji):
             created = emoji
         else:
@@ -325,64 +329,82 @@ class Guild(Hashable, GuildAPIMixin):
         assert created.id
         created.guild = self
         self._state.cache.add_emojis(created)
-        self._emojis[created.id] = created
+        (new_cache or self._emojis)[created.id] = created
         return created
 
-    def _add_sticker(self, sticker: payloads.Sticker | Sticker) -> Sticker:
+    def _add_sticker(
+            self,
+            sticker: payloads.Sticker | Sticker,
+            new_cache: dict[int, Any] | None = None) -> Sticker:
         if isinstance(sticker, Sticker):
             created = sticker
         else:
-            created = Sticker(state=self._state, data=sticker, guild=self)
+            created = Sticker(state=self._state, data=sticker)
+            assert created.guild is self
         self._state.cache.add_stickers(created)
-        self._stickers[created.id] = created
+        (new_cache or self._stickers)[created.id] = created
         return created
 
-    def _add_role(self, role: payloads.Role | Role) -> Role:
+    def _add_role(
+            self,
+            role: payloads.Role | Role,
+            new_cache: dict[int, Any] | None = None) -> Role:
         if isinstance(role, Role):
             created = role
             created.guild = self
         else:
             created = Role(state=self._state, data=role, guild=self)
-        self._roles[created.id] = created
+        (new_cache or self._roles)[created.id] = created
         return created
 
-    def _add_member(self, member: payloads.GuildMember | GuildMember) -> GuildMember:
+    def _add_member(
+            self,
+            member: payloads.GuildMember | GuildMember,
+            new_cache: dict[int, Any] | None = None) -> GuildMember:
         """Add member to cache. Will cache/update the user object as well."""
         if isinstance(member, GuildMember):
             created = member
         else:
-            created = GuildMember(state=self._state, data=member, guild=self)
+            created = GuildMember(state=self._state, data=member, guild_id=self.id)
         created.guild = self
         user = self._state.cache.get_user(created.id)  # get cached user
         self._state.cache.add_users(created._user)  # add new user
         if user is not None and isinstance(user, User):
             created._user._guilds.update(user._guilds)  # update guild ids
         created._user._guilds.add(self.id)
-        self._members[created.id] = created
+        (new_cache or self._members)[created.id] = created
         return created
 
-    def _add_guild_scheduled_event(self, event: payloads.GuildScheduledEvent) -> ScheduledEvent:
-        created = ScheduledEvent(state=self._state, data=event, guild=self)
+    def _add_guild_scheduled_event(
+            self,
+            event: payloads.GuildScheduledEvent,
+            new_cache: dict[int, Any] | None = None) -> ScheduledEvent:
+        created = ScheduledEvent(state=self._state, data=event)
         self._state.cache.add_events(created)
-        self._guild_scheduled_events[created.id] = created
+        (new_cache or self._guild_scheduled_events)[created.id] = created
         return created
 
-    def _add_thread(self, thread: payloads.Channel) -> Thread:
-        created = Thread(state=self._state, data=thread, guild=self)
+    def _add_thread(
+            self,
+            thread: payloads.Channel,
+            new_cache: dict[int, Any] | None = None) -> Thread:
+        created = Thread(state=self._state, data=thread)
         self._state.cache.add_channels(created)
-        self._threads[created.id] = created
+        (new_cache or self._threads)[created.id] = created
         return created
 
-    def _add_voice_state(self, voice_state: Any) -> None:
+    def _add_voice_state(
+            self,
+            voice_state: Any,
+            new_cache: dict[int, Any] | None = None) -> None:
         pass
 
-    def _add_channel(self, channel: payloads.Channel) -> Channel:
+    def _add_channel(
+            self,
+            channel: payloads.Channel,
+            new_cache: dict[int, Any] | None = None) -> Channel:
         try:
-            created = channel_builder(
-                state=self._state,
-                data=channel,
-                guild=self,
-            )
+            created = channel_builder(state=self._state, data=channel, guild_id=self.id)
         except ValueError as e:
             log.error(
                 "Error building channel in guild %s" % self.id,
@@ -391,47 +413,63 @@ class Guild(Hashable, GuildAPIMixin):
             raise
         else:
             self._state.cache.add_channels(created)
-            self._channels[created.id] = created
+            (new_cache or self._channels)[created.id] = created
             return created
 
     async def _sync(self, *, data: payloads.GatewayGuild) -> None:
         """
-        Sync the cached state with the given gateway payload.
+        Sync the gateway-specific values into the guild.
         """
 
-        d: Any
-        if 'emojis' in data:
+        new_cache: dict[int, Any]
+        if "emojis" in data:
+            new_cache = {}
             for d in data['emojis']:
-                self._add_emoji(d)
+                self._add_emoji(d, new_cache)
                 await asyncio.sleep(0)
-        if 'stickers' in data:
+            self._emojis = new_cache
+        if "stickers" in data:
+            new_cache = {}
             for d in data['stickers']:
-                self._add_sticker(d)
+                self._add_sticker(d, new_cache)
                 await asyncio.sleep(0)
-        if 'roles' in data:
+            self._stickers = new_cache
+        if "roles" in data:
+            new_cache = {}
             for d in data['roles']:
-                self._add_role(d)
+                self._add_role(d, new_cache)
                 await asyncio.sleep(0)
-        if 'members' in data:
-            for d in data.get('members', ()):
-                self._add_member(d)
+            self._roles = new_cache
+        if "members" in data:
+            new_cache = {}
+            for d in data["members"]:
+                self._add_member(d, new_cache)
                 await asyncio.sleep(0)
-        if 'guild_scheduled_events' in data:
-            for d in data.get('guild_scheduled_events', ()):
-                self._add_guild_scheduled_event(d)
+            self._members = new_cache
+        if "guild_scheduled_events" in data:
+            new_cache = {}
+            for d in data["guild_scheduled_events"]:
+                self._add_guild_scheduled_event(d, new_cache)
                 await asyncio.sleep(0)
-        if 'threads' in data:
-            for d in data.get('threads', ()):
-                self._add_thread(d)
+            self._guild_scheduled_events = new_cache
+        if "threads" in data:
+            new_cache = {}
+            for d in data["threads"]:
+                self._add_thread(d, new_cache)
                 await asyncio.sleep(0)
-        if 'voice_states' in data:
-            for d in data.get('voice_states', ()):
-                self._add_voice_state(d)
+            self._threads = new_cache
+        if "voice_states" in data:
+            new_cache = {}
+            for d in data["voice_states"]:
+                self._add_voice_state(d, new_cache)
                 await asyncio.sleep(0)
-        if 'channels' in data:
-            for d in data.get('channels', ()):
-                self._add_channel(d)
+            self._voice_states = new_cache
+        if "channels" in data:
+            new_cache = {}
+            for d in data["channels"]:
+                self._add_channel(d, new_cache)
                 await asyncio.sleep(0)
+            self._channels = new_cache
 
     __repr__ = generate_repr(
         ('id', 'name',),
@@ -455,7 +493,7 @@ class Guild(Hashable, GuildAPIMixin):
 
         return self._stickers.get(try_id(id))
 
-    def get_member(self, id: int | Snowflake) -> GuildMember | None:
+    def get_member(self, id: int | Snowflake | str) -> GuildMember | None:
         """
         Get a guild member from cache.
 
@@ -780,7 +818,7 @@ class GuildPreview(GuildAPIMixin):
         self.approximate_presence_count = data['approximate_presence_count']
         self.description = data.get('description')
         self.stickers = [
-            Sticker(state=self._state, data=i, guild=self)
+            Sticker(state=self._state, data=i)
             for i in data.get('stickers', list())
         ]
 

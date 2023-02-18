@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NoReturn
 
-from ..models import Object, Sticker
+from ..models import Sticker
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -50,7 +50,7 @@ class StickerHTTPConnection:
             sticker_id=sticker_id,
         )
         data: payloads.Sticker = await self.parent.request(route)
-        return Sticker(state=self.parent, data=data, guild=None)  # pyright: ignore
+        return Sticker(state=self.parent, data=data)
 
     async def list_nitro_sticker_packs(self) -> NoReturn:
         raise NotImplementedError()
@@ -66,9 +66,8 @@ class StickerHTTPConnection:
             guild_id=guild_id,
         )
         data: list[payloads.Sticker] = await self.parent.request(route)
-        guild = Object(guild_id, state=self.parent)
         return [
-            Sticker(state=self.parent, data=d, guild=guild)
+            Sticker(state=self.parent, data=d)
             for d in data
         ]
 
@@ -84,8 +83,7 @@ class StickerHTTPConnection:
             sticker_id=sticker_id,
         )
         data: payloads.Sticker = await self.parent.request(route)
-        guild = Object(guild_id, state=self.parent)
-        return Sticker(state=self.parent, data=data, guild=guild)
+        return Sticker(state=self.parent, data=data)
 
     async def create_guild_sticker(
             self,
@@ -119,8 +117,7 @@ class StickerHTTPConnection:
             reason=reason,
             multipart=True,
         )
-        guild = Object(guild_id, state=self.parent)
-        return Sticker(state=self.parent, data=data, guild=guild)
+        return Sticker(state=self.parent, data=data)
 
     async def modify_guild_sticker(
             self,
@@ -154,8 +151,7 @@ class StickerHTTPConnection:
             data=post_data,
             reason=reason,
         )
-        guild = Object(guild_id, state=self.parent)
-        return Sticker(state=self.parent, data=data, guild=guild)
+        return Sticker(state=self.parent, data=data)
 
     async def delete_guild_sticker(
             self,

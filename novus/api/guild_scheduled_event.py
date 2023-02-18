@@ -17,9 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING, Any, TypeAlias
 
-from ..models import GuildMember, Object, ScheduledEvent, User
+from ..models import GuildMember, ScheduledEvent, User
 from ..utils import MISSING
 from ._route import Route
 
@@ -73,7 +73,7 @@ class GuildEventHTTPConnection:
             guild_id: int,
             *,
             reason: str | None,
-            **kwargs) -> ScheduledEvent:
+            **kwargs: Any) -> ScheduledEvent:
         """
         Get the scheduled events for the guild.
         """
@@ -150,7 +150,7 @@ class GuildEventHTTPConnection:
             event_id: int,
             *,
             reason: str | None,
-            **kwargs) -> ScheduledEvent:
+            **kwargs: Any) -> ScheduledEvent:
         """
         Modify a particular scheduled event.
         """
@@ -254,7 +254,6 @@ class GuildEventHTTPConnection:
                         state=self.parent,
                         data=d['member'],
                         user=d['user'],
-                        guild=Object(guild_id, state=self.parent)
                     )
                 )
             else:

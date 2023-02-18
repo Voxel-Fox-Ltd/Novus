@@ -29,7 +29,8 @@ if TYPE_CHECKING:
 
     from ..api import HTTPConnection
     from ..payloads import Emoji as EmojiPayload
-    from . import abc
+    from . import Guild
+    from . import api_mixins as amix
 
     FileT: TypeAlias = str | bytes | io.IOBase
 
@@ -63,12 +64,19 @@ class PartialEmoji(Hashable):
         '_cs_asset',
     )
 
+    id: int | None
+    name: str | None
+    animated: bool
+
     def __init__(self, *, data: EmojiPayload):
-        self.id: int | None = try_snowflake(data['id'])
-        self.name = data['name']
+        self.id = try_snowflake(data.get('id'))
+        self.name = data.get('name')
         self.animated = data.get('animated', False)
 
     def __str__(self) -> str:
+        if self.id is None:
+            assert isinstance(self.name, str)
+            return self.name
         if self.animated:
             return f"<a:{self.name}:{self.id}>"
         return f"<:{self.name}:{self.id}>"
@@ -125,16 +133,34 @@ class Emoji(PartialEmoji, EmojiAPIMixin):
         '_cs_asset',
     )
 
+    id: int | None
+    name: str | None
+    animated: bool
+    role_ids: list[int]
+    requires_colons: bool
+    managed: bool
+    available: bool
+    guild: Guild | amix.GuildAPIMixin | None
+
     def __init__(
             self,
             *,
             state: HTTPConnection,
             data: EmojiPayload,
-            guild: abc.Snowflake | None):
+            guild_id: int | None = None,
+            guild: Guild | None = None):
         self._state = state
         super().__init__(data=data)
-        self.role_ids = data.get('roles', list())
+        self.role_ids = [
+            try_snowflake(i)
+            for i in data.get('roles', [])
+        ]
         self.requires_colons = data.get('require_colons', True)
         self.managed = data.get('managed', False)
         self.available = data.get('available', True)
-        self.guild: abc.Snowflake | None = guild
+        if guild:
+            self.guild = guild
+        elif guild_id:
+            self.guild = self._state.cache.get_guild(guild_id)
+        else:
+            self.guild = None

@@ -25,10 +25,12 @@ from .api_mixins.invite import InviteAPIMixin
 from .guild import PartialGuild
 
 if TYPE_CHECKING:
+    from datetime import datetime as dt
+
     from ..api import HTTPConnection
     from ..payloads import InviteWithMetadata as InviteMetadataPayload
+    from . import Channel, Guild
     from . import api_mixins as amix
-    from .guild import Guild
 
 __all__ = (
     'Invite',
@@ -60,24 +62,38 @@ class Invite(InviteAPIMixin):
         leads to a group DM.
     """
 
+    code: str
+    channel: Channel | None
+    uses: int | None
+    max_uses: int | None
+    max_age: int | None
+    temporary: bool | None
+    created_at: dt | None
+    guild: Guild | amix.GuildAPIMixin | None
+
     def __init__(self, *, state: HTTPConnection, data: InviteMetadataPayload):
         self._state = state
         self.code = data['code']
         self.channel = None
-        channel = data.get('channel')
-        if channel:
-            if 'guild' in data:
-                channel['guild_id'] = data['guild']['id']
-            self.channel = channel_builder(state=self._state, data=channel)
         self.uses = data.get('uses')
         self.max_uses = data.get('max_uses')
         self.max_age = data.get('max_age')
         self.temporary = data.get('temporary')
         self.created_at = parse_timestamp(data.get('created_at'))
-        self.guild: Guild | PartialGuild | amix.GuildAPIMixin | None = None
-        if 'guild' in data:
-            self.guild = PartialGuild(state=self._state, data=data['guild'])
-            if self.channel:
-                self.channel.guild = self.guild
+        self.guild = None
+        if "guild" in data:
+            if cached := self._state.cache.get_guild(data["guild"]["id"], or_object=False):
+                self.guild = cached
+            else:
+                self.guild = PartialGuild(state=self._state, data=data['guild'])
+        channel = data.get('channel')
+        if channel:
+            if cached := self._state.cache.get_channel(channel["id"], or_object=False):
+                self.channel = cached
+            else:
+                guild_id = None
+                if self.guild:
+                    guild_id = self.guild.id
+                self.channel = channel_builder(state=self._state, data=channel, guild_id=guild_id)
 
     __repr__ = generate_repr(('code', 'channel', 'guild',))

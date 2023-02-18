@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ..models import Emoji, Object
+from ..models import Emoji
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -51,12 +51,12 @@ class EmojiHTTPConnection:
         data: list[payloads.Emoji] = await self.parent.request(
             route,
         )
-        guild = Object(guild_id, state=self.parent)
+
         return [
             Emoji(
                 state=self.parent,
                 data=d,
-                guild=guild,
+                guild_id=guild_id,
             )
             for d in data
         ]
@@ -78,11 +78,10 @@ class EmojiHTTPConnection:
         data: payloads.Emoji = await self.parent.request(
             route,
         )
-        guild = Object(guild_id, state=self.parent)
         return Emoji(
             state=self.parent,
             data=data,
-            guild=guild,
+            guild_id=guild_id,
         )
 
     async def create_guild_emoji(
@@ -120,11 +119,10 @@ class EmojiHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        guild = Object(guild_id, state=self.parent)
         return Emoji(
             state=self.parent,
             data=data,
-            guild=guild,
+            guild_id=guild_id,
         )
 
     async def modify_guild_emoji(
@@ -161,11 +159,10 @@ class EmojiHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        guild = Object(guild_id, state=self.parent)
         return Emoji(
             state=self.parent,
             data=data,
-            guild=guild,
+            guild_id=guild_id,
         )
 
     async def delete_guild_emoji(

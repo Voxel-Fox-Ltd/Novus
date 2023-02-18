@@ -27,7 +27,7 @@ from ..enums import (
 )
 from ..utils import generate_repr, try_enum, try_snowflake
 from .api_mixins.auto_moderation import AutoModerationAPIMixin
-from .object import Object
+from .guild import Guild
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
@@ -35,7 +35,8 @@ if TYPE_CHECKING:
     from ..payloads import AutoModerationActionMetadata as ActionMetaPayload
     from ..payloads import AutoModerationRule as RulePayload
     from ..payloads import AutoModerationTriggerMetadata as TriggerMetaPayload
-    from .abc import Snowflake
+    from . import GuildMember, User, abc
+    from . import api_mixins as amix
 
 __all__ = (
     'AutoModerationTriggerMetadata',
@@ -161,7 +162,7 @@ class AutoModerationAction:
             self,
             type: AutoModerationActionType,
             *,
-            channel: int | Snowflake | None = None,
+            channel: int | abc.Snowflake | None = None,
             duration: int | None = None):
         self.type = type
         self.channel_id = None
@@ -186,9 +187,9 @@ class AutoModerationAction:
         )
 
     def _to_data(self) -> ActionPayload:
-        data: ActionPayload = {}
+        data: ActionPayload = {}  # pyright: ignore
         data['type'] = self.type.value
-        metadata: ActionMetaPayload = {}
+        metadata: ActionMetaPayload = {}  # pyright: ignore
         if self.channel_id is not None:
             metadata['channel_id'] = str(self.channel_id)
         if self.duration is not None:
@@ -233,9 +234,8 @@ class AutoModerationRule(AutoModerationAPIMixin):
     __slots__ = (
         '_state',
         'id',
-        'guild_id',
         'name',
-        'creator_id',
+        'creator',
         'event_type',
         'trigger_type',
         'trigger_metadata',
@@ -246,6 +246,18 @@ class AutoModerationRule(AutoModerationAPIMixin):
         'guild',
     )
 
+    id: int
+    name: str
+    creator: GuildMember | User | amix.UserAPIMixin
+    event_type: AutoModerationEventType
+    trigger_type: AutoModerationTriggerType
+    trigger_metadata: AutoModerationTriggerMetadata
+    actions: list[AutoModerationAction]
+    enabled: bool
+    exempt_role_ids: list[int]
+    exempt_channel_ids: list[int]
+    guild: Guild | amix.GuildAPIMixin
+
     def __init__(
             self,
             *,
@@ -253,9 +265,15 @@ class AutoModerationRule(AutoModerationAPIMixin):
             data: RulePayload):
         self._state = state
         self.id = try_snowflake(data['id'])
-        self.guild_id = try_snowflake(data['guild_id'])
         self.name = data['name']
-        self.creator_id = try_snowflake(data['creator_id'])
+        self.guild = self._state.cache.get_guild(data["guild_id"], or_object=True)
+        creator_id = try_snowflake(data['creator_id'])
+        creator = None
+        if isinstance(self.guild, Guild):
+            creator = self.guild.get_member(creator_id)
+        if creator is None:
+            creator = self._state.cache.get_user(creator_id, or_object=True)
+        self.creator = creator
         self.event_type = try_enum(AutoModerationEventType, data['event_type'])
         self.trigger_type = try_enum(AutoModerationTriggerType, data['trigger_type'])
         self.trigger_metadata = AutoModerationTriggerMetadata._from_data(data=data['trigger_metadata'])
@@ -272,11 +290,10 @@ class AutoModerationRule(AutoModerationAPIMixin):
             try_snowflake(d)
             for d in data['exempt_channels']
         ]
-        self.guild = Object(self.guild_id, state=self._state)
 
     __repr__ = generate_repr((
         'id',
-        'guild_id',
+        'guild',
         'name',
         'event_type',
         'trigger_type',

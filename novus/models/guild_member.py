@@ -20,22 +20,19 @@ from __future__ import annotations
 import operator
 from typing import TYPE_CHECKING, Any
 
-from ..flags import Permissions
+from ..flags import Permissions, UserFlags
 from ..utils import cached_slot_property, generate_repr, parse_timestamp, try_snowflake
 from .api_mixins.user import GuildMemberAPIMixin
 from .asset import Asset
 from .mixins import Hashable
-from .object import Object
 from .user import User
 
 if TYPE_CHECKING:
+    from datetime import datetime as dt
+
+    from .. import Guild, enums, payloads
     from ..api import HTTPConnection
-    from ..payloads import GuildMember as GuildMemberPayload
-    from ..payloads import ThreadMember as ThreadMemberPayload
-    from ..payloads import User as UserPayload
-    from . import Guild
     from . import api_mixins as amix
-    from .abc import StateSnowflake
 
 __all__ = (
     'GuildMember',
@@ -153,7 +150,36 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
         '_cs_guild_avatar',
     )
 
-    def __new__(cls, *args: Any, **kwargs: Any) -> GuildMember:
+    # User
+    id: int
+    username: str
+    discriminator: str
+    avatar_hash: str | None
+    bot: bool
+    system: bool
+    mfa_enabled: bool
+    banner_hash: str | None
+    accent_color: int | None
+    locale: enums.Locale | None
+    verified: bool
+    email: str | None
+    flags: UserFlags
+    premium_type: enums.UserPremiumType
+
+    # Member
+    nick: str | None
+    guild_avatar_hash: str | None
+    role_ids: list[int]
+    joined_at: dt
+    premium_since: dt | None
+    deaf: bool
+    mute: bool
+    pending: bool
+    permissions: Permissions
+    timeout_until: dt | None
+    guild: Guild | amix.GuildAPIMixin
+
+    def __new__(cls, **kwargs: Any) -> GuildMember:
         obj = super().__new__(cls)
         for attr in User.__slots__:
             if attr.startswith("_"):
@@ -170,19 +196,20 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
             self,
             *,
             state: HTTPConnection,
-            data: GuildMemberPayload,
-            guild: StateSnowflake | int,
-            user: User | UserPayload | None = None):
+            data: payloads.GuildMember,
+            user: payloads.User | payloads.PartialUser | User | None = None,
+            guild_id: int | str | None = None):
         self._state = state
         self._user: User
         if isinstance(user, User):
-            self._user = user
-        elif user is not None:
-            self._user = User(state=state, data=user)
-        elif 'user' in data:
-            self._user = User(state=state, data=data['user'])
+            user_object = user
         else:
-            raise ValueError("Missing user data from member init")
+            if user is None:
+                user = data["user"]
+            user_object = self._state.cache.get_user(user["id"], or_object=False)
+            if user_object is None:
+                user_object = User(state=state, data=user)
+        self._user = user_object
         self.nick = data.get('nick')
         self.guild_avatar_hash = data.get('avatar')
         self.role_ids = [
@@ -194,18 +221,17 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
         self.deaf = data.get('deaf', False)
         self.mute = data.get('mute', False)
         self.pending = data.get('pending', False)
-        self.permissions = None
+        self.permissions = Permissions.none()
         if 'permissions' in data:
             self.permissions = Permissions(int(data['permissions']))
         self.timeout_until = None
         if 'communication_disabled_until' in data:
             self.timeout_until = parse_timestamp(data['communication_disabled_until'])
-        self.guild: Guild | amix.GuildAPIMixin
-        if isinstance(guild, int):
-            from .guild import Guild
-            self.guild = Object(guild, state=self._state).add_api(Guild)
-        else:
-            self.guild = guild  # pyright: ignore
+        if "guild_id" in data:
+            guild_id = data["guild_id"]
+        if guild_id is None:
+            raise ValueError("Missing guild from member init")
+        self.guild = self._state.cache.get_guild(guild_id, or_object=True)
 
     __repr__ = generate_repr(('id', 'username', 'bot', 'guild',))
 
@@ -258,7 +284,7 @@ class ThreadMember:
         The guild member object.
     """
 
-    def __init__(self, *, state: HTTPConnection, data: ThreadMemberPayload):
+    def __init__(self, *, state: HTTPConnection, data: payloads.ThreadMember):
         self._state = state
 
         # either set here or updated elsewhere
@@ -268,8 +294,4 @@ class ThreadMember:
         self.join_timestamp = parse_timestamp(data["join_timestamp"])
         self.member: GuildMember | None = None
         if "member" in data:
-            self.member = GuildMember(
-                state=self._state,
-                data=data["member"],
-                guild=None,  # pyright: ignore
-            )
+            self.member = GuildMember(state=self._state, data=data["member"])

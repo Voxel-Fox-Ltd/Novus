@@ -26,7 +26,6 @@ from ..models import (
     GuildMember,
     GuildPreview,
     Invite,
-    Object,
     Role,
     Thread,
     User,
@@ -295,8 +294,7 @@ class GuildHTTPConnection:
         data: payloads.GuildMember = await self.parent.request(
             route,
         )
-        guild = Object(guild_id, state=self.parent)
-        return GuildMember(state=self.parent, data=data, guild=guild)
+        return GuildMember(state=self.parent, data=data)
 
     async def get_guild_members(
             self,
@@ -320,9 +318,8 @@ class GuildHTTPConnection:
                 "after": after,
             }
         )
-        guild = Object(guild_id, state=self.parent)
         return [
-            GuildMember(state=self.parent, data=d, guild=guild)
+            GuildMember(state=self.parent, data=d)
             for d in data
         ]
 
@@ -348,9 +345,8 @@ class GuildHTTPConnection:
                 "limit": limit,
             }
         )
-        guild = Object(guild_id, state=self.parent)
         return [
-            GuildMember(state=self.parent, data=d, guild=guild)
+            GuildMember(state=self.parent, data=d)
             for d in data
         ]
 
@@ -388,8 +384,7 @@ class GuildHTTPConnection:
             data=post_data,
         )
         if data:
-            guild = Object(guild_id, state=self.parent)
-            return GuildMember(state=self.parent, data=data, guild=guild)
+            return GuildMember(state=self.parent, data=data)
         return None
 
     async def modify_guild_member(
@@ -432,8 +427,7 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        guild = Object(guild_id, state=self.parent)
-        return GuildMember(state=self.parent, data=data, guild=guild)
+        return GuildMember(state=self.parent, data=data)
 
     async def modify_current_guild_member(self, guild_id: int) -> NoReturn:
         raise NotImplementedError()
@@ -639,9 +633,12 @@ class GuildHTTPConnection:
         data: list[payloads.Role] = await self.parent.request(
             route,
         )
-        guild = Object(guild_id, state=self.parent)
         return [
-            Role(state=self.parent, data=d, guild=guild)
+            Role(
+                state=self.parent,
+                data=d,
+                guild_id=guild_id,
+            )
             for d in data
         ]
 
@@ -684,8 +681,7 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        guild = Object(guild_id, state=self.parent)
-        return Role(state=self.parent, data=data, guild=guild)
+        return Role(state=self.parent, data=data, guild_id=guild_id)
 
     async def modify_guild_role_positions(self, _: int) -> NoReturn:
         raise NotImplementedError()
@@ -732,8 +728,7 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        guild = Object(guild_id, state=self.parent)
-        return Role(state=self.parent, data=data, guild=guild)
+        return Role(state=self.parent, data=data, guild_id=guild_id)
 
     async def modify_guild_mfa_level(self, _: int) -> NoReturn:
         raise NotImplementedError()

@@ -46,7 +46,7 @@ def try_snowflake(given: str | int | None) -> int | None:
 
     Parameters
     ----------
-    given : str | None
+    given : str | int | None
         The given "snowflake".
 
     Returns
@@ -67,11 +67,11 @@ def try_id(given: None) -> None:
 
 
 @overload
-def try_id(given: int | Snowflake) -> int:
+def try_id(given: int | Snowflake | str) -> int:
     ...
 
 
-def try_id(given: int | Snowflake | None) -> int | None:
+def try_id(given: int | Snowflake | str | None) -> int | None:
     """
     Get the ID from the given object if it is a snowflake; return the object
     unchanged otherwise.
@@ -92,6 +92,8 @@ def try_id(given: int | Snowflake | None) -> int | None:
         return None
     if isinstance(given, int):
         return given
+    elif isinstance(given, str):
+        return int(given)
     return given.id
 
 

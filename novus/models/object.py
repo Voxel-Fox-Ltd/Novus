@@ -49,7 +49,8 @@ class Object:
         self._state = state
         self.guild = None
         if guild_id:
-            self.guild = Object(guild_id, state=state)
+            from .guild import Guild
+            self.guild = Object(guild_id, state=state).add_api(Guild)
         else:
             del self.guild
         self.bases = bases or ()

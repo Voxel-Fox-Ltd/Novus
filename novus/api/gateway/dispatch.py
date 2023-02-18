@@ -198,8 +198,8 @@ class GatewayDispatch:
         """Listen for guild create."""
 
         guild = Guild(state=self.parent, data=data)
-        await guild._sync(data=data)
         self.cache.add_guilds(guild)
+        await guild._sync(data=data)
         yield guild
 
     async def _handle_guild_update(
@@ -286,7 +286,7 @@ class GatewayDispatch:
                 except KeyError:
                     pass
         emojis = [
-            Emoji(state=self.parent, data=d, guild=guild)
+            Emoji(state=self.parent, data=d)
             for d in data["emojis"]
         ]
         if isinstance(guild, Guild):
@@ -305,18 +305,18 @@ class GatewayDispatch:
         if isinstance(guild, Guild):
             for k in guild._stickers.keys():
                 try:
-                    self.cache.stickers.pop(k)
+                    self.cache.stickers.pop(k)  # remove stickers from our cache
                 except KeyError:
                     pass
         stickers = [
-            Sticker(state=self.parent, data=d, guild=guild)
+            Sticker(state=self.parent, data=d)
             for d in data["stickers"]
         ]
         if isinstance(guild, Guild):
-            guild._stickers.clear()
+            guild._stickers.clear()  # remove stickers from guild cache
             for e in stickers:
-                guild._add_sticker(e)
-        yield guild, stickers,
+                guild._add_sticker(e)  # add stickers to guild and our cache
+        yield guild, stickers
 
     async def _handle_typing(
             self,
@@ -344,9 +344,8 @@ class GatewayDispatch:
                 member = GuildMember(
                     state=self.parent,
                     data=_member,
-                    guild=guild,  # pyright: ignore
                 )
-            yield channel, member,
+            yield channel, member
             return
 
         # Unfortunately it tells us nothing about a user so we just have to
@@ -388,8 +387,8 @@ class GatewayDispatch:
                 cached_member = GuildMember(
                     state=self.parent,
                     data=data["member"],
-                    user=data["author"],  # pyright: ignore
-                    guild=guild,
+                    user=data["author"],
+                    guild_id=message.guild.id,
                 )
             elif cached_member is None:
                 cached_member = message.author
@@ -454,13 +453,15 @@ class GatewayDispatch:
 
         current = self.cache.get_channel(data["id"])
         guild: Guild | amix.GuildAPIMixin | None = None
+        guild_id: int | None = None
         if "guild_id" in data:
             guild = self.cache.get_guild(data["guild_id"], or_object=True)
+            guild_id = guild.id
         if isinstance(guild, Guild):
             channel = guild._add_channel(data)
             channel.guild = guild
         else:
-            channel = channel_builder(state=self.parent, data=data, guild=guild)
+            channel = channel_builder(state=self.parent, data=data, guild_id=guild_id)
         return current, channel
 
     async def _handle_channel_create(
@@ -617,7 +618,7 @@ class GatewayDispatch:
         """Handle member create and update."""
 
         guild = self.cache.get_guild(data["guild_id"], or_object=True)
-        member = GuildMember(state=self.parent, data=data, guild=guild)
+        member = GuildMember(state=self.parent, data=data)
         current: GuildMember | None = None
         if isinstance(guild, Guild):
             current = guild.get_member(member.id)
@@ -667,29 +668,17 @@ class GatewayDispatch:
 
         created = Reaction(state=self.parent, data=data)
         message = self.cache.get_message(created.message.id, or_object=False)
-
         if message:
             created.message = message
-        else:
-            channel = self.cache.get_channel(data["channel_id"], or_object=True)
-            created.message.channel = channel
 
-        guild: Guild | amix.GuildAPIMixin | None = None
+        guild: Guild | None = None
         if "guild_id" in data:
-            guild = self.cache.get_guild(data["guild_id"], or_object=True)
-            created.message.guild = guild
-            created.message.channel.guild = guild  # pyright: ignore  # no DM channels here
+            guild = self.cache.get_guild(data["guild_id"], or_object=False)
 
         user: User | GuildMember | amix.UserAPIMixin | None = None
         if created.message is not None and "member" in data:
             assert guild
-            user = GuildMember(
-                state=self.parent,
-                data=data["member"],
-                guild=guild,
-            )
-            if isinstance(guild, Guild):
-                guild._add_member(user)
+            user = guild._add_member(data["member"])
         if user is None:
             user = self.cache.get_user(data["user_id"], or_object=True)
 
@@ -734,7 +723,7 @@ class GatewayDispatch:
 
         assert "guild_id" in data
         guild = self.cache.get_guild(data["guild_id"], or_object=True)
-        created = channel_builder(state=self.parent, data=data, guild=guild)
+        created = channel_builder(state=self.parent, data=data, guild_id=guild.id)
         assert isinstance(created, Thread)
         if isinstance(guild, Guild):
             guild._add_thread(created)  # pyright: ignore
