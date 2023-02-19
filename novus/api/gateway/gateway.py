@@ -91,13 +91,12 @@ class GatewayConnection:
                 return
             except GatewayException as e:
                 if not e.reconnect:
-                    log.info("Cannot reconnect - starting a new session")
-                    await self.close()
-                    await self.connect()
-                    return
+                    log.info("Cannot reconnect.")
+                    raise
                 await self.reconnect()
                 continue
-            except Exception:
+            except Exception as e:
+                log.error("Hit error receiving", exc_info=e)
                 return
 
             # Yield data

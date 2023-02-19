@@ -65,7 +65,7 @@ class Unauthorized(HTTPException):
 class GatewayException(Exception):
     """When you get a generic gateway exception."""
     code: ClassVar[int] = 0
-    reconnect: ClassVar[bool] = False
+    reconnect: ClassVar[bool] = True
     all_exceptions: ClassVar[dict[int, Type[Exception]]] = {}
 
 
