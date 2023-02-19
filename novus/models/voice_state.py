@@ -76,21 +76,21 @@ class VoiceState(Hashable):
             *,
             state: HTTPConnection,
             data: payloads.VoiceState) -> None:
-        self._state = state
+        self.state = state
         if "member" in data:
             guild_id = data["guild_id"]  # pyright: ignore
             self.user = GuildMember(
-                state=self._state,
+                state=self.state,
                 data=data["member"],
                 guild_id=guild_id,
             )
         else:
-            self.user = self._state.cache.get_user(data["user_id"], or_object=True)
-        self.guild = self._state.cache.get_guild(data.get("guild_id"), or_object=True)
+            self.user = self.state.cache.get_user(data["user_id"], or_object=True)
+        self.guild = self.state.cache.get_guild(data.get("guild_id"), or_object=True)
         from .guild import Guild
         if isinstance(self.guild, Guild):
             self.guild._add_voice_state(self)
-        self.channel = self._state.cache.get_channel(data["channel_id"], or_object=True)  # pyright: ignore
+        self.channel = self.state.cache.get_channel(data["channel_id"], or_object=True)  # pyright: ignore
         self.suppress = data.get("suppress", False)
         self.session_id = data["session_id"]
         self.self_video = data.get("self_video", False)

@@ -53,7 +53,7 @@ class StageInstance(StageInstanceAPIMixin):
     """
 
     def __init__(self, *, state: HTTPConnection, data: StageInstancePayload):
-        self._state = state
+        self.state = state
         self.id: int = try_snowflake(data['id'])
         self.guild_id: int = try_snowflake(data['guild_id'])
         self.channel_id: int = try_snowflake(data['channel_id'])

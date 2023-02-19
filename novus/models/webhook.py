@@ -63,7 +63,7 @@ class Webhook(WebhookAPIMixin):
     )
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'guild_id',
         'channel_id',
@@ -74,7 +74,7 @@ class Webhook(WebhookAPIMixin):
     )
 
     def __init__(self, *, state: HTTPConnection, data: WebhookPayload):
-        self._state = state
+        self.state = state
         self.id: int = try_snowflake(data['id'])
         self.guild_id: int | None = try_snowflake(data.get('guild_id'))
         self.channel_id: int | None = try_snowflake(data.get('channel_id'))

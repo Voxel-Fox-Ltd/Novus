@@ -38,7 +38,7 @@ __all__ = (
 class EmojiAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
 
     @classmethod
     async def create(
@@ -146,7 +146,7 @@ class EmojiAPIMixin:
             The reason shown in the audit log.
         """
 
-        await self._state.emoji.delete_guild_emoji(
+        await self.state.emoji.delete_guild_emoji(
             self.guild.id,
             self.id,
             reason=reason,
@@ -184,7 +184,7 @@ class EmojiAPIMixin:
         if roles is not MISSING:
             update["roles"] = [try_object(i) for i in roles]
 
-        return await self._state.emoji.modify_guild_emoji(
+        return await self.state.emoji.modify_guild_emoji(
             self.guild.id,
             self.id,
             reason=reason,

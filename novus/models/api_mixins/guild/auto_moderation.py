@@ -49,7 +49,7 @@ class GuildAutomodAPI:
         """
 
         return await (
-            self._state.auto_moderation
+            self.state.auto_moderation
             .list_auto_moderation_rules_for_guild(self.id)
         )
 
@@ -108,7 +108,7 @@ class GuildAutomodAPI:
         if exempt_channels:
             updates["exempt_channels"] = [try_object(i) for i in exempt_channels]
 
-        return await self._state.auto_moderation.create_auto_moderation_rule(
+        return await self.state.auto_moderation.create_auto_moderation_rule(
             self.id,
             reason=reason,
             **updates,

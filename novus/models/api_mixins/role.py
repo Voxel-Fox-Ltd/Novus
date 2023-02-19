@@ -36,7 +36,7 @@ __all__ = (
 class RoleAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
     guild: Guild | amix.GuildAPIMixin
 
     async def delete(
@@ -52,7 +52,7 @@ class RoleAPIMixin:
             The reason shown in the audit log.
         """
 
-        await self._state.guild.delete_guild_role(
+        await self.state.guild.delete_guild_role(
             self.guild.id,
             self.id,
             reason=reason,
@@ -115,7 +115,7 @@ class RoleAPIMixin:
         if mentionable is not MISSING:
             update['mentionable'] = mentionable
 
-        return await self._state.guild.modify_guild_role(
+        return await self.state.guild.modify_guild_role(
             self.guild.id,
             self.id,
             reason=reason,

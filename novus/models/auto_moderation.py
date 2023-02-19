@@ -232,7 +232,7 @@ class AutoModerationRule(AutoModerationAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'name',
         'creator',
@@ -263,16 +263,16 @@ class AutoModerationRule(AutoModerationAPIMixin):
             *,
             state: HTTPConnection,
             data: RulePayload):
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
-        self.guild = self._state.cache.get_guild(data["guild_id"], or_object=True)
+        self.guild = self.state.cache.get_guild(data["guild_id"], or_object=True)
         creator_id = try_snowflake(data['creator_id'])
         creator = None
         if isinstance(self.guild, Guild):
             creator = self.guild.get_member(creator_id)
         if creator is None:
-            creator = self._state.cache.get_user(creator_id, or_object=True)
+            creator = self.state.cache.get_user(creator_id, or_object=True)
         self.creator = creator
         self.event_type = try_enum(AutoModerationEventType, data['event_type'])
         self.trigger_type = try_enum(AutoModerationTriggerType, data['trigger_type'])

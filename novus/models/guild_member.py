@@ -119,7 +119,7 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'username',
         'discriminator',
@@ -184,7 +184,7 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
     def __new__(cls, **kwargs: Any) -> GuildMember:
         obj = super().__new__(cls)
         for attr in User.__slots__:
-            if attr.startswith("_"):
+            if attr.startswith("_") or attr == "state":
                 continue
             getter = operator.attrgetter('_user.' + attr)
             setattr(
@@ -201,14 +201,14 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
             data: payloads.GuildMember,
             user: payloads.User | payloads.PartialUser | User | None = None,
             guild_id: int | str | None = None):
-        self._state = state
+        self.state = state
         self._user: User
         if isinstance(user, User):
             user_object = user
         else:
             if user is None:
                 user = data["user"]
-            user_object = self._state.cache.get_user(user["id"], or_object=False)
+            user_object = self.state.cache.get_user(user["id"], or_object=False)
             if user_object is None:
                 user_object = User(state=state, data=user)
         self._user = user_object
@@ -233,7 +233,7 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
             guild_id = data["guild_id"]
         if guild_id is None:
             raise ValueError("Missing guild from member init")
-        self.guild = self._state.cache.get_guild(guild_id, or_object=True)
+        self.guild = self.state.cache.get_guild(guild_id, or_object=True)
 
     __repr__ = generate_repr(('id', 'username', 'bot', 'guild',))
 
@@ -294,7 +294,7 @@ class ThreadMember:
     """
 
     def __init__(self, *, state: HTTPConnection, data: payloads.ThreadMember):
-        self._state = state
+        self.state = state
 
         # either set here or updated elsewhere
         self.thread_id: int = try_snowflake(data.get("id"))  # pyright: ignore
@@ -303,4 +303,4 @@ class ThreadMember:
         self.join_timestamp = parse_timestamp(data["join_timestamp"])
         self.member: GuildMember | None = None
         if "member" in data:
-            self.member = GuildMember(state=self._state, data=data["member"])
+            self.member = GuildMember(state=self.state, data=data["member"])

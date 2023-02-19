@@ -83,7 +83,7 @@ class User(Hashable, UserAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'username',
         'discriminator',
@@ -108,7 +108,7 @@ class User(Hashable, UserAPIMixin):
             *,
             state: HTTPConnection,
             data: payloads.User | payloads.PartialUser):
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data['id'])
         self.username = data['username']
         self.discriminator = data['discriminator']
@@ -161,7 +161,7 @@ class User(Hashable, UserAPIMixin):
 
         from .guild_member import GuildMember
         v = GuildMember(
-            state=self._state,
+            state=self.state,
             data=data,
             user=self,
         )

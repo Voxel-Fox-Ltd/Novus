@@ -39,7 +39,7 @@ __all__ = (
 class AutoModerationAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
 
     @classmethod
     async def fetch(
@@ -156,7 +156,7 @@ class AutoModerationAPIMixin:
         if exempt_channels is not MISSING:
             updates["exempt_channels"] = [try_object(i) for i in exempt_channels]
 
-        return await self._state.auto_moderation.modify_auto_moderation_rule(
+        return await self.state.auto_moderation.modify_auto_moderation_rule(
             self.guild.id,
             self.id,
             reason=reason,
@@ -176,7 +176,7 @@ class AutoModerationAPIMixin:
             The reason shown in the audit log.
         """
 
-        await self._state.auto_moderation.delete_auto_moderation_rule(
+        await self.state.auto_moderation.delete_auto_moderation_rule(
             self.guild.id,
             self.id,
             reason=reason,

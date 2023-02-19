@@ -47,7 +47,7 @@ class GuildStickerAPI:
             The associated sticker instance.
         """
 
-        sticker = await self._state.sticker.get_guild_sticker(self.id, id)
+        sticker = await self.state.sticker.get_guild_sticker(self.id, id)
         sticker.guild = self
         return sticker
 
@@ -63,7 +63,7 @@ class GuildStickerAPI:
             The stickers associated with the guild.
         """
 
-        stickers = await self._state.sticker.list_guild_stickers(self.id)
+        stickers = await self.state.sticker.list_guild_stickers(self.id)
         for s in stickers:
             s.guild = self
         return stickers
@@ -102,7 +102,7 @@ class GuildStickerAPI:
             The created sticker instance.
         """
 
-        return await self._state.sticker.create_guild_sticker(
+        return await self.state.sticker.create_guild_sticker(
             self.id,
             reason=reason,
             **{

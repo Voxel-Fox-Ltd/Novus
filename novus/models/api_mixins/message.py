@@ -48,7 +48,7 @@ __all__ = (
 class MessageAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
     channel: Channel
     guild: Guild | amix.GuildAPIMixin | None
 
@@ -162,7 +162,7 @@ class MessageAPIMixin:
             The reason to be added to the audit log.
         """
 
-        return await self._state.channel.delete_message(
+        return await self.state.channel.delete_message(
             self.channel.id,
             self.id,
             reason=reason,
@@ -173,7 +173,7 @@ class MessageAPIMixin:
         Crosspost a message.
         """
 
-        return await self._state.channel.crosspost_message(
+        return await self.state.channel.crosspost_message(
             self.channel.id,
             self.id,
         )
@@ -190,7 +190,7 @@ class MessageAPIMixin:
             The emoji to add to the message.
         """
 
-        return await self._state.channel.create_reaction(
+        return await self.state.channel.create_reaction(
             self.channel.id,
             self.id,
             emoji,
@@ -212,12 +212,12 @@ class MessageAPIMixin:
         """
 
         # if user is ME:
-        #     return await self._state.channel.delete_own_reaction(
+        #     return await self.state.channel.delete_own_reaction(
         #         self.channel.id,
         #         self.id,
         #         emoji,
         #     )
-        return await self._state.channel.delete_user_reaction(
+        return await self.state.channel.delete_user_reaction(
             self.channel.id,
             self.id,
             emoji,
@@ -236,7 +236,7 @@ class MessageAPIMixin:
             The emoji to check the reactors for.
         """
 
-        return await self._state.channel.get_reactions(
+        return await self.state.channel.get_reactions(
             self.channel.id,
             self.id,
             emoji,
@@ -256,12 +256,12 @@ class MessageAPIMixin:
         """
 
         if emoji is not None:
-            return await self._state.channel.delete_all_reactions_for_emoji(
+            return await self.state.channel.delete_all_reactions_for_emoji(
                 self.channel.id,
                 self.id,
                 emoji,
             )
-        return await self._state.channel.delete_all_reactions(
+        return await self.state.channel.delete_all_reactions(
             self.channel.id,
             self.id,
         )
@@ -318,7 +318,7 @@ class MessageAPIMixin:
         add_not_missing(update, "stickers", stickers)
         add_not_missing(update, "files", files)
         add_not_missing(update, "flags", flags)
-        return await self._state.channel.edit_message(
+        return await self.state.channel.edit_message(
             self.channel.id,
             self.id,
             **update,
@@ -337,7 +337,7 @@ class MessageAPIMixin:
             The reason shown in the audit log.
         """
 
-        await self._state.channel.pin_message(
+        await self.state.channel.pin_message(
             self.channel.id,
             self.id,
             reason=reason,
@@ -356,7 +356,7 @@ class MessageAPIMixin:
             The reason shown in the audit log.
         """
 
-        await self._state.channel.unpin_message(
+        await self.state.channel.unpin_message(
             self.channel.id,
             self.id,
             reason=reason,
@@ -389,7 +389,7 @@ class MessageAPIMixin:
         params["name"] = name
         add_not_missing(params, "auto_archive_duration", auto_archive_duration)
         add_not_missing(params, "rate_limit_per_user", rate_limit_per_user)
-        return await self._state.channel.start_thread_from_message(
+        return await self.state.channel.start_thread_from_message(
             self.channel.id,
             self.id,
             reason=reason,
@@ -447,7 +447,7 @@ class WebhookMessageAPIMixin:
             The message you want to delete.
         """
 
-        return await self._state.webhook.delete_webhook_message(
+        return await self.state.webhook.delete_webhook_message(
             self.webhook.id,
             self.webhook.token,  # pyright: ignore
             self.id,
@@ -505,7 +505,7 @@ class WebhookMessageAPIMixin:
         add_not_missing(update, "stickers", stickers)
         add_not_missing(update, "files", files)
         add_not_missing(update, "flags", flags)
-        return await self._state.webhook.edit_webhook_message(
+        return await self.state.webhook.edit_webhook_message(
             self.webhook.id,
             self.webhook.token,  # pyright: ignore
             self.id,

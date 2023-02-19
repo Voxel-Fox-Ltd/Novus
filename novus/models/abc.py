@@ -56,12 +56,12 @@ class StateSnowflake(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.HTTPConection
+    state : novus.HTTPConection
         The HTTP connection state.
     """
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
 
 
 @runtime_checkable
@@ -73,14 +73,14 @@ class StateSnowflakeWithGuild(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.HTTPConection
+    state : novus.HTTPConection
         The HTTP connection state.
     guild: novus.abc.Snowflake
         An object containing the guild ID.
     """
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
     guild: Snowflake
 
 
@@ -93,14 +93,14 @@ class StateSnowflakeWithChannel(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.HTTPConection
+    state : novus.HTTPConection
         The HTTP connection state.
     channel: novus.abc.Snowflake
         An object containing the channel ID.
     """
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
     channel: Snowflake
 
 
@@ -113,14 +113,14 @@ class StateSnowflakeWithWebhook(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.HTTPConection
+    state : novus.HTTPConection
         The HTTP connection state.
     channel: novus.abc.Snowflake
         An object containing the channel ID.
     """
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
     webhook: Webhook
 
 
@@ -133,7 +133,7 @@ class StateSnowflakeWithGuildChannel(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.HTTPConection
+    state : novus.HTTPConection
         The HTTP connection state.
     guild: novus.abc.Snowflake | None
         An object containing the guild ID (or ``None``).
@@ -142,7 +142,7 @@ class StateSnowflakeWithGuildChannel(Protocol):
     """
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
     guild: Snowflake | None
     channel: Snowflake
 
@@ -156,9 +156,9 @@ class OauthStateSnowflake(Protocol):
     ----------
     id : int
         The model's unique ID.
-    _state : novus.HTTPConection
+    state : novus.HTTPConection
         The HTTP connection state.
     """
 
     id: int
-    _state: OauthHTTPConnection
+    state: OauthHTTPConnection

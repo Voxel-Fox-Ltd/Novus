@@ -203,7 +203,7 @@ class GuildAPI:
         if premium_progress_bar_enabled is not MISSING:
             updates["premium_progress_bar_enabled"] = premium_progress_bar_enabled
 
-        return await self._state.guild.modify_guild(
+        return await self.state.guild.modify_guild(
             self.id,
             reason=reason,
             **updates,
@@ -215,7 +215,7 @@ class GuildAPI:
         guild to run this successfully.
         """
 
-        await self._state.guild.delete_guild(self.id)
+        await self.state.guild.delete_guild(self.id)
         return None
 
     async def edit_mfa_level(self) -> NoReturn:
@@ -242,7 +242,7 @@ class GuildAPI:
             A list of invites.
         """
 
-        return await self._state.guild.get_guild_invites(self.id)
+        return await self.state.guild.get_guild_invites(self.id)
 
     async def fetch_integrations(self) -> NoReturn:
         raise NotImplementedError()

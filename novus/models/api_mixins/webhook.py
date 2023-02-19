@@ -38,7 +38,7 @@ __all__ = (
 class WebhookAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
 
     @classmethod
     async def fetch(
@@ -103,7 +103,7 @@ class WebhookAPIMixin:
         if channel is not MISSING:
             update["channel"] = try_object(channel)
 
-        return await self._state.webhook.modify_webhook(
+        return await self.state.webhook.modify_webhook(
             self.id,
             reason=reason,
             **update,
@@ -141,7 +141,7 @@ class WebhookAPIMixin:
             if avatar is not None:
                 update["avatar"] = avatar.data
 
-        return await self._state.webhook.modify_webhook(
+        return await self.state.webhook.modify_webhook(
             self.id,
             token=self.token,  # pyright: ignore
             reason=reason,
@@ -247,7 +247,7 @@ class WebhookAPIMixin:
         if flags is not MISSING:
             data["flags"] = flags
 
-        return await self._state.webhook.execute_webhook(
+        return await self.state.webhook.execute_webhook(
             self.id,
             self.token,  # pyright: ignore
             wait=wait,
@@ -326,7 +326,7 @@ class InteractionWebhookAPIMixin:
         if ephemeral:
             data["flags"].ephemeral = True
 
-        return await self._state.webhook.execute_webhook(
+        return await self.state.webhook.execute_webhook(
             self.id,
             self.token,  # pyright: ignore
             wait=True,

@@ -184,7 +184,7 @@ class Guild(Hashable, GuildAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'name',
         'icon_hash',
@@ -235,7 +235,7 @@ class Guild(Hashable, GuildAPIMixin):
     )
 
     def __init__(self, *, state: HTTPConnection, data: payloads.Guild):
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data['id'])
         self._emojis: dict[int, Emoji] = {}
         self._stickers: dict[int, Sticker] = {}
@@ -326,10 +326,10 @@ class Guild(Hashable, GuildAPIMixin):
         else:
             if emoji.get("id") is None:
                 return None
-            created = Emoji(state=self._state, data=emoji, guild=self)
+            created = Emoji(state=self.state, data=emoji, guild=self)
         assert created.id
         created.guild = self
-        self._state.cache.add_emojis(created)
+        self.state.cache.add_emojis(created)
         (new_cache or self._emojis)[created.id] = created
         return created
 
@@ -340,9 +340,9 @@ class Guild(Hashable, GuildAPIMixin):
         if isinstance(sticker, Sticker):
             created = sticker
         else:
-            created = Sticker(state=self._state, data=sticker)
+            created = Sticker(state=self.state, data=sticker)
             assert created.guild is self
-        self._state.cache.add_stickers(created)
+        self.state.cache.add_stickers(created)
         (new_cache or self._stickers)[created.id] = created
         return created
 
@@ -354,7 +354,7 @@ class Guild(Hashable, GuildAPIMixin):
             created = role
             created.guild = self
         else:
-            created = Role(state=self._state, data=role, guild=self)
+            created = Role(state=self.state, data=role, guild=self)
         (new_cache or self._roles)[created.id] = created
         return created
 
@@ -366,10 +366,10 @@ class Guild(Hashable, GuildAPIMixin):
         if isinstance(member, GuildMember):
             created = member
         else:
-            created = GuildMember(state=self._state, data=member, guild_id=self.id)
+            created = GuildMember(state=self.state, data=member, guild_id=self.id)
         created.guild = self
-        user = self._state.cache.get_user(created.id)  # get cached user
-        self._state.cache.add_users(created._user)  # add new user
+        user = self.state.cache.get_user(created.id)  # get cached user
+        self.state.cache.add_users(created._user)  # add new user
         if user is not None and isinstance(user, User):
             created._user._guilds.update(user._guilds)  # update guild ids
         created._user._guilds.add(self.id)
@@ -380,8 +380,8 @@ class Guild(Hashable, GuildAPIMixin):
             self,
             event: payloads.GuildScheduledEvent,
             new_cache: dict[int, Any] | None = None) -> ScheduledEvent:
-        created = ScheduledEvent(state=self._state, data=event)
-        self._state.cache.add_events(created)
+        created = ScheduledEvent(state=self.state, data=event)
+        self.state.cache.add_events(created)
         (new_cache or self._guild_scheduled_events)[created.id] = created
         return created
 
@@ -392,8 +392,8 @@ class Guild(Hashable, GuildAPIMixin):
         if isinstance(thread, Thread):
             created = thread
         else:
-            created = Thread(state=self._state, data=thread)
-        self._state.cache.add_channels(created)
+            created = Thread(state=self.state, data=thread)
+        self.state.cache.add_channels(created)
         (new_cache or self._threads)[created.id] = created
         return created
 
@@ -404,7 +404,7 @@ class Guild(Hashable, GuildAPIMixin):
         if isinstance(voice_state, VoiceState):
             created = voice_state
         else:
-            created = VoiceState(state=self._state, data=voice_state)
+            created = VoiceState(state=self.state, data=voice_state)
         (new_cache or self._voice_states)[created.user.id] = created
         return created
 
@@ -413,7 +413,7 @@ class Guild(Hashable, GuildAPIMixin):
             channel: payloads.Channel,
             new_cache: dict[int, Any] | None = None) -> Channel:
         try:
-            created = channel_builder(state=self._state, data=channel, guild_id=self.id)
+            created = channel_builder(state=self.state, data=channel, guild_id=self.id)
         except ValueError as e:
             log.error(
                 "Error building channel in guild %s" % self.id,
@@ -421,7 +421,7 @@ class Guild(Hashable, GuildAPIMixin):
             )
             raise
         else:
-            self._state.cache.add_channels(created)
+            self.state.cache.add_channels(created)
             (new_cache or self._channels)[created.id] = created
             return created
 
@@ -626,7 +626,7 @@ class OauthGuild(GuildAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'name',
         'icon_hash',
@@ -636,7 +636,7 @@ class OauthGuild(GuildAPIMixin):
     )
 
     def __init__(self, *, state: HTTPConnection, data: payloads.Guild) -> None:
-        self._state: HTTPConnection = state
+        self.state: HTTPConnection = state
         self.id: int = try_snowflake(data['id'])
         self.name: str = data['name']
         self.icon_hash: str | None = data['icon'] or data.get('icon_hash')
@@ -659,7 +659,7 @@ class OauthGuild(GuildAPIMixin):
             The full guild object.
         """
 
-        return await Guild.fetch(self._state, self.id)
+        return await Guild.fetch(self.state, self.id)
 
 
 class PartialGuild(GuildAPIMixin):
@@ -703,7 +703,7 @@ class PartialGuild(GuildAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'name',
         'splash_hash',
@@ -722,7 +722,7 @@ class PartialGuild(GuildAPIMixin):
     )
 
     def __init__(self, *, state: HTTPConnection, data: payloads.Guild):
-        self._state = state
+        self.state = state
         self.id: int = try_snowflake(data['id'])
         self.name: str = data['name']
         self.splash_hash: str | None = data.get('splash')
@@ -793,7 +793,7 @@ class GuildPreview(GuildAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'name',
         'icon_hash',
@@ -812,14 +812,14 @@ class GuildPreview(GuildAPIMixin):
     )
 
     def __init__(self, *, state: HTTPConnection, data: payloads.GuildPreview):
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
         self.icon_hash = data.get('icon')
         self.splash_hash = data.get('splash')
         self.discovery_splash_hash = data.get('discovery_splash')
         self.emojis = [
-            Emoji(state=self._state, data=i, guild=self)
+            Emoji(state=self.state, data=i, guild=self)
             for i in data.get('emojis', list())
         ]
         self.features = data.get('features', list())
@@ -827,7 +827,7 @@ class GuildPreview(GuildAPIMixin):
         self.approximate_presence_count = data['approximate_presence_count']
         self.description = data.get('description')
         self.stickers = [
-            Sticker(state=self._state, data=i)
+            Sticker(state=self.state, data=i)
             for i in data.get('stickers', list())
         ]
 

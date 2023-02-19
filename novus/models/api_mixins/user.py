@@ -38,7 +38,7 @@ __all__ = (
 class UserAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
 
     @classmethod
     async def fetch(
@@ -131,7 +131,7 @@ class UserAPIMixin:
             The DM channel for the user.
         """
 
-        return await self._state.user.create_dm(self.id)
+        return await self.state.user.create_dm(self.id)
 
 
 class GuildMemberAPIMixin:
@@ -243,7 +243,7 @@ class GuildMemberAPIMixin:
         if timeout_until is not MISSING:
             update["communication_disabled_until"] = timeout_until
 
-        return await self._state.guild.modify_guild_member(
+        return await self.state.guild.modify_guild_member(
             self.guild.id,
             self.id,
             reason=reason,
@@ -270,7 +270,7 @@ class GuildMemberAPIMixin:
             The reason shown in the audit log.
         """
 
-        await self._state.guild.add_guild_member_role(
+        await self.state.guild.add_guild_member_role(
             self.guild.id,
             self.id,
             try_id(role),
@@ -297,7 +297,7 @@ class GuildMemberAPIMixin:
             The reason shown in the audit log.
         """
 
-        await self._state.guild.add_guild_member_role(
+        await self.state.guild.add_guild_member_role(
             self.guild.id,
             self.id,
             try_id(role),
@@ -321,7 +321,7 @@ class GuildMemberAPIMixin:
             The reason to be shown in the audit log.
         """
 
-        await self._state.guild.remove_guild_member(
+        await self.state.guild.remove_guild_member(
             self.guild.id,
             self.id,
             reason=reason,
@@ -352,7 +352,7 @@ class GuildMemberAPIMixin:
         if delete_message_seconds is not MISSING:
             updates['delete_message_seconds'] = delete_message_seconds
 
-        await self._state.guild.create_guild_ban(
+        await self.state.guild.create_guild_ban(
             self.guild.id,
             self.id,
             reason=reason,

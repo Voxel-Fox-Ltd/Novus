@@ -48,4 +48,4 @@ class GuildAPIMixin(
         GuildStickerAPI,
         GuildUserAPI):
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection

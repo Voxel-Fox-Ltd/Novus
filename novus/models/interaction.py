@@ -21,12 +21,7 @@ from typing import TYPE_CHECKING, Generic, TypeVar
 
 from ..enums import ApplicationCommandType, InteractionType, Locale
 from ..flags import Permissions
-from ..utils import (
-    cached_slot_property,
-    generate_repr,
-    try_snowflake,
-    walk_components,
-)
+from ..utils import cached_slot_property, generate_repr, try_snowflake, walk_components
 from .api_mixins.interaction import InteractionAPIMixin
 from .application_command import ApplicationCommandOption
 from .channel import Channel, channel_builder
@@ -75,7 +70,7 @@ class InteractionResolved:
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'data',
         '_cs_users',
         '_cs_members',
@@ -92,7 +87,7 @@ class InteractionResolved:
             state: HTTPConnection,
             data: payloads.InteractionResolved | None,
             guild_id: int | None = None):
-        self._state = state
+        self.state = state
         self.data = data or {}
         self.guild_id: int | None = guild_id
 
@@ -105,7 +100,7 @@ class InteractionResolved:
             return []
         ret: list[User] = []
         for d in data.values():
-            ret.append(User(state=self._state, data=d))
+            ret.append(User(state=self.state, data=d))
         return ret
 
     @cached_slot_property("_cs_members")
@@ -117,7 +112,7 @@ class InteractionResolved:
         for d in data.values():
             ret.append(
                 GuildMember(
-                    state=self._state,
+                    state=self.state,
                     data=d,
                     guild_id=self.guild_id,
                 )
@@ -133,7 +128,7 @@ class InteractionResolved:
         for d in data.values():
             ret.append(
                 Role(
-                    state=self._state,
+                    state=self.state,
                     data=d,
                     guild_id=self.guild_id,
                 )
@@ -149,7 +144,7 @@ class InteractionResolved:
         for d in data.values():
             ret.append(
                 channel_builder(
-                    state=self._state,
+                    state=self.state,
                     data=d,
                     guild_id=self.guild_id,
                 )
@@ -165,7 +160,7 @@ class InteractionResolved:
         for d in data.values():
             ret.append(
                 Message(
-                    state=self._state,
+                    state=self.state,
                     data=d,
                 )
             )
@@ -227,14 +222,14 @@ class ApplicationComandData(InteractionData):
         self.name = data["name"]
         self.type = ApplicationCommandType(data["type"])
         self.resolved = InteractionResolved(
-            state=self.parent._state,
+            state=self.parent.state,
             data=data.get("resolved"),
         )
         self.options = [
             ApplicationCommandOption(d)
             for d in data.get("options", [])
         ]
-        self.guild = self.parent._state.cache.get_guild(data.get("guild_id"), or_object=True)
+        self.guild = self.parent.state.cache.get_guild(data.get("guild_id"), or_object=True)
 
     __repr__ = generate_repr(('id', 'type',))
 
@@ -279,14 +274,14 @@ class ContextComandData(ApplicationComandData):
         self.name = data["name"]
         self.type = ApplicationCommandType(data["type"])
         self.resolved = InteractionResolved(
-            state=self.parent._state,
+            state=self.parent.state,
             data=data.get("resolved"),
         )
         self.options = [
             ApplicationCommandOption(d)
             for d in data.get("options", [])
         ]
-        self.guild = self.parent._state.cache.get_guild(data.get("guild_id"), or_object=True)
+        self.guild = self.parent.state.cache.get_guild(data.get("guild_id"), or_object=True)
         target_id = try_snowflake(data.get("target_id"))
         self.target = None  # pyright: ignore
         if self.type == ApplicationCommandType.message:
@@ -418,7 +413,7 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'application_id',
         'type',
@@ -449,20 +444,20 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
     guild_locale: Locale | None
 
     def __init__(self, *, state: HTTPConnection, data: payloads.Interaction):
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data["id"])
         self.application_id = try_snowflake(data["application_id"])
         self.type = InteractionType(data["type"])
-        self.guild = self._state.cache.get_guild(data.get("guild_id"), or_object=True)
-        self.channel = self._state.cache.get_channel(data.get("channel_id"), or_object=True)
+        self.guild = self.state.cache.get_guild(data.get("guild_id"), or_object=True)
+        self.channel = self.state.cache.get_channel(data.get("channel_id"), or_object=True)
         if "user" in data:
             self.user = User(
-                state=self._state,
+                state=self.state,
                 data=data["user"],
             )
         elif "member" in data:
             self.user = GuildMember(
-                state=self._state,
+                state=self.state,
                 data=data["member"],
                 guild_id=data.get("guild_id"),
             )
@@ -471,7 +466,7 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
         self.token = data["token"]
         self.version = data["version"]
         if "message" in data:
-            self.message = Message(state=self._state, data=data["message"])
+            self.message = Message(state=self.state, data=data["message"])
         else:
             self.message = None
         if "app_permissions" in data:

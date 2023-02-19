@@ -35,7 +35,7 @@ __all__ = (
 class StickerAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
 
     @classmethod
     async def create(
@@ -181,7 +181,7 @@ class StickerAPIMixin:
         if tags is not MISSING:
             updated["tags"] = tags
 
-        return await self._state.sticker.modify_guild_sticker(
+        return await self.state.sticker.modify_guild_sticker(
             self.guild.id,
             self.id,
             reason=reason,
@@ -206,7 +206,7 @@ class StickerAPIMixin:
             The updated sticker instance.
         """
 
-        return await self._state.sticker.modify_guild_sticker(
+        return await self.state.sticker.modify_guild_sticker(
             self.guild.id,
             self.id,
             reason=reason,

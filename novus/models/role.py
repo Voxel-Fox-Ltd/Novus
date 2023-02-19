@@ -77,7 +77,7 @@ class Role(Hashable, RoleAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'name',
         'color',
@@ -114,7 +114,7 @@ class Role(Hashable, RoleAPIMixin):
             data: RolePayload,
             guild_id: int | None = None,
             guild: Guild | None = None):
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
         self.color = data['color']
@@ -129,7 +129,7 @@ class Role(Hashable, RoleAPIMixin):
         if guild:
             self.guild = guild
         elif guild_id:
-            self.guild = self._state.cache.get_guild(guild_id)
+            self.guild = self.state.cache.get_guild(guild_id)
         else:
             raise ValueError("Missing guild from role init")
 

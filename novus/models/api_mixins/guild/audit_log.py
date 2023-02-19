@@ -61,7 +61,7 @@ class GuildAuditAPI:
             The audit log for the guild.
         """
 
-        return await self._state.audit_log.get_guild_audit_log(
+        return await self.state.audit_log.get_guild_audit_log(
             self.id,
             user_id=user_id,
             action_type=action_type,

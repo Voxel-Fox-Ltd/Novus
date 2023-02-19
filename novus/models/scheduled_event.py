@@ -82,7 +82,7 @@ class ScheduledEvent(Hashable, ScheduledEventAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'guild',
         'channel',
@@ -119,25 +119,25 @@ class ScheduledEvent(Hashable, ScheduledEventAPIMixin):
     image_hash: str | None
 
     def __init__(self, *, state: HTTPConnection, data: payloads.GuildScheduledEvent):
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data['id'])
-        self.guild = self._state.cache.get_guild(data["guild_id"], or_object=True)
+        self.guild = self.state.cache.get_guild(data["guild_id"], or_object=True)
         channel_id = data.get("channel_id")
         if channel_id is None:
             self.channel = None
         else:
-            self.channel = self._state.cache.get_channel(channel_id, or_object=True)
+            self.channel = self.state.cache.get_channel(channel_id, or_object=True)
         creator_id = data.get("creator_id")
         if creator_id is None:
             self.creator = None
         else:
-            cached = self._state.cache.get_user(creator_id, or_object=False)
+            cached = self.state.cache.get_user(creator_id, or_object=False)
             if cached:
                 self.creator = cached
             elif "creator" in data:
-                self.creator = User(state=self._state, data=data["creator"])
+                self.creator = User(state=self.state, data=data["creator"])
             else:
-                self.creator = self._state.cache.get_user(creator_id, or_object=True)
+                self.creator = self.state.cache.get_user(creator_id, or_object=True)
         self.name = data['name']
         self.description = data.get('description')
         self.start_time = parse_timestamp(data['scheduled_start_time'])

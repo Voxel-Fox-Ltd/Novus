@@ -39,7 +39,7 @@ __all__ = (
 class ScheduledEventAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
 
     @classmethod
     async def create(
@@ -199,7 +199,7 @@ class ScheduledEventAPIMixin:
         Delete the scheduled event.
         """
 
-        await self._state.guild_scheduled_event.delete_guild_scheduled_event(
+        await self.state.guild_scheduled_event.delete_guild_scheduled_event(
             self.guild.id,
             self.id,
         )
@@ -275,7 +275,7 @@ class ScheduledEventAPIMixin:
         if image is not MISSING:
             update['image'] = image
 
-        return await self._state.guild_scheduled_event.modify_guild_scheduled_event(
+        return await self.state.guild_scheduled_event.modify_guild_scheduled_event(
             self.guild.id,
             self.id,
             **update,
@@ -309,7 +309,7 @@ class ScheduledEventAPIMixin:
             The users/members subscribed to the event.
         """
 
-        return await self._state.guild_scheduled_event.get_guild_scheduled_event_users(
+        return await self.state.guild_scheduled_event.get_guild_scheduled_event_users(
             self.guild.id,
             self.id,
             limit=limit,

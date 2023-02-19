@@ -50,7 +50,7 @@ class GuildChannelAPI:
             A list of channels from the guild.
         """
 
-        channels = await self._state.guild.get_guild_channels(self.id)
+        channels = await self.state.guild.get_guild_channels(self.id)
         for c in channels:
             c.guild = self
         return channels
@@ -190,7 +190,7 @@ class GuildChannelAPI:
         if available_tags is not MISSING:
             update["available_tags"] = available_tags
 
-        channel = await self._state.guild.create_guild_channel(self.id, **update)
+        channel = await self.state.guild.create_guild_channel(self.id, **update)
         channel.guild = self
         return channel
 
@@ -207,7 +207,7 @@ class GuildChannelAPI:
             A list of threads.
         """
 
-        threads = await self._state.guild.get_active_guild_threads(self.id)
+        threads = await self.state.guild.get_active_guild_threads(self.id)
         for t in threads:
             t.guild = self
         return threads

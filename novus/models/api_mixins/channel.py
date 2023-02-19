@@ -56,7 +56,7 @@ __all__ = (
 class ChannelAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
     guild: Guild | amix.GuildAPIMixin | None
 
     @classmethod
@@ -206,7 +206,7 @@ class ChannelAPIMixin:
         add_not_missing(params, "available_tags", available_tags)
         add_not_missing(params, "default_reaction_emoji", default_reaction_emoji)
         add_not_missing(params, "applied_tags", applied_tags)
-        return await self._state.channel.modify_channel(
+        return await self.state.channel.modify_channel(
             self.id,
             reason=reason,
             **params,
@@ -226,7 +226,7 @@ class ChannelAPIMixin:
             channel.
         """
 
-        await self._state.channel.delete_channel(self.id, reason=reason)
+        await self.state.channel.delete_channel(self.id, reason=reason)
 
     async def fetch_invites(self: abc.StateSnowflake) -> list[Invite]:
         """
@@ -238,7 +238,7 @@ class ChannelAPIMixin:
             A list of invites for the channel.
         """
 
-        return await self._state.channel.get_channel_invites(self.id)
+        return await self.state.channel.get_channel_invites(self.id)
 
     async def create_invite(
             self: abc.StateSnowflake,
@@ -273,7 +273,7 @@ class ChannelAPIMixin:
             The created invite.
         """
 
-        return await self._state.channel.create_channel_invite(
+        return await self.state.channel.create_channel_invite(
             self.id,
             reason=reason,
             **{
@@ -300,7 +300,7 @@ class ChannelAPIMixin:
             The reason shown in the audit log.
         """
 
-        await self._state.channel.delete_channel_permission(
+        await self.state.channel.delete_channel_permission(
             self.id,
             try_id(target),
             reason=reason,
@@ -336,7 +336,7 @@ class ChannelAPIMixin:
         if overwrite_type is MISSING:
             overwrite_type = type(target)  # pyright: ignore
 
-        await self._state.channel.edit_channel_permissions(
+        await self.state.channel.edit_channel_permissions(
             self.id,
             target,
             reason=reason,
@@ -407,7 +407,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
         if flags is not MISSING:
             data["flags"] = flags
 
-        return await self._state.channel.create_message(
+        return await self.state.channel.create_message(
             channel_id,
             **data,
         )
@@ -448,7 +448,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
         add_not_missing(params, "around", around, try_id)
         add_not_missing(params, "before", before, try_id)
         add_not_missing(params, "after", after, try_id)
-        return await self._state.channel.get_channel_messages(
+        return await self.state.channel.get_channel_messages(
             self.id,
             **params,
         )
@@ -470,7 +470,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
             The retrieved message.
         """
 
-        return await self._state.channel.get_channel_message(
+        return await self.state.channel.get_channel_message(
             self.id,
             try_id(id),
         )
@@ -491,7 +491,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
             The reason shown in the audit log.
         """
 
-        await self._state.channel.bulk_delete_messages(
+        await self.state.channel.bulk_delete_messages(
             self.id,
             reason=reason,
             message_ids=[try_id(i) for i in messages],
@@ -502,14 +502,14 @@ class TextChannelAPIMixin(ChannelAPIMixin):
         Send a typing indicator to the channel.
         """
 
-        await self._state.channel.trigger_typing_indicator(self.id)
+        await self.state.channel.trigger_typing_indicator(self.id)
 
     async def fetch_pinned_messages(self: abc.StateSnowflake) -> list[Message]:
         """
         Get a list of pinned messages in the channel.
         """
 
-        return await self._state.channel.get_pinned_messages(self.id)
+        return await self.state.channel.get_pinned_messages(self.id)
 
     async def create_thread(
             self: abc.StateSnowflake,
@@ -543,7 +543,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
         params["type"] = type
         add_not_missing(params, "invitable", invitable)
         add_not_missing(params, "rate_limit_per_user", rate_limit_per_user)
-        return await self._state.channel.start_thread_without_message(
+        return await self.state.channel.start_thread_without_message(
             self.id,
             reason=reason,
             **params,
@@ -565,7 +565,7 @@ class AnnouncementChannelAPIMixin(TextChannelAPIMixin):
             The channel you want to send the announcements to.
         """
 
-        await self._state.channel.delete_channel_permission(
+        await self.state.channel.delete_channel_permission(
             self.id,
             try_id(destination),
         )
@@ -621,7 +621,7 @@ class ForumChannelAPIMixin(ChannelAPIMixin):
         add_not_missing(message, "flags", flags)
         params["message"] = message
 
-        return await self._state.channel.start_thread_without_message(
+        return await self.state.channel.start_thread_without_message(
             self.id,
             reason=reason,
             **params,
@@ -632,7 +632,7 @@ class ForumChannelAPIMixin(ChannelAPIMixin):
         Adds the current user to a thread.
         """
 
-        await self._state.channel.add_thread_member(self.id, "@me")
+        await self.state.channel.add_thread_member(self.id, "@me")
 
     async def add_thread_member(
             self: abc.StateSnowflake,
@@ -646,14 +646,14 @@ class ForumChannelAPIMixin(ChannelAPIMixin):
             The user who you want to add.
         """
 
-        await self._state.channel.add_thread_member(self.id, try_id(user))
+        await self.state.channel.add_thread_member(self.id, try_id(user))
 
     async def leave_thread(self: abc.StateSnowflake) -> None:
         """
         Remove the current user from the thread.
         """
 
-        await self._state.channel.remove_thread_member(self.id, "@me")
+        await self.state.channel.remove_thread_member(self.id, "@me")
 
     async def remove_thread_member(
             self: abc.StateSnowflake,
@@ -667,4 +667,4 @@ class ForumChannelAPIMixin(ChannelAPIMixin):
             The user that you want to remove.
         """
 
-        await self._state.channel.remove_thread_member(self.id, try_id(user))
+        await self.state.channel.remove_thread_member(self.id, try_id(user))

@@ -46,7 +46,7 @@ class Object:
             guild_id: int | None = None,
             bases: tuple[Any] | None = None):
         self.id = int(id)
-        self._state = state
+        self.state = state
         self.guild = None
         if guild_id:
             from .guild import Guild
@@ -96,7 +96,7 @@ class Object:
         if not api_bases:
             raise TypeError("Missing 'APIMixin' class from mro")
         NewObject = types.new_class("NewObject", (Object, *api_bases))
-        v = NewObject(self.id, state=self._state, bases=(base,))
+        v = NewObject(self.id, state=self.state, bases=(base,))
         if hasattr(self, 'guild'):
             v.guild = self.guild
         return v

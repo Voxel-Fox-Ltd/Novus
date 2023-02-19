@@ -121,7 +121,7 @@ class Message(MessageAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'channel',
         'author',
@@ -182,17 +182,17 @@ class Message(MessageAPIMixin):
     position: int | None
 
     def __init__(self, *, state: HTTPConnection, data: MessagePayload) -> None:
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data["id"])
-        self.channel = self._state.cache.get_channel(data["channel_id"], or_object=True)  # pyright: ignore
+        self.channel = self.state.cache.get_channel(data["channel_id"], or_object=True)  # pyright: ignore
         self.guild = None
         if "guild_id" in data:
-            self.guild = self._state.cache.get_guild(data["guild_id"], or_object=True)
-        self.author = User(state=self._state, data=data["author"])
+            self.guild = self.state.cache.get_guild(data["guild_id"], or_object=True)
+        self.author = User(state=self.state, data=data["author"])
         if "member" in data:
             assert self.guild
             self.author = GuildMember(
-                state=self._state,
+                state=self.state,
                 data=data["member"],
                 user=self.author,
                 guild_id=self.guild.id,
@@ -205,7 +205,7 @@ class Message(MessageAPIMixin):
         mention_data = data.get("mentions", [])
         self.mentions = []
         for user_data in mention_data:
-            user_object = User(state=self._state, data=user_data)
+            user_object = User(state=self.state, data=user_data)
             if "member" in user_data:
                 user_data["member"]["guild_id"] = self.guild.id  # pyright: ignore
                 user_object._upgrade(user_data["member"])  # pyright: ignore
@@ -216,7 +216,7 @@ class Message(MessageAPIMixin):
         ]
         self.mention_channels = [
             Channel.partial(
-                state=self._state,
+                state=self.state,
                 id=d["id"],
                 type=enums.ChannelType(d["type"]),
             )
@@ -231,7 +231,7 @@ class Message(MessageAPIMixin):
             for d in data.get("embeds", [])
         ]
         self.reactions = [
-            Reaction(state=self._state, data=d)
+            Reaction(state=self.state, data=d)
             for d in data.get("reactions", [])
         ]
         self.pinned = data.get("pinned")
@@ -244,20 +244,20 @@ class Message(MessageAPIMixin):
         self.referenced_message = None
         if "referenced_message" in data and data["referenced_message"]:
             self.referenced_message = Message(
-                state=self._state,
+                state=self.state,
                 data=data["referenced_message"],
             )
         # self.interaction = data["interaction"]
         self.thread = None
         if "thread" in data:
             assert self.guild
-            self.thread = Thread(state=self._state, data=data["thread"])
+            self.thread = Thread(state=self.state, data=data["thread"])
         self.components = [
             ActionRow._from_data(d)
             for d in data.get("components", [])
         ]
         self.sticker_items = [
-            Sticker(state=self._state, data=d)
+            Sticker(state=self.state, data=d)
             for d in data.get("sticker_items", [])
         ]
         self.position = data.get("position")

@@ -42,7 +42,7 @@ class GuildEmojiAPI:
             A list of the guild's emojis.
         """
 
-        emoji = await self._state.emoji.get_emoji(self.id, id)
+        emoji = await self.state.emoji.get_emoji(self.id, id)
         emoji.guild = self
         return emoji
 
@@ -58,7 +58,7 @@ class GuildEmojiAPI:
             A list of the guild's emojis.
         """
 
-        emojis = await self._state.emoji.list_guild_emojis(self.id)
+        emojis = await self.state.emoji.list_guild_emojis(self.id)
         for e in emojis:
             e.guild = self
         return emojis
@@ -90,7 +90,7 @@ class GuildEmojiAPI:
             The newly created emoji.
         """
 
-        return await self._state.emoji.create_guild_emoji(
+        return await self.state.emoji.create_guild_emoji(
             self.id,
             reason=reason,
             **{

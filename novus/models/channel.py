@@ -178,7 +178,7 @@ class Channel(Hashable, HasChannel, ChannelAPIMixin):
     guild: Guild | amix.GuildAPIMixin | None
 
     def __init__(self, *, state: HTTPConnection, data: ChannelPayload):
-        self._state = state
+        self.state = state
         self.id = try_snowflake(data['id'])
         self.type = ChannelType(data.get('type', 0))
         self.raw = data
@@ -240,7 +240,7 @@ class DMChannel(TextChannel):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'type',
         'raw',
@@ -253,7 +253,7 @@ class GroupDMChannel(TextChannel):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'type',
         'raw',
@@ -289,7 +289,7 @@ class GuildChannel(Channel):
         guild_id = try_snowflake(data.get('guild_id')) or guild_id
         if guild_id is None:
             raise ValueError("Missing guild ID from guild channel %s" % data)
-        self.guild = self._state.cache.get_guild(guild_id)
+        self.guild = self.state.cache.get_guild(guild_id)
         self.position = data.get('position', 0)
         self.overwrites = [
             PermissionOverwrite(
@@ -312,7 +312,7 @@ class GuildChannel(Channel):
         parent_id = try_snowflake(data.get('parent_id'))
         self.parent = None
         if parent_id:
-            self.parent = self._state.cache.get_channel(parent_id, or_object=True)
+            self.parent = self.state.cache.get_channel(parent_id, or_object=True)
         self.rate_limit_per_user = data.get('rate_limit_per_user')
 
     __repr__ = generate_repr(('id', 'guild', 'name',))
@@ -359,7 +359,7 @@ class GuildTextChannel(GuildChannel, TextChannel):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'type',
         'guild',
@@ -412,7 +412,7 @@ class GuildVoiceChannel(GuildTextChannel, VoiceChannel):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'type',
         'guild',
@@ -472,7 +472,7 @@ class Thread(GuildTextChannel):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'type',
         'guild',
@@ -520,7 +520,7 @@ class Thread(GuildTextChannel):
             if self.owner is None:
                 raise ValueError
         except (AttributeError, ValueError):
-            self.owner = self._state.cache.get_user(data["owner_id"], or_object=True)
+            self.owner = self.state.cache.get_user(data["owner_id"], or_object=True)
         self.member_count = data.get("member_count", 0)
         self.message_count = data.get("message_count", 0)
         self.total_message_sent = data.get("total_message_sent", 0)

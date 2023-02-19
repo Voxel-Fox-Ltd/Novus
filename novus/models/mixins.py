@@ -61,7 +61,7 @@ class HasChannel:
     Mixin that returns a channel object.
     """
 
-    _state: HTTPConnection
+    state: HTTPConnection
 
     async def _get_channel(self) -> Snowflake:
         return self  # pyright: ignore

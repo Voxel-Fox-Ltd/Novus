@@ -72,7 +72,7 @@ class Invite(InviteAPIMixin):
     guild: Guild | amix.GuildAPIMixin | None
 
     def __init__(self, *, state: HTTPConnection, data: InviteMetadataPayload):
-        self._state = state
+        self.state = state
         self.code = data['code']
         self.channel = None
         self.uses = data.get('uses')
@@ -82,18 +82,18 @@ class Invite(InviteAPIMixin):
         self.created_at = parse_timestamp(data.get('created_at'))
         self.guild = None
         if "guild" in data:
-            if cached := self._state.cache.get_guild(data["guild"]["id"], or_object=False):
+            if cached := self.state.cache.get_guild(data["guild"]["id"], or_object=False):
                 self.guild = cached
             else:
-                self.guild = PartialGuild(state=self._state, data=data['guild'])
+                self.guild = PartialGuild(state=self.state, data=data['guild'])
         channel = data.get('channel')
         if channel:
-            if cached := self._state.cache.get_channel(channel["id"], or_object=False):
+            if cached := self.state.cache.get_channel(channel["id"], or_object=False):
                 self.channel = cached
             else:
                 guild_id = None
                 if self.guild:
                     guild_id = self.guild.id
-                self.channel = channel_builder(state=self._state, data=channel, guild_id=guild_id)
+                self.channel = channel_builder(state=self.state, data=channel, guild_id=guild_id)
 
     __repr__ = generate_repr(('code', 'channel', 'guild',))

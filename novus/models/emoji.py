@@ -207,7 +207,7 @@ class Emoji(PartialEmoji, EmojiAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'name',
         'role_ids',
@@ -236,7 +236,7 @@ class Emoji(PartialEmoji, EmojiAPIMixin):
             data: payloads.PartialEmoji | payloads.Emoji,
             guild_id: int | None = None,
             guild: Guild | None = None):
-        self._state = state
+        self.state = state
         super().__init__(data=data)
         self.role_ids = [
             try_snowflake(i)
@@ -248,6 +248,6 @@ class Emoji(PartialEmoji, EmojiAPIMixin):
         if guild:
             self.guild = guild
         elif guild_id:
-            self.guild = self._state.cache.get_guild(guild_id)
+            self.guild = self.state.cache.get_guild(guild_id)
         else:
             self.guild = None

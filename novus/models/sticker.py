@@ -62,7 +62,7 @@ class Sticker(Hashable, StickerAPIMixin):
     """
 
     __slots__ = (
-        '_state',
+        'state',
         'id',
         'pack_id',
         'name',
@@ -88,7 +88,7 @@ class Sticker(Hashable, StickerAPIMixin):
             *,
             state: HTTPConnection,
             data: payloads.Sticker | payloads.PartialSticker):
-        self._state = state
+        self.state = state
         self.id: int = try_snowflake(data['id'])
         self.pack_id: int | None = try_snowflake(data.get('pack_id'))
         self.name: str = data['name']
@@ -98,7 +98,7 @@ class Sticker(Hashable, StickerAPIMixin):
         self.available: bool = data.get('available', True)
         self.guild = None
         if "guild_id" in data:
-            self.guild = self._state.cache.get_guild(
+            self.guild = self.state.cache.get_guild(
                 data["guild_id"],  # pyright: ignore  # Thanks Pyright
                 or_object=True,
             )

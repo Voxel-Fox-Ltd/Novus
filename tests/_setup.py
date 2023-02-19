@@ -85,7 +85,7 @@ class ConfigUser:
         self.id: int = id
         self.bot: bool = bot
         self.ALL[self.id] = self
-        self._state: novus.HTTPConnection | None = None
+        self.state: novus.HTTPConnection | None = None
 
 
 class ConfigGuild:
@@ -109,7 +109,7 @@ class ConfigGuild:
         self.scheduled_events: list[int] = scheduled_events or []
         self.test = test
         self.ALL[self.id] = self
-        self._state: novus.HTTPConnection | None = None
+        self.state: novus.HTTPConnection | None = None
 
     @classmethod
     def get_test(cls) -> ConfigGuild:

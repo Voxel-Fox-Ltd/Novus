@@ -48,7 +48,7 @@ class GuildUserAPI:
             The member object for the current user.
         """
 
-        member = await self._state.user.get_current_user_guild_member(self.id)
+        member = await self.state.user.get_current_user_guild_member(self.id)
         member.guild = self
         return member
 
@@ -57,7 +57,7 @@ class GuildUserAPI:
         Leave the current guild.
         """
 
-        await self._state.user.leave_guild(self.id)
+        await self.state.user.leave_guild(self.id)
 
     async def fetch_member(self: StateSnowflake, member_id: int, /) -> GuildMember:
         """
@@ -76,7 +76,7 @@ class GuildUserAPI:
             The member object for the given user.
         """
 
-        member = await self._state.guild.get_guild_member(self.id, member_id)
+        member = await self.state.guild.get_guild_member(self.id, member_id)
         member.guild = self
         return member
 
@@ -110,7 +110,7 @@ class GuildUserAPI:
             A list of members from the guild.
         """
 
-        members = await self._state.guild.get_guild_members(
+        members = await self.state.guild.get_guild_members(
             self.id,
             limit=limit,
             after=after,
@@ -145,7 +145,7 @@ class GuildUserAPI:
             A list of members from the guild.
         """
 
-        members = await self._state.guild.search_guild_members(
+        members = await self.state.guild.search_guild_members(
             self.id,
             query=query,
             limit=limit,
@@ -202,7 +202,7 @@ class GuildUserAPI:
         if deaf is not MISSING:
             params["deaf"] = deaf
 
-        member = await self._state.guild.add_guild_member(
+        member = await self.state.guild.add_guild_member(
             self.id,
             user_id,
             **params,
@@ -263,7 +263,7 @@ class GuildUserAPI:
         if timeout_until is not MISSING:
             update["communication_disabled_until"] = timeout_until
 
-        member = await self._state.guild.modify_guild_member(
+        member = await self.state.guild.modify_guild_member(
             self.id,
             try_id(user),
             reason=reason,
@@ -295,7 +295,7 @@ class GuildUserAPI:
             The reason shown in the audit log.
         """
 
-        await self._state.guild.add_guild_member_role(
+        await self.state.guild.add_guild_member_role(
             self.id,
             try_id(user),
             try_id(role),
@@ -325,7 +325,7 @@ class GuildUserAPI:
             The reason shown in the audit log.
         """
 
-        await self._state.guild.add_guild_member_role(
+        await self.state.guild.add_guild_member_role(
             self.id,
             try_id(user),
             try_id(role),
@@ -350,7 +350,7 @@ class GuildUserAPI:
             The reason to be shown in the audit log.
         """
 
-        await self._state.guild.remove_guild_member(
+        await self.state.guild.remove_guild_member(
             self.id,
             try_id(user),
             reason=reason,
@@ -389,7 +389,7 @@ class GuildUserAPI:
         if after is not None:
             update['after'] = after
 
-        return await self._state.guild.get_guild_bans(
+        return await self.state.guild.get_guild_bans(
             self.id,
             **update,
         )
@@ -411,7 +411,7 @@ class GuildUserAPI:
             The ban for the user.
         """
 
-        return await self._state.guild.get_guild_ban(
+        return await self.state.guild.get_guild_ban(
             self.id,
             try_id(user),
         )
@@ -442,7 +442,7 @@ class GuildUserAPI:
         if delete_message_seconds is not MISSING:
             updates['delete_message_seconds'] = delete_message_seconds
 
-        await self._state.guild.create_guild_ban(
+        await self.state.guild.create_guild_ban(
             self.id,
             try_id(user),
             reason=reason,
@@ -466,7 +466,7 @@ class GuildUserAPI:
             The reason to be shown in the audit log.
         """
 
-        await self._state.guild.remove_guild_ban(
+        await self.state.guild.remove_guild_ban(
             self.id,
             try_id(user),
             reason=reason,

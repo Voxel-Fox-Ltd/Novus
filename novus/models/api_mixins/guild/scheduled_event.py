@@ -54,7 +54,7 @@ class GuildEventAPI:
             The scheduled events for the guild.
         """
 
-        return await self._state.guild_scheduled_event.list_scheduled_events_for_guild(
+        return await self.state.guild_scheduled_event.list_scheduled_events_for_guild(
             self.id,
             with_user_count=with_user_count,
         )
@@ -132,7 +132,7 @@ class GuildEventAPI:
         if image is not MISSING:
             update['image'] = image
 
-        return await self._state.guild_scheduled_event.create_guild_scheduled_event(
+        return await self.state.guild_scheduled_event.create_guild_scheduled_event(
             self.id,
             **update,
             reason=reason,

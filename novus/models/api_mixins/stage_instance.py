@@ -35,7 +35,7 @@ __all__ = (
 class StageInstanceAPIMixin:
 
     id: int
-    _state: HTTPConnection
+    state: HTTPConnection
 
     @classmethod
     async def create(
@@ -132,7 +132,7 @@ class StageInstanceAPIMixin:
         if privacy_level is not MISSING:
             update["privacy_level"] = privacy_level
 
-        return await self._state.stage_instance.modify_stage_instance(
+        return await self.state.stage_instance.modify_stage_instance(
             self.id,
             **update,
         )

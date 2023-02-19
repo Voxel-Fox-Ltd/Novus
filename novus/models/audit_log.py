@@ -246,7 +246,7 @@ class AuditLog(AuditLogAPIMixin):
     __slots__ = (
         'guild',
         'entries',
-        '_state',
+        'state',
         '_targets',
         '_application_commands',
         '_auto_moderation_rules',
@@ -259,7 +259,7 @@ class AuditLog(AuditLogAPIMixin):
 
     def __init__(self, *, data: AuditLogPayload, state: HTTPConnection, guild: Snowflake):
         self.guild = guild
-        self._state = state
+        self.state = state
         self._targets: dict[str, dict[int, Any]] = {
             'application_commands': {int(i['id']): i for i in data['application_commands']},
             'auto_moderation_rules': {int(i['id']): i for i in data['auto_moderation_rules']},
@@ -315,7 +315,7 @@ class AuditLog(AuditLogAPIMixin):
             return None
         self._threads[id] = u = channel_builder(
             data=self._targets['threads'][id],
-            state=self._state,
+            state=self.state,
         )
         return u
 
@@ -327,7 +327,7 @@ class AuditLog(AuditLogAPIMixin):
             return None
         self._users[id] = u = User(
             data=self._targets['users'][id],
-            state=self._state,
+            state=self.state,
         )
         return u
 

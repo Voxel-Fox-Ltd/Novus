@@ -43,7 +43,7 @@ class GuildRoleAPI:
             A list of roles in the guild.
         """
 
-        roles = await self._state.guild.get_guild_roles(self.id)
+        roles = await self.state.guild.get_guild_roles(self.id)
         for r in roles:
             r.guild = self
         return roles
@@ -101,7 +101,7 @@ class GuildRoleAPI:
         if mentionable is not MISSING:
             update['mentionable'] = mentionable
 
-        role = await self._state.guild.create_guild_role(
+        role = await self.state.guild.create_guild_role(
             self.id,
             reason=reason,
             **update,
@@ -168,7 +168,7 @@ class GuildRoleAPI:
         if mentionable is not MISSING:
             update['mentionable'] = mentionable
 
-        role = await self._state.guild.modify_guild_role(
+        role = await self.state.guild.modify_guild_role(
             self.id,
             role_id,
             reason=reason,
@@ -193,7 +193,7 @@ class GuildRoleAPI:
             The reason to be shown in the audit log.
         """
 
-        await self._state.guild.delete_guild_role(
+        await self.state.guild.delete_guild_role(
             self.id,
             try_id(role),
             reason=reason,

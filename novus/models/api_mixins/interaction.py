@@ -50,7 +50,7 @@ class InteractionAPIMixin:
         Send a pong interaction response.
         """
 
-        await self._state.interaction.create_interaction_response(
+        await self.state.interaction.create_interaction_response(
             self.id,
             self.token,
             InteractionResponseType.pong,
@@ -123,7 +123,7 @@ class InteractionAPIMixin:
             data["ephemeral"] = ephemeral
 
         if self._responded is False:
-            await self._state.interaction.create_interaction_response(
+            await self.state.interaction.create_interaction_response(
                 self.id,
                 self.token,
                 InteractionResponseType.channel_message_with_source,
@@ -131,7 +131,7 @@ class InteractionAPIMixin:
             )
             self._responded = True
         else:
-            await self._state.interaction.create_followup_message(
+            await self.state.interaction.create_followup_message(
                 self.application_id,
                 self.token,
                 **data,
@@ -143,7 +143,7 @@ class InteractionAPIMixin:
         Send a defer response.
         """
 
-        await self._state.interaction.create_interaction_response(
+        await self.state.interaction.create_interaction_response(
             self.id,
             self.token,
             InteractionResponseType.deferred_channel_message_with_source,
@@ -155,7 +155,7 @@ class InteractionAPIMixin:
         Send a defer update response.
         """
 
-        await self._state.interaction.create_interaction_response(
+        await self.state.interaction.create_interaction_response(
             self.id,
             self.token,
             InteractionResponseType.deferred_update_message,
@@ -220,7 +220,7 @@ class InteractionAPIMixin:
         if flags is not MISSING:
             data["flags"] = flags
 
-        await self._state.interaction.create_interaction_response(
+        await self.state.interaction.create_interaction_response(
             self.id,
             self.token,
             InteractionResponseType.update_message,
@@ -240,7 +240,7 @@ class InteractionAPIMixin:
             A list of choices to to populate the autocomplete with.
         """
 
-        await self._state.interaction.create_interaction_response(
+        await self.state.interaction.create_interaction_response(
             self.id,
             self.token,
             InteractionResponseType.application_command_autocomplete_result,
@@ -260,7 +260,7 @@ class InteractionAPIMixin:
             The modal that you want to send.
         """
 
-        await self._state.interaction.create_interaction_response(
+        await self.state.interaction.create_interaction_response(
             self.id,
             self.token,
             InteractionResponseType.application_command_autocomplete_result,
