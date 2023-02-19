@@ -33,6 +33,7 @@
         "aiohttp>=3.8.0",
         "emoji",
     ]
+    scripts = {novus = "novus.ext.client.cli.__main__:main_sync"}
 
 [project.optional-dependencies]
     docs = [

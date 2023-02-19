@@ -135,9 +135,5 @@ class Client:
         log.info("Running client")
         await self.load_plugins()
         await self.connect()
-        while True:
-            try:
-                await asyncio.sleep(0)
-            except asyncio.CancelledError:
-                break
+        await self.state.gateway.wait()
         await self.close()

@@ -86,6 +86,10 @@ class GatewayConnection:
             tasks.append(asyncio.create_task(coro))
         await asyncio.gather(*tasks)
 
+    async def wait(self) -> None:
+        while any((shard.running for shard in self.shards)):
+            await asyncio.sleep(0)
+
     async def close(self) -> None:
         tasks = [
             i.close()
@@ -123,15 +127,39 @@ class GatewayShard:
         self.intents: Intents = intents
 
         # Websocket data
-        self.socket: aiohttp.ClientWebSocketResponse
+        self.socket: aiohttp.ClientWebSocketResponse = None  # pyright: ignore
         self._buffer = bytearray()
         self._zlib = zlib.decompressobj()
 
         # Cached data
         self.heartbeat_task: asyncio.Task | None = None
+        self.message_task: asyncio.Task | None = None
         self.sequence: int | None = None
         self.resume_url = self.ws_url
         self.session_id = None
+
+    @property
+    def running(self) -> bool:
+        # Check we have/had a heartbeat
+        if self.heartbeat_task is None:
+            return True
+        if not self.heartbeat_task.done():
+            return True
+
+        # Check we have an open socket
+        if self.socket is None:
+            return True
+        if not self.socket.closed:
+            return True
+
+        # Check we listened for messages
+        if self.message_task is None:
+            return True
+        if not self.message_task.done():
+            return True
+
+        # Ay nice
+        return False
 
     async def messages(
             self) -> AG[tuple[GatewayOpcode, str | None, int | None, Any], None]:

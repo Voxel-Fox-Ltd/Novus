@@ -83,3 +83,10 @@ class Intents(Flags):
         "typing": (1 << 11) | (1 << 14),
         "privileged": (1 << 8) | (1 << 15),
     }
+
+    ALIASES = (
+        "messages",
+        "reactions",
+        "typing",
+        "privileged",
+    )

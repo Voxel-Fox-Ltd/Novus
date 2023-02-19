@@ -15,8 +15,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
+import glob
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
+
 from typing_extensions import Self
 
 import novus
@@ -37,8 +41,28 @@ class Config:
     intents: novus.Intents = field(default_factory=novus.Intents.none)
 
     @classmethod
+    def from_file(cls, filename: str | None) -> Self:
+        if filename is None:
+            try:
+                filename = glob.glob("config.*")[0]
+            except IndexError:
+                raise Exception("Missing config file from current directory")
+        try:
+            if filename.endswith(".yaml") or filename.endswith(".yml"):
+                return cls.from_yaml(filename)
+            elif filename.endswith(".toml"):
+                return cls.from_toml(filename)
+            elif filename.endswith(".json"):
+                return cls.from_json(filename)
+        except FileNotFoundError:
+            raise Exception("File %s does not exist" % filename)
+        raise Exception("File %s could not be parsed (invalid file type)" % filename)
+
+    @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(**data)
+        intent_dict = data.pop("intents")
+        intents = novus.Intents(**intent_dict)
+        return cls(**data, intents=intents)
 
     def to_dict(self) -> dict[str, Any]:
         return {
