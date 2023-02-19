@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, TypedDict
 from typing_extensions import NotRequired
 
 if TYPE_CHECKING:
-    from . import Emoji, GuildMember, PartialEmoji, Role, Sticker
+    from . import Emoji, GuildMember, PartialEmoji, Role, Sticker, ThreadMember
     from ._util import Snowflake, Timestamp
 
 __all__ = (
@@ -84,5 +84,5 @@ class ThreadMemberListUpdate(TypedDict):
     member_count: int
     id: Snowflake
     guild_id: Snowflake
-    added_members: NotRequired[list[GuildMember]]
+    added_members: NotRequired[list[ThreadMember]]
     removed_member_ids: NotRequired[list[Snowflake]]

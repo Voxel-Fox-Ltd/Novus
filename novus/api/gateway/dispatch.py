@@ -740,13 +740,13 @@ class GatewayDispatch:
             for member_payload in data.get("added_members", []):
                 member: GuildMember | None = None
                 if isinstance(guild, Guild):
-                    member_id = int(member_payload["user"]["id"])
+                    member_id = int(member_payload["member"]["user"]["id"])
                     member = guild.get_member(member_id)
                 if member is None:
                     member = GuildMember(
                         state=self.parent,
-                        data=member_payload,
-                        guild=guild,
+                        data=member_payload["member"],
+                        guild_id=guild.id,
                     )
                 thread._add_member(member)
             for member_id in data.get("removed_member_ids", []):
