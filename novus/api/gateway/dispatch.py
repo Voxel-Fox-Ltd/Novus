@@ -93,7 +93,7 @@ class GatewayDispatch:
             "CHANNEL_DELETE": self._handle_channel_delete,
             "CHANNEL_PINS_UPDATE": self._handle_channel_pins_update,
             "THREAD_CREATE": self._handle_thread_create,
-            # "Thread update": None,
+            "THREAD_UPDATE": self._handle_thread_update,
             # "Thread delete": None,
             # "Thread list sync": None,
             # "Thread member update": None,
@@ -739,6 +739,21 @@ class GatewayDispatch:
         if isinstance(guild, Guild):
             guild._add_thread(created)  # pyright: ignore
         yield created
+
+    async def _handle_thread_update(
+            self,
+            data: payloads.Channel) -> Ret[tuple[Thread | None, Thread]]:
+        """Handle thread update."""
+
+        assert "guild_id" in data
+        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        created = channel_builder(state=self.parent, data=data, guild_id=guild.id)
+        assert isinstance(created, Thread)
+        current = None
+        if isinstance(guild, Guild):
+            current = guild._threads.get(created.id)
+            guild._add_thread(created)  # pyright: ignore
+        yield current, created
 
     async def _handle_thread_member_list_update(
             self,
