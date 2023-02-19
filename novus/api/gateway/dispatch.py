@@ -46,6 +46,7 @@ if TYPE_CHECKING:
     from ...models import api_mixins as amix
     from ...payloads import gateway as gw
     from .._http import HTTPConnection
+    from ..gateway import GatewayShard
 
 
 __all__ = (
@@ -72,8 +73,9 @@ class Event:
 
 class GatewayDispatch:
 
-    def __init__(self, parent: HTTPConnection) -> None:
-        self.parent = parent
+    def __init__(self, shard: GatewayShard) -> None:
+        self.shard: GatewayShard = shard
+        self.parent: HTTPConnection = self.shard.parent
         self.cache = self.parent.cache
         self.EVENT_HANDLER: dict[
             str,
@@ -159,6 +161,8 @@ class GatewayDispatch:
             self.cache.application_id = try_snowflake(data['application']['id'])
             self.resume_url = data['resume_gateway_url']
             self.session_id = data['session_id']
+            self.shard.ready.set()
+            log.info("Received ready (shard %s)", self.shard.shard_id)
             return None
 
         coro = self.EVENT_HANDLER.get(event_name)

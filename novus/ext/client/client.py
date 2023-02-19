@@ -112,6 +112,8 @@ class Client:
 
         log.info("Connecting to gateway")
         await self.state.gateway.connect(
+            shard_ids=self.config.shard_ids,
+            shard_count=self.config.shard_count,
             intents=self.config.intents,
         )
 

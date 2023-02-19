@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'GatewayConnection',
+    'GatewayShard',
 )
 
 
@@ -57,13 +58,17 @@ class GatewayConnection:
     async def connect(
             self,
             *,
-            shard_ids: list[int],
+            shard_ids: list[int] | None,
             shard_count: int,
+            max_concurrency: int = 1,
             presence: None = None,
             intents: Intents = Intents.none()) -> None:
         self.presence: None = None
         self.intents: Intents = Intents.none()
         self.shards: set[GatewayShard] = set()
+        identify_semaphore = asyncio.Semaphore(max_concurrency)
+        shard_ids = shard_ids or list(range(shard_count))
+        tasks: list[asyncio.Task] = []
         for i in shard_ids:
             gs = GatewayShard(
                 parent=self.parent,
@@ -71,9 +76,15 @@ class GatewayConnection:
                 shard_count=shard_count,
                 presence=presence,
                 intents=intents,
+                identify_semaphore=identify_semaphore,
             )
             self.shards.add(gs)
-            asyncio.create_task(gs.connect())
+            async def connect_wrapper(sem, shard):
+                async with sem:
+                    await shard.connect()
+            coro = connect_wrapper(identify_semaphore, gs)
+            tasks.append(asyncio.create_task(coro))
+        await asyncio.gather(*tasks)
 
     async def close(self) -> None:
         tasks = [
@@ -92,7 +103,8 @@ class GatewayShard:
             shard_id: int,
             shard_count: int,
             presence: None = None,
-            intents: Intents = Intents.none()) -> None:
+            intents: Intents = Intents.none(),
+            identify_semaphore: asyncio.Semaphore) -> None:
         self.parent = parent
         self.ws_url = Route.WS_BASE + "?" + urlencode({
             "v": 10,
@@ -100,7 +112,9 @@ class GatewayShard:
             "compress": "zlib-stream",
         })
         self.cache = self.parent.cache
-        self.dispatch = GatewayDispatch(self.parent)
+        self.dispatch = GatewayDispatch(self)
+        self.identify_semaphore = identify_semaphore
+        self.ready = asyncio.Event()
 
         # Initial identify data (for entire reconnects)
         self.shard_id: int = shard_id
@@ -129,7 +143,8 @@ class GatewayShard:
                 d = await self.receive()
             except GatewayClose:
                 log.info("Gateway closing.")
-                return
+                await self.reconnect()
+                continue
             except GatewayException as e:
                 if not e.reconnect:
                     log.info("Cannot reconnect.")
@@ -191,6 +206,8 @@ class GatewayShard:
             # Read data from the socket
             try:
                 data = await self.socket.receive()
+            except GatewayException:
+                raise
             except Exception as e:
                 log.error("Failed to read websocket", exc_info=e)
                 return None
@@ -210,6 +227,7 @@ class GatewayShard:
                     "Socket told to close (%s %s)"
                     % (data, data.extra)
                 )
+                self.ready.set()
                 raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
                 log.info("Socket closed")
@@ -225,10 +243,13 @@ class GatewayShard:
             if data_bytes[-4:] == b"\x00\x00\xff\xff":
                 try:
                     decompressed = self._zlib.decompress(self._buffer)
-                except Exception:
+                except Exception as e:
+                    log.error(
+                        "Failed to decompress buffer (%s)",
+                        data_bytes, exc_info=e,
+                    )
                     self._buffer.clear()
-                    log.warning("Failed to decompress buffer")
-                    continue
+                    raise GatewayClose()
                 decoded = decompressed.decode()
                 parsed = json.loads(decoded)
                 log.debug("Received data from gateway %s" % dump(parsed))
@@ -246,18 +267,24 @@ class GatewayShard:
         """
 
         await self.close()
-        await self.connect(
-            self.ws_url,
-            reconnect=True,
-        )
+        async with self.identify_semaphore:
+            await self.connect(
+                self.ws_url,
+                reconnect=True,
+            )
 
     async def connect(
             self,
             ws_url: str | None = None,
-            reconnect: bool = False) -> None:
+            reconnect: bool = False,
+            attempt: int = 1) -> None:
         """
         Create a connection to the gateway.
         """
+
+        self._buffer.clear()
+        self._zlib = zlib.decompressobj()
+        self.ready.clear()
 
         # Cache the connect data
         if reconnect is False:
@@ -281,12 +308,30 @@ class GatewayShard:
         if reconnect is False:
             self.sequence = None
         session = await self.parent.get_session()
-        log.info("Creating websocket connection to %s" % ws_url or self.ws_url)
-        ws = await session.ws_connect(ws_url or self.ws_url)
+        ws_url = ws_url or self.ws_url
+        log.info("Creating websocket connection to %s", ws_url)
+        ws = await session.ws_connect(ws_url)
         self.socket = ws
 
         # Send hello
-        got = await self.receive()
+        try:
+            got = await self.receive()
+        except Exception:
+            if attempt >= 5:
+                log.info(
+                    "Failed to connect to gateway (shard %s), closing (%s)",
+                    self.shard_id, attempt,
+                )
+                return await self.close()
+            log.info(
+                "Failed to connect shard %s to gateway, reattempting (%s)",
+                self.shard_id, attempt,
+            )
+            return await self.connect(
+                ws_url=ws_url,
+                reconnect=reconnect,
+                attempt=attempt + 1,
+            )
         if got is None:
             return
         _, _, _, data = got
@@ -304,17 +349,21 @@ class GatewayShard:
         else:
             await self.identify()
             self.message_task = asyncio.create_task(self.message_handler())
+            def ready_wrapper(_: asyncio.Task):
+                self.ready.set()
+            self.message_task.add_done_callback(ready_wrapper)
+            await self.ready.wait()
 
     async def close(self) -> None:
         """
         Close the gateway connection, cancelling the heartbeat task.
         """
 
+        self.ready.set()
         if self.heartbeat_task is not None:
             self.heartbeat_task.cancel()
         if self.socket and not self.socket.closed:
             await self.socket.close()
-        self._buffer.clear()
 
     async def heartbeat(
             self,

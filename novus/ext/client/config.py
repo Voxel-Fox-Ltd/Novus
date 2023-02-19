@@ -27,4 +27,6 @@ __all__ = (
 @dataclass
 class Config:
     token: str
+    shard_ids: list[int] | None = None
+    shard_count: int = 1
     intents: novus.Intents = field(default_factory=novus.Intents.none)
