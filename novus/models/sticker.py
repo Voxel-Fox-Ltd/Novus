@@ -23,6 +23,7 @@ from ..enums import StickerFormat
 from ..utils import cached_slot_property, try_snowflake
 from .api_mixins.sticker import StickerAPIMixin
 from .asset import Asset
+from .mixins import Hashable
 
 if TYPE_CHECKING:
     from .. import Guild, payloads
@@ -34,7 +35,7 @@ __all__ = (
 )
 
 
-class Sticker(StickerAPIMixin):
+class Sticker(Hashable, StickerAPIMixin):
     """
     A model for a sticker.
 

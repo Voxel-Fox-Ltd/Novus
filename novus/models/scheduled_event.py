@@ -24,6 +24,7 @@ from ..enums import EventEntityType, EventPrivacyLevel, EventStatus
 from ..utils import cached_slot_property, generate_repr, parse_timestamp, try_snowflake
 from .api_mixins.scheduled_event import ScheduledEventAPIMixin
 from .asset import Asset
+from .mixins import Hashable
 from .user import User
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ __all__ = (
 )
 
 
-class ScheduledEvent(ScheduledEventAPIMixin):
+class ScheduledEvent(Hashable, ScheduledEventAPIMixin):
     """
     A model representing a scheduled event for a guild.
 

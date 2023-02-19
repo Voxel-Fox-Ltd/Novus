@@ -30,7 +30,7 @@ from .user import User
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    from .. import Guild, enums, payloads
+    from .. import Guild, VoiceState, enums, payloads
     from ..api import HTTPConnection
     from . import api_mixins as amix
 
@@ -114,6 +114,8 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
     guild : novus.abc.StateSnowflake | novus.Guild | None
         The guild that the member is part of. May be ``None`` in some rare
         cases (such as when getting raw API requests).
+    voice : novus.VoiceState | None
+        The user's voice state.
     """
 
     __slots__ = (
@@ -245,6 +247,13 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
         """
 
         return f"<@{self.id}>"
+
+    @property
+    def voice(self) -> VoiceState | None:
+        from .guild import Guild
+        if not isinstance(self.guild, Guild):
+            return None
+        return self.guild._voice_states.get(self.id)
 
     @cached_slot_property('_cs_avatar')
     def avatar(self) -> Asset | None:

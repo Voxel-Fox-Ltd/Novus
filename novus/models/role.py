@@ -23,6 +23,7 @@ from ..flags import Permissions
 from ..utils import cached_slot_property, try_snowflake
 from .api_mixins.role import RoleAPIMixin
 from .asset import Asset
+from .mixins import Hashable
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
@@ -35,7 +36,7 @@ __all__ = (
 )
 
 
-class Role(RoleAPIMixin):
+class Role(Hashable, RoleAPIMixin):
     """
     A model for a guild role.
 

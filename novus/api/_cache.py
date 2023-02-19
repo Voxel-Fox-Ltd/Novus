@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from ..models import Channel, Guild, Message, Object, User
 
@@ -106,15 +106,15 @@ class APICache:
             self.messages[i.id] = i
 
     @overload
-    def get_guild(self, id: None, or_object: bool = ...) -> None:
+    def get_guild(self, id: None, or_object: bool) -> None:
         ...
 
     @overload
-    def get_guild(self, id: int | str, or_object=True) -> Guild | amix.GuildAPIMixin:
+    def get_guild(self, id: int | str, or_object: Literal[True] = ...) -> Guild | amix.GuildAPIMixin:
         ...
 
     @overload
-    def get_guild(self, id: int | str, or_object=False) -> Guild | None:
+    def get_guild(self, id: int | str, or_object: Literal[False] = ...) -> Guild | None:
         ...
 
     def get_guild(self, id: int | str | None, or_object: bool = False) -> Guild | amix.GuildAPIMixin | None:
@@ -128,11 +128,11 @@ class APICache:
         return Object(id, state=self.parent).add_api(Guild)
 
     @overload
-    def get_user(self, id: int | str, or_object=True) -> User | amix.UserAPIMixin:
+    def get_user(self, id: int | str, or_object: Literal[True] = ...) -> User | amix.UserAPIMixin:
         ...
 
     @overload
-    def get_user(self, id: int | str, or_object=False) -> User | None:
+    def get_user(self, id: int | str, or_object: Literal[False] = ...) -> User | None:
         ...
 
     def get_user(self, id: int | str, or_object: bool = False) -> User | amix.UserAPIMixin | None:
@@ -148,11 +148,11 @@ class APICache:
         ...
 
     @overload
-    def get_channel(self, id: int | str, or_object=True) -> GuildChannel | DMChannel | Channel:
+    def get_channel(self, id: int | str, or_object: Literal[True] = ...) -> GuildChannel | DMChannel | Channel:
         ...
 
     @overload
-    def get_channel(self, id: int | str, or_object=False) -> GuildChannel | DMChannel | Channel | None:
+    def get_channel(self, id: int | str, or_object: Literal[False] = ...) -> GuildChannel | DMChannel | Channel | None:
         ...
 
     def get_channel(self, id: int | str | None, or_object: bool = False) -> GuildChannel | DMChannel | Channel | None:
@@ -175,11 +175,11 @@ class APICache:
         return self.events.get(int(id))
 
     @overload
-    def get_message(self, id: int | str, or_object=True) -> Message | amix.MessageAPIMixin:
+    def get_message(self, id: int | str, or_object: Literal[True] = ...) -> Message | amix.MessageAPIMixin:
         ...
 
     @overload
-    def get_message(self, id: int | str, or_object=False) -> Message | None:
+    def get_message(self, id: int | str, or_object: Literal[False] = ...) -> Message | None:
         ...
 
     def get_message(self, id: int | str, or_object: bool = False) -> Message | amix.MessageAPIMixin | None:

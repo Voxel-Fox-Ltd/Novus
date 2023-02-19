@@ -37,6 +37,7 @@ from .stage_instance import *
 from .sticker import *
 from .ui import *
 from .user import *
+from .voice_state import VoiceState
 from .webhook import *
 from .welcome_screen import *
 
@@ -105,6 +106,7 @@ __all__: tuple[str, ...] = (
     'ThreadMember',
     'User',
     'UserSelectMenu',
+    'VoiceState',
     'Webhook',
     'WebhookMessage',
     'WelcomeScreen',

@@ -35,6 +35,7 @@ from ...models import (
     Sticker,
     Thread,
     User,
+    VoiceState,
 )
 from ...models.channel import channel_builder
 from ...utils import try_snowflake
@@ -137,7 +138,7 @@ class GatewayDispatch:
             # "Stage instance delete": None,
             "TYPING_START": self._handle_typing,
             # "User update": None,
-            # "Voice state update": None,
+            "VOICE_STATE_UPDATE": self._handle_voice_state,
             # "Voice server update": None,
             # "Webhooks update": None,
             "INTERACTION_CREATE": self._handle_interaction,
@@ -762,3 +763,24 @@ class GatewayDispatch:
                 thread._remove_member(member_id)
             thread.member_count = data["member_count"]
         yield thread
+
+    async def _handle_voice_state(
+            self,
+            data: payloads.VoiceState) -> Ret[tuple[VoiceState | None, VoiceState | None]]:
+        """Handle voice state update."""
+
+        if "guild_id" not in data:
+            return
+        created = VoiceState(state=self.parent, data=data)
+        guild = self.cache.get_guild(data["guild_id"], or_object=False)
+        user_id = int(data["user_id"])
+        if guild is None:
+            yield None, created
+            return
+        current = guild._voice_states.get(user_id)
+        if created.channel:
+            guild._add_voice_state(created)
+            yield current, created
+        else:
+            guild._voice_states.pop(user_id, None)
+            yield current, None

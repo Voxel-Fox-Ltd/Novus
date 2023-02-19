@@ -44,6 +44,7 @@ from .role import Role
 from .scheduled_event import ScheduledEvent
 from .sticker import Sticker
 from .user import User
+from .voice_state import VoiceState
 from .welcome_screen import WelcomeScreen
 
 if TYPE_CHECKING:
@@ -242,7 +243,7 @@ class Guild(Hashable, GuildAPIMixin):
         self._members: dict[int, GuildMember] = {}
         self._guild_scheduled_events: dict[int, ScheduledEvent] = {}
         self._threads: dict[int, Thread] = {}
-        self._voice_states: dict[int, None] = {}
+        self._voice_states: dict[int, VoiceState] = {}
         self._channels: dict[int, Channel] = {}
         self._update(data)
 
@@ -309,7 +310,7 @@ class Guild(Hashable, GuildAPIMixin):
         return list(self._threads.values())
 
     @property
-    def voice_states(self) -> list[Any]:
+    def voice_states(self) -> list[VoiceState]:
         return list(self._voice_states.values())
 
     @property
@@ -398,9 +399,14 @@ class Guild(Hashable, GuildAPIMixin):
 
     def _add_voice_state(
             self,
-            voice_state: Any,
-            new_cache: dict[int, Any] | None = None) -> None:
-        pass
+            voice_state: payloads.VoiceState | VoiceState,
+            new_cache: dict[int, Any] | None = None) -> VoiceState:
+        if isinstance(voice_state, VoiceState):
+            created = voice_state
+        else:
+            created = VoiceState(state=self._state, data=voice_state)
+        (new_cache or self._voice_states)[created.user.id] = created
+        return created
 
     def _add_channel(
             self,

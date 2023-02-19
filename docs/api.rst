@@ -13,15 +13,9 @@ Enums
 
 .. autoclass:: novus.Locale
 
-Channel
-~~~~~~~
-
 .. autoclass:: novus.ChannelType
 
 .. autoclass:: novus.PermissionOverwriteType
-
-Guild
-~~~~~
 
 .. autoclass:: novus.NSFWLevel
 
@@ -35,20 +29,11 @@ Guild
 
 .. autoclass:: novus.NotificationLevel
 
-Sticker
-~~~~~~~
-
 .. autoclass:: novus.StickerType
 
 .. autoclass:: novus.StickerFormat
 
-User
-~~~~
-
 .. autoclass:: novus.UserPremiumType
-
-Auto Moderation
-~~~~~~~~~~~~~~~
 
 .. autoclass:: novus.AutoModerationKeywordPresetType
 
@@ -58,17 +43,11 @@ Auto Moderation
 
 .. autoclass:: novus.AutoModerationActionType
 
-Scheduled Event
-~~~~~~~~~~~~~~~
-
 .. autoclass:: novus.EventPrivacyLevel
 
 .. autoclass:: novus.EventStatus
 
 .. autoclass:: novus.EventEntityType
-
-Interactions
-~~~~~~~~~~~~
 
 .. autoclass:: novus.InteractionType
 
@@ -76,9 +55,6 @@ Interactions
 
 Flags
 ------
-
-Intents
-~~~~~~~
 
 .. class:: novus.Intents
 
@@ -105,9 +81,6 @@ Intents
         * - ``guild_scheduled_events``
         * - ``auto_moderation_configuration``
         * - ``auto_moderation_execution``
-
-Application
-~~~~~~~~~~~~
 
 .. class:: novus.ApplicationFlags
 
@@ -144,9 +117,6 @@ Application
         * - ``verification_pending_guild_limit``
           - Indicates unusual growth of an app that prevents verification.
 
-Message
-~~~~~~~
-
 .. class:: novus.MessageFlags
 
     .. list-table::
@@ -157,9 +127,6 @@ Message
         * - ``suppress_premium_subscriptions``
         * - ``suppress_guild_reminder_notifications``
         * - ``suppress_join_notification_replies``
-
-Guild
-~~~~~~
 
 .. class:: novus.SystemChannelFlags
 
@@ -224,9 +191,6 @@ Guild
         * - ``use_embedded_activites``
         * - ``moderate_members``
 
-User
-~~~~
-
 .. class:: novus.UserFlags
 
     .. list-table::
@@ -248,9 +212,6 @@ User
         * - ``certified_moderator``
         * - ``bot_http_interactions``
         * - ``active_developer``
-
-Audit Log
-~~~~~~~~~
 
 .. class:: novus.AuditLogEntryType
 
@@ -327,9 +288,6 @@ Utils
 Discord Models
 --------------
 
-Channels
-~~~~~~~~
-
 .. autoclass:: novus.Channel
     :members:
     :inherited-members:
@@ -385,32 +343,20 @@ Channels
     :inherited-members:
     :no-special-members:
 
-User
-~~~~
-
 .. autoclass:: novus.User
     :members:
     :inherited-members:
     :no-special-members:
-
-GuildMember
-~~~~~~~~~~~
 
 .. autoclass:: novus.GuildMember
     :members:
     :inherited-members:
     :no-special-members:
 
-ThreadMember
-~~~~~~~~~~~~
-
 .. autoclass:: novus.ThreadMember
     :members:
     :inherited-members:
     :no-special-members:
-
-Guild
-~~~~~
 
 .. autoclass:: novus.Guild
     :members:
@@ -422,24 +368,20 @@ Guild
     :inherited-members:
     :no-special-members:
 
-Invite
-~~~~~~
-
 .. autoclass:: novus.Invite
     :members:
     :inherited-members:
     :no-special-members:
 
-StageInstance
-~~~~~~~~~~~~~
+.. autoclass:: novus.VoiceState
+    :members:
+    :inherited-members:
+    :no-special-members:
 
 .. autoclass:: novus.StageInstance
     :members:
     :inherited-members:
     :no-special-members:
-
-Audit Logs
-~~~~~~~~~~
 
 .. autoclass:: novus.AuditLog
     :members:
@@ -453,16 +395,10 @@ Audit Logs
     :members:
     :no-special-members:
 
-Sticker
-~~~~~~~
-
 .. autoclass:: novus.Sticker
     :members:
     :inherited-members:
     :no-special-members:
-
-Emoji
-~~~~~
 
 .. autoclass:: novus.PartialEmoji
     :members:
@@ -479,40 +415,25 @@ Emoji
     :inherited-members:
     :no-special-members:
 
-Role
-~~~~
-
 .. autoclass:: novus.Role
     :members:
     :inherited-members:
     :no-special-members:
-
-Message
-~~~~~~~
 
 .. autoclass:: novus.Message
     :members:
     :inherited-members:
     :no-special-members:
 
-Auto Moderation
-~~~~~~~~~~~~~~~
-
 .. autoclass:: novus.AutoModerationRule
     :members:
     :inherited-members:
     :no-special-members:
 
-Scheduled Event
-~~~~~~~~~~~~~~~
-
 .. autoclass:: novus.ScheduledEvent
     :members:
     :inherited-members:
     :no-special-members:
-
-Webhook
-~~~~~~~
 
 .. autoclass:: novus.Webhook
     :members:
