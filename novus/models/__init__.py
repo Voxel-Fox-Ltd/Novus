@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from . import abc, mixins
+from .application_command import *
 from .asset import *
 from .audit_log import *
 from .auto_moderation import *
@@ -25,6 +26,7 @@ from .emoji import *
 from .file import *
 from .guild import *
 from .guild_member import *
+from .interaction import *
 from .invite import *
 from .message import *
 from .object import *
@@ -41,6 +43,9 @@ from .welcome_screen import *
 __all__: tuple[str, ...] = (
     'ActionRow',
     'AllowedMentions',
+    'ApplicationComandData',
+    'ApplicationCommandChoice',
+    'ApplicationCommandOption',
     'Asset',
     'Attachment',
     'AuditLog',
@@ -53,6 +58,7 @@ __all__: tuple[str, ...] = (
     'Channel',
     'ChannelSelectMenu',
     'Component',
+    'ContextComandData',
     'DMChannel',
     'Embed',
     'Emoji',
@@ -71,10 +77,16 @@ __all__: tuple[str, ...] = (
     'GuildTextChannel',
     'GuildVoiceChannel',
     'InteractableComponent',
+    'Interaction',
+    'InteractionData',
+    'InteractionResolved',
+    'InteractionWebhook',
     'Invite',
     'LayoutComponent',
     'MentionableSelectMenu',
     'Message',
+    'MessageComponentData',
+    'ModalSubmitData',
     'OauthGuild',
     'Object',
     'PartialEmoji',
@@ -94,6 +106,7 @@ __all__: tuple[str, ...] = (
     'User',
     'UserSelectMenu',
     'Webhook',
+    'WebhookMessage',
     'WelcomeScreen',
     'WelcomeScreenChannel',
     'abc',

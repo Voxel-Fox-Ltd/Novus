@@ -37,6 +37,7 @@ from .gateway.gateway import GatewayConnection
 from .guild import GuildHTTPConnection
 from .guild_scheduled_event import GuildEventHTTPConnection
 from .guild_template import GuildTemplateHTTPConnection
+from .interaction import InteractionHTTPConnection
 from .invite import InviteHTTPConnection
 from .stage_instance import StageHTTPConnection
 from .sticker import StickerHTTPConnection
@@ -93,20 +94,21 @@ class HTTPConnection:
 
     Attributes
     ----------
-    application_role_connection_metadata: ApplicationRoleHTTPConnection
-    audit_log: AuditLogHTTPConnection
-    auto_moderation: AutoModerationHTTPConnection
-    channel: ChannelHTTPConnection
-    emoji: EmojiHTTPConnection
-    guild: GuildHTTPConnection
-    guild_scheduled_event: GuildEventHTTPConnection
-    guild_template: GuildTemplateHTTPConnection
-    invite: InviteHTTPConnection
-    stage_instance: StageHTTPConnection
-    sticker: StickerHTTPConnection
-    user: UserHTTPConnection
-    voice: VoiceHTTPConnection
-    webhook: WebhookHTTPConnection
+    application_role_connection_metadata : ApplicationRoleHTTPConnection
+    audit_log : AuditLogHTTPConnection
+    auto_moderation : AutoModerationHTTPConnection
+    channel : ChannelHTTPConnection
+    emoji : EmojiHTTPConnection
+    guild : GuildHTTPConnection
+    guild_scheduled_event : GuildEventHTTPConnection
+    guild_template : GuildTemplateHTTPConnection
+    interaction : InteractionHTTPConnection
+    invite : InviteHTTPConnection
+    stage_instance : StageHTTPConnection
+    sticker : StickerHTTPConnection
+    user : UserHTTPConnection
+    voice : VoiceHTTPConnection
+    webhook : WebhookHTTPConnection
     """
 
     AUTH_PREFIX: str = "Bot"
@@ -132,6 +134,7 @@ class HTTPConnection:
         self.guild = GuildHTTPConnection(self)
         self.guild_scheduled_event = GuildEventHTTPConnection(self)
         self.guild_template = GuildTemplateHTTPConnection(self)
+        self.interaction = InteractionHTTPConnection(self)
         self.invite = InviteHTTPConnection(self)
         self.stage_instance = StageHTTPConnection(self)
         self.sticker = StickerHTTPConnection(self)

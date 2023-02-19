@@ -281,6 +281,7 @@ class GatewayConnection:
             self.heartbeat_task.cancel()
         if self.socket and not self.socket.closed:
             await self.socket.close()
+        self._buffer.clear()
 
     async def heartbeat(
             self,
@@ -377,12 +378,14 @@ class GatewayConnection:
 
                 # Deal with reconnects
                 case GatewayOpcode.reconnect:
-                    await self.reconnect()
+                    asyncio.create_task(self.reconnect())
+                    return
 
                 # Deal with invalid sesions
                 case GatewayOpcode.invalidate_session:
                     if message is True:
-                        await self.reconnect()
+                        asyncio.create_task(self.reconnect())
+                        return
                     else:
                         log.warning("Session invalidated - creating a new session")
                         await self.close()

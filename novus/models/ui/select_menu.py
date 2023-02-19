@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Iterator
 
 from typing_extensions import Self
 
@@ -180,6 +180,30 @@ class SelectOption(ComponentEmojiMixin):
         if self.description:
             v["description"] = self.description
         return v
+
+
+class StringSelectIterator:
+
+    def __init__(self, row: StringSelectMenu):
+        self.row = row
+        self.index = 0
+
+    def __iter__(self) -> Iterator[SelectOption]:
+        return self
+
+    def __next__(self) -> SelectOption:
+        try:
+            d = self.row[self.index]
+            if d is None:
+                raise ValueError
+        except ValueError:
+            self.index += 1
+            return self.__next__()
+        except IndexError:
+            raise StopIteration
+        else:
+            self.index += 1
+            return d
 
 
 class StringSelectMenu(SelectMenu):
@@ -355,20 +379,12 @@ class StringSelectMenu(SelectMenu):
 
         self.set(index, value)
 
-    def __iter__(self) -> Iterable[SelectOption]:
+    def __iter__(self) -> Iterator[SelectOption]:
         """
         An iterator over the options of the select menu.
-
-        Yields
-        ------
-        novus.SelectOption
-            The option at each given index.
         """
 
-        for i in self.options:
-            if i is None:
-                continue
-            yield i
+        return StringSelectIterator(self)
 
     def _to_data(self) -> payloads.SelectMenu:
         v = super()._to_data()

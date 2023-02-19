@@ -20,6 +20,7 @@ from .auto_moderation import *
 from .channel import *
 from .emoji import *
 from .guild import *
+from .interaction import *
 from .invite import *
 from .message import *
 from .role import *
@@ -38,6 +39,8 @@ __all__: tuple[str, ...] = (
     'ForumChannelAPIMixin',
     'GuildAPIMixin',
     'GuildMemberAPIMixin',
+    'InteractionAPIMixin',
+    'InteractionWebhookAPIMixin',
     'InviteAPIMixin',
     'MessageAPIMixin',
     'RoleAPIMixin',

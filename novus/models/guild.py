@@ -386,9 +386,12 @@ class Guild(Hashable, GuildAPIMixin):
 
     def _add_thread(
             self,
-            thread: payloads.Channel,
+            thread: payloads.Channel | Thread,
             new_cache: dict[int, Any] | None = None) -> Thread:
-        created = Thread(state=self._state, data=thread)
+        if isinstance(thread, Thread):
+            created = thread
+        else:
+            created = Thread(state=self._state, data=thread)
         self._state.cache.add_channels(created)
         (new_cache or self._threads)[created.id] = created
         return created

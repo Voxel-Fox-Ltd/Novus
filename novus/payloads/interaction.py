@@ -19,13 +19,33 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, TypedDict
 
+from typing_extensions import NotRequired
+
 if TYPE_CHECKING:
+    from . import (
+        ActionRow,
+        ApplicationCommentOptionType,
+        Attachment,
+        Channel,
+        ComponentType,
+        GuildMember,
+        Locale,
+        Message,
+        Role,
+        SelectOption,
+        User,
+    )
     from ._util import Snowflake
-    from .user import GuildMember, User
 
 __all__ = (
     'InteractionType',
-    'MessageInteraction',
+    'CommandType',
+    'InteractionResolved',
+    'InteractionDataOption',
+    'ApplicationComandData',
+    'MessageComponentData',
+    'ModalSubmitData',
+    'Interaction',
 )
 
 
@@ -38,12 +58,63 @@ InteractionType = Literal[
 ]
 
 
-class _MessageInteractionOptional(TypedDict, total=False):
-    member: GuildMember
+CommandType = Literal[
+    1,  # CHAT_INPUT
+    2,  # USER
+    3,  # MESSAGE
+]
 
 
-class MessageInteraction(_MessageInteractionOptional):
-    id: Snowflake
-    type: InteractionType
+class InteractionResolved(TypedDict):
+    users: NotRequired[dict[Snowflake, User]]
+    members: NotRequired[dict[Snowflake, GuildMember]]
+    roles: NotRequired[dict[Snowflake, Role]]
+    channels: NotRequired[dict[Snowflake, Channel]]
+    messages: NotRequired[dict[Snowflake, Message]]
+    attachments: NotRequired[dict[Snowflake, Attachment]]
+
+
+class InteractionDataOption(TypedDict):
     name: str
-    user: User
+    type: ApplicationCommentOptionType
+    value: NotRequired[str | int | bool]
+    options: NotRequired[list[InteractionDataOption]]
+    focused: NotRequired[bool]
+
+
+class ApplicationComandData(TypedDict):
+    id: Snowflake
+    name: str
+    type: CommandType
+    resolved: NotRequired[InteractionResolved]
+    options: NotRequired[list[InteractionDataOption]]
+    guild_id: NotRequired[Snowflake]
+    target_id: NotRequired[Snowflake]
+
+
+class MessageComponentData(TypedDict):
+    custom_id: str
+    component_type: ComponentType
+    values: NotRequired[list[SelectOption]]
+
+
+class ModalSubmitData(TypedDict):
+    custom_id: str
+    components: list[ActionRow]
+
+
+class Interaction(TypedDict):
+    id: Snowflake
+    application_id: Snowflake
+    type: InteractionType
+    data: ApplicationComandData | MessageComponentData | ModalSubmitData
+    guild_id: NotRequired[Snowflake]
+    channel_id: Snowflake
+    member: NotRequired[GuildMember]
+    user: NotRequired[User]
+    token: str
+    version: Literal[1]
+    message: NotRequired[Message]
+    app_permissions: NotRequired[str]
+    locale: Locale
+    guild_locale: NotRequired[Locale]

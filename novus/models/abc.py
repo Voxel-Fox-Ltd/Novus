@@ -21,12 +21,14 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection, OauthHTTPConnection
+    from .webhook import Webhook
 
 __all__ = (
     'Snowflake',
     'StateSnowflake',
     'StateSnowflakeWithGuild',
     'StateSnowflakeWithChannel',
+    'StateSnowflakeWithWebhook',
     'OauthStateSnowflake',
 )
 
@@ -100,6 +102,26 @@ class StateSnowflakeWithChannel(Protocol):
     id: int
     _state: HTTPConnection
     channel: Snowflake
+
+
+@runtime_checkable
+class StateSnowflakeWithWebhook(Protocol):
+    """
+    An ABC for Discord models that has a state attached.
+
+    Attributes
+    ----------
+    id : int
+        The model's unique ID.
+    _state : novus.HTTPConection
+        The HTTP connection state.
+    channel: novus.abc.Snowflake
+        An object containing the channel ID.
+    """
+
+    id: int
+    _state: HTTPConnection
+    webhook: Webhook
 
 
 @runtime_checkable

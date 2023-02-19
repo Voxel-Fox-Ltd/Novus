@@ -17,20 +17,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, overload
+from typing import TYPE_CHECKING, Any, overload
 
 from novus.utils.snowflakes import try_id
 
+from ...flags import MessageFlags
 from ...utils import MISSING, try_object
 
 if TYPE_CHECKING:
     from ...api import HTTPConnection
-    from ...flags import MessageFlags
     from .. import ActionRow, AllowedMentions, Embed, File, Message, Sticker, Webhook
     from ..abc import Snowflake, StateSnowflake
 
 __all__ = (
     'WebhookAPIMixin',
+    'InteractionWebhookAPIMixin',
 )
 
 
@@ -152,7 +153,7 @@ class WebhookAPIMixin:
             self: StateSnowflake,
             content: str,
             *,
-            wait: Literal[False],
+            wait=False,
             thread: int | Snowflake | None,
             tts: bool,
             embeds: list[Embed],
@@ -169,7 +170,7 @@ class WebhookAPIMixin:
             self: StateSnowflake,
             content: str,
             *,
-            wait: Literal[True],
+            wait=True,
             thread: int | Snowflake | None,
             tts: bool,
             embeds: list[Embed],
@@ -248,8 +249,86 @@ class WebhookAPIMixin:
 
         return await self._state.webhook.execute_webhook(
             self.id,
-            self.token,  # pyright: ignore  # Could be missing token.
+            self.token,  # pyright: ignore
             wait=wait,
             thread_id=try_id(thread),
+            **data,
+        )
+
+
+class InteractionWebhookAPIMixin:
+
+    async def send(
+            self: Webhook,  # pyright: ignore
+            content: str = MISSING,
+            *,
+            tts: bool = MISSING,
+            embeds: list[Embed] = MISSING,
+            components: list[ActionRow] = MISSING,
+            allowed_mentions: AllowedMentions = MISSING,
+            message_reference: Message = MISSING,
+            stickers: list[Sticker] = MISSING,
+            files: list[File] = MISSING,
+            flags: MessageFlags = MISSING,
+            ephemeral: bool = False) -> Message | None:
+        """
+        Send a message to the channel associated with the webhook. Requires a
+        token inside of the webhook.
+
+        Parameters
+        ----------
+        wait : bool
+            Whether or not to wait for a message response.
+        thread : int | Snowflake | None
+            A reference to a thread to send a message in.
+        content : str
+            The content that you want to have in the message
+        tts : bool
+            If you want the message to be sent with the TTS flag.
+        embeds : list[novus.Embed]
+            The embeds you want added to the message.
+        components : list[novus.ActionRow]
+            The components that you want added to the message.
+        allowed_mentions : novus.AllowedMentions
+            The mentions you want parsed in the message.
+        message_reference : novus.MessageReference
+            A reference to a message you want replied to.
+        stickers : list[novus.Sticker]
+            A list of stickers to add to the message.
+        files : list[novus.File]
+            A list of files to be sent with the message.
+        flags : novus.MessageFlags
+            The flags to be sent with the message.
+        """
+
+        data: dict[str, Any] = {}
+
+        if content is not MISSING:
+            data["content"] = content
+        if tts is not MISSING:
+            data["tts"] = tts
+        if embeds is not MISSING:
+            data["embeds"] = embeds
+        if components is not MISSING:
+            data["components"] = components
+        if allowed_mentions is not MISSING:
+            data["allowed_mentions"] = allowed_mentions
+        if message_reference is not MISSING:
+            data["message_reference"] = message_reference
+        if stickers is not MISSING:
+            data["stickers"] = stickers
+        if files is not MISSING:
+            data["files"] = files
+        if flags is MISSING:
+            data["flags"] = MessageFlags()
+        else:
+            data["flags"] = flags
+        if ephemeral:
+            data["flags"].ephemeral = True
+
+        return await self._state.webhook.execute_webhook(
+            self.id,
+            self.token,  # pyright: ignore
+            wait=True,
             **data,
         )

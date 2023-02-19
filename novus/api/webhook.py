@@ -17,9 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal, overload
+from typing import TYPE_CHECKING, Any, overload
 
-from ..models import Message, Webhook
+from ..models import Webhook, WebhookMessage
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -206,9 +206,9 @@ class WebhookHTTPConnection:
             webhook_id: int,
             token: str,
             *,
-            wait: Literal[True],
+            wait=True,
             thread_id: int | None,
-            **kwargs: dict[str, Any]) -> Message:
+            **kwargs: dict[str, Any]) -> WebhookMessage:
         ...
 
     @overload
@@ -217,7 +217,7 @@ class WebhookHTTPConnection:
             webhook_id: int,
             token: str,
             *,
-            wait: Literal[False],
+            wait=False,
             thread_id: int | None,
             **kwargs: dict[str, Any]) -> None:
         ...
@@ -229,7 +229,7 @@ class WebhookHTTPConnection:
             *,
             wait: bool = False,
             thread_id: int | None = None,
-            **kwargs: dict[str, Any]) -> Message | None:
+            **kwargs: dict[str, Any]) -> WebhookMessage | None:
         """
         Create a webhook message.
         """
@@ -276,8 +276,8 @@ class WebhookHTTPConnection:
             files=files,
         )
         if data:
-            # TODO make messages use webhook state instance
-            return Message(state=self.parent, data=data)
+            webhook = Webhook.partial(id=webhook_id, token=token, state=self.parent)
+            return WebhookMessage(state=self.parent, data=data, webhook=webhook)
         return None
 
     async def get_webhook_message(
@@ -286,7 +286,7 @@ class WebhookHTTPConnection:
             token: str,
             message_id: int,
             *,
-            thread_id: int | None = None) -> Message:
+            thread_id: int | None = None) -> WebhookMessage:
         """
         Get a webhook message.
         """
@@ -305,8 +305,8 @@ class WebhookHTTPConnection:
             route,
             params=params,
         )
-        # TODO make messages use webhook state instance
-        return Message(state=self.parent, data=data)
+        webhook = Webhook.partial(id=webhook_id, token=token, state=self.parent)
+        return WebhookMessage(state=self.parent, data=data, webhook=webhook)
 
     async def edit_webhook_message(
             self,
@@ -315,7 +315,7 @@ class WebhookHTTPConnection:
             message_id: int,
             *,
             thread_id: int | None = None,
-            **kwargs: dict[str, Any]) -> Message:
+            **kwargs: dict[str, Any]) -> WebhookMessage:
         """
         Edit a webhook message.
         """
@@ -360,8 +360,8 @@ class WebhookHTTPConnection:
             data=post_data,
             files=files,
         )
-        # TODO make messages use webhook state instance
-        return Message(state=self.parent, data=data)
+        webhook = Webhook.partial(id=webhook_id, token=token, state=self.parent)
+        return WebhookMessage(state=self.parent, data=data, webhook=webhook)
 
     async def delete_webhook_message(
             self,

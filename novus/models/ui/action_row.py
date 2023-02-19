@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable
+from typing import TYPE_CHECKING, Iterable, Iterator
 
 from typing_extensions import Self
 
@@ -31,6 +31,30 @@ if TYPE_CHECKING:
 __all__ = (
     'ActionRow',
 )
+
+
+class ActionRowIterator:
+
+    def __init__(self, row: ActionRow):
+        self.row = row
+        self.index = 0
+
+    def __iter__(self) -> Iterator[InteractableComponent]:
+        return self
+
+    def __next__(self) -> InteractableComponent:
+        try:
+            d = self.row[self.index]
+            if d is None:
+                raise ValueError
+        except ValueError:
+            self.index += 1
+            return self.__next__()
+        except IndexError:
+            raise StopIteration
+        else:
+            self.index += 1
+            return d
 
 
 class ActionRow(LayoutComponent):
@@ -164,20 +188,12 @@ class ActionRow(LayoutComponent):
 
         self.set(index, value)
 
-    def __iter__(self) -> Iterable[InteractableComponent]:
+    def __iter__(self) -> Iterator[InteractableComponent]:
         """
         An iterator over the components of the action row.
-
-        Yields
-        ------
-        novus.Component
-            The component at each given index.
         """
 
-        for i in self.components:
-            if i is None:
-                continue
-            yield i
+        return ActionRowIterator(self)
 
     def _to_data(self) -> payloads.ActionRow:
         return {

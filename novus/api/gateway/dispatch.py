@@ -26,6 +26,7 @@ from ...models import (
     Emoji,
     Guild,
     GuildMember,
+    Interaction,
     Invite,
     Message,
     Object,
@@ -139,6 +140,7 @@ class GatewayDispatch:
             # "Voice state update": None,
             # "Voice server update": None,
             # "Webhooks update": None,
+            "INTERACTION_CREATE": self._handle_interaction,
         }
 
     @property
@@ -191,6 +193,13 @@ class GatewayDispatch:
         # os.makedirs(evt, exist_ok=True)
         # with open(evt / f"{self.parent.gateway.sequence}_{self.session_id}.json", "w") as a:
         #     json.dump(data, a, indent=4, sort_keys=True)
+
+    async def _handle_interaction(
+            self,
+            data: payloads.Interaction) -> Ret[Interaction]:
+        """Handle interaction create."""
+
+        yield Interaction(state=self.parent, data=data)
 
     async def _handle_guild_create(
             self,

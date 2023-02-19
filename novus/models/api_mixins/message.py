@@ -395,3 +395,119 @@ class MessageAPIMixin:
             reason=reason,
             **params,
         )
+
+
+class WebhookMessageAPIMixin:
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            webhook: int | abc.Snowflake,
+            webhook_token: str,
+            message: int | abc.Snowflake) -> Message:
+        """
+        Get an existing message using the webhook.
+
+        Parameters
+        ----------
+        state : novus.api.HTTPConnection
+            The API connection.
+        webhook : int | novus.abc.Snowflake
+            The webhook that sent the message.
+        webhook_token : str
+            The token associated with the webhook.
+        message : int | novus.abc.Snowflake
+            The message you want to get.
+
+        Returns
+        -------
+        novus.Message
+            The created message.
+        """
+
+        return await state.webhook.get_webhook_message(
+            try_id(webhook),
+            webhook_token,
+            try_id(message),
+        )
+
+    async def delete(
+            self: abc.StateSnowflakeWithWebhook) -> None:
+        """
+        Delete a webhook message.
+
+        Parameters
+        ----------
+        webhook : int | novus.abc.Snowflake
+            The webhook that sent the message.
+        webhook_token : str
+            The token associated with the webhook.
+        message : int | novus.abc.Snowflake
+            The message you want to delete.
+        """
+
+        return await self._state.webhook.delete_webhook_message(
+            self.webhook.id,
+            self.webhook.token,  # pyright: ignore
+            self.id,
+        )
+
+    async def edit(
+            self: abc.StateSnowflakeWithWebhook,
+            content: str | None = MISSING,
+            *,
+            tts: bool = MISSING,
+            embeds: list[Embed] | None = MISSING,
+            allowed_mentions: AllowedMentions = MISSING,
+            components: list[ActionRow] | None = MISSING,
+            message_reference: Message | None = MISSING,
+            stickers: list[Sticker] | None = MISSING,
+            files: list[File] | None = MISSING,
+            flags: MessageFlags = MISSING) -> Message:
+        """
+        Edit an existing message sent by the webhook.
+
+        Parameters
+        ----------
+        content : str | None
+            The content to be added to the message.
+        tts : bool
+            Whether the message should be sent with TTS.
+        embeds : list[novus.Embed] | None
+            A list of embeds to be added to the message.
+        allowed_mentions : novus.AllowedMentions
+            An object of users that you want to be pinged.
+        components : list[novus.ActionRow] | None
+            A list of components to add to the message.
+        message_reference : novus.Message | None
+            A message to reply to.
+        stickers : list[novus.Sticker] | None
+            A list of stickers to add to the message.
+        files : list[novus.File] | None
+            A list of files to be added to the message.
+        flags : novus.MessageFlags
+            Message send flags.
+
+        Returns
+        -------
+        novus.Message
+            The edited message.
+        """
+
+        update: dict[str, Any] = {}
+        add_not_missing(update, "content", content)
+        add_not_missing(update, "tts", tts)
+        add_not_missing(update, "embeds", embeds)
+        add_not_missing(update, "allowed_mentions", allowed_mentions)
+        add_not_missing(update, "components", components)
+        add_not_missing(update, "message_reference", message_reference)
+        add_not_missing(update, "stickers", stickers)
+        add_not_missing(update, "files", files)
+        add_not_missing(update, "flags", flags)
+        return await self._state.webhook.edit_webhook_message(
+            self.webhook.id,
+            self.webhook.token,  # pyright: ignore
+            self.id,
+            **update,
+        )

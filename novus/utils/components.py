@@ -15,27 +15,22 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
+from collections.abc import Generator
 from typing import TYPE_CHECKING
 
-from vfflags import Flags
+if TYPE_CHECKING:
+    from ..models import ActionRow, InteractableComponent
 
 __all__ = (
-    'SystemChannelFlags',
+    'walk_components',
 )
 
 
-class SystemChannelFlags(Flags):
-    """Flags for a system channel within a guild."""
-
-    if TYPE_CHECKING:
-        suppress_join_notifications: bool
-        suppress_premium_subscriptions: bool
-        suppress_guild_reminder_notifications: bool
-        suppress_join_notification_replies: bool
-
-    CREATE_FLAGS = {
-        "suppress_join_notifications": 1 << 0,
-        "suppress_premium_subscriptions": 1 << 1,
-        "suppress_guild_reminder_notifications": 1 << 2,
-        "suppress_join_notification_replies": 1 << 3,
-    }
+def walk_components(rows: list[ActionRow] | None) -> Generator[InteractableComponent, None, None]:
+    if rows is None:
+        return
+    for row in rows:
+        for c in row:
+            yield c

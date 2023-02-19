@@ -21,7 +21,7 @@ import re
 from typing import TYPE_CHECKING
 
 from ..utils import cached_slot_property, generate_repr, try_snowflake
-from .api_mixins.webhook import WebhookAPIMixin
+from .api_mixins.webhook import InteractionWebhookAPIMixin, WebhookAPIMixin
 from .asset import Asset
 
 if TYPE_CHECKING:
@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'Webhook',
+    'InteractionWebhook',
 )
 
 
@@ -163,3 +164,7 @@ class Webhook(WebhookAPIMixin):
             token=match.group("token"),
             state=state,
         )
+
+
+class InteractionWebhook(Webhook, InteractionWebhookAPIMixin):
+    pass

@@ -25,9 +25,7 @@ __all__ = (
 
 
 class ComponentType(Enum):
-    """
-    All of the Discord component types.
-    """
+    """All of the Discord component types."""
 
     action_row = 1
     button = 2
@@ -40,9 +38,7 @@ class ComponentType(Enum):
 
 
 class ButtonStyle(Enum):
-    """
-    The different styles that can be applied to a button.
-    """
+    """The different styles that can be applied to a button."""
 
     primary = 1
     blurple = 1
@@ -59,9 +55,7 @@ class ButtonStyle(Enum):
 
 
 class TextInputStyle(Enum):
-    """
-    Different styles of text input component.
-    """
+    """Different styles of text input component."""
 
     short = 1
     paragraph = 2

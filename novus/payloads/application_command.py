@@ -15,27 +15,25 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import TYPE_CHECKING
+from __future__ import annotations
 
-from vfflags import Flags
+from typing import Literal
 
 __all__ = (
-    'SystemChannelFlags',
+    'ApplicationCommentOptionType',
 )
 
 
-class SystemChannelFlags(Flags):
-    """Flags for a system channel within a guild."""
-
-    if TYPE_CHECKING:
-        suppress_join_notifications: bool
-        suppress_premium_subscriptions: bool
-        suppress_guild_reminder_notifications: bool
-        suppress_join_notification_replies: bool
-
-    CREATE_FLAGS = {
-        "suppress_join_notifications": 1 << 0,
-        "suppress_premium_subscriptions": 1 << 1,
-        "suppress_guild_reminder_notifications": 1 << 2,
-        "suppress_join_notification_replies": 1 << 3,
-    }
+ApplicationCommentOptionType = Literal[
+    1,  # SUB_COMMAND
+    2,  # SUB_COMMAND_GROUP
+    3,  # STRING
+    4,  # INTEGER
+    5,  # BOOLEAN
+    6,  # USER
+    7,  # CHANNEL
+    8,  # ROLE
+    9,  # MENTIONABLE
+    10,  # NUMBER (double)
+    11,  # ATTACHMENT
+]

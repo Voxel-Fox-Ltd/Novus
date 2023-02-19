@@ -11,256 +11,68 @@ ABCs and Mixins
 Enums
 -----
 
-.. class:: novus.Locale
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``indonesian``
-        * - ``danish``
-        * - ``german``
-        * - ``uk_english``
-        * - ``us_english``
-        * - ``spanish``
-        * - ``french``
-        * - ``croatian``
-        * - ``italian``
-        * - ``lithuanian``
-        * - ``hungarian``
-        * - ``dutch``
-        * - ``norwegian``
-        * - ``polish``
-        * - ``brazilian_portuguese``
-        * - ``romanian``
-        * - ``finnish``
-        * - ``swedish``
-        * - ``vietnamese``
-        * - ``turkish``
-        * - ``czech``
-        * - ``greek``
-        * - ``bulgarian``
-        * - ``russian``
-        * - ``ukrainian``
-        * - ``hindi``
-        * - ``thai``
-        * - ``china_chinese``
-        * - ``japanese``
-        * - ``taiwan_chinese``
-        * - ``korean``
+.. autoclass:: novus.Locale
 
 Channel
 ~~~~~~~
 
-.. class:: novus.ChannelType
+.. autoclass:: novus.ChannelType
 
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``guild_text``
-        * - ``dm``
-        * - ``guild_voice``
-        * - ``group_dm``
-        * - ``guild_category``
-        * - ``guild_announcement``
-        * - ``announcement_thread``
-        * - ``public_thread``
-        * - ``private_thread``
-        * - ``guild_stage_voice``
-        * - ``guild_directory``
-        * - ``guild_forum``
-
-.. class:: novus.PermissionOverwriteType
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``role``
-        * - ``member``
+.. autoclass:: novus.PermissionOverwriteType
 
 Guild
 ~~~~~
 
-.. class:: novus.NSFWLevel
+.. autoclass:: novus.NSFWLevel
 
-    .. list-table::
-        :header-rows: 1
+.. autoclass:: novus.PremiumTier
 
-        * - Attribute
-        * - ``default``
-        * - ``explicit``
-        * - ``safe``
-        * - ``age_restricted``
+.. autoclass:: novus.MFALevel
 
-.. class:: novus.PremiumTier
+.. autoclass:: novus.ContentFilterLevel
 
-    .. list-table::
-        :header-rows: 1
+.. autoclass:: novus.VerificationLevel
 
-        * - Attribute
-        * - ``none``
-        * - ``tier_1``
-        * - ``tier_2``
-        * - ``tier_3``
-
-.. class:: novus.MFALevel
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``none``
-        * - ``elevated``
-
-.. class:: novus.ContentFilterLevel
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``disabled``
-        * - ``members_without_roles``
-        * - ``all_members``
-
-.. class:: novus.VerificationLevel
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-          - Description
-        * - ``none``
-          - Unrestricted.
-        * - ``low``
-          - Must have a verified email on account.
-        * - ``medium``
-          - Must be registered on Discord for longer than 5 minutes.
-        * - ``high``
-          - Must be a member of the guild for longer than 10 minutes.
-        * - ``very_high``
-          - Must have a verified phone number.
-
-.. class:: novus.NotificationLevel
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``all_messages``
-        * - ``only_mentions``
+.. autoclass:: novus.NotificationLevel
 
 Sticker
 ~~~~~~~
 
-.. class:: novus.StickerType
+.. autoclass:: novus.StickerType
 
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``standard``
-        * - ``guild``
-
-.. class:: novus.StickerFormat
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``png``
-        * - ``apng``
-        * - ``lottie``
-        * - ``gif``
+.. autoclass:: novus.StickerFormat
 
 User
 ~~~~
 
-.. class:: novus.UserPremiumType
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``none``
-        * - ``nitro_classic``
-        * - ``nitro``
-        * - ``nitro_basic``
+.. autoclass:: novus.UserPremiumType
 
 Auto Moderation
 ~~~~~~~~~~~~~~~
 
-.. class:: novus.AutoModerationKeywordPresetType
+.. autoclass:: novus.AutoModerationKeywordPresetType
 
-    .. list-table::
-        :header-rows: 1
+.. autoclass:: novus.AutoModerationTriggerType
 
-        * - Attribute
-        * - ``profanity``
-        * - ``sexual_content``
-        * - ``slurs``
+.. autoclass:: novus.AutoModerationEventType
 
-.. class:: novus.AutoModerationTriggerType
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``keyword``
-        * - ``spam``
-        * - ``keyword_preset``
-        * - ``mention_spam``
-
-.. class:: novus.AutoModerationEventType
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``message_send``
-
-.. class:: novus.AutoModerationActionType
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``block_message``
-        * - ``send_alert_message``
-        * - ``timeout``
+.. autoclass:: novus.AutoModerationActionType
 
 Scheduled Event
 ~~~~~~~~~~~~~~~
 
-.. class:: novus.EventPrivacyLevel
+.. autoclass:: novus.EventPrivacyLevel
 
-    .. list-table::
-        :header-rows: 1
+.. autoclass:: novus.EventStatus
 
-        * - Attribute
-        * - ``guild_only``
+.. autoclass:: novus.EventEntityType
 
-.. class:: novus.EventStatus
+Interactions
+~~~~~~~~~~~~
 
-    .. list-table::
-        :header-rows: 1
+.. autoclass:: novus.InteractionType
 
-        * - Attribute
-        * - ``scheduled``
-        * - ``active``
-        * - ``completed``
-        * - ``cancelled``
-
-.. class:: novus.EventEntityType
-
-    .. list-table::
-        :header-rows: 1
-
-        * - Attribute
-        * - ``stage_instance``
-        * - ``voice``
-        * - ``external``
+.. autoclass:: novus.ApplicationCommandType
 
 Flags
 ------
@@ -510,9 +322,7 @@ Utils
 
 .. autofunction:: novus.utils.try_object
 
-.. attribute:: novus.utils.ME
-
-    Used when you want to refer to the user object in certain places.
+.. autofunction:: novus.utils.walk_components
 
 Discord Models
 --------------
@@ -709,10 +519,46 @@ Webhook
     :inherited-members:
     :no-special-members:
 
-Components
-----------
+Application Commands
+--------------------
 
 Components make up Discord's UI kit, and add a way for users to interact with your bot.
+
+Interactions
+~~~~~~~~~~~~
+
+.. autoclass:: novus.Interaction
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.InteractionResolved
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.ApplicationComandData
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.ContextComandData
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.MessageComponentData
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.ModalSubmitData
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+Components
+~~~~~~~~~~
 
 .. autoclass:: novus.Component
     :members:

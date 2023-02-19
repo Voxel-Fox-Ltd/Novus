@@ -15,32 +15,36 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from enum import Enum as E
-from enum import EnumMeta as EM
-
 __all__ = (
-    'Enum',
+    'ApplicationCommandOption',
+    'ApplicationCommandChoice',
 )
 
 
-class EnumMeta(EM):
+class ApplicationCommandOption:
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.__doc__:
-            self.__doc__ += "\n\n"
-        else:
-            self.__doc__ = ""
-        if "Attributes\n------" in self.__doc__:
-            return
-        self.__doc__ = "Attributes\n---------"
-        for attr in dir(self):
-            if attr.startswith("_"):
-                continue
-            self.__doc__ += "\n" + attr
+        ...
 
 
-class Enum(E, metaclass=EnumMeta):
+class ApplicationCommandChoice:
+    """
+    A choice object for application commands.
 
-    def __repr__(self) -> str:
-        return f'{self.__class__.__name__}.{self.name}'
+    Parameters
+    ----------
+    name : str
+        The name of the choice.
+    value : str | int | float
+        The value associated with the choice.
+
+        .. note::
+
+            Large numbers (those in BIGINT range, including IDs) will be
+            truncated by Discord - it's recommended that you use a string in
+            their place.
+    """
+
+    def __init__(self, name: str, value: str | int | float):
+        self.name = name
+        self.value = value

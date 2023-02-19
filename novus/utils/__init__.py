@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 from .cached_slots import *
+from .components import *
 from .enums import *
 from .files import *
 from .missing import *
@@ -37,4 +38,5 @@ __all__: tuple[str, ...] = (
     'try_id',
     'try_object',
     'try_snowflake',
+    'walk_components',
 )

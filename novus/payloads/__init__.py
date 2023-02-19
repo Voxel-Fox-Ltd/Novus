@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from . import gateway
 from ._util import *
 from .application import *
+from .application_command import *
 from .audit_log import *
 from .auto_moderation import *
 from .channel import *
@@ -42,6 +43,7 @@ __all__: tuple[str, ...] = (
     'Activity',
     'AllowedMentions',
     'Application',
+    'ApplicationCommentOptionType',
     'ApplicationRoleConnection',
     'ApplicationRoleConnectionMetadata',
     'ApplicationTeam',
@@ -88,6 +90,7 @@ __all__: tuple[str, ...] = (
     'Integration',
     'IntegrationAccount',
     'IntegrationApplication',
+    'Interaction',
     'InteractionType',
     'Invite',
     'InviteWithMetadata',
@@ -96,7 +99,6 @@ __all__: tuple[str, ...] = (
     'Locale',
     'Message',
     'MessageActivity',
-    'MessageInteraction',
     'MessageReference',
     'PartialEmoji',
     'PartialSticker',
@@ -123,17 +125,3 @@ __all__: tuple[str, ...] = (
     'Webhook',
     'gateway',
 )
-
-
-"""
-The payloads subpackage contains the payload classes for each payload type
-from Discord. These will mostly be used to type hint payloads, and won't be
-super helpful externally in the library.
-
-These classes will generally not have docstrings unless necessary to understand
-them.
-
-Of note here: snowflakes (IDs) will be documented as strings as thats's what
-the Discord API returns. This is regardless of the fact that the library treats
-them as integers within classes.
-"""

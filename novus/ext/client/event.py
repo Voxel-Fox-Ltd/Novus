@@ -18,10 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Any, Callable, TypeAlias
+from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar
+
+import novus
 
 if TYPE_CHECKING:
-    import novus
+    from novus.models import *
 
 __all__ = (
     'event',
@@ -38,17 +40,27 @@ class EventListener:
         'event',
         'func',
         'owner',
+        'predicate',
     )
 
-    def __init__(self, event_name: str, func: Callable[..., Awaitable[Any]]) -> None:
+    def __init__(
+            self,
+            event_name: str,
+            func: Callable[..., Awaitable[Any]],
+            predicate: Callable[..., bool] | None = None) -> None:
         self.event = event_name
         self.func: Callable[..., Awaitable[Any]] = func
         self.owner: Any = None
+        self.predicate: Callable[..., bool] = lambda x: True
+        if predicate:
+            self.predicate = predicate
 
 
-Self = Any  # Self
+Self = Any
 AA = Awaitable[Any]
 EL: TypeAlias = EventListener
+T = TypeVar("T")
+W = Callable[[Self, T], AA]
 
 
 class EventBuilder:
@@ -56,7 +68,19 @@ class EventBuilder:
     __slots__ = ()
 
     @classmethod
-    def message(cls, func: Callable[[Self, novus.Message], AA]) -> EL:
+    def component_interaction(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+        return EventListener(
+            "INTERACTION_CREATE",
+            func,
+            lambda i: i.type == novus.InteractionType.message_component,
+        )
+
+    @classmethod
+    def interaction(cls, func: W[Interaction]) -> EL:
+        return EventListener("INTERACTION_CREATE", func)
+
+    @classmethod
+    def message(cls, func: W[Message]) -> EL:
         return EventListener("MESSAGE_CREATE", func)
 
     @staticmethod

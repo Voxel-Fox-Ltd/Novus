@@ -15,27 +15,34 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import TYPE_CHECKING
-
-from vfflags import Flags
+from .utils import Enum
 
 __all__ = (
-    'SystemChannelFlags',
+    'InteractionType',
+    'ApplicationCommandType',
+    'InteractionResponseType',
 )
 
 
-class SystemChannelFlags(Flags):
-    """Flags for a system channel within a guild."""
+class InteractionType(Enum):
+    ping = 1
+    application_command = 2
+    message_component = 3
+    autocomplete = 4
+    modal_submit = 5
 
-    if TYPE_CHECKING:
-        suppress_join_notifications: bool
-        suppress_premium_subscriptions: bool
-        suppress_guild_reminder_notifications: bool
-        suppress_join_notification_replies: bool
 
-    CREATE_FLAGS = {
-        "suppress_join_notifications": 1 << 0,
-        "suppress_premium_subscriptions": 1 << 1,
-        "suppress_guild_reminder_notifications": 1 << 2,
-        "suppress_join_notification_replies": 1 << 3,
-    }
+class ApplicationCommandType(Enum):
+    chat_input = 1
+    user = 2
+    message = 3
+
+
+class InteractionResponseType(Enum):
+    pong = 1
+    channel_message_with_source = 4
+    deferred_channel_message_with_source = 5
+    deferred_update_message = 6
+    update_message = 7
+    application_command_autocomplete_result = 8
+    modal = 9

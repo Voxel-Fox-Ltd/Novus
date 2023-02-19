@@ -36,10 +36,12 @@ if TYPE_CHECKING:
 
     from ..api import HTTPConnection
     from ..payloads import Message as MessagePayload
+    from . import Webhook
     from . import api_mixins as amix
 
 __all__ = (
     'Message',
+    'WebhookMessage',
     'AllowedMentions',
     'Attachment',
 )
@@ -104,7 +106,7 @@ class Message(MessageAPIMixin):
         The message flags.
     referenced_message : novus.Message | None
         The message associated with the reference.
-    interaction : novus.MessageInteraction | None
+    interaction : novus.Interaction | None
         Data referring to the interaction if the message is associated with one.
     thread : novus.Thread | None
         The thread that was started from this message.
@@ -182,7 +184,7 @@ class Message(MessageAPIMixin):
     def __init__(self, *, state: HTTPConnection, data: MessagePayload) -> None:
         self._state = state
         self.id = try_snowflake(data["id"])
-        self.channel = self._state.cache.get_channel(data["channel_id"], or_object=True)
+        self.channel = self._state.cache.get_channel(data["channel_id"], or_object=True)  # pyright: ignore
         self.guild = None
         if "guild_id" in data:
             self.guild = self._state.cache.get_guild(data["guild_id"], or_object=True)
@@ -200,10 +202,14 @@ class Message(MessageAPIMixin):
         self.edited_timestamp = parse_timestamp(data.get("edited_timestamp"))
         self.tts = data.get("tts", False)
         self.mention_everyone = data.get("mention_everyone", False)
-        self.mentions = [
-            User(state=self._state, data=d)
-            for d in data.get("mentions", [])
-        ]
+        mention_data = data.get("mentions", [])
+        self.mentions = []
+        for user_data in mention_data:
+            user_object = User(state=self._state, data=user_data)
+            if "member" in user_data:
+                user_data["member"]["guild_id"] = self.guild.id  # pyright: ignore
+                user_object._upgrade(user_data["member"])  # pyright: ignore
+            self.mentions.append(user_object)
         self.mention_roles = [
             try_snowflake(d)
             for d in data.get("mention_roles", [])
@@ -258,6 +264,17 @@ class Message(MessageAPIMixin):
         # self.role_subscription_data = data["role_subscription_data"]
 
     __repr__ = generate_repr(('id',))
+
+
+class WebhookMessage(Message):
+
+    def __init__(
+            self,
+            *,
+            webhook: Webhook,
+            **kwargs: Any):
+        super().__init__(**kwargs)
+        self.webhook = webhook
 
 
 class AllowedMentions:

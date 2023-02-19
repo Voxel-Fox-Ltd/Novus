@@ -74,6 +74,8 @@ class LayoutComponent(Component):
     Abstract base class for Discord UI components dealing with layout.
     """
 
+    components: list[InteractableComponent]
+
     __repr__ = generate_repr(('components',))
 
 
@@ -81,5 +83,7 @@ class InteractableComponent(Component):
     """
     Abstract base class for Discord UI components that users can interact with.
     """
+
+    custom_id: str
 
     __repr__ = generate_repr(('custom_id',))

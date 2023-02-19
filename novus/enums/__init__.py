@@ -21,6 +21,7 @@ from .channel import *
 from .components import *
 from .gateway import *
 from .guild import *
+from .interaction import *
 from .locale import *
 from .message import *
 from .scheduled_event import *
@@ -28,6 +29,7 @@ from .sticker import *
 from .user import *
 
 __all__: tuple[str, ...] = (
+    'ApplicationCommandType',
     'AuditLogEventType',
     'AutoModerationActionType',
     'AutoModerationEventType',
@@ -43,6 +45,8 @@ __all__: tuple[str, ...] = (
     'ForumLayout',
     'ForumSortOrder',
     'GatewayOpcode',
+    'InteractionResponseType',
+    'InteractionType',
     'Locale',
     'MFALevel',
     'MessageType',
