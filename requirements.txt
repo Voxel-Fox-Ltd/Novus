@@ -1,6 +1,7 @@
 # Requirements
 vf-flags>=0.2.2,<0.3
 aiohttp>=3.8.0
+emoji
 
 # Recommended
 python-dotenv

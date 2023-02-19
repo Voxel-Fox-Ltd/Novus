@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional, TypedDict
 
+from typing_extensions import NotRequired
+
 if TYPE_CHECKING:
     from ._util import Snowflake
     from .user import User
@@ -29,10 +31,10 @@ __all__ = (
 )
 
 
-class PartialEmoji(TypedDict, total=False):
-    id: Snowflake
-    name: str
-    animated: bool
+class PartialEmoji(TypedDict):
+    id: NotRequired[Snowflake]
+    name: NotRequired[str]
+    animated: NotRequired[bool]
 
 
 class _EmojiOptional(TypedDict, total=False):
