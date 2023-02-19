@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
     from ..api import HTTPConnection
     from ..payloads import Channel as ChannelPayload
-    from . import Guild, GuildMember
+    from . import Guild, GuildMember, ThreadMember
     from . import api_mixins as amix
 
 __all__ = (
@@ -268,7 +268,6 @@ class GuildChannel(Channel):
     """
 
     id: int
-    type: ChannelType
     guild: Guild | amix.GuildAPIMixin
     position: int
     overwrites: list[PermissionOverwrite]
@@ -514,7 +513,7 @@ class Thread(GuildTextChannel):
             data: ChannelPayload,
             guild_id: int | None = None):
         super().__init__(state=state, data=data, guild_id=guild_id)
-        self._members: dict[int, GuildMember] = {}
+        self._members: dict[int, ThreadMember] = {}
         assert "owner_id" in data
         try:
             self.owner = self.guild.get_member(data["owner_id"])  # pyright: ignore
@@ -532,14 +531,14 @@ class Thread(GuildTextChannel):
         self.archive_timestamp = parse_timestamp(metadata.get("archive_timestamp"))
         self.locked = metadata.get("locked", False)
 
-    def _add_member(self, member: GuildMember) -> None:
+    def _add_member(self, member: ThreadMember) -> None:
         self._members[member.id] = member
 
     def _remove_member(self, id: int | str) -> None:
         self._members.pop(try_snowflake(id), None)
 
     @property
-    def members(self) -> list[GuildMember]:
+    def members(self) -> list[ThreadMember]:
         return list(self._members.values())
 
 

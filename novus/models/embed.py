@@ -21,6 +21,8 @@ from dataclasses import dataclass
 from datetime import datetime as dt
 from typing import TYPE_CHECKING
 
+from typing_extensions import Self
+
 from ..utils import parse_timestamp
 
 if TYPE_CHECKING:
@@ -244,7 +246,7 @@ class Embed:
         return v
 
     @classmethod
-    def _from_data(cls, data: EmbedPayload) -> Embed:
+    def _from_data(cls, data: EmbedPayload) -> Self:
         timestamp = data.get("timestamp")
         if timestamp is not None:
             timestamp = parse_timestamp(timestamp)
@@ -283,7 +285,7 @@ class Embed:
             self,
             text: str,
             *,
-            icon_url: str | None = None) -> Embed:
+            icon_url: str | None = None) -> Self:
         """
         Set the footer of the embed.
 
@@ -302,7 +304,7 @@ class Embed:
         )
         return self
 
-    def remove_footer(self) -> Embed:
+    def remove_footer(self) -> Self:
         """
         Remove the footer of the embed.
         """
@@ -314,7 +316,7 @@ class Embed:
     def image(self) -> EmbedMedia | None:
         return self._image
 
-    def set_image(self, url: str) -> Embed:
+    def set_image(self, url: str) -> Self:
         """
         Set an image for the embed.
 
@@ -327,7 +329,7 @@ class Embed:
         self._image = EmbedMedia(url)
         return self
 
-    def remove_image(self) -> Embed:
+    def remove_image(self) -> Self:
         """
         Remove the image of the embed.
         """
@@ -339,7 +341,7 @@ class Embed:
     def thumbnail(self) -> EmbedMedia | None:
         return self._thumbnail
 
-    def set_thumbnail(self, url: str) -> Embed:
+    def set_thumbnail(self, url: str) -> Self:
         """
         Set an thumbnail for the embed.
 
@@ -353,7 +355,7 @@ class Embed:
         self._thumbnail = EmbedMedia(url)
         return self
 
-    def remove_thumbnail(self) -> Embed:
+    def remove_thumbnail(self) -> Self:
         """
         Remove the thumbnail of the embed.
         """
@@ -378,7 +380,7 @@ class Embed:
             name: str,
             *,
             url: str | None = None,
-            icon_url: str | None = None) -> Embed:
+            icon_url: str | None = None) -> Self:
         """
         Set the author of the embed.
 
@@ -399,7 +401,7 @@ class Embed:
         )
         return self
 
-    def remove_author(self) -> Embed:
+    def remove_author(self) -> Self:
         """
         Remove the author of the embed.
         """
@@ -416,7 +418,7 @@ class Embed:
             name: str,
             value: str,
             *,
-            inline: bool = True) -> Embed:
+            inline: bool = True) -> Self:
         """
         Add a field to the embed.
 
@@ -439,7 +441,7 @@ class Embed:
         )
         return self
 
-    def remove_field(self, index: int) -> Embed:
+    def remove_field(self, index: int) -> Self:
         """
         Remove a field at a given index.
 
@@ -458,7 +460,7 @@ class Embed:
             name: str,
             value: str,
             *,
-            inline: bool = True) -> Embed:
+            inline: bool = True) -> Self:
         """
         Add a field to the embed at a specified location.
 
@@ -484,7 +486,7 @@ class Embed:
         )
         return self
 
-    def clear_fields(self) -> Embed:
+    def clear_fields(self) -> Self:
         """
         Remove all of the fields from the embed.
         """

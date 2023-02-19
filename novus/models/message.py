@@ -22,12 +22,13 @@ from typing import TYPE_CHECKING, Any
 from .. import enums, flags
 from ..utils import generate_repr, parse_timestamp, try_snowflake
 from .api_mixins.message import MessageAPIMixin
-from .channel import Channel, Thread
+from .channel import Channel, TextChannel, Thread
 from .embed import Embed
 from .guild import Guild
 from .guild_member import GuildMember
 from .reaction import Reaction
 from .sticker import Sticker
+from .ui.action_row import ActionRow
 from .user import User
 
 if TYPE_CHECKING:
@@ -107,7 +108,7 @@ class Message(MessageAPIMixin):
         Data referring to the interaction if the message is associated with one.
     thread : novus.Thread | None
         The thread that was started from this message.
-    components : novus.MessageComponents | None
+    components : list[novus.ActionRow]
         The components associated with the message.
     sticker_items : list[novus.Sticker]
         The stickers sent with the message.
@@ -153,7 +154,7 @@ class Message(MessageAPIMixin):
     )
 
     id: int
-    channel: Channel
+    channel: TextChannel
     author: User | GuildMember
     guild: Guild | amix.GuildAPIMixin | None
     content: str
@@ -174,6 +175,7 @@ class Message(MessageAPIMixin):
     flags: flags.MessageFlags
     referenced_message: Message | None
     thread: Thread | None
+    components: list[ActionRow]
     sticker_items: list[Sticker]
     position: int | None
 
@@ -244,7 +246,10 @@ class Message(MessageAPIMixin):
         if "thread" in data:
             assert self.guild
             self.thread = Thread(state=self._state, data=data["thread"])
-        # self.components = data["components"]
+        self.components = [
+            ActionRow._from_data(d)
+            for d in data.get("components", [])
+        ]
         self.sticker_items = [
             Sticker(state=self._state, data=d)
             for d in data.get("sticker_items", [])

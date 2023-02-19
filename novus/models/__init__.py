@@ -33,11 +33,13 @@ from .role import *
 from .scheduled_event import *
 from .stage_instance import *
 from .sticker import *
+from .ui import *
 from .user import *
 from .webhook import *
 from .welcome_screen import *
 
 __all__: tuple[str, ...] = (
+    'ActionRow',
     'AllowedMentions',
     'Asset',
     'Attachment',
@@ -47,7 +49,10 @@ __all__: tuple[str, ...] = (
     'AutoModerationAction',
     'AutoModerationRule',
     'AutoModerationTriggerMetadata',
+    'Button',
     'Channel',
+    'ChannelSelectMenu',
+    'Component',
     'DMChannel',
     'Embed',
     'Emoji',
@@ -65,7 +70,10 @@ __all__: tuple[str, ...] = (
     'GuildStageChannel',
     'GuildTextChannel',
     'GuildVoiceChannel',
+    'InteractableComponent',
     'Invite',
+    'LayoutComponent',
+    'MentionableSelectMenu',
     'Message',
     'OauthGuild',
     'Object',
@@ -74,12 +82,17 @@ __all__: tuple[str, ...] = (
     'PermissionOverwrite',
     'Reaction',
     'Role',
+    'RoleSelectMenu',
     'ScheduledEvent',
+    'SelectOption',
     'StageInstance',
     'Sticker',
+    'StringSelectMenu',
+    'TextInput',
     'Thread',
     'ThreadMember',
     'User',
+    'UserSelectMenu',
     'Webhook',
     'WelcomeScreen',
     'WelcomeScreenChannel',

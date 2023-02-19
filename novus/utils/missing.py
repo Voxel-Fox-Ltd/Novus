@@ -15,7 +15,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any, Callable, Literal
+from typing import Any, Callable, Literal, Mapping
 
 __all__ = (
     'MISSING',
@@ -48,12 +48,12 @@ ME: Any = MeObject()
 
 
 def add_not_missing(
-        kwargs: dict[Any, Any],
+        kwargs: Mapping[Any, Any],
         key: str,
         item: Any,
         to_call: Callable[..., Any] | None = None) -> None:
     if item is not MISSING:
         if to_call is None:
-            kwargs[key] = item
+            kwargs[key] = item  # type: ignore
         else:
-            kwargs[key] = to_call(item)
+            kwargs[key] = to_call(item)  # type: ignore

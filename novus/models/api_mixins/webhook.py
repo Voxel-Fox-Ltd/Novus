@@ -26,7 +26,7 @@ from ...utils import MISSING, try_object
 if TYPE_CHECKING:
     from ...api import HTTPConnection
     from ...flags import MessageFlags
-    from .. import AllowedMentions, Embed, File, Message, Sticker, Webhook
+    from .. import ActionRow, AllowedMentions, Embed, File, Message, Sticker, Webhook
     from ..abc import Snowflake, StateSnowflake
 
 __all__ = (
@@ -156,12 +156,12 @@ class WebhookAPIMixin:
             thread: int | Snowflake | None,
             tts: bool,
             embeds: list[Embed],
+            components: list[ActionRow] = MISSING,
             allowed_mentions: AllowedMentions,
             message_reference: Message,
             stickers: list[Sticker],
             files: list[File],
-            flags: MessageFlags,
-            ) -> None:
+            flags: MessageFlags) -> None:
         ...
 
     @overload
@@ -173,6 +173,7 @@ class WebhookAPIMixin:
             thread: int | Snowflake | None,
             tts: bool,
             embeds: list[Embed],
+            components: list[ActionRow] = MISSING,
             allowed_mentions: AllowedMentions,
             message_reference: Message,
             stickers: list[Sticker],
@@ -188,7 +189,7 @@ class WebhookAPIMixin:
             thread: int | Snowflake | None = None,
             tts: bool = MISSING,
             embeds: list[Embed] = MISSING,
-            components: list[Any] = MISSING,
+            components: list[ActionRow] = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
             message_reference: Message = MISSING,
             stickers: list[Sticker] = MISSING,
@@ -210,7 +211,7 @@ class WebhookAPIMixin:
             If you want the message to be sent with the TTS flag.
         embeds : list[novus.Embed]
             The embeds you want added to the message.
-        components : novus.Component
+        components : list[novus.ActionRow]
             The components that you want added to the message.
         allowed_mentions : novus.AllowedMentions
             The mentions you want parsed in the message.

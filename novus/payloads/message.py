@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
     from .application import Application
     from .channel import Channel, ChannelType
-    from .components import MessageComponent
+    from .components import ActionRow
     from .embed import Embed
     from .emoji import Emoji
     from .interaction import MessageInteraction
@@ -105,7 +105,7 @@ class _MessageOptional(TypedDict, total=False):
     referenced_message: Optional[Message]
     interaction: MessageInteraction
     thread: Channel
-    components: list[MessageComponent]
+    components: list[ActionRow]
     sticker_items: list[PartialSticker]
     position: int
     guild_id: Snowflake

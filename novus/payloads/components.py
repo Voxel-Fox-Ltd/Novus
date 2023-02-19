@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, TypedDict, Union
 
+from typing_extensions import NotRequired
+
 if TYPE_CHECKING:
     from .emoji import PartialEmoji
 
@@ -29,7 +31,9 @@ __all__ = (
     'SelectMenu',
     'TextInput',
     'ActionRow',
-    'MessageComponent',
+    'IteractableComponent',
+    'LayoutComponent',
+    'Component',
 )
 
 
@@ -47,12 +51,13 @@ ComponentType = Literal[
 
 class _ButtonOptional(TypedDict, total=False):
     emoji: PartialEmoji
-    custom_id: str
     url: str
     disabled: bool
+    label: str
 
 
 class Button(_ButtonOptional):
+    custom_id: str
     type: Literal[2]
     style: Literal[1, 2, 3, 4, 5]
 
@@ -82,22 +87,19 @@ class SelectMenu(_SelectMenuOptional):
     custom_id: str
 
 
-class _TextInputOptional(TypedDict, total=False):
-    min_length: int
-    max_length: int
-    required: bool
-    value: str
-    placeholder: str
-
-
-class TextInput(_TextInputOptional):
+class TextInput(TypedDict):
     type: Literal[4]
     custom_id: str
     style: Literal[1, 2]
     label: str
+    min_length: NotRequired[int]
+    max_length: NotRequired[int]
+    required: NotRequired[bool]
+    value: NotRequired[str]
+    placeholder: NotRequired[str]
 
 
-ActionRowComponents = Union[
+IteractableComponent = Union[
     Button,
     SelectMenu,
     TextInput,
@@ -106,7 +108,10 @@ ActionRowComponents = Union[
 
 class ActionRow(TypedDict):
     type: Literal[1]
-    components: list[ActionRowComponents]
+    components: list[IteractableComponent]
 
 
-MessageComponent = ActionRow
+LayoutComponent = ActionRow
+
+
+Component = Union[IteractableComponent, LayoutComponent]

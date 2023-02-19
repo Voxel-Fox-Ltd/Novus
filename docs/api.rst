@@ -709,6 +709,60 @@ Webhook
     :inherited-members:
     :no-special-members:
 
+Components
+----------
+
+Components make up Discord's UI kit, and add a way for users to interact with your bot.
+
+.. autoclass:: novus.Component
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.ActionRow
+    :members:
+    :inherited-members:
+    :special-members: __setitem__, __getitem__, __iter__
+
+.. autoclass:: novus.Button
+    :members:
+    :inherited-members:
+
+.. autoclass:: novus.SelectOption
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.StringSelectMenu
+    :members:
+    :inherited-members:
+    :special-members: __setitem__, __getitem__, __iter__
+
+.. autoclass:: novus.UserSelectMenu
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.RoleSelectMenu
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.MentionableSelectMenu
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.ChannelSelectMenu
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.TextInput
+    :members:
+    :inherited-members:
+    :no-special-members:
+
 Discord Oauth Models
 ------------------------
 

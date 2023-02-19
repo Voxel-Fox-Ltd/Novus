@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from ...api import HTTPConnection
     from ...flags import MessageFlags
     from .. import (
+        ActionRow,
         AllowedMentions,
         Channel,
         Embed,
@@ -61,7 +62,7 @@ class MessageAPIMixin:
             tts: bool = MISSING,
             embeds: list[Embed] = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
-            components: list[Any] = MISSING,
+            components: list[ActionRow] = MISSING,
             message_reference: Message = MISSING,
             stickers: list[Sticker] = MISSING,
             files: list[File] = MISSING,
@@ -85,7 +86,7 @@ class MessageAPIMixin:
             A list of embeds to be added to the message.
         allowed_mentions : novus.AllowedMentions
             An object of users that you want to be pinged.
-        components : list[novus.Component]
+        components : list[novus.ActionRow]
             A list of components to add to the message.
         message_reference : novus.Message
             A message to reply to.
@@ -267,36 +268,36 @@ class MessageAPIMixin:
 
     async def edit(
             self: abc.StateSnowflakeWithChannel,
-            content: str = MISSING,
+            content: str | None = MISSING,
             *,
             tts: bool = MISSING,
-            embeds: list[Embed] = MISSING,
+            embeds: list[Embed] | None = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
-            components: list[Any] = MISSING,
-            message_reference: Message = MISSING,
-            stickers: list[Sticker] = MISSING,
-            files: list[File] = MISSING,
+            components: list[ActionRow] | None = MISSING,
+            message_reference: Message | None = MISSING,
+            stickers: list[Sticker] | None = MISSING,
+            files: list[File] | None = MISSING,
             flags: MessageFlags = MISSING) -> Message:
         """
         Edit an existing message.
 
         Parameters
         ----------
-        content : str
+        content : str | None
             The content to be added to the message.
         tts : bool
             Whether the message should be sent with TTS.
-        embeds : list[novus.Embed]
+        embeds : list[novus.Embed] | None
             A list of embeds to be added to the message.
         allowed_mentions : novus.AllowedMentions
             An object of users that you want to be pinged.
-        components : list[novus.Component]
+        components : list[novus.ActionRow] | None
             A list of components to add to the message.
-        message_reference : novus.Message
+        message_reference : novus.Message | None
             A message to reply to.
-        stickers : list[novus.Sticker]
+        stickers : list[novus.Sticker] | None
             A list of stickers to add to the message.
-        files : list[novus.File]
+        files : list[novus.File] | None
             A list of files to be added to the message.
         flags : novus.MessageFlags
             Message send flags.

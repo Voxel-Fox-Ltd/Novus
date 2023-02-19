@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from .audit_log import *
 from .auto_moderation import *
 from .channel import *
+from .components import *
 from .gateway import *
 from .guild import *
 from .locale import *
@@ -32,7 +33,9 @@ __all__: tuple[str, ...] = (
     'AutoModerationEventType',
     'AutoModerationKeywordPresetType',
     'AutoModerationTriggerType',
+    'ButtonStyle',
     'ChannelType',
+    'ComponentType',
     'ContentFilterLevel',
     'EventEntityType',
     'EventPrivacyLevel',
@@ -49,6 +52,7 @@ __all__: tuple[str, ...] = (
     'PremiumTier',
     'StickerFormat',
     'StickerType',
+    'TextInputStyle',
     'UserPremiumType',
     'VerificationLevel',
 )

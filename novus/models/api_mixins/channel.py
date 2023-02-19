@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from ... import enums, flags
     from ...api import HTTPConnection
     from .. import (
+        ActionRow,
         AllowedMentions,
         Channel,
         Embed,
@@ -353,6 +354,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
             tts: bool = MISSING,
             embeds: list[Embed] = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
+            components: list[ActionRow] = MISSING,
             message_reference: Message = MISSING,
             stickers: list[Sticker] = MISSING,
             files: list[File] = MISSING,
@@ -370,6 +372,8 @@ class TextChannelAPIMixin(ChannelAPIMixin):
             The embeds you want added to the message.
         allowed_mentions : novus.AllowedMentions
             The mentions you want parsed in the message.
+        components : list[novus.ActionRow]
+            A list of action rows to be added to the message.
         message_reference : novus.Message
             A reference to a message you want replied to.
         stickers : list[novus.Sticker]
@@ -380,7 +384,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
             The flags to be sent with the message.
         """
 
-        channel: abc.Snowflake = await self._get_channel()  # pyright: ignore
+        channel_id: int = await self._get_channel()  # pyright: ignore
 
         data: dict[str, Any] = {}
 
@@ -392,6 +396,8 @@ class TextChannelAPIMixin(ChannelAPIMixin):
             data["embeds"] = embeds
         if allowed_mentions is not MISSING:
             data["allowed_mentions"] = allowed_mentions
+        if components is not MISSING:
+            data["components"] = components
         if message_reference is not MISSING:
             data["message_reference"] = message_reference
         if stickers is not MISSING:
@@ -402,7 +408,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
             data["flags"] = flags
 
         return await self._state.channel.create_message(
-            channel.id,
+            channel_id,
             **data,
         )
 
@@ -578,7 +584,7 @@ class ForumChannelAPIMixin(ChannelAPIMixin):
             content: str = MISSING,
             embeds: list[Embed] = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
-            components: Any = MISSING,
+            components: list[ActionRow] = MISSING,
             files: list[File] = MISSING,
             flags: flags.MessageFlags = MISSING) -> Thread:
         """
