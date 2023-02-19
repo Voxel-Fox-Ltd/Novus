@@ -122,7 +122,7 @@ class AuditLogEntry:
         '_cs_target',
     )
 
-    def __init__(self, *, data: AuditLogEntryPayload, log: AuditLog):
+    def __init__(self, *, data: AuditLogEntryPayload, log: AuditLog | None):
         self.log = log
         self.id = try_snowflake(data['id'])
         self.reason = data.get('reason', None)
@@ -155,9 +155,7 @@ class AuditLogEntry:
                     change_obj = self.before
                 else:
                     raise ValueError("Invalid change key")
-                nv = change.get('new_value')
-                assert change_obj is not None
-                assert nv is not None
+                nv = change['new_value']  # pyright: ignore
                 for k, v in nv[0].items():
                     if k == "id":
                         v = int(v)  # pyright: ignore
@@ -187,12 +185,16 @@ class AuditLogEntry:
 
     @cached_slot_property('_cs_user')
     def user(self) -> User | None:
+        if self.log is None:
+            return None
         if self.user_id is None:
             return None
         return self.log._get_user(self.user_id)
 
     @cached_slot_property('_cs_target')
     def target(self) -> Snowflake | None:
+        if self.log is None:
+            return None
         if self.target_id is None:
             return None
         action_base = "_".join(self.action_type.name.split("_")[:-1])

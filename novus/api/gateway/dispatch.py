@@ -22,6 +22,7 @@ import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeVar
 
 from ...models import (
+    AuditLogEntry,
     Channel,
     Emoji,
     Guild,
@@ -100,7 +101,7 @@ class GatewayDispatch:
             "GUILD_CREATE": self._handle_guild_create,
             "GUILD_UPDATE": self._handle_guild_update,
             "GUILD_DELETE": self._handle_guild_delete,
-            # "Guild audit log entry create": None,
+            "GUILD_AUDIT_LOG_ENTRY_CREATE": self._handle_audit_log_entry,
             "GUILD_BAN_ADD": self._handle_guild_ban,
             "GUILD_BAN_REMOVE": self._handle_guild_unban,
             "GUILD_EMOJIS_UPDATE": self._handle_guild_emojis_update,
@@ -784,3 +785,10 @@ class GatewayDispatch:
         else:
             guild._voice_states.pop(user_id, None)
             yield current, None
+
+    async def _handle_audit_log_entry(
+            self,
+            data: payloads.AuditLogEntry) -> Ret[AuditLogEntry]:
+        """Handle audit log entry events."""
+
+        yield AuditLogEntry(data=data, log=None)

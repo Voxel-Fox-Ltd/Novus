@@ -53,6 +53,47 @@ class GatewayConnection:
 
     def __init__(self, parent: HTTPConnection) -> None:
         self.parent = parent
+
+    async def connect(
+            self,
+            *,
+            shard_ids: list[int],
+            shard_count: int,
+            presence: None = None,
+            intents: Intents = Intents.none()) -> None:
+        self.presence: None = None
+        self.intents: Intents = Intents.none()
+        self.shards: set[GatewayShard] = set()
+        for i in shard_ids:
+            gs = GatewayShard(
+                parent=self.parent,
+                shard_id=i,
+                shard_count=shard_count,
+                presence=presence,
+                intents=intents,
+            )
+            self.shards.add(gs)
+            asyncio.create_task(gs.connect())
+
+    async def close(self) -> None:
+        tasks = [
+            i.close()
+            for i in self.shards
+        ]
+        await asyncio.gather(*tasks)
+
+
+class GatewayShard:
+
+    def __init__(
+            self,
+            parent: HTTPConnection,
+            *,
+            shard_id: int,
+            shard_count: int,
+            presence: None = None,
+            intents: Intents = Intents.none()) -> None:
+        self.parent = parent
         self.ws_url = Route.WS_BASE + "?" + urlencode({
             "v": 10,
             "encoding": "json",
@@ -62,10 +103,10 @@ class GatewayConnection:
         self.dispatch = GatewayDispatch(self.parent)
 
         # Initial identify data (for entire reconnects)
-        self.shard_id: int = 0
-        self.shard_count: int = 1
-        self.presence: None = None
-        self.intents: Intents = Intents.none()
+        self.shard_id: int = shard_id
+        self.shard_count: int = shard_count
+        self.presence: None = presence
+        self.intents: Intents = intents
 
         # Websocket data
         self.socket: aiohttp.ClientWebSocketResponse
@@ -160,13 +201,13 @@ class GatewayConnection:
                 return None
             elif data.type == aiohttp.WSMsgType.CLOSING:
                 log.info(
-                    "Websocket closing apparently (%s %s)"
+                    "Websocket currently closing (%s %s)"
                     % (data, data.extra)
                 )
                 raise GatewayClose()
             elif data.type == aiohttp.WSMsgType.CLOSE:
                 log.info(
-                    "Socket forced to close (%s %s)"
+                    "Socket told to close (%s %s)"
                     % (data, data.extra)
                 )
                 raise GatewayException.all_exceptions[data.data]()
@@ -213,21 +254,13 @@ class GatewayConnection:
     async def connect(
             self,
             ws_url: str | None = None,
-            reconnect: bool = False,
-            shard_id: int = MISSING,
-            shard_count: int = MISSING,
-            presence: None = MISSING,
-            intents: Intents = MISSING) -> None:
+            reconnect: bool = False) -> None:
         """
         Create a connection to the gateway.
         """
 
         # Cache the connect data
         if reconnect is False:
-            self.shard_id = shard_id if shard_id is not MISSING else self.shard_id
-            self.shard_count = shard_count if shard_count is not MISSING else self.shard_count
-            self.presence = presence if presence is not MISSING else self.presence
-            self.intents = intents if intents is not MISSING else self.intents
 
             # This is our first connection; let's update the cache based on the
             # intents
@@ -257,7 +290,7 @@ class GatewayConnection:
         if got is None:
             return
         _, _, _, data = got
-        log.info("Connected to gateway - %s" % dump(data))
+        log.info("Connected to gateway (shard %s) - %s", self.shard_id, dump(data))
 
         # Start heartbeat
         heartbeat_interval = data["heartbeat_interval"]
