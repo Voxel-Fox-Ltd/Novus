@@ -36,6 +36,46 @@ __all__ = (
 class TextInput(InteractableComponent):
     """
     A text input component for inside of modals.
+
+    Parameters
+    ----------
+    label : str
+        The label on the text component.
+    style : novus.TextInputStyle
+        The style of the component.
+    custom_id : str
+        The custom ID for the input.
+    min_length : int
+        The minimum length of the user's input.
+    max_length : int
+        The maximum length of the user's input.
+    required : bool
+        Whether or not the input is required to be filled before you can submit
+        the interaction.
+    value : str | None
+        The value filling the component.
+    placeholder : str | None
+        A placeholder string shown in the component when there's no value.
+
+    Attributes
+    ----------
+    label : str
+        The label on the text component.
+    style : novus.TextInputStyle
+        The style of the component.
+    custom_id : str
+        The custom ID for the input.
+    min_length : int
+        The minimum length of the user's input.
+    max_length : int
+        The maximum length of the user's input.
+    required : bool
+        Whether or not the input is required to be filled before you can submit
+        the interaction.
+    value : str | None
+        The value filling the component.
+    placeholder : str | None
+        A placeholder string shown in the component when there's no value.
     """
 
     __slots__ = (

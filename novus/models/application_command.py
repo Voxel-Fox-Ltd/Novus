@@ -43,6 +43,13 @@ class ApplicationCommandChoice:
             Large numbers (those in BIGINT range, including IDs) will be
             truncated by Discord - it's recommended that you use a string in
             their place.
+
+    Attributes
+    ----------
+    name : str
+        The name of the choice.
+    value : str | int | float
+        The value associated with the choice.
     """
 
     def __init__(self, name: str, value: str | int | float):
