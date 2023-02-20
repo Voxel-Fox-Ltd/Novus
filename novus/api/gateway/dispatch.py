@@ -108,7 +108,7 @@ class GatewayDispatch:
             "GUILD_BAN_REMOVE": self._handle_guild_unban,
             "GUILD_EMOJIS_UPDATE": self._handle_guild_emojis_update,
             "GUILD_STICKERS_UPDATE": self._handle_guild_stickers_update,
-            # "Guild integrations update": None,
+            "GUILD_INTEGRATIONS_UPDATE": self.ignore("GUILD_INTEGRATIONS_UPDATE"),
             "GUILD_MEMBER_ADD": self._handle_guild_member_add,
             "GUILD_MEMBER_REMOVE": self._handle_guild_member_remove,
             "GUILD_MEMBER_UPDATE": self._handle_guild_member_update,
@@ -121,10 +121,10 @@ class GatewayDispatch:
             # "Guild scheduled event delete": None,
             # "Guild scheduled event user add": None,
             # "Guild scheduled event user remove": None,
-            # "Integration create": None,
-            # "Integration update": None,
-            # "Integration delete": None,
-            # "Interaction create": None,
+            "INTEGRATION_CREATE": self.ignore("INTEGRATION_CREATE"),
+            "INTEGRATION_UPDATE": self.ignore("INTEGRATION_UPDATE"),
+            "INTEGRATION_DELETE": self.ignore("INTEGRATION_DELETE"),
+            "INTERACTION_CREATE": self.ignore("INTERACTION_CREATE"),
             "INVITE_CREATE": self._handle_invite_create,
             "INVITE_DELETE": self._handle_invite_delete,
             "MESSAGE_CREATE": self._handle_message_create,
@@ -199,6 +199,12 @@ class GatewayDispatch:
         # os.makedirs(evt, exist_ok=True)
         # with open(evt / f"{self.parent.gateway.sequence}_{self.session_id}.json", "w") as a:
         #     json.dump(data, a, indent=4, sort_keys=True)
+
+    @staticmethod
+    def ignore(event_name: str):
+        async def wrapper(data: Any):
+            yield event_name, data
+        return wrapper
 
     async def _handle_interaction(
             self,

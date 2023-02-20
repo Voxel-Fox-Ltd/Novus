@@ -390,6 +390,8 @@ class GatewayShard:
         self.ready.set()
         if self.heartbeat_task is not None:
             self.heartbeat_task.cancel()
+        if self.message_task is not None:
+            self.message_task.cancel()
         if self.socket and not self.socket.closed:
             await self.socket.close()
 
