@@ -2,6 +2,7 @@
 vf-flags>=0.2.2,<0.3
 aiohttp>=3.8.0
 emoji
+typing_extensions
 
 # Recommended
 python-dotenv
