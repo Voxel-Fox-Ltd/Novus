@@ -21,9 +21,12 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
+from .command import Command
 from .event import EventListener
 
 if TYPE_CHECKING:
+    import novus as n
+
     from .client import Client
 
 __all__ = (
@@ -44,24 +47,39 @@ def loadable(cls: T) -> T:
 
 
 class PluginMeta(type):
-
     def __init__(cls, name: str, bases: Any, dct: dict[str, Any]) -> None:
         super().__init__(name, bases, dct)
+
+        # Clear caches
         cls._event_listeners: dict[str, set[EventListener]] = {}
+        cls._commands: set[Command] = set()
+
+        # Iterate over items
         for name, val in dct.items():
+
+            # Add event listeners to cache
             if isinstance(val, EventListener):
-                val.owner = cls
                 if val.event not in cls._event_listeners:
                     cls._event_listeners[val.event] = set()
                 cls._event_listeners[val.event].add(val)
+
+            # Add commands to cache
+            if isinstance(val, Command):
+                val.owner = cls
+                cls._commands.add(val)
 
 
 class Plugin(metaclass=PluginMeta):
 
     _event_listeners: ClassVar[dict[str, set[EventListener]]]
+    _commands: ClassVar[set[Command]]
+    _command_ids: ClassVar[dict[int, Command]]
 
     def __init__(self, bot: Client) -> None:
         self.bot: Client = bot
+
+    def __repr__(self) -> str:
+        return f"<Plugin[{self.__class__.__name__}]>"
 
     async def on_load(self) -> None:
         pass
@@ -78,7 +96,7 @@ class Plugin(metaclass=PluginMeta):
             for el in self._event_listeners[event_name]:
                 try:
                     asyncio.create_task(
-                        el.func(el.owner, *args, **kwargs),
+                        el.func(self, *args, **kwargs),  # pyright: ignore
                         name=f"{event_name} dispatch in {self.__class__.__name__}"
                     )
                 except Exception as e:

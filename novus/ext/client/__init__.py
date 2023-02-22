@@ -16,14 +16,18 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
 from .client import *
+from .command import *
 from .config import *
 from .event import *
 from .plugin import *
 
 __all__: tuple[str, ...] = (
     'Client',
+    'Command',
     'Config',
+    'EventListener',
     'Plugin',
+    'command',
     'event',
     'loadable',
 )

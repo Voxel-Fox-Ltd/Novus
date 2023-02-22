@@ -19,13 +19,16 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Type
+from collections import defaultdict
+from functools import partial
+from typing import TYPE_CHECKING, Any, Type, cast
 
-import novus
+import novus as n
 
 if TYPE_CHECKING:
+    from .command import Command
     from .config import Config
-    from .plugins import Plugin
+    from .plugin import Plugin
 
 __all__ = (
     'Client',
@@ -42,9 +45,44 @@ class Client:
 
     def __init__(self, config: Config) -> None:
         self.config = config
-        self.state = novus.api.HTTPConnection(self.config.token)
+        self.state = n.api.HTTPConnection(self.config.token)
         self.state.dispatch = self.dispatch
+
         self.plugins: set[Plugin] = set()
+        self._commands: dict[tuple[int | None, str], Command] = {}
+        self._commands_by_id: dict[int, Command] = {}
+
+    @property
+    def commands(self):
+        return set(self._commands.values())
+
+    def add_command(self, command: Command) -> None:
+        """
+        Add a command to the bot's internal cache.
+
+        Parameters
+        ----------
+        command : novus.ext.client.Command
+            The command you want to add.
+
+        Raises
+        ------
+        NameError
+            You have tried to add a command with a duplicate name (and guild
+            status) as an already cached command.
+        """
+
+        if command.guild_ids:
+            for gid in command.guild_ids:
+                key = (gid, command.name,)
+                if key in self._commands:
+                    raise NameError("Command with duplicate name %s guild ID %s" % key)
+                self._commands[key] = command
+        else:
+            key = (None, command.name,)
+            if key in self._commands:
+                raise NameError("Command with duplicate name %s" % command.name)
+            self._commands[key] = command
 
     def add_plugin(self, plugin: Type[Plugin]) -> None:
         """
@@ -58,6 +96,8 @@ class Client:
             return
         log.info(f"Added plugin {created} to client instance")
         self.plugins.add(created)
+        for c in created._commands:
+            self.add_command(c)
 
         # Run ``.on_load()`` if we've started the event loop.
         try:
@@ -86,7 +126,7 @@ class Client:
         Load all of the plugins that have been added to the bot.
         """
 
-        log.info(f"Loading {len(self.plugins)}")
+        log.info(f"Loading {len(self.plugins)} plugins")
         tasks = []
         for p in self.plugins:
             t = asyncio.create_task(
@@ -101,8 +141,133 @@ class Client:
         Dispatch an event to all loaded plugins.
         """
 
+        if event_name == "INTERACTION_CREATE":
+            interaction: n.Interaction = args[0]
+            if interaction.type in [
+                    n.InteractionType.application_command,
+                    n.InteractionType.autocomplete]:
+                interaction = cast(n.Interaction[n.ApplicationCommandData], interaction)
+                try:
+                    command = self._commands_by_id[interaction.data.id]
+                except KeyError:
+                    log.warning(
+                        "Failed to get cached command with ID %s (%s)"
+                        % (interaction.data.id, interaction)
+                    )
+                else:
+                    if interaction.type == n.InteractionType.application_command:
+                        asyncio.create_task(
+                            command.run(interaction),
+                            name=f"Command invoke from interaction ({interaction.id})"
+                        )
+                    elif interaction.type == n.InteractionType.autocomplete:
+                        asyncio.create_task(
+                            command.run_autocomplete(interaction),
+                            name=f"Command invoke from interaction ({interaction.id})"
+                        )
+                    else:
+                        log.error("Failed to run interaction command %s" % interaction)
+
         for p in self.plugins:
             p.dispatch(event_name, *args, **kwargs)
+
+    async def sync_commands(self) -> None:
+        """
+        Get all commands from Discord. Determine if they all already exist. If
+        not, PUT them there. If so, save command IDs.
+        """
+
+        log.info("Syncing commands")
+
+        # Get application ID
+        aid: int | None = self.state.cache.application_id
+        if aid is None:
+            app = self.state.cache.application
+            if app is None:
+                app = await self.state.oauth2.get_current_bot_information()
+                self.state.cache.application = app
+                aid = app.id
+        assert aid
+
+        # Group our commands by guild ID
+        commands_by_guild: dict[int | None, dict[str, Command]]
+        commands_by_guild = defaultdict(partial(defaultdict, dict))
+        for (guild_id, command_name), command in self._commands.items():
+            commands_by_guild[guild_id][command_name] = command
+
+        # See which commands we have that exist already
+        for guild_id, commands in commands_by_guild.items():
+
+            # Set up our requests
+            state = self.state.interaction
+            if guild_id is None:
+                get = partial(state.get_global_application_commands, aid)
+                bulk = partial(state.bulk_overwrite_global_application_commands, aid)
+                create = partial(state.create_global_application_command, aid)
+                edit = partial(state.edit_global_application_command, aid)
+                delete = partial(state.delete_global_application_command, aid)
+            else:
+                get = partial(state.get_guild_application_commands, aid, guild_id)
+                bulk = partial(state.bulk_overwrite_guild_application_commands, aid, guild_id)
+                create = partial(state.create_guild_application_command, aid, guild_id)
+                edit = partial(state.edit_guild_application_command, aid, guild_id)
+                delete = partial(state.delete_guild_application_command, aid, guild_id)
+
+            # See what we need to do
+            on_server = await get()
+            unchecked_local = commands.copy()
+            to_add: list[Command] = []
+            to_delete: list[int] = []
+            to_edit: dict[int, Command] = {}
+            for dis_com in on_server:
+                try:
+                    local = unchecked_local.pop(dis_com.name)
+                except KeyError:
+                    to_delete.append(dis_com.id)
+                else:
+                    if local.application_command._to_data() != dis_com._to_data():
+                        to_edit[dis_com.id] = local
+                    local.command_ids.add(dis_com.id)
+                    self._commands_by_id[dis_com.id] = local
+            to_add = list(unchecked_local.values())
+
+            # Do everything of interest
+            if len(to_add) + len(to_delete) + len(to_edit) > 1:
+                local_commands = [
+                    i.application_command._to_data()
+                    for i in commands.values()
+                ]
+                log.info(
+                    "Bulk updating %s app commands in guild %s"
+                    % (len(local_commands), guild_id)
+                )
+                for dis_com in on_server:
+                    self._commands_by_id.pop(dis_com.id, None)
+                on_server = await bulk(local_commands)
+                for dis_com in on_server:
+                    commands[dis_com.name].add_id(dis_com.id)
+                    self._commands_by_id[dis_com.id] = self._commands[(guild_id, dis_com.name)]
+            elif to_add:
+                log.info(
+                    "Adding app command %s in guild %s"
+                    % (to_add[0], guild_id)
+                )
+                on_server = await create(**to_add[0].application_command._to_data())
+                to_add[0].command_ids.add(on_server.id)
+                self._commands_by_id[on_server.id] = to_add[0]
+            elif to_delete:
+                log.info(
+                    "Deleting app command %s in guild %s"
+                    % (to_delete[0], guild_id)
+                )
+                await delete(to_delete[0])
+            elif to_edit:
+                for id, comm in to_edit.items():
+                    log.info(
+                        "Editing app command %s %s in guild %s"
+                        % (id, comm, guild_id)
+                    )
+                    await edit(id, **comm.application_command._to_data())
 
     async def connect(self) -> None:
         """
@@ -126,7 +291,7 @@ class Client:
         await self.state.gateway.close()
         await (await self.state.get_session()).close()
 
-    async def run(self) -> None:
+    async def run(self, sync: bool = True) -> None:
         """
         Connect the bot to the gateway, keeping the bot's connection to the
         websocket alive.
@@ -134,6 +299,8 @@ class Client:
 
         log.info("Running client")
         await self.load_plugins()
+        if sync:
+            await self.sync_commands()
         await self.connect()
         try:
             await self.state.gateway.wait()
