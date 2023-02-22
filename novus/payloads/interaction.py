@@ -24,7 +24,7 @@ from typing_extensions import NotRequired
 if TYPE_CHECKING:
     from . import (
         ActionRow,
-        ApplicationCommentOptionType,
+        ApplicationCommandOptionType,
         Attachment,
         Channel,
         ComponentType,
@@ -76,7 +76,7 @@ class InteractionResolved(TypedDict):
 
 class InteractionDataOption(TypedDict):
     name: str
-    type: ApplicationCommentOptionType
+    type: ApplicationCommandOptionType
     value: NotRequired[str | int | bool]
     options: NotRequired[list[InteractionDataOption]]
     focused: NotRequired[bool]

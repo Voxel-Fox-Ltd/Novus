@@ -15,6 +15,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from .application_command import *
 from .audit_log import *
 from .auto_moderation import *
 from .channel import *
@@ -30,6 +31,7 @@ from .user import *
 
 __all__: tuple[str, ...] = (
     'ApplicationCommandType',
+    'ApplicationOptionType',
     'AuditLogEventType',
     'AutoModerationActionType',
     'AutoModerationEventType',
@@ -46,6 +48,8 @@ __all__: tuple[str, ...] = (
     'ForumSortOrder',
     'GatewayOpcode',
     'InteractionResponseType',
+    'InteractionResponseType',
+    'InteractionType',
     'InteractionType',
     'Locale',
     'MFALevel',

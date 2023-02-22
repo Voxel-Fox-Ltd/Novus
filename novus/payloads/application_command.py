@@ -17,14 +17,31 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal, TypedDict
+
+from typing_extensions import NotRequired
+
+if TYPE_CHECKING:
+    from . import ChannelType, Locale, Snowflake
 
 __all__ = (
-    'ApplicationCommentOptionType',
+    'ApplicationCommandType',
+    'ApplicationCommandOptionType',
+    'ApplicationCommandChoice',
+    'ApplicationCommandOption',
+    'PartialApplicationCommand',
+    'ApplicationCommand',
 )
 
 
-ApplicationCommentOptionType = Literal[
+ApplicationCommandType = Literal[
+    1,  # CHAT_INPUT
+    2,  # USER
+    3,  # MESSAGE
+]
+
+
+ApplicationCommandOptionType = Literal[
     1,  # SUB_COMMAND
     2,  # SUB_COMMAND_GROUP
     3,  # STRING
@@ -37,3 +54,45 @@ ApplicationCommentOptionType = Literal[
     10,  # NUMBER (double)
     11,  # ATTACHMENT
 ]
+
+
+class ApplicationCommandChoice(TypedDict):
+    name: str
+    name_localizations: NotRequired[dict[Locale, str] | None]
+    value: str | int | float
+
+
+class ApplicationCommandOption(TypedDict):
+    type: ApplicationCommandOptionType
+    name: str
+    name_localizations: NotRequired[dict[Locale, str] | None]
+    description: str
+    description_localizations: NotRequired[dict[Locale, str] | None]
+    required: NotRequired[bool]
+    choices: NotRequired[list[ApplicationCommandChoice]]
+    options: NotRequired[list[ApplicationCommandOption]]
+    channel_types: NotRequired[list[ChannelType]]
+    min_value: NotRequired[int | float]
+    max_value: NotRequired[int | float]
+    min_length: NotRequired[int]
+    max_length: NotRequired[int]
+    autocomplete: NotRequired[bool]
+
+
+class PartialApplicationCommand(TypedDict):
+    type: NotRequired[ApplicationCommandType]
+    name: str
+    name_localizations: NotRequired[dict[Locale, str] | None]
+    description: str
+    description_localizations: NotRequired[dict[Locale, str] | None]
+    options: NotRequired[list[ApplicationCommandOption]]
+    default_member_permissions: str | None
+    dm_permission: NotRequired[bool]
+    nsfw: NotRequired[bool]
+
+
+class ApplicationCommand(PartialApplicationCommand):
+    id: Snowflake
+    application_id: Snowflake
+    guild_id: NotRequired[Snowflake]
+    version: Snowflake

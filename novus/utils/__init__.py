@@ -19,6 +19,7 @@ from .cached_slots import *
 from .components import *
 from .enums import *
 from .files import *
+from .localization import *
 from .missing import *
 from .repr import *
 from .snowflakes import *
@@ -26,6 +27,7 @@ from .times import *
 
 __all__: tuple[str, ...] = (
     'DiscordDatetime',
+    'Localization',
     'ME',
     'MISSING',
     'add_not_missing',

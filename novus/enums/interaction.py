@@ -19,7 +19,6 @@ from .utils import Enum
 
 __all__ = (
     'InteractionType',
-    'ApplicationCommandType',
     'InteractionResponseType',
 )
 
@@ -30,12 +29,6 @@ class InteractionType(Enum):
     message_component = 3
     autocomplete = 4
     modal_submit = 5
-
-
-class ApplicationCommandType(Enum):
-    chat_input = 1
-    user = 2
-    message = 3
 
 
 class InteractionResponseType(Enum):

@@ -15,44 +15,29 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import TypeAlias
+from .utils import Enum
 
 __all__ = (
-    'Locale',
+    'ApplicationCommandType',
+    'ApplicationOptionType',
 )
 
 
-Locale: TypeAlias = str
-# Locale = Literal[
-#     "id",
-#     "da",
-#     "de",
-#     "en-GB",
-#     "en-US",
-#     "es-ES",
-#     "fr",
-#     "hr",
-#     "it",
-#     "lt",
-#     "hu",
-#     "nl",
-#     "no",
-#     "pl",
-#     "pt-BR",
-#     "ro",
-#     "fi",
-#     "sv-SE",
-#     "vi",
-#     "tr",
-#     "cs",
-#     "el",
-#     "bg",
-#     "ru",
-#     "uk",
-#     "hi",
-#     "th",
-#     "zh-CN",
-#     "ja",
-#     "zh-TW",
-#     "ko",
-# ]
+class ApplicationCommandType(Enum):
+    chat_input = 1
+    user = 2
+    message = 3
+
+
+class ApplicationOptionType(Enum):
+    sub_command = 1
+    sub_command_group = 2
+    string = 3
+    integer = 4
+    boolean = 5
+    user = 6
+    channel = 7
+    role = 8
+    menionable = 9
+    number = 10
+    attachment = 11

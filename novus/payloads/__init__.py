@@ -43,7 +43,7 @@ __all__: tuple[str, ...] = (
     'Activity',
     'AllowedMentions',
     'Application',
-    'ApplicationCommentOptionType',
+    'ApplicationCommandOptionType',
     'ApplicationRoleConnection',
     'ApplicationRoleConnectionMetadata',
     'ApplicationTeam',

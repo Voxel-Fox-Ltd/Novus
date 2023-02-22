@@ -19,10 +19,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NoReturn
 
+from ..models import ApplicationCommand
 from ._route import Route
 from .webhook import WebhookHTTPConnection
 
 if TYPE_CHECKING:
+    from .. import payloads
     from ..enums import InteractionResponseType
     from ._http import HTTPConnection
 
@@ -36,38 +38,389 @@ class InteractionHTTPConnection:
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
 
-    async def get_global_application_commands(self) -> NoReturn:
-        raise NotImplementedError()
+    async def get_global_application_commands(
+            self,
+            application_id: int,
+            *,
+            with_localizations: bool = False) -> list[ApplicationCommand]:
+        """Get the global application commands."""
 
-    async def create_global_application_command(self) -> NoReturn:
-        raise NotImplementedError()
+        params = {
+            "with_localizations": str(with_localizations).lower()
+        }
+        route = Route(
+            "GET",
+            "/applications/{application_id}/commands",
+            application_id=application_id,
+        )
+        data: list[payloads.ApplicationCommand] = await self.parent.request(
+            route,
+            params=params,
+        )
+        return [
+            ApplicationCommand(state=self.parent, data=d)
+            for d in data
+        ]
 
-    async def edit_global_application_command(self) -> NoReturn:
-        raise NotImplementedError()
+    async def create_global_application_command(
+            self,
+            application_id: int,
+            **kwargs: Any) -> ApplicationCommand:
+        """Create a global application command."""
 
-    async def delete_global_application_command(self) -> NoReturn:
-        raise NotImplementedError()
+        route = Route(
+            "POST",
+            "/applications/{application_id}/commands",
+            application_id=application_id,
+        )
 
-    async def bulk_overwrite_global_application_commands(self) -> NoReturn:
-        raise NotImplementedError()
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "description",
+                    "dm_permission",
+                    "nsfw",
+                ),
+                "object": (
+                    "name_localizations",
+                    "description_localizations",
+                    "options",
+                ),
+                "flags": (
+                    "default_member_permissions",
+                ),
+                "enum": (
+                    "type",
+                ),
+            },
+            kwargs,
+        )
 
-    async def get_guild_application_commands(self) -> NoReturn:
-        raise NotImplementedError()
+        data: payloads.ApplicationCommand = await self.parent.request(
+            route,
+            data=post_data,
+        )
+        return ApplicationCommand(state=self.parent, data=data)
 
-    async def create_guild_application_command(self) -> NoReturn:
-        raise NotImplementedError()
+    async def get_global_application_command(
+            self,
+            application_id: int,
+            command_id: int) -> ApplicationCommand:
+        """Get a single global application command."""
 
-    async def get_guild_application_command(self) -> NoReturn:
-        raise NotImplementedError()
+        route = Route(
+            "GET",
+            "/applications/{application_id}/commands/{command_id}",
+            application_id=application_id,
+            command_id=command_id,
+        )
+        data: payloads.ApplicationCommand = await self.parent.request(
+            route,
+        )
+        return ApplicationCommand(state=self.parent, data=data)
 
-    async def edit_guild_application_command(self) -> NoReturn:
-        raise NotImplementedError()
+    async def edit_global_application_command(
+            self,
+            application_id: int,
+            command_id: int,
+            **kwargs: Any) -> ApplicationCommand:
+        """Edit a global application command."""
 
-    async def delete_guild_application_command(self) -> NoReturn:
-        raise NotImplementedError()
+        route = Route(
+            "PATCH",
+            "/applications/{application_id}/commands/{command_id}",
+            application_id=application_id,
+            command_id=command_id,
+        )
 
-    async def bulk_overwrite_guild_application_commands(self) -> NoReturn:
-        raise NotImplementedError()
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "description",
+                    "dm_permission",
+                    "nsfw",
+                ),
+                "object": (
+                    "name_localizations",
+                    "description_localizations",
+                    "options",
+                ),
+                "flags": (
+                    "default_member_permissions",
+                ),
+                "enum": (
+                    "type",
+                ),
+            },
+            kwargs,
+        )
+
+        data: payloads.ApplicationCommand = await self.parent.request(
+            route,
+            data=post_data,
+        )
+        return ApplicationCommand(state=self.parent, data=data)
+
+    async def delete_global_application_command(
+            self,
+            application_id: int,
+            command_id: int) -> None:
+        """Delete a global application command."""
+
+        route = Route(
+            "DELETE",
+            "/applications/{application_id}/commands/{command_id}",
+            application_id=application_id,
+            command_id=command_id,
+        )
+        await self.parent.request(route)
+
+    async def bulk_overwrite_global_application_commands(
+            self,
+            application_id: int,
+            commands: list[dict]) -> list[ApplicationCommand]:
+        """Overwrite all current global application commands."""
+
+        route = Route(
+            "PUT",
+            "/applications/{application_id}/commands",
+            application_id=application_id,
+        )
+
+        post_data = [
+            self.parent._get_kwargs(
+                {
+                    "type": (
+                        "name",
+                        "description",
+                        "dm_permission",
+                        "nsfw",
+                    ),
+                    "object": (
+                        "name_localizations",
+                        "description_localizations",
+                        "options",
+                    ),
+                    "flags": (
+                        "default_member_permissions",
+                    ),
+                    "enum": (
+                        "type",
+                    ),
+                },
+                d,
+            )
+            for d in commands
+        ]
+
+        data: list[payloads.ApplicationCommand] = await self.parent.request(
+            route,
+            data=post_data,
+        )
+        return [
+            ApplicationCommand(state=self.parent, data=d)
+            for d in data
+        ]
+
+    async def get_guild_application_commands(
+            self,
+            application_id: int,
+            guild_id: int,
+            *,
+            with_localizations: bool = False) -> list[ApplicationCommand]:
+        """Get all of the application commands in a guild."""
+
+        params = {
+            "with_localizations": str(with_localizations).lower()
+        }
+        route = Route(
+            "GET",
+            "/applications/{application_id}/guilds/{guild_id}/commands",
+            application_id=application_id,
+            guild_id=guild_id,
+        )
+        data: list[payloads.ApplicationCommand] = await self.parent.request(
+            route,
+            params=params,
+        )
+        return [
+            ApplicationCommand(state=self.parent, data=d)
+            for d in data
+        ]
+
+    async def create_guild_application_command(
+            self,
+            application_id: int,
+            guild_id: int,
+            **kwargs: Any) -> ApplicationCommand:
+        """Create a guild application command."""
+
+        route = Route(
+            "POST",
+            "/applications/{application_id}/guilds/{guild_id}/commands",
+            application_id=application_id,
+            guild_id=guild_id,
+        )
+
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "description",
+                    "dm_permission",
+                    "nsfw",
+                ),
+                "object": (
+                    "name_localizations",
+                    "description_localizations",
+                    "options",
+                ),
+                "flags": (
+                    "default_member_permissions",
+                ),
+                "enum": (
+                    "type",
+                ),
+            },
+            kwargs,
+        )
+
+        data: payloads.ApplicationCommand = await self.parent.request(
+            route,
+            data=post_data,
+        )
+        return ApplicationCommand(state=self.parent, data=data)
+
+    async def get_guild_application_command(
+            self,
+            application_id: int,
+            guild_id: int,
+            command_id: int) -> ApplicationCommand:
+        """Get a single guild application command."""
+
+        route = Route(
+            "GET",
+            "/applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
+            application_id=application_id,
+            guild_id=guild_id,
+            command_id=command_id,
+        )
+        data: payloads.ApplicationCommand = await self.parent.request(
+            route,
+        )
+        return ApplicationCommand(state=self.parent, data=data)
+
+    async def edit_guild_application_command(
+            self,
+            application_id: int,
+            guild_id: int,
+            command_id: int,
+            **kwargs: Any) -> ApplicationCommand:
+        """Edit a guild application command."""
+
+        route = Route(
+            "PATCH",
+            "/applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
+            application_id=application_id,
+            guild_id=guild_id,
+            command_id=command_id,
+        )
+
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "name",
+                    "description",
+                    "dm_permission",
+                    "nsfw",
+                ),
+                "object": (
+                    "name_localizations",
+                    "description_localizations",
+                    "options",
+                ),
+                "flags": (
+                    "default_member_permissions",
+                ),
+                "enum": (
+                    "type",
+                ),
+            },
+            kwargs,
+        )
+
+        data: payloads.ApplicationCommand = await self.parent.request(
+            route,
+            data=post_data,
+        )
+        return ApplicationCommand(state=self.parent, data=data)
+
+    async def delete_guild_application_command(
+            self,
+            application_id: int,
+            guild_id: int,
+            command_id: int) -> None:
+        """Delete a guild application command."""
+
+        route = Route(
+            "DELETE",
+            "/applications/{application_id}/guilds/{guild_id}/commands/{command_id}",
+            application_id=application_id,
+            guild_id=guild_id,
+            command_id=command_id,
+        )
+        await self.parent.request(route)
+
+    async def bulk_overwrite_guild_application_commands(
+            self,
+            application_id: int,
+            guild_id: int,
+            commands: list[dict]) -> list[ApplicationCommand]:
+        """Overwrite all current guild application commands."""
+
+        route = Route(
+            "PUT",
+            "/applications/{application_id}/guilds/{guild_id}/commands",
+            application_id=application_id,
+            guild_id=guild_id,
+        )
+
+        post_data = [
+            self.parent._get_kwargs(
+                {
+                    "type": (
+                        "name",
+                        "description",
+                        "dm_permission",
+                        "nsfw",
+                    ),
+                    "object": (
+                        "name_localizations",
+                        "description_localizations",
+                        "options",
+                    ),
+                    "flags": (
+                        "default_member_permissions",
+                    ),
+                    "enum": (
+                        "type",
+                    ),
+                },
+                d,
+            )
+            for d in commands
+        ]
+
+        data: list[payloads.ApplicationCommand] = await self.parent.request(
+            route,
+            data=post_data,
+        )
+        return [
+            ApplicationCommand(state=self.parent, data=d)
+            for d in data
+        ]
 
     async def get_application_command_permissions(self) -> NoReturn:
         raise NotImplementedError()
