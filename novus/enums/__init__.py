@@ -48,8 +48,6 @@ __all__: tuple[str, ...] = (
     'ForumSortOrder',
     'GatewayOpcode',
     'InteractionResponseType',
-    'InteractionResponseType',
-    'InteractionType',
     'InteractionType',
     'Locale',
     'MFALevel',

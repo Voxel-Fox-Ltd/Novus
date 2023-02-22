@@ -367,6 +367,12 @@ class PartialApplicationCommand:
 
     __repr__ = generate_repr(('name', 'description', 'options', 'type',))
 
+    def __eq__(self, other: PartialApplicationCommand) -> bool:
+        return self._to_data() == other._to_data()
+
+    def __ne__(self, other: PartialApplicationCommand) -> bool:
+        return not self.__eq__(other)
+
     def _to_data(self) -> payloads.PartialApplicationCommand:
         d: payloads.PartialApplicationCommand = {
             "name": self.name,
@@ -476,3 +482,14 @@ class ApplicationCommand(PartialApplicationCommand):
         self.version = try_snowflake(data["version"])
 
     __repr__ = generate_repr(('id', 'name', 'description', 'options', 'type',))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ApplicationCommand):
+            return False
+        if not self._to_data() == other._to_data():
+            return False
+        return all((
+            self.id == other.id,
+            self.application_id == other.application_id,
+            self.guild_id == other.guild_id,
+        ))

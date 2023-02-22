@@ -41,7 +41,7 @@ if TYPE_CHECKING:
 __all__ = (
     'InteractionResolved',
     'InteractionData',
-    'ApplicationComandData',
+    'ApplicationCommandData',
     'ContextComandData',
     'MessageComponentData',
     'ModalSubmitData',
@@ -185,7 +185,7 @@ class InteractionData:
     """
 
 
-class ApplicationComandData(InteractionData):
+class ApplicationCommandData(InteractionData):
     """
     Data associated with an application command interaction.
 
@@ -234,7 +234,7 @@ class ApplicationComandData(InteractionData):
     __repr__ = generate_repr(('id', 'type',))
 
 
-class ContextComandData(ApplicationComandData):
+class ContextComandData(ApplicationCommandData):
     """
     Data associated with a context command interaction.
 
@@ -365,7 +365,7 @@ class ModalSubmitData(InteractionData):
 ID = TypeVar(
     "ID",
     None,
-    ApplicationComandData,
+    ApplicationCommandData,
     ContextComandData,
     MessageComponentData,
     ModalSubmitData,
@@ -485,7 +485,7 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
                 assert "type" in data_dict
                 command_type = data_dict.get("type", 1)
                 if command_type == ApplicationCommandType.chat_input.value:
-                    data_object = ApplicationComandData(
+                    data_object = ApplicationCommandData(
                         parent=self,
                         data=data_dict,  # pyright: ignore
                     )
@@ -500,7 +500,7 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
                     data=data_dict,  # pyright: ignore
                 )
             if self.type == InteractionType.autocomplete:
-                data_object = ApplicationComandData(
+                data_object = ApplicationCommandData(
                     parent=self,
                     data=data_dict,  # pyright: ignore
                 )

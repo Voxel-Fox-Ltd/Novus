@@ -39,7 +39,6 @@ class EventListener:
     __slots__ = (
         'event',
         'func',
-        'owner',
         'predicate',
     )
 
@@ -50,7 +49,6 @@ class EventListener:
             predicate: Callable[..., bool] | None = None) -> None:
         self.event = event_name
         self.func: Callable[..., Awaitable[Any]] = func
-        self.owner: Any = None
         self.predicate: Callable[..., bool] = lambda x: True
         if predicate:
             self.predicate = predicate
