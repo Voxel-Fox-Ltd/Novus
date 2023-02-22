@@ -29,6 +29,7 @@ from .guild_member import *
 from .interaction import *
 from .invite import *
 from .message import *
+from .oauth2 import *
 from .object import *
 from .reaction import *
 from .role import *
@@ -44,7 +45,9 @@ from .welcome_screen import *
 __all__: tuple[str, ...] = (
     'ActionRow',
     'AllowedMentions',
-    'ApplicationComandData',
+    'Application',
+    'ApplicationCommandData',
+    'ApplicationCommand',
     'ApplicationCommandChoice',
     'ApplicationCommandOption',
     'Asset',
@@ -90,6 +93,7 @@ __all__: tuple[str, ...] = (
     'ModalSubmitData',
     'OauthGuild',
     'Object',
+    'PartialApplicationCommand',
     'PartialEmoji',
     'PartialGuild',
     'PermissionOverwrite',
@@ -101,6 +105,8 @@ __all__: tuple[str, ...] = (
     'StageInstance',
     'Sticker',
     'StringSelectMenu',
+    'Team',
+    'TeamMember',
     'TextInput',
     'Thread',
     'ThreadMember',

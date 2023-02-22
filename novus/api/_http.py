@@ -39,6 +39,7 @@ from .guild_scheduled_event import GuildEventHTTPConnection
 from .guild_template import GuildTemplateHTTPConnection
 from .interaction import InteractionHTTPConnection
 from .invite import InviteHTTPConnection
+from .oauth2 import Oauth2HTTPConnection
 from .stage_instance import StageHTTPConnection
 from .sticker import StickerHTTPConnection
 from .user import UserHTTPConnection
@@ -104,6 +105,7 @@ class HTTPConnection:
     guild_template : GuildTemplateHTTPConnection
     interaction : InteractionHTTPConnection
     invite : InviteHTTPConnection
+    oauth2 : Oauth2HTTPConnection
     stage_instance : StageHTTPConnection
     sticker : StickerHTTPConnection
     user : UserHTTPConnection
@@ -136,6 +138,7 @@ class HTTPConnection:
         self.guild_template = GuildTemplateHTTPConnection(self)
         self.interaction = InteractionHTTPConnection(self)
         self.invite = InviteHTTPConnection(self)
+        self.oauth2 = Oauth2HTTPConnection(self)
         self.stage_instance = StageHTTPConnection(self)
         self.sticker = StickerHTTPConnection(self)
         self.user = UserHTTPConnection(self)
@@ -357,9 +360,16 @@ class HTTPConnection:
             updated[updated_key] = None
             if item is not None:
                 if isinstance(item, (list, tuple)):
-                    updated[updated_key] = [i.value for i in item]
+                    if item:
+                        if isinstance(item[0], (int, str, bool)):
+                            updated[updated_key] = [i for i in item]
+                        else:
+                            updated[updated_key] = [i.value for i in item]
                 else:
-                    updated[updated_key] = item.value
+                    if isinstance(item, (int, str, bool)):
+                        updated[updated_key] = item
+                    else:
+                        updated[updated_key] = item.value
 
         return updated
 
@@ -415,9 +425,16 @@ class HTTPConnection:
             updated[updated_key] = None
             if item is not None:
                 if isinstance(item, (list, tuple)):
-                    updated[updated_key] = [i._to_data() for i in item]
+                    if item:
+                        if isinstance(item[0], dict):
+                            updated[updated_key] = [i for i in item]
+                        else:
+                            updated[updated_key] = [i._to_data() for i in item]
                 else:
-                    updated[updated_key] = item._to_data()
+                    if isinstance(item, dict):
+                        updated[updated_key] = item
+                    else:
+                        updated[updated_key] = item._to_data()
 
         return updated
 
@@ -465,7 +482,10 @@ class HTTPConnection:
 
             item = kwargs.pop(kwarg_key)
             if item is not None:
-                item = str(item.value)
+                if isinstance(item, (str, int, bool, dict)):
+                    item = str(item)
+                else:
+                    item = str(item.value)
             updated[updated_key] = item
 
         return updated

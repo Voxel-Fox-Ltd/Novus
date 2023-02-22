@@ -440,6 +440,21 @@ Discord Models
     :inherited-members:
     :no-special-members:
 
+.. autoclass:: novus.TeamMember
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.Team
+    :members:
+    :inherited-members:
+    :no-special-members:
+
+.. autoclass:: novus.Application
+    :members:
+    :inherited-members:
+    :no-special-members:
+
 Application Commands
 --------------------
 

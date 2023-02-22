@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
+from typing_extensions import NotRequired
+
 if TYPE_CHECKING:
     from ._util import Snowflake
     from .locale import Locale
@@ -40,9 +42,11 @@ class ApplicationTeamMember(TypedDict):
 
 
 class ApplicationTeam(TypedDict):
-    id: Snowflake
     icon: Optional[str]
+    id: Snowflake
     members: list[ApplicationTeamMember]
+    name: str
+    owner_user_id: Snowflake
 
 
 class InstallParams(TypedDict):
@@ -50,30 +54,28 @@ class InstallParams(TypedDict):
     scopes: list[str]
 
 
-class _ApplicationOptional(TypedDict, total=False):
-    terms_of_service_url: str
-    privacy_policy_url: str
-    owner: PartialUser
-    guild_id: Snowflake
-    primary_sku_id: str
-    slug: str
-    cover_image: str
-    flags: int  # Added as novus.ApplicationFlags
-    install_params: InstallParams
-    custom_install_url: str
-    role_connections_verification_url: str
-
-
-class Application(_ApplicationOptional):
+class Application(TypedDict):
     id: Snowflake
     name: str
     icon: Optional[str]
     description: str
-    rpc_origins: list[str]
+    rpc_origins: NotRequired[list[str]]
     bot_public: bool
     bot_require_code_grant: bool
     verify_key: str
     team: Optional[ApplicationTeam]
+    terms_of_service_url: NotRequired[str]
+    privacy_policy_url: NotRequired[str]
+    owner: NotRequired[PartialUser]
+    guild_id: NotRequired[Snowflake]
+    primary_sku_id: NotRequired[str]
+    slug: NotRequired[str]
+    cover_image: NotRequired[str]
+    tags: NotRequired[list[str]]
+    flags: NotRequired[int]
+    install_params: NotRequired[InstallParams]
+    custom_install_url: NotRequired[str]
+    role_connections_verification_url: NotRequired[str]
 
 
 ApplicationRoleConnectionMetadataType = Literal[

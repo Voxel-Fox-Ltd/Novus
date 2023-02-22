@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, Any, Literal, overload
 from ..models import Channel, Guild, Message, Object, User
 
 if TYPE_CHECKING:
-    from .. import DMChannel, Emoji, GuildChannel, ScheduledEvent, Sticker
+    from .. import Application, DMChannel, Emoji, GuildChannel, ScheduledEvent, Sticker
     from ..models import api_mixins as amix
     from ._http import HTTPConnection
 
@@ -50,6 +50,7 @@ class APICache:
         self.parent = parent
         self.user: User | None = None
         self.application_id: int | None = None
+        self.application: Application | None = None
 
         self.guilds: dict[int, Guild] = {}
         self.users: dict[int, User] = {}

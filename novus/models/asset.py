@@ -21,11 +21,13 @@ import os
 from typing import TYPE_CHECKING, Literal
 
 import dotenv
+from typing_extensions import Self
 
 from ..utils import MISSING, generate_repr
 
 if TYPE_CHECKING:
     from . import (
+        Application,
         Emoji,
         Guild,
         GuildMember,
@@ -36,6 +38,7 @@ if TYPE_CHECKING:
         Role,
         ScheduledEvent,
         Sticker,
+        Team,
         User,
         Webhook,
     )
@@ -108,49 +111,61 @@ class Asset:
         )
 
     @classmethod
-    def from_guild_icon(cls, guild: Guild | GuildPreview | OauthGuild | PartialGuild) -> Asset:
+    def from_guild_icon(cls, guild: Guild | GuildPreview | OauthGuild | PartialGuild) -> Self:
         return cls(f"/icons/{guild.id}/{guild.icon_hash}")
 
     @classmethod
-    def from_guild_splash(cls, guild: Guild | GuildPreview | PartialGuild) -> Asset:
+    def from_guild_splash(cls, guild: Guild | GuildPreview | PartialGuild) -> Self:
         return cls(f"/splashes/{guild.id}/{guild.splash_hash}")
 
     @classmethod
-    def from_guild_discovery_splash(cls, guild: Guild | GuildPreview) -> Asset:
+    def from_guild_discovery_splash(cls, guild: Guild | GuildPreview) -> Self:
         return cls(f"/discovery-splashes/{guild.id}/{guild.discovery_splash_hash}")
 
     @classmethod
-    def from_guild_banner(cls, guild: Guild | PartialGuild) -> Asset:
+    def from_guild_banner(cls, guild: Guild | PartialGuild) -> Self:
         return cls(f"/banners/{guild.id}/{guild.banner_hash}")
 
     @classmethod
-    def from_emoji(cls, emoji: Emoji | PartialEmoji) -> Asset:
+    def from_emoji(cls, emoji: Emoji | PartialEmoji) -> Self:
         return cls(f"/emojis/{emoji.id}", animated=emoji.animated)
 
     @classmethod
-    def from_role(cls, role: Role) -> Asset:
+    def from_role(cls, role: Role) -> Self:
         return cls(f"/role-icons/{role.id}/{role.icon_hash}")
 
     @classmethod
-    def from_sticker(cls, sticker: Sticker) -> Asset:
+    def from_sticker(cls, sticker: Sticker) -> Self:
         return cls(f"/stickers/{sticker.id}")
 
     @classmethod
-    def from_user_avatar(cls, user: User | GuildMember | Webhook) -> Asset:
+    def from_user_avatar(cls, user: User | GuildMember | Webhook) -> Self:
         return cls(f"/avatars/{user.id}/{user.avatar_hash}")
 
     @classmethod
-    def from_user_banner(cls, user: User | GuildMember) -> Asset:
+    def from_user_banner(cls, user: User | GuildMember) -> Self:
         return cls(f"/banners/{user.id}/{user.avatar_hash}")
 
     @classmethod
-    def from_guild_member_avatar(cls, user: GuildMember) -> Asset:
+    def from_guild_member_avatar(cls, user: GuildMember) -> Self:
         return cls(f"/guilds/{user.guild.id}/users/{user.id}/avatars/{user.guild_avatar_hash}")
 
     # @classmethod
-    # def from_guild_member_banner(cls, user: GuildMember) -> Asset:
+    # def from_guild_member_banner(cls, user: GuildMember) -> Self:
     #     return cls(f"/guilds/{user.guild.id}/users/{user.id}/banners/{user.guild_banner_hash}")
 
     @classmethod
-    def from_event_image(cls, event: ScheduledEvent) -> Asset:
+    def from_event_image(cls, event: ScheduledEvent) -> Self:
         return cls(f"/guild-events/{event.id}/{event.image_hash}")
+
+    @classmethod
+    def from_application(cls, application: Application) -> Self:
+        return cls(f"/app-icons/{application.id}/{application.icon_hash}")
+
+    @classmethod
+    def from_application_cover_image(cls, application: Application) -> Self:
+        return cls(f"/app-icons/{application.id}/{application.cover_image_hash}")
+
+    @classmethod
+    def from_team(cls, team: Team) -> Self:
+        return cls(f"/team-icons/{team.id}/{team.icon_hash}.png")

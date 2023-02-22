@@ -180,7 +180,7 @@ class InteractionHTTPConnection:
     async def bulk_overwrite_global_application_commands(
             self,
             application_id: int,
-            commands: list[dict]) -> list[ApplicationCommand]:
+            commands: list[payloads.PartialApplicationCommand]) -> list[ApplicationCommand]:
         """Overwrite all current global application commands."""
 
         route = Route(
@@ -377,7 +377,7 @@ class InteractionHTTPConnection:
             self,
             application_id: int,
             guild_id: int,
-            commands: list[dict]) -> list[ApplicationCommand]:
+            commands: list[payloads.PartialApplicationCommand]) -> list[ApplicationCommand]:
         """Overwrite all current guild application commands."""
 
         route = Route(
