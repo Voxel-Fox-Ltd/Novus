@@ -38,8 +38,8 @@ from .._route import Route
 from .dispatch import GatewayDispatch
 
 if TYPE_CHECKING:
-    from .._http import HTTPConnection
     from ... import payloads
+    from .._http import HTTPConnection
 
 __all__ = (
     'GatewayConnection',

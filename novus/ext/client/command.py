@@ -114,6 +114,8 @@ class CommandGroup:
     A group of commands all piled into one place.
     """
 
+    is_subcommand: bool = False
+
     def __init__(
             self,
             application_command: n.PartialApplicationCommand,
@@ -162,8 +164,6 @@ class CommandGroup:
             if d.nsfw is not n.utils.MISSING:
                 app.nsfw = d.nsfw
         for option in app.options:
-            print("add_description option name:", option.name)
-            print(d.children)
             if option.name in d.children:
                 cls._add_description(option, d.children[option.name])
 

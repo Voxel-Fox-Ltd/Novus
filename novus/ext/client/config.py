@@ -26,6 +26,7 @@ from typing_extensions import Self
 import novus
 
 if TYPE_CHECKING:
+    import argparse
     import pathlib
 
 __all__ = (
@@ -39,6 +40,50 @@ class Config:
     shard_ids: list[int] = field(default_factory=list)
     shard_count: int = 1
     intents: novus.Intents = field(default_factory=novus.Intents.none)
+    plugins: list[str] = field(default_factory=list)
+
+    def merge_namespace(self, args: argparse.Namespace) -> None:
+        """
+        Merge arguments from the namespace into the config.
+        """
+
+        def check(name):
+            return name in args and getattr(args, name) is not None
+
+        if check("token"):
+            self.token = args.token
+
+        if check("shard_ids") and check("shard_id"):
+            raise Exception("Cannot have both shard_ids and shard_id in args")
+        elif check("shard_ids"):
+            self.shard_ids = [int(i.strip()) for i in args.shard_ids.split(",") if i.strip()]
+        elif check("shard_id"):
+            self.shard_ids = [int(i.strip()) for i in args.shard_id if i.strip()]
+
+        if check("shard_count"):
+            self.shard_count = int(args.shard_count)
+
+        if check("intents") and check("intent"):
+            raise Exception("Cannot have both intents and intent in args")
+        elif check("intents"):
+            self.intents = novus.Intents(**{
+                i.strip(): True
+                for i in args.intents.split(",")
+                if i.strip()
+            })
+        elif check("intent"):
+            self.intents = novus.Intents(**{
+                i.strip(): True
+                for i in args.intent
+                if i.strip()
+            })
+
+        if check("plugins") and check("plugin"):
+            raise Exception("Cannot have both plugins and plugin in args")
+        elif check("plugins"):
+            self.plugins = [i.strip() for i in args.plugins.split(",") if i.strip()]
+        elif check("plugin"):
+            self.plugins = [i.strip() for i in args.plugin if i.strip()]
 
     @classmethod
     def from_file(cls, filename: str | None) -> Self:
@@ -70,6 +115,7 @@ class Config:
             "shard_ids": self.shard_ids,
             "shard_count": self.shard_count,
             "intents": dict(self.intents.walk()),
+            "plugins": self.plugins,
         }
 
     @classmethod

@@ -18,6 +18,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
+import importlib
+import itertools
 import logging
 from collections import defaultdict
 from functools import partial
@@ -51,6 +53,16 @@ class Client:
         self.plugins: set[Plugin] = set()
         self._commands: dict[tuple[int | None, str], Command] = {}
         self._commands_by_id: dict[int, Command] = {}
+
+        plugin_modules = itertools.groupby(
+            self.config.plugins,
+            lambda m: m.split(":")[0],
+        )
+        for module, lines in plugin_modules:
+            mod = importlib.import_module(module)
+            for line in lines:
+                _, class_name = line.split(":", 1)
+                self.add_plugin(getattr(mod, class_name))
 
     @property
     def commands(self):

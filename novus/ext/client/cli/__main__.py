@@ -29,6 +29,14 @@ def get_parser() -> ArgumentParser:
 
     rap = ap.add_parser("run")
     rap.add_argument("config", nargs="?")
+    rap.add_argument("--token", nargs="?", type=str, default=None)
+    rap.add_argument("--shard_id", nargs="*", type=str, default=None)
+    rap.add_argument("--shard_ids", nargs="?", type=str, const="", default=None)
+    rap.add_argument("--shard_count", nargs="?", type=str, default=None)
+    rap.add_argument("--intents", nargs="?", type=str, const="", default=None)
+    rap.add_argument("--intent", nargs="*", type=str, default=None)
+    rap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
+    rap.add_argument("--plugin", nargs="*", type=str, default=None)
 
     cap = ap.add_parser("config-dump")
     cap.add_argument("type", choices=["json", "yaml", "toml"])
@@ -43,6 +51,7 @@ async def main(args: Namespace) -> None:
 
     if args.action == "run":
         config = client.Config.from_file(args.config)
+        config.merge_namespace(args)
         bot = client.Client(config)
         await bot.run()
 
