@@ -39,6 +39,7 @@ from .dispatch import GatewayDispatch
 
 if TYPE_CHECKING:
     from .._http import HTTPConnection
+    from ... import payloads
 
 __all__ = (
     'GatewayConnection',
@@ -96,6 +97,20 @@ class GatewayConnection:
             for i in self.shards
         ]
         await asyncio.gather(*tasks)
+
+    async def get_gateway(self) -> payloads.gateway.GatewayBot:
+        """Get a gateway connection URL. Doesn't require auth."""
+
+        session = await self.parent.get_session()
+        route = Route("GET", "/gateway")
+        resp = await session.request(route.method, route.url)
+        return await resp.json()
+
+    async def get_gateway_bot(self) -> payloads.gateway.GatewayBot:
+        """Get a gateway connection URL for the given bot."""
+
+        route = Route("GET", "/gateway/bot")
+        return await self.parent.request(route)
 
 
 class GatewayShard:
@@ -463,7 +478,10 @@ class GatewayShard:
         try:
             await self.dispatch.handle_dispatch(event_name, message)
         except Exception as e:
-            log.error("Error in dispatch (%s) (%s)" % (event_name, dump(message)), exc_info=e)
+            log.error(
+                "Error in dispatch (%s) (%s)" % (event_name, dump(message)),
+                exc_info=e,
+            )
 
     async def message_handler(self) -> None:
         """

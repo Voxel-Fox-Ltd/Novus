@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
 
 __all__ = (
+    'GatewayBot',
     'TypingStart',
     'ReactionAddRemove',
     'ChannelPinsUpdate',
@@ -34,6 +35,19 @@ __all__ = (
     'GuildEmojisUpdate',
     'ThreadMemberListUpdate',
 )
+
+
+class SessionStartLimit(TypedDict):
+    total: int
+    remaining: int
+    reset_after: int
+    max_concurrency: int
+
+
+class GatewayBot(TypedDict):
+    url: str
+    shards: int
+    session_start_limit: SessionStartLimit
 
 
 class TypingStart(TypedDict):
