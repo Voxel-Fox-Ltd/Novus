@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from ...flags import MessageFlags
 from ...enums import InteractionResponseType
 from ...utils import MISSING
 
@@ -117,10 +118,12 @@ class InteractionAPIMixin:
             data["stickers"] = stickers
         if files is not MISSING:
             data["files"] = files
-        if flags is not MISSING:
+        if flags is MISSING:
+            data["flags"] = MessageFlags()
+        else:
             data["flags"] = flags
-        if ephemeral is not MISSING:
-            data["ephemeral"] = ephemeral
+        if ephemeral:
+            data["flags"].ephemeral = True
 
         if self._responded is False:
             await self.state.interaction.create_interaction_response(
