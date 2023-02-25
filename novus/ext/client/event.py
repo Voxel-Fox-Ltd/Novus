@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from collections.abc import Awaitable
 from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar
+import re
 
 import novus
 
@@ -66,7 +67,20 @@ class EventBuilder:
     __slots__ = ()
 
     @classmethod
-    def component_interaction(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+    def filtered_component(cls, match_string: str):
+        def wrapper(func: W[Interaction[MessageComponentData]]):
+            return EventListener(
+                "INTERACTION_CREATE",
+                func,
+                lambda i: bool(
+                    i.type == novus.InteractionType.message_component
+                    and re.search(match_string, i.custom_id)
+                ),
+            )
+        return wrapper
+
+    @classmethod
+    def component(cls, func: W[Interaction[MessageComponentData]]) -> EL:
         return EventListener(
             "INTERACTION_CREATE",
             func,
