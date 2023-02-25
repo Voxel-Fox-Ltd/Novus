@@ -20,13 +20,26 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..enums import Locale
+from .missing import MISSING
 
 if TYPE_CHECKING:
     from .. import payloads
 
 __all__ = (
     'Localization',
+    'flatten_localization',
 )
+
+
+def flatten_localization(d: LocType) -> Localization:
+    if d is MISSING or d is None:
+        return Localization()
+    elif isinstance(d, Localization):
+        return d
+    elif isinstance(d, dict):
+        return Localization(d)
+    else:
+        raise TypeError()
 
 
 class Localization:
@@ -66,3 +79,6 @@ class Localization:
             i.value: o
             for i, o in self.localizations.items()
         }
+
+
+LocType = dict[str, str] | dict[Locale, str] | Localization | None

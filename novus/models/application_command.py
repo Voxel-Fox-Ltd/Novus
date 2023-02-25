@@ -24,7 +24,13 @@ from typing_extensions import Self
 from ..enums.application_command import ApplicationCommandType, ApplicationOptionType
 from ..enums.channel import ChannelType
 from ..flags.permissions import Permissions
-from ..utils import MISSING, Localization, generate_repr, try_snowflake
+from ..utils import (
+    MISSING,
+    Localization,
+    flatten_localization,
+    generate_repr,
+    try_snowflake,
+)
 
 if TYPE_CHECKING:
     from .. import enums, flags, payloads
@@ -38,17 +44,6 @@ __all__ = (
     'PartialApplicationCommand',
     'ApplicationCommand',
 )
-
-
-def flatten_localization(d: LocType) -> Localization:
-    if d is MISSING or d is None:
-        return Localization()
-    elif isinstance(d, Localization):
-        return d
-    elif isinstance(d, dict):
-        return Localization(d)
-    else:
-        raise TypeError()
 
 
 class ApplicationCommandOption:
@@ -125,7 +120,7 @@ class ApplicationCommandOption:
     """
 
     if TYPE_CHECKING:
-        type: enums.ApplicationOptionType
+        type: ApplicationOptionType
         name: str
         name_localizations: Localization
         description: str
@@ -133,7 +128,7 @@ class ApplicationCommandOption:
         required: bool
         choices: list[ApplicationCommandChoice]
         options: list[ApplicationCommandOption]
-        channel_types: list[enums.ChannelType]
+        channel_types: list[ChannelType]
         min_value: int | float | None
         max_value: int | float | None
         min_length: int | None
@@ -144,14 +139,14 @@ class ApplicationCommandOption:
             self,
             name: str,
             description: str,
-            type: enums.ApplicationOptionType,
+            type: ApplicationOptionType,
             *,
             name_localizations: LocType = MISSING,
             description_localizations: LocType = MISSING,
             required: bool = True,
             choices: list[ApplicationCommandChoice] = MISSING,
             options: list[ApplicationCommandOption] = MISSING,
-            channel_types: list[enums.ChannelType] = MISSING,
+            channel_types: list[ChannelType] = MISSING,
             min_value: int | float | None = MISSING,
             max_value: int | float | None = MISSING,
             min_length: int | None = MISSING,
@@ -172,6 +167,12 @@ class ApplicationCommandOption:
         self.max_length = max_length or None
         self.autocomplete = autocomplete
 
+    __repr__ = generate_repr(('name', 'description', 'type', 'choices', 'options'))
+
+    def add_option(self, option: ApplicationCommandOption) -> Self:
+        self.options.append(option)
+        return self
+
     def _to_data(self) -> payloads.ApplicationCommandOption:
         d: payloads.ApplicationCommandOption = {
             "type": self.type.value,
@@ -182,24 +183,31 @@ class ApplicationCommandOption:
             d["name_localizations"] = self.name_localizations._to_data()
         if self.description_localizations:
             d["description_localizations"] = self.description_localizations._to_data()
-        if self.required:
-            d["required"] = self.required
-        if self.choices:
-            d["choices"] = [i._to_data() for i in self.choices]
         if self.options:
             d["options"] = [i._to_data() for i in self.options]
-        if self.channel_types:
-            d["channel_types"] = [i.value for i in self.channel_types]
-        if self.min_value is not None:
-            d["min_value"] = self.min_value
-        if self.max_value is not None:
-            d["max_value"] = self.max_value
-        if self.min_length is not None:
-            d["min_length"] = self.min_length
-        if self.max_length is not None:
-            d["max_length"] = self.max_length
-        if self.autocomplete:
-            d["autocomplete"] = self.autocomplete
+
+        # Only add options valid for the type
+        if self.type == ApplicationOptionType.sub_command:
+            pass
+        elif self.type == ApplicationOptionType.sub_command_group:
+            pass
+        else:
+            if self.required:
+                d["required"] = self.required
+            if self.choices:
+                d["choices"] = [i._to_data() for i in self.choices]
+            if self.channel_types:
+                d["channel_types"] = [i.value for i in self.channel_types]
+            if self.min_value is not None:
+                d["min_value"] = self.min_value
+            if self.max_value is not None:
+                d["max_value"] = self.max_value
+            if self.min_length is not None:
+                d["min_length"] = self.min_length
+            if self.max_length is not None:
+                d["max_length"] = self.max_length
+            if self.autocomplete:
+                d["autocomplete"] = self.autocomplete
         return d
 
     @classmethod
@@ -333,7 +341,7 @@ class PartialApplicationCommand:
     """
 
     if TYPE_CHECKING:
-        type: enums.ApplicationCommandType
+        type: ApplicationCommandType
         name: str
         name_localizations: Localization
         description: str
@@ -372,6 +380,10 @@ class PartialApplicationCommand:
 
     def __ne__(self, other: PartialApplicationCommand) -> bool:
         return not self.__eq__(other)
+
+    def add_option(self, option: ApplicationCommandOption) -> Self:
+        self.options.append(option)
+        return self
 
     def _to_data(self) -> payloads.PartialApplicationCommand:
         d: payloads.PartialApplicationCommand = {
@@ -442,7 +454,7 @@ class ApplicationCommand(PartialApplicationCommand):
 
     if TYPE_CHECKING:
         id: int
-        type: enums.ApplicationCommandType
+        type: ApplicationCommandType
         application_id: int
         guild_id: int | None
         name: str

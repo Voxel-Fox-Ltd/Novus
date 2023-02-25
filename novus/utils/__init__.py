@@ -33,6 +33,7 @@ __all__: tuple[str, ...] = (
     'add_not_missing',
     'bytes_to_base64_data',
     'cached_slot_property',
+    'flatten_localization',
     'generate_repr',
     'get_mime_type_for_image',
     'parse_timestamp',

@@ -15,23 +15,12 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .client import *
-from .command import *
-from .config import *
-from .errors import *
-from .event import *
-from .plugin import *
+from __future__ import annotations
 
-__all__: tuple[str, ...] = (
-    'Client',
-    'Command',
-    'CommandDescription',
+__all__ = (
     'CommandError',
-    'CommandGroup',
-    'Config',
-    'EventListener',
-    'Plugin',
-    'command',
-    'event',
-    'loadable',
 )
+
+
+class CommandError(Exception):
+    """Base error for all other command errors."""

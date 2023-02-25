@@ -19,14 +19,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections import defaultdict
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
-from .command import Command
+import novus as n
+
+from .command import Command, CommandDescription, CommandGroup
 from .event import EventListener
 
 if TYPE_CHECKING:
-    import novus as n
-
     from .client import Client
 
 __all__ = (
@@ -47,14 +48,17 @@ def loadable(cls: T) -> T:
 
 
 class PluginMeta(type):
+
     def __init__(cls, name: str, bases: Any, dct: dict[str, Any]) -> None:
         super().__init__(name, bases, dct)
 
         # Clear caches
         cls._event_listeners: dict[str, set[EventListener]] = {}
-        cls._commands: set[Command] = set()
+        cls._commands: set[Command | CommandGroup] = set()
 
         # Iterate over items
+        subcommands: dict[str, set[Command]] = defaultdict(set)
+        descriptions: dict[str, CommandDescription] = {}
         for name, val in dct.items():
 
             # Add event listeners to cache
@@ -66,7 +70,27 @@ class PluginMeta(type):
             # Add commands to cache
             if isinstance(val, Command):
                 val.owner = cls
-                cls._commands.add(val)
+                if val.type == n.ApplicationCommandType.chat_input and " " in val.name:
+                    subcommands[val.name.split(" ")[0]].add(val)
+                else:
+                    cls._commands.add(val)
+
+            # Temporarily cache command descriptions
+            if isinstance(val, CommandDescription):
+                descriptions[name] = val
+
+        # Group subcommands
+        groups: dict[str, CommandGroup] = {}
+        for _, subs in subcommands.items():
+            base_name = list(subs)[0].name.split(" ")[0]
+            created_group = CommandGroup.from_commands(
+                subs,
+                run_checks=base_name not in descriptions
+            )
+            cls._commands.add(created_group)
+            groups[created_group.name] = created_group
+        for g, d in descriptions.items():
+            groups[g].add_description(d)
 
 
 class Plugin(metaclass=PluginMeta):
