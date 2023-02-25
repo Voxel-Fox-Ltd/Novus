@@ -72,8 +72,7 @@ class PluginMeta(type):
                 val.owner = cls
                 if val.type == n.ApplicationCommandType.chat_input and " " in val.name:
                     subcommands[val.name.split(" ")[0]].add(val)
-                else:
-                    cls._commands.add(val)
+                cls._commands.add(val)
 
             # Temporarily cache command descriptions
             if isinstance(val, CommandDescription):

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import collections
 from collections.abc import Callable, Coroutine, Iterable
-from typing import TYPE_CHECKING, Any, Type, TypeVarTuple, Union
+from typing import TYPE_CHECKING, Any, Type, TypeVarTuple, Union, cast
 
 from typing_extensions import Self
 
@@ -61,6 +61,7 @@ class Command:
     application_command: n.PartialApplicationCommand
     guild_ids: list[int]
     command_ids: set[int]
+    is_subcommand: bool
 
     def __init__(
             self,
@@ -76,6 +77,10 @@ class Command:
         self.guild_ids = guild_ids
         self.command_ids = set()
         self.owner: Any = None
+        self.is_subcommand = (
+            self.type == n.ApplicationCommandType.chat_input
+            and " " in self.name
+        )
 
     def to_application_command_option(self) -> n.ApplicationCommandOption:
         """
@@ -129,21 +134,38 @@ class CommandGroup:
         self.command_ids.add(id)
 
     def add_description(self, d: CommandDescription) -> None:
-        app = self.application_command
+        self._add_description(self, d)
+        if d.guild_ids is not n.utils.MISSING:
+            self.guild_ids = d.guild_ids
+
+    @classmethod
+    def _add_description(
+            cls,
+            c: Command | CommandGroup | n.ApplicationCommand | n.ApplicationCommandOption,
+            d: CommandDescription) -> None:
+        if isinstance(c, (n.ApplicationCommand, n.ApplicationCommandOption)):
+            app = c
+        else:
+            app = c.application_command
         if d.description is not n.utils.MISSING:
             app.description = d.description
         if d.name_localizations is not n.utils.MISSING:
             app.name_localizations = d.name_localizations
         if d.description_localizations is not n.utils.MISSING:
             app.description_localizations = d.description_localizations
-        if d.default_member_permissions is not n.utils.MISSING:
-            app.default_member_permissions = d.default_member_permissions
-        if d.dm_permission is not n.utils.MISSING:
-            app.dm_permission = d.dm_permission
-        if d.nsfw is not n.utils.MISSING:
-            app.nsfw = d.nsfw
-        if d.guild_ids is not n.utils.MISSING:
-            self.guild_ids = d.guild_ids
+        if isinstance(c, (Command, CommandGroup)):
+            app = cast(n.ApplicationCommand, app)
+            if d.default_member_permissions is not n.utils.MISSING:
+                app.default_member_permissions = d.default_member_permissions
+            if d.dm_permission is not n.utils.MISSING:
+                app.dm_permission = d.dm_permission
+            if d.nsfw is not n.utils.MISSING:
+                app.nsfw = d.nsfw
+        for option in app.options:
+            print("add_description option name:", option.name)
+            print(d.children)
+            if option.name in d.children:
+                cls._add_description(option, d.children[option.name])
 
     @classmethod
     def from_commands(
@@ -255,8 +277,6 @@ class CommandGroup:
                     built_options[parent_group].add_option(new)
             built_options[group_tuple].add_option(command.to_application_command_option())
 
-        print(app)
-
         return cls(
             app,
             commands,
@@ -278,7 +298,8 @@ class CommandDescription:
             default_member_permissions: n.Permissions = n.utils.MISSING,
             dm_permission: bool = n.utils.MISSING,
             nsfw: bool = n.utils.MISSING,
-            guild_ids: list[int] | None = n.utils.MISSING):
+            guild_ids: list[int] | None = n.utils.MISSING,
+            children: dict[str, CommandDescription] | None = None):
         self.description = description
         self.name_localizations = n.utils.flatten_localization(name_localizations)
         self.description_localizations = n.utils.flatten_localization(description_localizations)
@@ -286,6 +307,9 @@ class CommandDescription:
         self.dm_permission = dm_permission
         self.nsfw = nsfw
         self.guild_ids = guild_ids
+        self.children: dict[str, CommandDescription] = children or {}
+
+    __repr__ = n.utils.generate_repr(('description',))
 
 
 def command(

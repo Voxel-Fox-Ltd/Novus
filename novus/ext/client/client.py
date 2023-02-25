@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Any, Type, cast
 import novus as n
 
 if TYPE_CHECKING:
-    from .command import Command
+    from .command import Command, CommandGroup
     from .config import Config
     from .plugin import Plugin
 
@@ -83,6 +83,28 @@ class Client:
             if key in self._commands:
                 raise NameError("Command with duplicate name %s" % command.name)
             self._commands[key] = command
+
+    def get_command(
+            self,
+            name: str,
+            guild_id: int | None = None) -> Command | CommandGroup | None:
+        """
+        Get a command that's been loaded into the bot from the cache.
+
+        Parameters
+        ----------
+        name : str
+            The name of the command thaty ou want to get.
+        guild_id : int | None
+            The ID of the guild where the command is registered.
+
+        Returns
+        -------
+        novus.ext.client.Command | novus.ext.client.CommandGroup
+            The command from the command cache.
+        """
+
+        return self._commands.get((guild_id, name,))
 
     def add_plugin(self, plugin: Type[Plugin]) -> None:
         """
@@ -193,6 +215,8 @@ class Client:
         commands_by_guild: dict[int | None, dict[str, Command]]
         commands_by_guild = defaultdict(partial(defaultdict, dict))
         for (guild_id, command_name), command in self._commands.items():
+            if command.is_subcommand:
+                continue  # can't sync command options
             commands_by_guild[guild_id][command_name] = command
 
         # See which commands we have that exist already
