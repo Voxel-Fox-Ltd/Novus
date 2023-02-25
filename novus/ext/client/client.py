@@ -253,7 +253,8 @@ class Client:
         not, PUT them there. If so, save command IDs.
         """
 
-        log.info("Syncing commands")
+        command_length = [i for i in self._commands.values() if not i.is_subcommand]
+        log.info(f"Syncing {len(command_length)} commands")
 
         # Get application ID
         aid: int | None = self.state.cache.application_id

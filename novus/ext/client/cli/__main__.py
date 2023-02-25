@@ -30,6 +30,7 @@ def get_parser() -> ArgumentParser:
 
     rap = ap.add_parser("run")
     rap.add_argument("config", nargs="?")
+    rap.add_argument("--sync", default=False, action="store_true")
     rap.add_argument("--token", nargs="?", type=str, default=None)
     rap.add_argument("--shard_id", nargs="*", type=str, default=None)
     rap.add_argument("--shard_ids", nargs="?", type=str, const="", default=None)
@@ -58,7 +59,7 @@ async def main(args: Namespace) -> None:
         config = client.Config.from_file(args.config)
         config.merge_namespace(args)
         bot = client.Client(config)
-        await bot.run()
+        await bot.run(sync=args.sync)
 
     elif args.action == "config-dump":
         config = client.Config()
