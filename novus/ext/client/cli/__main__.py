@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 import asyncio
 import logging
+import textwrap
 from argparse import ArgumentParser, Namespace
 
 from novus.ext import client
@@ -41,6 +42,10 @@ def get_parser() -> ArgumentParser:
     cap = ap.add_parser("config-dump")
     cap.add_argument("type", choices=["json", "yaml", "toml"])
 
+    np = ap.add_parser("new-plugin")
+    np.add_argument("name")
+    np.add_argument("commands", nargs="*", default=[])
+
     return p
 
 
@@ -64,6 +69,25 @@ async def main(args: Namespace) -> None:
                 print(config.to_json())
             case "toml":
                 print(config.to_toml())
+
+    elif args.action == "new-plugin":
+        plugin = textwrap.dedent("""
+            import novus
+            from novus.ext import client
+
+
+            class {plugin}(client.Plugin):
+        """).format(plugin=args.name).strip() + "\n"
+        if not args.commands:
+            plugin += " " * 8 + "...\n"
+        for i in args.commands:
+            command = textwrap.indent(textwrap.dedent("""
+                @client.command(name="{name}")
+                async def {name}(self, interaction: novus.Interaction[novus.ApplicationCommandData]) -> None:
+                    ...
+            """).strip(), " " * 8).format(name=i)
+            plugin += "\n" + command + "\n"
+        print(plugin)
 
 
 def main_sync() -> None:
