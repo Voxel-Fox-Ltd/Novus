@@ -74,6 +74,7 @@ class EventBuilder:
                 func,
                 lambda i: bool(
                     i.type == novus.InteractionType.message_component
+                    and i.custom_id
                     and re.search(match_string, i.custom_id)
                 ),
             )

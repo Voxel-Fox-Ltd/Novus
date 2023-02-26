@@ -117,6 +117,14 @@ class Plugin(metaclass=PluginMeta):
 
         if event_name in self._event_listeners:
             for el in self._event_listeners[event_name]:
+                run = True
+                try:
+                    run = el.predicate(*args, **kwargs)
+                except Exception as e:
+                    log.error("Failed to run predicate for event listener", exc_info=e)
+                    continue
+                if not run:
+                    continue
                 try:
                     asyncio.create_task(
                         el.func(self, *args, **kwargs),  # pyright: ignore
