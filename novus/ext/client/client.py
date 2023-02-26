@@ -170,6 +170,52 @@ class Client:
             tasks.append(t)
         await asyncio.gather(*tasks)
 
+    def remove_command(self, command: Command) -> None:
+        """
+        Remove a command from the bot's internal cache.
+
+        Parameters
+        ----------
+        command : novus.ext.client.Command
+            The command you want to remove.
+
+        Raises
+        ------
+        NameError
+            You have tried to remove a command that has not been loaded or is not in the cache.
+        """
+        if command.guild_ids:
+            for gid in command.guild_ids:
+                key = (gid, command.name,)
+                try:
+                    self._commands.pop(key)
+                except KeyError:
+                    raise NameError("Command with name %s is not loaded" % command.name)
+        else:
+            key = (None, command.name,)
+            try:
+                self._commands.pop(key)
+            except KeyError:
+                raise NameError("Command with name %s is not loaded" % command.name)
+
+    def remove_plugin(self, plugin: Type[Plugin]) -> None:
+        """
+        Remove a plugin from the bot.
+        """
+        try:
+            created: Plugin = plugin(self)
+        except Exception as e:
+            log.error(f"Failed to remove plugin {plugin}", exc_info=e)
+            return
+        for c in created._commands:
+            self.remove_command(c)
+        log.info(f"Removed plugin {created} from client instance")
+        # remove by name (its horrible)
+        for p in self.plugins:
+            if type(p) == plugin:
+                removed = p
+        self.plugins.remove(removed)
+
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
         """
         Dispatch an event to all loaded plugins.
