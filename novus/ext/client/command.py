@@ -19,9 +19,9 @@ from __future__ import annotations
 
 import collections
 from collections.abc import Callable, Coroutine, Iterable
-from typing import TYPE_CHECKING, Any, Type, TypeVarTuple, Union, cast
-
-from typing_extensions import Self
+from typing import TYPE_CHECKING, Any, Type, Union, cast
+from typing_extensions import Self, TypeVarTuple
+import inspect
 
 import novus as n
 
@@ -82,6 +82,26 @@ class Command:
             and " " in self.name
         )
 
+        # Make sure our callback and app command have similar options
+        sig = inspect.signature(self.callback)
+        skip = 2
+        option_iter = iter(self.application_command.options)
+        for pname, _ in sig.parameters.items():
+            if skip > 0:
+                skip -= 1
+                continue
+            try:
+                option = next(option_iter)
+            except StopIteration:
+                raise Exception(f"Missing option {pname} in command {self.name}")
+            if option.name != pname:
+                raise Exception(f"Missing option {pname} in command {self.name}")
+        try:
+            next(option_iter)
+            raise Exception(f"Too many options in command {self.name}")
+        except StopIteration:
+            pass
+
     def to_application_command_option(self) -> n.ApplicationCommandOption:
         """
         Convert this instance of the command into a command option. This should
@@ -102,8 +122,52 @@ class Command:
     def add_id(self, id: int) -> None:
         self.command_ids.add(id)
 
-    async def run(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
-        await self.callback(self.owner, interaction)
+    async def run(
+            self,
+            interaction: n.Interaction[n.ApplicationCommandData],
+            options: list[n.InteractionOption] | None = None) -> None:
+        """
+        Run the command with the given interaction.
+
+        Parameters
+        ----------
+        interaction : novus.Interaction
+            The interaction that invoked the command.
+        options : list[novus.InteractionOption] | None
+            The list of options that the command is to be called with. If not
+            provided, then the options are taken from the interaction itself.
+            This is primarily used as a helper for subcommands.
+        """
+
+        kwargs = {}
+        if options is None:
+            options = interaction.data.options
+        for option in options:
+            data: Any = option.value
+            if option.type == n.ApplicationOptionType.channel:
+                data_id = int(data)
+                data = interaction.data.resolved.channels.get(data_id)
+            elif option.type == n.ApplicationOptionType.attachment:
+                data_id = int(data)
+                data = interaction.data.resolved.attachments.get(data_id)
+            elif option.type == n.ApplicationOptionType.user:
+                data_id = int(data)
+                data = interaction.data.resolved.members.get(data_id)
+                if data is None:
+                    data = interaction.data.resolved.users.get(data_id)
+            elif option.type == n.ApplicationOptionType.role:
+                data_id = int(data)
+                data = interaction.data.resolved.roles.get(data_id)
+            elif option.type == n.ApplicationOptionType.menionable:
+                data_id = int(data)
+                data = interaction.data.resolved.roles.get(data_id)
+                if data is None:
+                    data = interaction.data.resolved.members.get(data_id)
+                if data is None:
+                    data = interaction.data.resolved.users.get(data_id)
+            kwargs[option.name] = data
+
+        await self.callback(self.owner, interaction, **kwargs)
 
     async def run_autocomplete(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
         pass
@@ -282,6 +346,29 @@ class CommandGroup:
             commands,
             list(list(guild_ids_set)[0])
         )
+
+    async def run(
+            self,
+            interaction: n.Interaction[n.ApplicationCommandData]) -> None:
+        """
+        Run the command with the given interaction.
+
+        Parameters
+        ----------
+        interaction : novus.Interaction
+            The interaction that invoked the command.
+        """
+
+        command_name_parts = [self.name]
+        option = interaction.data.options[0]
+        while option.type == n.ApplicationOptionType.sub_command_group:
+            command_name_parts.append(option.name)
+            option = option.options[0]
+        command = self.commands[" ".join([*command_name_parts, option.name])]
+        await command.run(interaction, option.options)
+
+    async def run_autocomplete(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
+        pass
 
 
 class CommandDescription:
