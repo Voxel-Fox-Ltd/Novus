@@ -184,6 +184,7 @@ class Client:
         NameError
             You have tried to remove a command that has not been loaded or is not in the cache.
         """
+        
         if command.guild_ids:
             for gid in command.guild_ids:
                 key = (gid, command.name,)
@@ -202,6 +203,7 @@ class Client:
         """
         Remove a plugin from the bot.
         """
+        
         for p in self.plugins:
             if type(p) == plugin:
                 instance = p
