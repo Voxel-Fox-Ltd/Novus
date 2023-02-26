@@ -17,9 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
-from ..enums import ApplicationCommandType, InteractionType, Locale
+from ..enums import ApplicationCommandType, InteractionType, Locale, ApplicationOptionType
 from ..flags import Permissions
 from ..utils import cached_slot_property, generate_repr, try_snowflake, walk_components
 from .api_mixins.interaction import InteractionAPIMixin
@@ -42,6 +42,7 @@ __all__ = (
     'InteractionResolved',
     'InteractionData',
     'ApplicationCommandData',
+    'InteractionOption',
     'ContextComandData',
     'MessageComponentData',
     'ModalSubmitData',
@@ -78,7 +79,7 @@ class InteractionResolved:
         '_cs_channels',
         '_cs_messages',
         '_cs_attachments',
-        'guild_id',
+        'guild',
     )
 
     def __init__(
@@ -86,97 +87,118 @@ class InteractionResolved:
             *,
             state: HTTPConnection,
             data: payloads.InteractionResolved | None,
-            guild_id: int | None = None):
+            guild: Guild | None = None):
         self.state = state
         self.data = data or {}
-        self.guild_id: int | None = guild_id
+        self.guild: Guild | None = guild
 
     __repr__ = generate_repr(())
 
     @cached_slot_property("_cs_users")
-    def users(self) -> list[User]:
+    def users(self) -> dict[int, User]:
         data = self.data.get("users")
         if data is None:
-            return []
-        ret: list[User] = []
+            return {}
+        ret: dict[int, User] = {}
         for d in data.values():
-            ret.append(User(state=self.state, data=d))
+            u = User(state=self.state, data=d)
+            ret[u.id] = u
         return ret
 
     @cached_slot_property("_cs_members")
-    def members(self) -> list[GuildMember]:
+    def members(self) -> dict[int, GuildMember]:
         data = self.data.get("members")
         if data is None:
-            return []
-        ret: list[GuildMember] = []
-        for d in data.values():
-            ret.append(
-                GuildMember(
-                    state=self.state,
-                    data=d,
-                    guild_id=self.guild_id,
-                )
+            return {}
+        ret: dict[int, GuildMember] = {}
+        for k, d in data.items():
+            u = GuildMember(
+                state=self.state,
+                data=d,
+                user=self.users[int(k)],
+                guild_id=self.guild.id if self.guild else None,
             )
+            ret[u.id] = u
         return ret
 
     @cached_slot_property("_cs_roles")
-    def roles(self) -> list[Role]:
+    def roles(self) -> dict[int, Role]:
         data = self.data.get("roles")
         if data is None:
-            return []
-        ret: list[Role] = []
+            return {}
+        ret: dict[int, Role] = {}
         for d in data.values():
-            ret.append(
-                Role(
-                    state=self.state,
-                    data=d,
-                    guild_id=self.guild_id,
-                )
+            u = Role(
+                state=self.state,
+                data=d,
+                guild_id=self.guild.id if self.guild else None,
             )
+            ret[u.id] = u
         return ret
 
     @cached_slot_property("_cs_channels")
-    def channels(self) -> list[Channel]:
+    def channels(self) -> dict[int, Channel]:
         data = self.data.get("channels")
         if data is None:
-            return []
-        ret: list[Channel] = []
+            return {}
+        ret: dict[int, Channel] = {}
         for d in data.values():
-            ret.append(
-                channel_builder(
-                    state=self.state,
-                    data=d,
-                    guild_id=self.guild_id,
-                )
+            u = channel_builder(
+                state=self.state,
+                data=d,
+                guild_id=self.guild.id if self.guild else None,
             )
+            ret[u.id] = u
         return ret
 
     @cached_slot_property("_cs_messages")
-    def messages(self) -> list[Message]:
+    def messages(self) -> dict[int, Message]:
         data = self.data.get("messages")
         if data is None:
-            return []
-        ret: list[Message] = []
+            return {}
+        ret: dict[int, Message] = {}
         for d in data.values():
-            ret.append(
-                Message(
-                    state=self.state,
-                    data=d,
-                )
+            u = Message(
+                state=self.state,
+                data=d,
             )
+            ret[u.id] = u
         return ret
 
     @cached_slot_property("_cs_attachments")
-    def attachments(self) -> list[Attachment]:
+    def attachments(self) -> dict[int, Attachment]:
         data = self.data.get("attachments")
         if data is None:
-            return []
-        ret: list[Attachment] = []
+            return {}
+        ret: dict[int, Attachment] = {}
         for d in data.values():
-            ret.append(
-                Attachment(data=d)
-            )
+            u = Attachment(data=d)
+            ret[u.id] = u
         return ret
+
+
+class InteractionOption:
+    """
+    Data from an option in an interaction.
+    """
+
+    name: str
+    type: ApplicationOptionType
+    value: str | int | bool | None
+    options: list[InteractionOption]
+    focused: bool
+
+    def __init__(self, *, data: payloads.InteractionDataOption):
+        self.name = data['name']
+        self.type = ApplicationOptionType(data['type'])
+        self.value = data.get('value')
+        self.options = [
+            InteractionOption(data=d)
+            for d in data.get("options", [])
+        ]
+        self.focused = data.get("focused", False)
+
+    __repr__ = generate_repr(('name', 'type', 'value', 'options',))
 
 
 class InteractionData:
@@ -209,7 +231,7 @@ class ApplicationCommandData(InteractionData):
     name: str
     type: ApplicationCommandType
     resolved: InteractionResolved
-    options: list[ApplicationCommandOption]
+    options: list[InteractionOption]
     guild: Guild | amix.GuildAPIMixin | None
 
     def __init__(
@@ -221,15 +243,16 @@ class ApplicationCommandData(InteractionData):
         self.id = try_snowflake(data["id"])
         self.name = data["name"]
         self.type = ApplicationCommandType(data["type"])
+        self.guild = parent.guild
         self.resolved = InteractionResolved(
             state=self.parent.state,
             data=data.get("resolved"),
+            guild=self.guild,
         )
         self.options = [
-            ApplicationCommandOption(d)
+            InteractionOption(data=d)
             for d in data.get("options", [])
         ]
-        self.guild = self.parent.state.cache.get_guild(data.get("guild_id"), or_object=True)
 
     __repr__ = generate_repr(('id', 'type',))
 

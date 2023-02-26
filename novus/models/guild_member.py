@@ -229,7 +229,7 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
         self.timeout_until = None
         if 'communication_disabled_until' in data:
             self.timeout_until = parse_timestamp(data['communication_disabled_until'])
-        if "guild_id" in data:
+        if "guild_id" in data and guild_id is None:
             guild_id = data["guild_id"]
         if guild_id is None:
             raise ValueError("Missing guild from member init")
