@@ -30,6 +30,10 @@ def get_parser() -> ArgumentParser:
 
     rap = ap.add_parser("run")
     rap.add_argument("config", nargs="?")
+    logger_choices = []
+    for i in ["debug", "info", "warning", "error"]:
+        logger_choices.extend((i, i.upper(),))
+    rap.add_argument("--loglevel", default='info', choices=logger_choices)
     rap.add_argument("--sync", default=False, action="store_true")
     rap.add_argument("--token", nargs="?", type=str, default=None)
     rap.add_argument("--shard_id", nargs="*", type=str, default=None)
@@ -57,6 +61,9 @@ async def main(args: Namespace) -> None:
 
     if args.action == "run":
         config = client.Config.from_file(args.config)
+        if "loglevel" in args:
+            root = logging.Logger.root
+            root.setLevel(getattr(logging, args.loglevel.upper()))
         config.merge_namespace(args)
         bot = client.Client(config)
         await bot.run(sync=args.sync)

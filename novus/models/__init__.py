@@ -38,7 +38,7 @@ from .stage_instance import *
 from .sticker import *
 from .ui import *
 from .user import *
-from .voice_state import VoiceState
+from .voice_state import *
 from .webhook import *
 from .welcome_screen import *
 
@@ -46,9 +46,9 @@ __all__: tuple[str, ...] = (
     'ActionRow',
     'AllowedMentions',
     'Application',
-    'ApplicationCommandData',
     'ApplicationCommand',
     'ApplicationCommandChoice',
+    'ApplicationCommandData',
     'ApplicationCommandOption',
     'Asset',
     'Attachment',
@@ -83,6 +83,7 @@ __all__: tuple[str, ...] = (
     'InteractableComponent',
     'Interaction',
     'InteractionData',
+    'InteractionOption',
     'InteractionResolved',
     'InteractionWebhook',
     'Invite',
@@ -112,7 +113,6 @@ __all__: tuple[str, ...] = (
     'ThreadMember',
     'User',
     'UserSelectMenu',
-    'VoiceState',
     'Webhook',
     'WebhookMessage',
     'WelcomeScreen',
