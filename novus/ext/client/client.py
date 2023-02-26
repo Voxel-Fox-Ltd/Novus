@@ -202,19 +202,13 @@ class Client:
         """
         Remove a plugin from the bot.
         """
-        try:
-            created: Plugin = plugin(self)
-        except Exception as e:
-            log.error(f"Failed to remove plugin {plugin}", exc_info=e)
-            return
-        for c in created._commands:
-            self.remove_command(c)
-        log.info(f"Removed plugin {created} from client instance")
-        # remove by name (its horrible)
         for p in self.plugins:
             if type(p) == plugin:
-                removed = p
-        self.plugins.remove(removed)
+                instance = p
+        for c in instance._commands:
+            self.remove_command(c)
+        self.plugins.remove(instance)
+        log.info(f"Removed plugin {instance} from client instance")
 
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
         """
