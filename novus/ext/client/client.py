@@ -121,6 +121,11 @@ class Client:
     def add_plugin(self, plugin: Type[Plugin]) -> None:
         """
         Load a plugin into the bot.
+
+        Parameters
+        ----------
+        plugin : Type[novus.ext.client.Plugin]
+            The plugin that you want to add to the bot.
         """
 
         try:
@@ -184,7 +189,7 @@ class Client:
         NameError
             You have tried to remove a command that has not been loaded or is not in the cache.
         """
-        
+
         if command.guild_ids:
             for gid in command.guild_ids:
                 key = (gid, command.name,)
@@ -202,14 +207,29 @@ class Client:
     def remove_plugin(self, plugin: Type[Plugin]) -> None:
         """
         Remove a plugin from the bot.
+
+        Parameters
+        ----------
+        plugin : Type[novus.ext.client.Plugin]
+            The plugin type that you want to remove.
+
+        Raises
+        ------
+        TypeError
+            There are no plugins with that plugin type loaded.
         """
-        
+
+        instance = None
         for p in self.plugins:
             if type(p) == plugin:
                 instance = p
+        if instance is None:
+            raise TypeError("Plugin %s is not loaded" % plugin)
+
         for c in instance._commands:
             self.remove_command(c)
         self.plugins.remove(instance)
+
         log.info(f"Removed plugin {instance} from client instance")
 
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
@@ -251,6 +271,8 @@ class Client:
         """
         Get all commands from Discord. Determine if they all already exist. If
         not, PUT them there. If so, save command IDs.
+        This command is required to run to be able to dispatch command events
+        properly.
         """
 
         command_length = [i for i in self._commands.values() if not i.is_subcommand]
@@ -374,6 +396,11 @@ class Client:
         """
         Connect the bot to the gateway, keeping the bot's connection to the
         websocket alive.
+
+        Parameters
+        ----------
+        sync : bool
+            Whether or not to sync the bot's commands to Discord.
         """
 
         log.info("Running client")

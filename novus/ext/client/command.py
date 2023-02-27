@@ -54,9 +54,40 @@ __all__ = (
 class Command:
     """
     A command object for Novus command handling.
+
+    Parameters
+    ----------
+    name: str
+        The name of the command
+    type : novus.ApplicationCommandType
+        The type of the command.
+    callback
+        The function that acts as the command.
+    application_command: novus.PartialApplicationCommand
+        The application command used to generate the command.
+    guild_ids: list[int]
+        A list of guild IDs that the command is present in.
+
+    Attributes
+    ----------
+    name: str
+        The name of the command
+    type : novus.ApplicationCommandType
+        The type of the command.
+    callback
+        The function that acts as the command.
+    application_command: novus.PartialApplicationCommand
+        The application command used to generate the command.
+    guild_ids: list[int]
+        A list of guild IDs that the command is present in.
+    command_ids: set[int]
+        A list of IDs that refer to the command.
+    is_subcommand: bool
+        Whether or not the command is implemented as a subcommand.
     """
 
     name: str
+    type: n.ApplicationCommandType
     callback: CommandCallback
     application_command: n.PartialApplicationCommand
     guild_ids: list[int]
@@ -76,11 +107,11 @@ class Command:
         self.application_command = application_command
         self.guild_ids = guild_ids
         self.command_ids = set()
-        self.owner: Any = None
         self.is_subcommand = (
             self.type == n.ApplicationCommandType.chat_input
             and " " in self.name
         )
+        self.owner: Any = None
 
         # Make sure our callback and app command have similar options
         sig = inspect.signature(self.callback)
@@ -106,6 +137,12 @@ class Command:
         """
         Convert this instance of the command into a command option. This should
         only be used on subcommands.
+
+        Returns
+        -------
+        novus.ApplicationCommandOption
+            Although the command was generated as an application command, this
+            will convert that application command into an option.
         """
 
         return n.ApplicationCommandOption(
@@ -120,6 +157,16 @@ class Command:
     __repr__ = n.utils.generate_repr(('name', 'application_command', 'guild_ids', 'command_ids',))
 
     def add_id(self, id: int) -> None:
+        """
+        Add an ID to the command. This means that any interaction invokations
+        with the given command ID will be routed to this command instance.
+
+        Parameters
+        ----------
+        id : int
+            The ID that you want to add.
+        """
+
         self.command_ids.add(id)
 
     async def run(
@@ -175,7 +222,21 @@ class Command:
 
 class CommandGroup:
     """
-    A group of commands all piled into one place.
+    A group of commands and subcommands.
+
+    Attributes
+    ----------
+    name : str
+        The name of the command.
+    application_command : novus.PartialApplicationCommand
+        The application command that builds the command.
+    guild_ids : list[int]
+        The IDs of the guilds that the command is set to.
+    command_ids : list[int]
+        A list of command IDs that are associated with this command.
+    commands : dict[str, novus.ext.client.Command]
+        A dict of names and command objects that make up the child commands of
+        this command group.
     """
 
     is_subcommand: bool = False
@@ -197,9 +258,27 @@ class CommandGroup:
     __repr__ = n.utils.generate_repr(('name', 'application_command', 'guild_ids', 'command_ids',))
 
     def add_id(self, id: int) -> None:
+        """
+        Add an ID to the command. This means that any interaction invokations
+        with the given command ID will be routed to this command instance.
+
+        Parameters
+        ----------
+        id : int
+            The ID that you want to add.
+        """
+
         self.command_ids.add(id)
 
     def add_description(self, d: CommandDescription) -> None:
+        """
+        Add a description to the command group.
+
+        Parameters
+        ----------
+        d : novus.ext.client.CommandDescription
+            The description that you want to add to the command group.
+        """
         self._add_description(self, d)
         if d.guild_ids is not n.utils.MISSING:
             self.guild_ids = d.guild_ids
@@ -209,6 +288,17 @@ class CommandGroup:
             cls,
             c: Command | CommandGroup | n.ApplicationCommand | n.ApplicationCommandOption,
             d: CommandDescription) -> None:
+        """
+        Add a description to a command.
+
+        Parameters
+        ----------
+        c
+            The command that the description should be added to.
+        d
+            The description of the command.
+        """
+
         if isinstance(c, (n.ApplicationCommand, n.ApplicationCommandOption)):
             app = c
         else:
@@ -411,6 +501,47 @@ def command(
         guild_ids: list[int] | None = None,
         cls: Type[Command] = Command,
         **kwargs: Any):
+    """
+    Wrap a function in a command.
+
+    Parameters
+    ----------
+    name : str | None
+        The name of the command.
+        If not provided, the name of the function is used.
+        If a name with spaces is given, then it is automatically implemented
+        with subcommands (unless it is not a ``chat_input`` type).
+    description : str | None
+        The description associated with the command. If not provided, the
+        docstring for the function is used.
+        If the command is built as a subcommand, you can give descriptions and
+        localizations using the :class:`novus.ext.client.CommandDescription`
+        class.
+    type : novus.ApplicationCommandType
+        The type of the command that you want to create.
+    options : list[novus.ApplicationCommandOption]
+        A list of options to be added to the slash command.
+        If the option names and the function parameter names don't match up, an
+        error will be raised.
+    default_member_permissions : novus.Permissions
+        The permissions that are required (by default) to run this command.
+        These can be changed by server admins.
+    dm_permission : bool
+        Whether the command can be run in DMs.
+    nsfw : bool
+        Whether the comamnd is set to only work in NSFW channels or not.
+    guild_ids : list[int]
+        The guilds that the command will be added to. If not set, then the
+        command will be added globally.
+
+    Raises
+    ------
+    ValueError
+        The command is missing a description.
+    Exception
+        The command's parameters and the options don't match up.
+    """
+
     def wrapper(func: CommandCallback) -> Command:
         cname = name or func.__name__
         dname = description or func.__doc__
