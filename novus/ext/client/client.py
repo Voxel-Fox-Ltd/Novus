@@ -18,9 +18,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
-import importlib
+import importlib.util
 import itertools
 import logging
+import sys
 from collections import defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, Type, cast
@@ -58,11 +59,16 @@ class Client:
             self.config.plugins,
             lambda m: m.split(":")[0],
         )
+        sys.path.append(".")
         for module, lines in plugin_modules:
-            mod = importlib.import_module(module)
+            module = importlib.util.resolve_name(module, None)
+            spec = importlib.util.find_spec(module, None)
+            lib = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(lib)
             for line in lines:
                 _, class_name = line.split(":", 1)
-                self.add_plugin(getattr(mod, class_name))
+                p = getattr(lib, class_name)
+                self.add_plugin(p)
 
     @property
     def commands(self):
