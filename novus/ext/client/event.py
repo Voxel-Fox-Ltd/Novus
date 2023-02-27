@@ -17,14 +17,14 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Awaitable
 from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar
-import re
 
 import novus
 
 if TYPE_CHECKING:
-    from novus.models import *
+    from novus.models import Interaction, Message, MessageComponentData
 
 __all__ = (
     'event',
@@ -55,11 +55,12 @@ class EventListener:
             self.predicate = predicate
 
 
-Self = Any
-AA = Awaitable[Any]
+Self: TypeAlias = Any  # Named Any
+AA = Awaitable[Any]  # Any awaitable
 EL: TypeAlias = EventListener
 T = TypeVar("T")
-W = Callable[[Self, T], AA]
+W = Callable[[Self, T], AA]  # Wrapper
+WEL = Callable[[Callable[..., Awaitable[EL]]], EL]  # Wrapped event listener
 
 
 class EventBuilder:
@@ -67,8 +68,8 @@ class EventBuilder:
     __slots__ = ()
 
     @classmethod
-    def filtered_component(cls, match_string: str):
-        def wrapper(func: W[Interaction[MessageComponentData]]):
+    def filtered_component(cls, match_string: str) -> WEL:
+        def wrapper(func: W[Interaction[MessageComponentData]]) -> EL:
             return EventListener(
                 "INTERACTION_CREATE",
                 func,
@@ -97,9 +98,11 @@ class EventBuilder:
         return EventListener("MESSAGE_CREATE", func)
 
     @staticmethod
-    def __call__(event_name: str) -> Callable[..., EL]:
+    def __call__(
+            event_name: str,
+            predicate: Callable[..., bool] | None = None) -> WEL:
         def wrapper(func: Callable[..., AA]) -> EL:
-            return EventListener(event_name, func)
+            return EventListener(event_name, func, predicate)
         return wrapper  # pyright: ignore
 
 
