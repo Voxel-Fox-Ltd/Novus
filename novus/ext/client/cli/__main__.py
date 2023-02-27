@@ -101,7 +101,10 @@ async def main(args: Namespace) -> None:
 def main_sync() -> None:
     logging.basicConfig(level=logging.INFO)
     args = get_parser().parse_args()
-    asyncio.run(main(args))
+    try:
+        asyncio.run(main(args))
+    except KeyboardInterrupt:
+        pass  # Silence, commandline
 
 
 if __name__ == "__main__":

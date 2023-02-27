@@ -89,7 +89,7 @@ class GatewayConnection:
 
     async def wait(self) -> None:
         while any((shard.running for shard in self.shards)):
-            await asyncio.sleep(0)
+            await asyncio.sleep(1)
 
     async def close(self) -> None:
         tasks = [
