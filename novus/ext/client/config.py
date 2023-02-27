@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import glob
+import logging
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
@@ -34,6 +35,9 @@ __all__ = (
 )
 
 
+log = logging.getLogger("novus.ext.client.config")
+
+
 @dataclass
 class Config:
     token: str = ""
@@ -47,7 +51,7 @@ class Config:
         Merge arguments from the namespace into the config.
         """
 
-        def check(name):
+        def check(name: str) -> bool:
             return name in args and getattr(args, name) is not None
 
         if check("token"):
@@ -91,7 +95,8 @@ class Config:
             try:
                 filename = glob.glob("config.*")[0]
             except IndexError:
-                raise Exception("Missing config file from current directory")
+                log.warning("Missing config file from current directory")
+                return cls()
         try:
             if filename.endswith(".yaml") or filename.endswith(".yml"):
                 return cls.from_yaml(filename)
