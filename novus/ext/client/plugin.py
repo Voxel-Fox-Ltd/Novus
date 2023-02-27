@@ -93,6 +93,9 @@ class PluginMeta(type):
 
 
 class Plugin(metaclass=PluginMeta):
+    """
+    The base command class for any novus client commands.
+    """
 
     _event_listeners: ClassVar[dict[str, set[EventListener]]]
     _commands: ClassVar[set[Command]]
@@ -105,9 +108,21 @@ class Plugin(metaclass=PluginMeta):
         return f"<Plugin[{self.__class__.__name__}]>"
 
     async def on_load(self) -> None:
+        """
+        A function to be run when the plugin is loaded.
+        The plugin is not automatically loaded on its addition to the bot, but
+        on its connection to the gateway. If the bot does not connect to the
+        gateway, this function will never be called.
+        """
+
         pass
 
     async def on_unload(self) -> None:
+        """
+        A function to be run automatically where the plugin is removed from the
+        bot.
+        This function is not run if there is not an event loop running.
+        """
         pass
 
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
