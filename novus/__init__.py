@@ -15,7 +15,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, utils
+from . import payloads, types, utils
 from .api import *
 from .enums import *
 from .errors import *
@@ -160,4 +160,5 @@ __all__: tuple[str, ...] = (
     'mixins',
     'payloads',
     'utils',
+    'types',
 )
