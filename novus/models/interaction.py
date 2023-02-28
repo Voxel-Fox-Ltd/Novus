@@ -458,7 +458,7 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
     type: InteractionType
     data: ID
     guild: Guild | amix.GuildAPIMixin | None
-    channel: Channel | amix.ChannelAPIMixin
+    channel: Channel
     user: GuildMember | User
     token: str
     message: Message | None
