@@ -225,6 +225,10 @@ class TextChannel(Channel, TextChannelAPIMixin):
     Represents any channel that has messages.
     """
 
+    state: HTTPConnection
+    id: int
+    type: ChannelType
+
 
 class VoiceChannel(Channel):
     """
@@ -232,6 +236,10 @@ class VoiceChannel(Channel):
 
     Represents any channel that has voice capability.
     """
+
+    state: HTTPConnection
+    id: int
+    type: ChannelType
 
 
 class DMChannel(TextChannel):
@@ -246,6 +254,10 @@ class DMChannel(TextChannel):
         'raw',
     )
 
+    state: HTTPConnection
+    id: int
+    type: ChannelType
+
 
 class GroupDMChannel(TextChannel):
     """
@@ -258,6 +270,10 @@ class GroupDMChannel(TextChannel):
         'type',
         'raw',
     )
+
+    state: HTTPConnection
+    id: int
+    type: ChannelType
 
 
 class GuildChannel(Channel):
