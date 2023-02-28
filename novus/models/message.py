@@ -18,9 +18,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+from typing_extensions import Self
 
 from .. import enums, flags
-from ..utils import generate_repr, parse_timestamp, try_snowflake
+from ..utils import generate_repr, parse_timestamp, try_snowflake, try_id
 from .api_mixins.message import MessageAPIMixin
 from .channel import Channel, TextChannel, Thread
 from .embed import Embed
@@ -30,14 +31,17 @@ from .reaction import Reaction
 from .sticker import Sticker
 from .ui.action_row import ActionRow
 from .user import User
+from .role import Role
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
     from ..api import HTTPConnection
-    from ..payloads import Message as MessagePayload
+    from .. import payloads
     from . import Webhook
-    from . import api_mixins as amix
+    from . import api_mixins as amix, abc
+
+    AMI = bool | list[int] | list[abc.Snowflake]  # AllowedMentions init
 
 __all__ = (
     'Message',
@@ -181,7 +185,7 @@ class Message(MessageAPIMixin):
     sticker_items: list[Sticker]
     position: int | None
 
-    def __init__(self, *, state: HTTPConnection, data: MessagePayload) -> None:
+    def __init__(self, *, state: HTTPConnection, data: payloads.Message) -> None:
         self.state = state
         self.id = try_snowflake(data["id"])
         self.channel = self.state.cache.get_channel(data["channel_id"], or_object=True)  # pyright: ignore
@@ -278,9 +282,72 @@ class WebhookMessage(Message):
 
 
 class AllowedMentions:
+    """
+    Allowed mentions for a particular message. Have more fine-grained control
+    over what and who you mention.
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        ...
+    Parameters
+    ----------
+    users : bool | list[int] | list[novus.abc.Snowflake]
+        A list of users (or IDs) that you want to mention.
+    roles : bool | list[int] | list[novus.abc.Snowflake]
+        A list of roles (or IDs) that you want to mention.
+    everyone : bool
+        Whether or not you want @everyone and @here pings to be parsed.
+    """
+
+    def __init__(
+            self,
+            *,
+            users: AMI = True,
+            roles: AMI = True,
+            everyone: bool = True) -> None:
+        self.users: list[int] | bool
+        if isinstance(users, bool):
+            self.users = users
+        else:
+            self.users = [try_id(i) for i in users]
+        self.roles: list[int] | bool
+        if isinstance(roles, bool):
+            self.roles = roles
+        else:
+            self.roles = [try_id(i) for i in roles]
+        self.everyone: bool = everyone
+
+    @classmethod
+    def only(cls, target: Role | User | GuildMember) -> Self:
+        """
+        Users or roles that you want to be the only parsed mention in a given
+        message.
+
+        Parameters
+        ----------
+        target : novus.Role | novus.User | novus.GuildMember
+            The
+        """
+
+        if isinstance(target, (User, GuildMember,)):
+            return cls(users=[target])
+        elif isinstance(target, Role):
+            return cls(roles=[target])
+        else:
+            raise TypeError("Only role and user types are permitted.")
+
+    def _to_data(self) -> payloads.AllowedMentions:
+        v: payloads.AllowedMentions = {"parse": []}
+        if self.users:
+            if isinstance(self.users, list):
+                v["users"] = [str(i) for i in self.users]
+            else:
+                v["parse"].append("users")
+        if self.roles:
+            if isinstance(self.roles, list):
+                v["roles"] = [str(i) for i in self.roles]
+            else:
+                v["parse"].append("roles")
+        if self.everyone:
+            v["parse"].append("everyone")
+        return v
 
 
 class Attachment:

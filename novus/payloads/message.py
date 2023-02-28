@@ -17,7 +17,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, Optional, TypedDict
+from typing import TYPE_CHECKING, Optional, TypedDict
+from typing_extensions import NotRequired
 
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
@@ -58,10 +59,10 @@ class Attachment(_AttachmentOptional):
 
 
 class AllowedMentions(TypedDict):
-    parse: list[Literal["roles", "users", "everyone"]]
-    roles: list[Snowflake]
-    users: list[Snowflake]
-    replied_user: bool
+    parse: list[str]  # list[Literal["roles", "users", "everyone"]]
+    roles: NotRequired[list[Snowflake]]
+    users: NotRequired[list[Snowflake]]
+    replied_user: NotRequired[bool]
 
 
 class ChannelMention(TypedDict):
