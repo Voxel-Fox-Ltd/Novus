@@ -87,13 +87,13 @@ async def main(args: Namespace) -> None:
             class {plugin}(client.Plugin):
         """).format(plugin=args.name).strip() + "\n"
         if not args.commands:
-            plugin += " " * 8 + "...\n"
+            plugin += " " * 4 + "...\n"
         for i in args.commands:
             command = textwrap.indent(textwrap.dedent("""
                 @client.command(name="{name}")
-                async def {name}(self, interaction: novus.Interaction[novus.ApplicationCommandData]) -> None:
+                async def {name}(self, interaction: novus.types.CommandI) -> None:
                     ...
-            """).strip(), " " * 8).format(name=i)
+            """).strip(), " " * 4).format(name=i)
             plugin += "\n" + command + "\n"
         print(plugin)
 
