@@ -260,7 +260,7 @@ class Client:
 
     def remove_plugin_file(self, *plugin: str) -> None:
         """
-        Add a plugin via its filename:ClassName pair.
+        Remove a plugin via its filename:ClassName pair.
 
         Parameters
         ----------
