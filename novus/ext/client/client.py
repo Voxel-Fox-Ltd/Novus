@@ -29,6 +29,8 @@ from typing import TYPE_CHECKING, Any, Type, cast
 import novus as n
 
 if TYPE_CHECKING:
+    from types import ModuleType
+
     from .command import Command, CommandGroup
     from .config import Config
     from .plugin import Plugin
@@ -39,6 +41,7 @@ __all__ = (
 
 
 log = logging.getLogger("novus.ext.bot.client")
+IMPORTED_PLUGIN_MODULES: dict[str, ModuleType] = {}
 
 
 class Client:
@@ -55,20 +58,13 @@ class Client:
         self._commands: dict[tuple[int | None, str], Command] = {}
         self._commands_by_id: dict[int, Command] = {}
 
+        sys.path.append(".")
         plugin_modules = itertools.groupby(
             self.config.plugins,
             lambda m: m.split(":")[0],
         )
-        sys.path.append(".")
-        for module, lines in plugin_modules:
-            module = importlib.util.resolve_name(module, None)
-            spec = importlib.util.find_spec(module, None)
-            lib = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(lib)
-            for line in lines:
-                _, class_name = line.split(":", 1)
-                p = getattr(lib, class_name)
-                self.add_plugin(p)
+        for _, lines in plugin_modules:
+            self.add_plugin_file(*lines)
 
     @property
     def commands(self):
@@ -237,6 +233,68 @@ class Client:
         self.plugins.remove(instance)
 
         log.info(f"Removed plugin {instance} from client instance")
+
+    def add_plugin_file(self, *plugin: str) -> None:
+        """
+        Add a plugin via its filename:ClassName pair.
+
+        Parameters
+        ----------
+        plugin : str
+            The plugin reference.
+
+        Raises
+        ------
+        TypeError
+            No plugin could be loaded from the given reference.
+        """
+
+        module = plugin[0].split(":")[0]
+        module = importlib.util.resolve_name(module, None)
+        if module in IMPORTED_PLUGIN_MODULES:
+            lib = IMPORTED_PLUGIN_MODULES[module]
+        else:
+            spec = importlib.util.find_spec(module, None)
+            if spec is None or spec.loader is None:
+                raise TypeError("Missing module %s" % module)
+            lib = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(lib)
+            IMPORTED_PLUGIN_MODULES[module] = lib
+        for p in plugin:
+            _, class_name = p.split(":", 1)
+            p = getattr(lib, class_name)
+            self.add_plugin(p)
+
+    def remove_plugin_file(self, *plugin: str) -> None:
+        """
+        Remove a plugin via its filename:ClassName pair.
+
+        Parameters
+        ----------
+        plugin : str
+            The plugin reference.
+
+        Raises
+        ------
+        TypeError
+            No plugin could be loaded from the given reference.
+        """
+
+        module = plugin[0].split(":")[0]
+        module = importlib.util.resolve_name(module, None)
+        if module in IMPORTED_PLUGIN_MODULES:
+            lib = IMPORTED_PLUGIN_MODULES[module]
+        else:
+            spec = importlib.util.find_spec(module, None)
+            if spec is None or spec.loader is None:
+                raise TypeError("Missing module %s" % module)
+            lib = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(lib)
+            IMPORTED_PLUGIN_MODULES[module] = lib
+        for p in plugin:
+            _, class_name = p.split(":", 1)
+            p = getattr(lib, class_name)
+            self.remove_plugin(p)
 
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
         """
