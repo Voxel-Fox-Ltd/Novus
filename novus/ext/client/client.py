@@ -55,20 +55,13 @@ class Client:
         self._commands: dict[tuple[int | None, str], Command] = {}
         self._commands_by_id: dict[int, Command] = {}
 
+        sys.path.append(".")
         plugin_modules = itertools.groupby(
             self.config.plugins,
             lambda m: m.split(":")[0],
         )
-        sys.path.append(".")
-        for module, lines in plugin_modules:
-            module = importlib.util.resolve_name(module, None)
-            spec = importlib.util.find_spec(module, None)
-            lib = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(lib)
-            for line in lines:
-                _, class_name = line.split(":", 1)
-                p = getattr(lib, class_name)
-                self.add_plugin(p)
+        for _, lines in plugin_modules:
+            self.add_plugin_file(*lines)
 
     @property
     def commands(self):
@@ -238,35 +231,59 @@ class Client:
 
         log.info(f"Removed plugin {instance} from client instance")
 
-    def add_file_plugin(self, plugin: str) -> None:
-        plugins = [i.strip() for i in plugin.split(",") if i.strip()]
-        plugin_modules = itertools.groupby(
-            plugins,
-            lambda m: m.split(":")[0],
-        )
-        for module, lines in plugin_modules:
-            module = importlib.util.resolve_name(module, None)
-            spec = importlib.util.find_spec(module, None)
-            lib = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(lib)
-            for line in lines:
-                _, class_name = line.split(":", 1)
-                p = getattr(lib, class_name)
-                self.add_plugin(p)
-    
-    def remove_file_plugin(self, plugin: str) -> None:
-        plugins = [i.strip() for i in plugin.split(",") if i.strip()]
-        plugin_modules = itertools.groupby(
-            plugins,
-            lambda m: m.split(":")[0],
-        )
-        for module, lines in plugin_modules:
-            for line in lines:
-                _, class_name = line.split(":", 1)
-                for p in self.plugins:
-                    if p.__class__.__name__ == class_name:
-                        remove = p.__class__
-                self.remove_plugin(remove)
+    def add_plugin_file(self, *plugin: str) -> None:
+        """
+        Add a plugin via its filename:ClassName pair.
+
+        Parameters
+        ----------
+        plugin : str
+            The plugin reference.
+
+        Raises
+        ------
+        TypeError
+            No plugin could be loaded from the given reference.
+        """
+
+        module = plugin[0].split(":")[0]
+        module = importlib.util.resolve_name(module, None)
+        spec = importlib.util.find_spec(module, None)
+        if spec is None or spec.loader is None:
+            raise TypeError("Missing module %s" % module)
+        lib = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(lib)
+        for p in plugin:
+            _, class_name = p.split(":", 1)
+            p = getattr(lib, class_name)
+            self.add_plugin(p)
+
+    def remove_plugin_file(self, *plugin: str) -> None:
+        """
+        Add a plugin via its filename:ClassName pair.
+
+        Parameters
+        ----------
+        plugin : str
+            The plugin reference.
+
+        Raises
+        ------
+        TypeError
+            No plugin could be loaded from the given reference.
+        """
+
+        module = plugin[0].split(":")[0]
+        module = importlib.util.resolve_name(module, None)
+        spec = importlib.util.find_spec(module, None)
+        if spec is None or spec.loader is None:
+            raise TypeError("Missing module %s" % module)
+        lib = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(lib)
+        for p in plugin:
+            _, class_name = p.split(":", 1)
+            p = getattr(lib, class_name)
+            self.remove_plugin(p)
 
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
         """
