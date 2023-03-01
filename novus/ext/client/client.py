@@ -395,8 +395,10 @@ class Client:
         """
 
         log.info("Closing bot")
-        await self.state.gateway.close()
-        await (await self.state.get_session()).close()
+        await asyncio.gather(
+            self.state.gateway.close(),
+            self.state.close(),
+        )
 
     async def run(self, sync: bool = True) -> None:
         """
