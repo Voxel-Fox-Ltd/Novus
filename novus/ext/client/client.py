@@ -29,6 +29,8 @@ from typing import TYPE_CHECKING, Any, Type, cast
 import novus as n
 
 if TYPE_CHECKING:
+    from types import ModuleType
+
     from .command import Command, CommandGroup
     from .config import Config
     from .plugin import Plugin
@@ -39,6 +41,7 @@ __all__ = (
 
 
 log = logging.getLogger("novus.ext.bot.client")
+IMPORTED_PLUGIN_MODULES: dict[str, ModuleType] = {}
 
 
 class Client:
@@ -248,11 +251,15 @@ class Client:
 
         module = plugin[0].split(":")[0]
         module = importlib.util.resolve_name(module, None)
-        spec = importlib.util.find_spec(module, None)
-        if spec is None or spec.loader is None:
-            raise TypeError("Missing module %s" % module)
-        lib = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(lib)
+        if module in IMPORTED_PLUGIN_MODULES:
+            lib = IMPORTED_PLUGIN_MODULES[module]
+        else:
+            spec = importlib.util.find_spec(module, None)
+            if spec is None or spec.loader is None:
+                raise TypeError("Missing module %s" % module)
+            lib = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(lib)
+            IMPORTED_PLUGIN_MODULES[module] = lib
         for p in plugin:
             _, class_name = p.split(":", 1)
             p = getattr(lib, class_name)
@@ -275,11 +282,15 @@ class Client:
 
         module = plugin[0].split(":")[0]
         module = importlib.util.resolve_name(module, None)
-        spec = importlib.util.find_spec(module, None)
-        if spec is None or spec.loader is None:
-            raise TypeError("Missing module %s" % module)
-        lib = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(lib)
+        if module in IMPORTED_PLUGIN_MODULES:
+            lib = IMPORTED_PLUGIN_MODULES[module]
+        else:
+            spec = importlib.util.find_spec(module, None)
+            if spec is None or spec.loader is None:
+                raise TypeError("Missing module %s" % module)
+            lib = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(lib)
+            IMPORTED_PLUGIN_MODULES[module] = lib
         for p in plugin:
             _, class_name = p.split(":", 1)
             p = getattr(lib, class_name)
