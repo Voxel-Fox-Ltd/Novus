@@ -74,7 +74,10 @@ class Config:
         def __setattr__(self, name: str, value: str) -> str:
             ...
 
-    def merge_namespace(self, args: argparse.Namespace) -> None:
+    def merge_namespace(
+            self,
+            args: argparse.Namespace,
+            unknown: list[str] | None = None) -> None:
         """
         Merge arguments from the namespace into the config.
         """
@@ -116,6 +119,12 @@ class Config:
             self.plugins = [i.strip() for i in args.plugins.split(",") if i.strip()]
         elif check("plugin"):
             self.plugins = [i.strip() for i in args.plugin if i.strip()]
+
+        if unknown:
+            for name, value in zip(unknown[::2], unknown[1::2]):
+                if not name.startswith("--"):
+                    raise ValueError("Failed to parse unknown args %s" % unknown)
+                setattr(self, name[2:], value)
 
     @classmethod
     def from_file(cls, filename: str | None) -> Self:

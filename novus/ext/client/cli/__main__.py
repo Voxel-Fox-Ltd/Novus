@@ -29,7 +29,7 @@ def get_parser() -> ArgumentParser:
     ap = p.add_subparsers(dest="action", required=True)
 
     rap = ap.add_parser("run")
-    rap.add_argument("config", nargs="?")
+    rap.add_argument("--config", nargs="?", const=None, default=None)
     logger_choices = []
     for i in ["debug", "info", "warning", "error"]:
         logger_choices.extend((i, i.upper(),))
@@ -56,7 +56,7 @@ def get_parser() -> ArgumentParser:
     return p
 
 
-async def main(args: Namespace) -> None:
+async def main(args: Namespace, unknown: list[str]) -> None:
     """
     Main input point for our CLI.
     """
@@ -66,14 +66,14 @@ async def main(args: Namespace) -> None:
         if "loglevel" in args:
             root = logging.Logger.root
             root.setLevel(getattr(logging, args.loglevel.upper()))
-        config.merge_namespace(args)
+        config.merge_namespace(args, unknown)
         bot = client.Client(config)
         await bot.run(sync=args.sync)
 
     elif args.action == "config-dump":
         config = client.Config()
         logging.Logger.root.setLevel(logging.ERROR)
-        config.merge_namespace(args)
+        config.merge_namespace(args, unknown)
         bot = client.Client(config, load_plugins=False)
         match args.type:
             case "yaml":
@@ -105,9 +105,9 @@ async def main(args: Namespace) -> None:
 
 def main_sync() -> None:
     logging.basicConfig(level=logging.INFO)
-    args = get_parser().parse_args()
+    args, unknown = get_parser().parse_known_args()
     try:
-        asyncio.run(main(args))
+        asyncio.run(main(args, unknown))
     except KeyboardInterrupt:
         pass  # Silence, commandline
 
