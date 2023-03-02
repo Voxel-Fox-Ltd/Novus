@@ -459,6 +459,20 @@ class GatewayShard:
             },
         )
 
+    async def chunk_guild(self, guild_id: int, index: int = 0) -> None:
+        """
+        Send a request to chunk a guild.
+        """
+
+        await self.send(
+            GatewayOpcode.request_members,
+            {
+                "guild_id": str(guild_id),
+                "query": "",
+                "limit": 0,
+            },
+        )
+
     async def resume(self) -> None:
         """
         Send a resume to Discord.

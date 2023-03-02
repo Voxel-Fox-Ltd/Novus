@@ -20,6 +20,7 @@ from __future__ import annotations
 import json
 import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeVar
+import asyncio
 
 from ...models import (
     AuditLogEntry,
@@ -46,7 +47,7 @@ if TYPE_CHECKING:
     from ...models import api_mixins as amix
     from ...payloads import gateway as gw
     from .._http import HTTPConnection
-    from ..gateway import GatewayShard
+    from .gateway import GatewayShard
 
 
 __all__ = (
@@ -112,7 +113,7 @@ class GatewayDispatch:
             "GUILD_MEMBER_ADD": self._handle_guild_member_add,
             "GUILD_MEMBER_REMOVE": self._handle_guild_member_remove,
             "GUILD_MEMBER_UPDATE": self._handle_guild_member_update,
-            # "Guild members chunk": None,
+            "GUILD_MEMBERS_CHUNK": self._handle_guild_member_chunk,
             "GUILD_ROLE_CREATE": self._handle_role_create,
             "GUILD_ROLE_UPDATE": self._handle_role_update,
             "GUILD_ROLE_DELETE": self._handle_role_delete,
@@ -221,6 +222,13 @@ class GatewayDispatch:
         guild = Guild(state=self.parent, data=data)
         self.cache.add_guilds(guild)
         await guild._sync(data=data)
+        if self.shard.intents.guild_members and self.shard.intents.guilds:
+            asyncio.create_task(self.shard.chunk_guild(guild.id))
+        else:
+            log.debug(
+                "Not chunking guild (members=%s guilds=%s)",
+                self.shard.intents.guild_members, self.shard.intents.guilds,
+            )
         yield guild
 
     async def _handle_guild_update(
@@ -681,6 +689,17 @@ class GatewayDispatch:
         if user is None:
             user = User(state=self.parent, data=data["user"])  # don't cache
         yield guild, user,
+
+    async def _handle_guild_member_chunk(self, data: gw.GuildMemberChunk) -> Ret[None]:
+        """Handle response from chunk request."""
+
+        guild = self.cache.get_guild(data["guild_id"], or_object=False)
+        if guild is None:
+            return
+        for m in data["members"]:
+            guild._add_member(m)
+            await asyncio.sleep(0)
+        yield None
 
     async def _handle_message_reaction_generic(
             self,
