@@ -360,7 +360,7 @@ class PartialApplicationCommand:
             name_localizations: LocType = MISSING,
             description_localizations: LocType = MISSING,
             options: list[ApplicationCommandOption] = MISSING,
-            default_member_permissions: Permissions = Permissions(0),
+            default_member_permissions: Permissions | None = MISSING,
             dm_permission: bool = True,
             nsfw: bool = False):
         self.type = type
@@ -369,7 +369,10 @@ class PartialApplicationCommand:
         self.description = description
         self.description_localizations = flatten_localization(description_localizations)
         self.options = options or []
-        self.default_member_permissions = default_member_permissions
+        if default_member_permissions is MISSING:
+            self.default_member_permissions = None
+        else:
+            self.default_member_permissions = default_member_permissions
         self.dm_permission = dm_permission
         self.nsfw = nsfw
 
@@ -392,9 +395,11 @@ class PartialApplicationCommand:
             "type": self.type.value,
             "name_localizations": self.name_localizations._to_data(),
             "description_localizations": self.description_localizations._to_data(),
-            "default_member_permissions": str(self.default_member_permissions.value),
             "dm_permission": self.dm_permission,
+            "default_member_permissions": None,
         }
+        if self.default_member_permissions is not None:
+            d["default_member_permissions"] = str(self.default_member_permissions.value)
         if self.options:
             d["options"] = [i._to_data() for i in self.options]
         return d
