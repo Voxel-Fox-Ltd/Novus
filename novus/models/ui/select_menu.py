@@ -156,6 +156,11 @@ class SelectOption(ComponentEmojiMixin):
 
     @classmethod
     def _from_data(cls, data: payloads.SelectOption) -> Self:
+        if isinstance(data, str):
+            return cls(
+                None,  # pyright: ignore
+                data,
+            )
         emoji_data = data.get("emoji")
         if emoji_data:
             emoji_object = PartialEmoji(data=emoji_data)
