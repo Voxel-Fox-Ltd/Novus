@@ -315,6 +315,14 @@ class AllowedMentions:
         self.everyone: bool = everyone
 
     @classmethod
+    def none(cls) -> Self:
+        """
+        An allowed mentions object with no pings allowed.
+        """
+
+        return cls(users=False, roles=False, everyone=False)
+
+    @classmethod
     def only(cls, target: Role | User | GuildMember) -> Self:
         """
         Users or roles that you want to be the only parsed mention in a given
