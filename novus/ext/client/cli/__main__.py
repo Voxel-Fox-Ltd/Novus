@@ -46,6 +46,8 @@ def get_parser() -> ArgumentParser:
 
     cap = ap.add_parser("config-dump")
     cap.add_argument("type", choices=["json", "yaml", "toml"])
+    cap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
+    cap.add_argument("--plugin", nargs="*", type=str, default=None)
 
     np = ap.add_parser("new-plugin")
     np.add_argument("name")
@@ -70,6 +72,9 @@ async def main(args: Namespace) -> None:
 
     elif args.action == "config-dump":
         config = client.Config()
+        logging.Logger.root.setLevel(logging.ERROR)
+        config.merge_namespace(args)
+        bot = client.Client(config, load_plugins=False)
         match args.type:
             case "yaml":
                 print(config.to_yaml())

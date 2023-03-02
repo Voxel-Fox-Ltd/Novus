@@ -20,7 +20,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeAlias, TypeVar
 
 import novus as n
 
@@ -29,6 +29,11 @@ from .event import EventListener
 
 if TYPE_CHECKING:
     from .client import Client
+
+    JsonPrimitive = str | bool | int | float
+    JsonPrimList = list['JsonPrimitive' | list['JsonPrimList'] | list['JsonPrimDict']]
+    JsonPrimDict = dict[str, 'JsonPrimitive' | 'JsonPrimList' | 'JsonPrimDict']
+    JsonValue =  JsonPrimDict
 
 __all__ = (
     'loadable',
@@ -100,6 +105,8 @@ class Plugin(metaclass=PluginMeta):
     _event_listeners: ClassVar[dict[str, set[EventListener]]]
     _commands: ClassVar[set[Command]]
     _command_ids: ClassVar[dict[int, Command]]
+
+    CONFIG: ClassVar[JsonValue] = {}
 
     def __init__(self, bot: Client) -> None:
         self.bot: Client = bot

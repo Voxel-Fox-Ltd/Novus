@@ -20,7 +20,7 @@ from __future__ import annotations
 import glob
 import logging
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from typing_extensions import Self
 
@@ -30,6 +30,8 @@ if TYPE_CHECKING:
     import argparse
     import pathlib
 
+    from .plugin import Plugin
+
 __all__ = (
     'Config',
 )
@@ -38,13 +40,39 @@ __all__ = (
 log = logging.getLogger("novus.ext.client.config")
 
 
-@dataclass
 class Config:
-    token: str = ""
-    shard_ids: list[int] = field(default_factory=list)
-    shard_count: int = 1
-    intents: novus.Intents = field(default_factory=novus.Intents.none)
-    plugins: list[str] = field(default_factory=list)
+
+    token: str
+    shard_ids: list[int]
+    shard_count: int
+    intents: novus.Intents
+    plugins: list[str]
+
+    def __init__(
+            self,
+            *,
+            token: str = "",
+            shard_ids: list[int] | None = None,
+            shard_count: int = 1,
+            intents: novus.Intents | None = None,
+            plugins: list[str] | None = None,
+            **kwargs: Any):
+        self.token: str = token
+        self.shard_ids: list[int] = shard_ids or []
+        self.shard_count: int = shard_count
+        self.intents: novus.Intents = intents or novus.Intents()
+        self.plugins: list[str] = plugins or []
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+        self._extended: dict[Plugin, dict] = {}
+
+    if TYPE_CHECKING:
+
+        def __getattr__(self, name: str) -> str | NoReturn:
+            ...
+
+        def __setattr__(self, name: str, value: str) -> str:
+            ...
 
     def merge_namespace(self, args: argparse.Namespace) -> None:
         """
@@ -115,13 +143,16 @@ class Config:
         return cls(**data, intents=intents)
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        v = {
             "token": self.token,
             "shard_ids": self.shard_ids,
             "shard_count": self.shard_count,
             "intents": dict(self.intents.walk()),
             "plugins": self.plugins,
         }
+        for ext in self._extended.values():
+            v.update(ext)
+        return v
 
     @classmethod
     def from_yaml(cls, filename: str | pathlib.Path) -> Self:

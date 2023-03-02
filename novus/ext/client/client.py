@@ -49,12 +49,13 @@ class Client:
     A gateway and API connection into Discord.
     """
 
-    def __init__(self, config: Config) -> None:
-        self.config = config
-        self.state = n.api.HTTPConnection(self.config.token)
+    def __init__(self, config: Config, *, load_plugins: bool = False) -> None:
+        self.config: Config = config
+        self.state: n.api.HTTPConnection = n.api.HTTPConnection(self.config.token)
         self.state.dispatch = self.dispatch
 
         self.plugins: set[Plugin] = set()
+
         self._commands: dict[tuple[int | None, str], Command] = {}
         self._commands_by_id: dict[int, Command] = {}
 
@@ -64,7 +65,7 @@ class Client:
             lambda m: m.split(":")[0],
         )
         for _, lines in plugin_modules:
-            self.add_plugin_file(*lines)
+            self.add_plugin_file(*lines, load=load_plugins)
 
     @property
     def commands(self):
@@ -120,7 +121,7 @@ class Client:
 
         return self._commands.get((guild_id, name,))
 
-    def add_plugin(self, plugin: Type[Plugin]) -> None:
+    def add_plugin(self, plugin: Type[Plugin], *, load: bool = False) -> None:
         """
         Load a plugin into the bot.
 
@@ -139,17 +140,19 @@ class Client:
         self.plugins.add(created)
         for c in created._commands:
             self.add_command(c)
+        self.config._extended[created] = created.CONFIG
 
         # Run ``.on_load()`` if we've started the event loop.
-        try:
-            asyncio.get_running_loop()
-        except RuntimeError:
-            pass
-        else:
-            asyncio.create_task(
-                self._add_plugin_load(created),
-                name=f"{plugin.__name__}.on_load()",
-            )
+        if load:
+            try:
+                asyncio.get_running_loop()
+            except RuntimeError:
+                pass
+            else:
+                asyncio.create_task(
+                    self._add_plugin_load(created),
+                    name=f"{plugin.__name__}.on_load()",
+                )
 
     async def _add_plugin_load(self, plugin: Plugin) -> None:
         """
@@ -234,7 +237,7 @@ class Client:
 
         log.info(f"Removed plugin {instance} from client instance")
 
-    def add_plugin_file(self, *plugin: str) -> None:
+    def add_plugin_file(self, *plugin: str, load: bool = False) -> None:
         """
         Add a plugin via its filename:ClassName pair.
 
@@ -263,7 +266,7 @@ class Client:
         for p in plugin:
             _, class_name = p.split(":", 1)
             p = getattr(lib, class_name)
-            self.add_plugin(p)
+            self.add_plugin(p, load=load)
 
     def remove_plugin_file(self, *plugin: str) -> None:
         """

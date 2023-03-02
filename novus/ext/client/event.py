@@ -60,7 +60,7 @@ AA = Awaitable[Any]  # Any awaitable
 EL: TypeAlias = EventListener
 T = TypeVar("T")
 W = Callable[[Self, T], AA]  # Wrapper
-WEL = Callable[[Callable[..., Awaitable[EL]]], EL]  # Wrapped event listener
+WEL = Callable[[Callable[[Self, T], Any]], EL]  # Wrapped event listener
 
 
 class EventBuilder:
@@ -68,7 +68,7 @@ class EventBuilder:
     __slots__ = ()
 
     @classmethod
-    def filtered_component(cls, match_string: str) -> WEL:
+    def filtered_component(cls, match_string: str) -> WEL[Interaction[MessageComponentData]]:
         def wrapper(func: W[Interaction[MessageComponentData]]) -> EL:
             return EventListener(
                 "INTERACTION_CREATE",
