@@ -19,8 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from ...flags import MessageFlags
 from ...enums import InteractionResponseType
+from ...flags import MessageFlags
 from ...utils import MISSING
 
 if TYPE_CHECKING:
@@ -33,6 +33,7 @@ if TYPE_CHECKING:
         Interaction,
         Message,
         Sticker,
+        WebhookMessage,
         flags,
     )
 
@@ -141,15 +142,19 @@ class InteractionAPIMixin:
             )
         return
 
-    async def defer(self: Interaction) -> None:
+    async def defer(self: Interaction, *, ephemeral: bool = False) -> None:
         """
         Send a defer response.
         """
 
+        data = None
+        if ephemeral:
+            data = {"flags": MessageFlags(ephemeral=True)}
         await self.state.interaction.create_interaction_response(
             self.id,
             self.token,
             InteractionResponseType.deferred_channel_message_with_source,
+            data,
         )
         self._responded = True
 
@@ -270,3 +275,34 @@ class InteractionAPIMixin:
             modal,
         )
         self._responded = True
+
+    async def delete_original(self: Interaction) -> None:
+        """
+        Delete the original message that is associated with the interaction.
+        """
+
+        await self.state.interaction.delete_original_interaction_response(
+            self.application_id,
+            self.token,
+        )
+
+    async def fetch_original(self: Interaction) -> WebhookMessage:
+        """
+        Get the original message associated with the interaction.
+        """
+
+        return await self.state.interaction.get_original_interaction_response(
+            self.application_id,
+            self.token,
+        )
+
+    async def edit_original(self: Interaction, **kwargs: Any) -> WebhookMessage:
+        """
+        Edit the original message associated with the interaction.
+        """
+
+        return await self.state.interaction.edit_original_interaction_response(
+            self.application_id,
+            self.token,
+            **kwargs,
+        )

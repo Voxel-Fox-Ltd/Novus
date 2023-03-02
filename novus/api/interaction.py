@@ -24,7 +24,7 @@ from ._route import Route
 from .webhook import WebhookHTTPConnection
 
 if TYPE_CHECKING:
-    from .. import payloads
+    from .. import WebhookMessage, payloads
     from ..enums import InteractionResponseType
     from ._http import HTTPConnection
 
@@ -477,14 +477,43 @@ class InteractionHTTPConnection:
             files=files,
         )
 
-    async def get_original_interaction_response(self) -> NoReturn:
-        raise NotImplementedError()
+    async def get_original_interaction_response(
+            self,
+            application_id: int,
+            interaction_token: str) -> WebhookMessage:
+        """Get the original message associated with an interaction."""
 
-    async def edit_original_interaction_response(self) -> NoReturn:
-        raise NotImplementedError()
+        return await self.parent.webhook.get_webhook_message(
+            application_id,
+            interaction_token,
+            "@original",  # pyright: ignore
+        )
 
-    async def delete_original_interaction_response(self) -> NoReturn:
-        raise NotImplementedError()
+    async def edit_original_interaction_response(
+            self,
+            application_id: int,
+            interaction_token: str,
+            **kwargs: Any) -> WebhookMessage:
+        """Edit the original interaction response."""
+
+        return await self.parent.webhook.edit_webhook_message(
+            application_id,
+            interaction_token,
+            "@original",  # pyright: ignore
+            **kwargs,
+        )
+
+    async def delete_original_interaction_response(
+            self,
+            application_id: int,
+            interaction_token: str) -> None:
+        """Delete original resposne to an interaction."""
+
+        await self.parent.webhook.delete_webhook_message(
+            application_id,
+            interaction_token,
+            "@original",  # pyright: ignore
+        )
 
     create_followup_message = WebhookHTTPConnection.execute_webhook
     get_followup_message = WebhookHTTPConnection.get_webhook_message
