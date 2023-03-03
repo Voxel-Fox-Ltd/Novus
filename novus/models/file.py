@@ -17,13 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import pathlib
 from typing import TYPE_CHECKING, Any
 
 from ..utils import cached_slot_property, get_mime_type_for_image
 
 if TYPE_CHECKING:
     import io
-    import pathlib
 
 __all__ = (
     'File',
