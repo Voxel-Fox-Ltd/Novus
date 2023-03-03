@@ -469,6 +469,7 @@ class GatewayShard:
         Send a request to chunk a guild.
         """
 
+        log.info("Chunking guild %s", guild_id)
         await self.send(
             GatewayOpcode.request_members,
             {
