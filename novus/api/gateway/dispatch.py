@@ -125,7 +125,7 @@ class GatewayDispatch:
             "INTEGRATION_CREATE": self.ignore("INTEGRATION_CREATE"),
             "INTEGRATION_UPDATE": self.ignore("INTEGRATION_UPDATE"),
             "INTEGRATION_DELETE": self.ignore("INTEGRATION_DELETE"),
-            "INTERACTION_CREATE": self.ignore("INTERACTION_CREATE"),
+            "INTERACTION_CREATE": self._handle_interaction,
             "INVITE_CREATE": self._handle_invite_create,
             "INVITE_DELETE": self._handle_invite_delete,
             "MESSAGE_CREATE": self._handle_message_create,
@@ -145,7 +145,6 @@ class GatewayDispatch:
             "VOICE_STATE_UPDATE": self._handle_voice_state,
             # "Voice server update": None,
             # "Webhooks update": None,
-            "INTERACTION_CREATE": self._handle_interaction,
         }
 
     @property
