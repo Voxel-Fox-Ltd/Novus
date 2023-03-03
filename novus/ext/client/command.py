@@ -495,7 +495,7 @@ def command(
         type: n.ApplicationCommandType = n.ApplicationCommandType.chat_input,
         *,
         options: list[n.ApplicationCommandOption] | None = None,
-        default_member_permissions: n.Permissions = n.Permissions(0),
+        default_member_permissions: n.Permissions | None = None,
         dm_permission: bool = True,
         nsfw: bool = False,
         guild_ids: list[int] | None = None,
