@@ -15,32 +15,20 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .cached_slots import *
-from .components import *
-from .enums import *
-from .files import *
-from .localization import *
-from .missing import *
-from .repr import *
-from .snowflakes import *
-from .times import *
+from __future__ import annotations
 
-__all__: tuple[str, ...] = (
-    'DiscordDatetime',
-    'Localization',
-    'ME',
-    'MISSING',
-    'add_not_missing',
-    'bytes_to_base64_data',
-    'cached_slot_property',
-    'flatten_localization',
-    'format_timestamp',
-    'generate_repr',
-    'get_mime_type_for_image',
-    'parse_timestamp',
-    'try_enum',
-    'try_id',
-    'try_object',
-    'try_snowflake',
-    'walk_components',
+from .utils import Enum
+
+__all__ = (
+    'TimestampFormat',
 )
+
+
+class TimestampFormat(Enum):
+    short_time = "t"
+    long_time = "T"
+    short_date = "d"
+    long_date = "D"
+    short_datetime = "f"
+    long_datetime = "F"
+    relative = "R"

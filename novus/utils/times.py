@@ -19,11 +19,15 @@ from __future__ import annotations
 
 from datetime import datetime as dt
 from datetime import timezone
-from typing import overload
+from typing import TYPE_CHECKING, overload
+
+if TYPE_CHECKING:
+    from ..enums.time import TimestampFormat
 
 __all__ = (
     'DiscordDatetime',
     'parse_timestamp',
+    'format_timestamp',
 )
 
 
@@ -96,3 +100,35 @@ def parse_timestamp(timestamp: dt | str | None) -> dt | None:
     elif isinstance(timestamp, dt):
         parsed = DiscordDatetime(*DiscordDatetime.deconstruct(timestamp))
     return parsed
+
+
+def format_timestamp(
+        timestamp: dt,
+        style: TimestampFormat | str | None = None) -> str:
+    """
+    Format a timestamp into a rendered timestamp string.
+
+    Parameters
+    ----------
+    timestamp : datetime.datetime
+        The timestamp that you want to format.
+    style : novus.TimestampFormat | str
+        The format that you want to style the timestamp as.
+
+    Returns
+    -------
+    str
+        The formatted timestamp.
+    """
+
+    style_str: str | None
+    if style is None:
+        style_str = None
+    elif isinstance(style, str):
+        style_str = style
+    else:
+        style_str = style.value
+
+    if style_str is None:
+        return f"<t:{int(timestamp.timestamp())}>"
+    return f"<t:{int(timestamp.timestamp())}:{style_str}>"

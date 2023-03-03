@@ -27,6 +27,7 @@ from .locale import *
 from .message import *
 from .scheduled_event import *
 from .sticker import *
+from .time import *
 from .user import *
 
 __all__: tuple[str, ...] = (
@@ -59,6 +60,7 @@ __all__: tuple[str, ...] = (
     'StickerFormat',
     'StickerType',
     'TextInputStyle',
+    'TimestampFormat',
     'UserPremiumType',
     'VerificationLevel',
 )
