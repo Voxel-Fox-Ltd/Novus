@@ -34,7 +34,7 @@ def get_parser() -> ArgumentParser:
     for i in ["debug", "info", "warning", "error"]:
         logger_choices.extend((i, i.upper(),))
     rap.add_argument("--loglevel", default='info', choices=logger_choices)
-    rap.add_argument("--sync", default=False, action="store_true")
+    rap.add_argument("--no-sync", default=False, action="store_true")
     rap.add_argument("--token", nargs="?", type=str, default=None)
     rap.add_argument("--shard_id", nargs="*", type=str, default=None)
     rap.add_argument("--shard_ids", nargs="?", type=str, const="", default=None)
@@ -74,7 +74,7 @@ async def main(args: Namespace, unknown: list[str]) -> None:
             root.setLevel(getattr(logging, args.loglevel.upper()))
         config.merge_namespace(args, unknown)
         bot = client.Client(config)
-        await bot.run(sync=args.sync)
+        await bot.run(sync=not args.no_sync)
 
     elif args.action == "config-dump":
         config = client.Config()
