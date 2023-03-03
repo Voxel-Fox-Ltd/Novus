@@ -23,6 +23,7 @@ import logging
 import platform
 import random
 import zlib
+from collections import defaultdict
 from typing import TYPE_CHECKING, Any
 from typing import AsyncGenerator as AG
 from typing import cast
@@ -38,7 +39,7 @@ from .._route import Route
 from .dispatch import GatewayDispatch
 
 if TYPE_CHECKING:
-    from ... import payloads
+    from ... import GuildMember, payloads
     from .._http import HTTPConnection
 
 __all__ = (
@@ -157,6 +158,11 @@ class GatewayShard:
         self.sequence: int | None = None
         self.resume_url = self.ws_url
         self.session_id = None
+
+        # Temporarily cached data for combining requests
+        self.chunk_counter: dict[str, int] = {}  # nonce: req_counter
+        self.chunk_groups: dict[str, list[GuildMember]] = defaultdict(list)
+        self.chunk_event: dict[str, asyncio.Event] = {}
 
     @property
     def running(self) -> bool:
@@ -464,20 +470,37 @@ class GatewayShard:
             },
         )
 
-    async def chunk_guild(self, guild_id: int, index: int = 0) -> None:
+    async def chunk_guild(
+            self,
+            guild_id: int,
+            query: str = "",
+            limit: int = 0,
+            user_ids: list[int] | None = None,
+            nonce: str | None = None) -> asyncio.Event | None:
         """
         Send a request to chunk a guild.
         """
 
         log.info("Chunking guild %s", guild_id)
+        data = {
+            "guild_id": str(guild_id),
+            "limit": limit,
+        }
+        if user_ids is None:
+            data["query"] = query
+        else:
+            data["user_ids"] = [str(i) for i in user_ids]
+        event = None
+        if nonce:
+            data["nonce"] = nonce
+            self.chunk_counter[nonce] = 0
+            self.chunk_event[nonce] = event = asyncio.Event()
+            self.chunk_groups[nonce] = []
         await self.send(
             GatewayOpcode.request_members,
-            {
-                "guild_id": str(guild_id),
-                "query": "",
-                "limit": 0,
-            },
+            data,
         )
+        return event
 
     async def resume(self) -> None:
         """

@@ -17,7 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, NoReturn, TypeAlias
+import random
+import string
+from typing import TYPE_CHECKING, Any, Literal, NoReturn, TypeAlias, overload
 
 from ....utils import MISSING, try_id, try_object
 
@@ -27,7 +29,7 @@ if TYPE_CHECKING:
     from ....api import HTTPConnection
     from ....enums import ContentFilterLevel, Locale, NotificationLevel, VerificationLevel
     from ....flags import SystemChannelFlags
-    from ... import Guild, Invite
+    from ... import Guild, GuildMember, Invite
     from ...abc import Snowflake, StateSnowflake
 
     FileT: TypeAlias = str | bytes | io.IOBase
@@ -274,11 +276,51 @@ class GuildAPI:
     async def edit_my_voice_state(self) -> NoReturn:
         raise NotImplementedError()
 
-    async def chunk_members(self: StateSnowflake) -> None:
+    @overload
+    async def chunk_members(
+            self: StateSnowflake,
+            query: str = ...,
+            limit: int = ...,
+            user_ids: list[int] = ...,
+            wait: Literal[True] = ...) -> list[GuildMember]:
+        ...
+
+    @overload
+    async def chunk_members(
+            self: StateSnowflake,
+            query: str = ...,
+            limit: int = ...,
+            user_ids: list[int] = ...,
+            wait: Literal[False] = ...) -> None:
+        ...
+
+    async def chunk_members(
+            self: StateSnowflake,
+            query: str = "",
+            limit: int = 0,
+            user_ids: list[int] | None = None,
+            wait: bool = False) -> list[GuildMember] | None:
         """
         Request member chunks from the gateway.
+
+        Parameters
+        ----------
+        query : str
+            A search string for usernames.
+        limit : int
+            A limit for the retrieved member count.
+        user_ids : list[int]
+            A list of user IDs to request.
+        wait : bool
+            Whether or not to wait for a response.
+
+        Returns
+        -------
+        list[novus.GuildMember] | None
+            A list of requested users or ``None`` if you chose not to wait.
         """
 
+        # Get shard
         shard_id = (self.id >> 22) % self.state.gateway.shard_count
         shard = None
         for i in self.state.gateway.shards:
@@ -286,5 +328,21 @@ class GuildAPI:
                 shard = i
                 break
         else:
+            raise ValueError("Could not find shard associated with this guild.")
+
+        # Get stuff
+        nonce = None
+        if wait:
+            nonce = str("".join(random.choices(string.ascii_lowercase)))
+        event = await shard.chunk_guild(
+            self.id,
+            query=query,
+            limit=limit,
+            user_ids=user_ids,
+            nonce=nonce,
+        )
+        if event is None:
             return
-        await shard.chunk_guild(self.id)
+        assert nonce
+        await event.wait()
+        return shard.chunk_groups.pop(nonce)

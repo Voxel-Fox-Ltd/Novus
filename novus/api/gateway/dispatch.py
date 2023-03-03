@@ -17,10 +17,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeVar
-import asyncio
 
 from ...models import (
     AuditLogEntry,
@@ -696,9 +696,19 @@ class GatewayDispatch:
         guild = self.cache.get_guild(data["guild_id"], or_object=False)
         if guild is None:
             return
+        nonce = None
+        if "nonce" in data:
+            nonce = data["nonce"]
         for m in data["members"]:
-            guild._add_member(m)
+            created = guild._add_member(m)
+            if nonce:
+                self.shard.chunk_groups[nonce].append(created)
             await asyncio.sleep(0)
+        if nonce:
+            self.shard.chunk_counter[nonce] += 1
+            if self.shard.chunk_counter[nonce] == data["chunk_count"]:
+                del self.shard.chunk_counter[nonce]
+                self.shard.chunk_event[nonce].set()
         yield None
 
     async def _handle_message_reaction_generic(
