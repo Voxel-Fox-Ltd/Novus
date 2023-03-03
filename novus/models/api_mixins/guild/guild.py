@@ -273,3 +273,18 @@ class GuildAPI:
 
     async def edit_my_voice_state(self) -> NoReturn:
         raise NotImplementedError()
+
+    async def chunk_members(self: StateSnowflake) -> None:
+        """
+        Request member chunks from the gateway.
+        """
+
+        shard_id = (self.id >> 22) % self.state.gateway.shard_count
+        shard = None
+        for i in self.state.gateway.shards:
+            if i.shard_id == shard_id:
+                shard = i
+                break
+        else:
+            return
+        await shard.chunk_guild(self.id)

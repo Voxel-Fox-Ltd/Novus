@@ -222,13 +222,13 @@ class GatewayDispatch:
         guild = Guild(state=self.parent, data=data)
         self.cache.add_guilds(guild)
         await guild._sync(data=data)
-        if self.shard.intents.guild_members and self.shard.intents.guilds:
-            asyncio.create_task(self.shard.chunk_guild(guild.id))
-        else:
-            log.debug(
-                "Not chunking guild (members=%s guilds=%s)",
-                self.shard.intents.guild_members, self.shard.intents.guilds,
-            )
+        # if self.shard.intents.guild_members and self.shard.intents.guilds:
+        #     asyncio.create_task(self.shard.chunk_guild(guild.id))
+        # else:
+        #     log.debug(
+        #         "Not chunking guild (members=%s guilds=%s)",
+        #         self.shard.intents.guild_members, self.shard.intents.guilds,
+        #     )
         yield guild
 
     async def _handle_guild_update(

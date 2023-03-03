@@ -55,6 +55,10 @@ class GatewayConnection:
 
     def __init__(self, parent: HTTPConnection) -> None:
         self.parent = parent
+        self.presence: None = None
+        self.intents: Intents = Intents.none()
+        self.shards: set[GatewayShard] = set()
+        self.shard_count: int = 1
 
     async def connect(
             self,
@@ -64,9 +68,10 @@ class GatewayConnection:
             max_concurrency: int = 1,
             presence: None = None,
             intents: Intents = Intents.none()) -> None:
-        self.presence: None = None
-        self.intents: Intents = Intents.none()
-        self.shards: set[GatewayShard] = set()
+        self.presence = None
+        self.intents = intents
+        self.shards = set()
+        self.shard_count = shard_count
         identify_semaphore = asyncio.Semaphore(max_concurrency)
         shard_ids = shard_ids or list(range(shard_count))
         tasks: list[asyncio.Task] = []

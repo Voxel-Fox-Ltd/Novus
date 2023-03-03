@@ -46,6 +46,12 @@ def get_parser() -> ArgumentParser:
 
     cap = ap.add_parser("config-dump")
     cap.add_argument("type", choices=["json", "yaml", "toml"])
+    cap.add_argument("--token", nargs="?", type=str, default=None)
+    cap.add_argument("--shard_id", nargs="*", type=str, default=None)
+    cap.add_argument("--shard_ids", nargs="?", type=str, const="", default=None)
+    cap.add_argument("--shard_count", nargs="?", type=str, default=None)
+    cap.add_argument("--intents", nargs="?", type=str, const="", default=None)
+    cap.add_argument("--intent", nargs="*", type=str, default=None)
     cap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
     cap.add_argument("--plugin", nargs="*", type=str, default=None)
 
@@ -74,7 +80,6 @@ async def main(args: Namespace, unknown: list[str]) -> None:
         config = client.Config()
         logging.Logger.root.setLevel(logging.ERROR)
         config.merge_namespace(args, unknown)
-        bot = client.Client(config, load_plugins=False)
         match args.type:
             case "yaml":
                 print(config.to_yaml())
