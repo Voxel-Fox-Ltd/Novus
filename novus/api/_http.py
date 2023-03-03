@@ -20,7 +20,7 @@ from __future__ import annotations
 import io
 import json
 import logging
-from typing import TYPE_CHECKING, Any, Iterable, TypedDict, cast
+from typing import TYPE_CHECKING, Any, Iterable, TypedDict
 
 import aiohttp
 
@@ -182,7 +182,6 @@ class HTTPConnection:
         headers = {
             "Authorization": self._prefixed_token,
             "User-Agent": self._user_agent,
-            "Content-Type": "application/json",
         }
         if self._token is None:
             del headers["Authorization"]
@@ -190,51 +189,51 @@ class HTTPConnection:
             headers['X-Audit-Log-Reason'] = reason
 
         # Create multipart for files
-        writer: aiohttp.MultipartWriter | None = None
+        writer: aiohttp.FormData | None = None
+        form: list[dict] = []
         if files:
-            headers["Content-Type"] = "multipart/form-data"
-            writer = aiohttp.MultipartWriter()
+            writer = aiohttp.FormData()
+            attachments: list[dict] = []
 
             # Add files
             for index, f in enumerate(files):
-                part = writer.append(
-                    f.data,
-                    {"Content-Type": f.content_type},  # pyright: ignore
-                )
-                part.set_content_disposition(
-                    f'form-data; name="files[{index}]"; filename="{f.filename}"'
-                )
-                if data and isinstance(data, dict):
-                    (
-                        data
-                        .setdefault("attachments", list())
-                        .append(f._to_data(index))
-                    )
+                form.append({
+                    "name": f"files[{index}]",
+                    "value": f.data,
+                    "filename": f.filename,
+                    "content_type": "application/octet-stream",
+                })
+                attdata = {
+                    "id": index,
+                    "filename": f.filename,
+                }
+                if f.description:
+                    attdata["description"] = f.description
+                attachments.append(attdata)
 
             # Add json
-            part = writer.append_json(data)
-            part.set_content_disposition('form-data; name="payload_json"')
+            if isinstance(data, dict):
+                data["attachments"] = attachments
+            form.append({
+                "name": "payload_json",
+                "value": json.dumps(data),
+            })
             data = None
 
         # Create multipart for forms
         elif multipart:
-            headers["Content-Type"] = "multipart/form-data"
-            writer = aiohttp.MultipartWriter()
-            data = cast(dict, data)
-            for k, v in data.items():
-                if isinstance(data, File):
-                    part = writer.append(
-                        v.data,
-                        {"Content-Type": v.content_type},  # pyright: ignore
-                    )
-                else:
-                    part = writer.append(v)
-                part.set_content_disposition(f'form-data; name="{k}"')
-            data = None
+            raise Exception()
+
+        # Build multipart now
+        if files or multipart:
+            writer = aiohttp.FormData()
+            for v in form:
+                writer.add_field(**v)
 
         # Send request
         data_str: str | None = None
         if data:
+            headers["Content-Type"] = "application/json"
             data_str = json.dumps(data)
         log.debug(
             "Sending {0.method} {0.path} with {1}"
