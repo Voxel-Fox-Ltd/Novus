@@ -489,6 +489,8 @@ class GatewayShard:
                     )
                     asyncio.create_task(self.connect())
                     return
+                else:
+                    break
             wait = heartbeat_interval
 
     async def identify(self) -> None:
