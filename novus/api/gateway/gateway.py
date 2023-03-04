@@ -86,9 +86,13 @@ class GatewayConnection:
                 identify_semaphore=identify_semaphore,
             )
             self.shards.add(gs)
-            async def connect_wrapper(sem, shard):
+
+            async def connect_wrapper(
+                    sem: asyncio.Semaphore,
+                    shard: GatewayShard) -> None:
                 async with sem:
                     await shard.connect()
+
             coro = connect_wrapper(identify_semaphore, gs)
             tasks.append(asyncio.create_task(coro))
         await asyncio.gather(*tasks)
@@ -158,6 +162,7 @@ class GatewayShard:
         self.sequence: int | None = None
         self.resume_url = self.ws_url
         self.session_id = None
+        self.heartbeat_received = asyncio.Event()
 
         # Temporarily cached data for combining requests
         self.chunk_counter: dict[str, int] = {}  # nonce: req_counter
@@ -281,7 +286,6 @@ class GatewayShard:
                     "Socket told to close (%s %s)"
                     % (data, data.extra)
                 )
-                self.ready.set()
                 raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
                 log.info("Socket closed")
@@ -320,7 +324,7 @@ class GatewayShard:
         Reconnect to the gateway.
         """
 
-        await self.close()
+        await self.close(code=0)
         async with self.identify_semaphore:
             await self.connect(
                 self.ws_url,
@@ -336,9 +340,21 @@ class GatewayShard:
         Create a connection to the gateway.
         """
 
+        # Clear caches
         self._buffer.clear()
         self._zlib = zlib.decompressobj()
-        self.ready.clear()
+
+        # Close socket if it's open at the moment
+        if self.socket and not self.socket.closed:
+            log.info(
+                (
+                    "Trying to open new connection while connection is already "
+                    "open - closing current connection before opening a new "
+                    "one (shard %s)"
+                ),
+                self.shard_id,
+            )
+            await self.close(0)
 
         # Cache the connect data
         if reconnect is False:
@@ -370,6 +386,8 @@ class GatewayShard:
         # Send hello
         try:
             got = await self.receive()
+        except GatewayException:
+            return await self.close()
         except Exception:
             if attempt >= 5:
                 log.info(
@@ -398,28 +416,26 @@ class GatewayShard:
         )
 
         # Send identify or resume
+        self.ready.clear()
         if reconnect:
             await self.resume()
         else:
             await self.identify()
-            self.message_task = asyncio.create_task(self.message_handler())
-            def ready_wrapper(_: asyncio.Task):
-                self.ready.set()
-            self.message_task.add_done_callback(ready_wrapper)
-            await self.ready.wait()
+        self.message_task = asyncio.create_task(self.message_handler())
+        await self.ready.wait()
 
-    async def close(self) -> None:
+    async def close(self, code: int = 1_000) -> None:
         """
         Close the gateway connection, cancelling the heartbeat task.
         """
 
-        self.ready.set()
+        log.info("Closing socket (shard %s)", self.shard_id)
         if self.heartbeat_task is not None:
             self.heartbeat_task.cancel()
         if self.message_task is not None:
             self.message_task.cancel()
         if self.socket and not self.socket.closed:
-            await self.socket.close()
+            await self.socket.close(code=0)
 
     async def heartbeat(
             self,
@@ -436,18 +452,43 @@ class GatewayShard:
         wait = heartbeat_interval
         if jitter:
             wait = heartbeat_interval * random.random()
-        log.info(
-            (
-                f"Starting heartbeat - initial {wait / 100:.2f}s, "
-                f"normally {heartbeat_interval / 100:.2f}s"
+            log.info(
+                (
+                    f"Starting heartbeat - initial {wait / 100:.2f}s, "
+                    f"normally {heartbeat_interval / 100:.2f}s"
+                )
             )
-        )
+        else:
+            log.info(f"Starting heartbeat at {heartbeat_interval / 100:.2f}s")
         while True:
             try:
                 await asyncio.sleep(wait / 1_000)
             except asyncio.CancelledError:
+                log.info("Heartbeat has been cancelled (shard %s)", self.shard_id)
                 return
-            await self.send(GatewayOpcode.heartbeat, self.sequence)
+            for beat_attempt in range(1_000):
+                await self.send(GatewayOpcode.heartbeat, self.sequence)
+                try:
+                    await asyncio.wait_for(self.heartbeat_received.wait(), timeout=10)
+                except asyncio.CancelledError:
+                    if beat_attempt <= 5:
+                        log.info(
+                            (
+                                "Failed to get a response to heartbeat (attempt "
+                                "%s) - trying again"
+                            ),
+                            beat_attempt,
+                        )
+                        continue
+                    log.info(
+                        (
+                            "Failed to get a response to heartbeat (attempt "
+                            "%s) - starting new connection"
+                        ),
+                        beat_attempt,
+                    )
+                    asyncio.create_task(self.connect())
+                    return
             wait = heartbeat_interval
 
     async def identify(self) -> None:
@@ -455,6 +496,7 @@ class GatewayShard:
         Send an identify to Discord.
         """
 
+        log.info("Sending identify (shard %s)", self.shard_id)
         token = cast(str, self.parent._token)
         await self.send(
             GatewayOpcode.identify,
@@ -481,7 +523,7 @@ class GatewayShard:
         Send a request to chunk a guild.
         """
 
-        log.info("Chunking guild %s", guild_id)
+        log.info("Chunking guild %s (shard %s)", guild_id, self.shard_id)
         data = {
             "guild_id": str(guild_id),
             "limit": limit,
@@ -507,6 +549,7 @@ class GatewayShard:
         Send a resume to Discord.
         """
 
+        log.info("Sending resume (shard %s)", self.shard_id)
         token = cast(str, self.parent._token)
         await self.send(
             GatewayOpcode.resume,
@@ -537,7 +580,7 @@ class GatewayShard:
 
                 # Ignore heartbeat acks
                 case GatewayOpcode.heartbeat_ack:
-                    pass
+                    self.heartbeat_received.set()
 
                 # Deal with dispatch
                 case GatewayOpcode.dispatch:
