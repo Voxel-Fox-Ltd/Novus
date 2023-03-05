@@ -159,10 +159,14 @@ class GatewayDispatch:
         if event_name == "READY":
             self.cache.user = User(state=self.parent, data=data['user'])
             self.cache.application_id = try_snowflake(data['application']['id'])
-            self.resume_url = data['resume_gateway_url']
-            self.session_id = data['session_id']
+            self.shard.resume_url = data['resume_gateway_url']
+            self.shard.session_id = data['session_id']
             self.shard.ready.set()
             log.info("Received ready (shard %s)", self.shard.shard_id)
+            return None
+        elif event_name == "RESUMED":
+            self.shard.ready.set()
+            log.info("Received resumed (shard %s)", self.shard.shard_id)
             return None
 
         coro = self.EVENT_HANDLER.get(event_name)
