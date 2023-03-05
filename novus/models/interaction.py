@@ -535,7 +535,7 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
         self.data = data_object  # pyright: ignore  # Apparently this isn't valid with generics
         self._responded = False
 
-    __repr__ = generate_repr(('id',))
+    __repr__ = generate_repr(('id', 'custom_id', 'type', 'application_id', 'data',))
 
     @property
     def custom_id(self) -> str | None:

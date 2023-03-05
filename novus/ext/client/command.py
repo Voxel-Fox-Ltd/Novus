@@ -22,6 +22,7 @@ from collections.abc import Callable, Coroutine, Iterable
 from typing import TYPE_CHECKING, Any, Type, Union, cast
 from typing_extensions import Self, TypeVarTuple
 import inspect
+import logging
 
 import novus as n
 
@@ -49,6 +50,9 @@ __all__ = (
     'CommandDescription',
     'command',
 )
+
+
+log = logging.getLogger("novus.ext.bot.command")
 
 
 class Command:
@@ -154,7 +158,7 @@ class Command:
             options=self.application_command.options,
         )
 
-    __repr__ = n.utils.generate_repr(('name', 'application_command', 'guild_ids', 'command_ids',))
+    __repr__ = n.utils.generate_repr(('name',))
 
     def add_id(self, id: int) -> None:
         """
@@ -214,6 +218,7 @@ class Command:
                     data = interaction.data.resolved.users.get(data_id)
             kwargs[option.name] = data
 
+        log.info("Command invoked, %s %s", self, interaction)
         await self.callback(self.owner, interaction, **kwargs)
 
     async def run_autocomplete(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
@@ -255,7 +260,7 @@ class CommandGroup:
             for i in commands
         }
 
-    __repr__ = n.utils.generate_repr(('name', 'application_command', 'guild_ids', 'command_ids',))
+    __repr__ = n.utils.generate_repr(('name',))
 
     def add_id(self, id: int) -> None:
         """
