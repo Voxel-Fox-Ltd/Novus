@@ -41,6 +41,7 @@ class EventListener:
         'event',
         'func',
         'predicate',
+        'owner',
     )
 
     def __init__(
@@ -53,6 +54,10 @@ class EventListener:
         self.predicate: Callable[..., bool] = lambda x: True
         if predicate:
             self.predicate = predicate
+        self.owner: Any = None
+
+    async def run(self, *args, **kwargs) -> None:
+        await self.func(self.owner, *args, **kwargs)
 
 
 Self: TypeAlias = Any  # Named Any

@@ -108,6 +108,15 @@ class Plugin(metaclass=PluginMeta):
 
     CONFIG: ClassVar[JsonValue] = {}
 
+    def __new__(cls, *args, **kwargs):
+        created = super().__new__(cls)
+        for i in cls._commands:
+            i.owner = created
+        for i in cls._event_listeners.values():
+            for i2 in i:
+                i2.owner = created
+        return created
+
     def __init__(self, bot: Client) -> None:
         self.bot: Client = bot
 
@@ -149,7 +158,7 @@ class Plugin(metaclass=PluginMeta):
                     continue
                 try:
                     asyncio.create_task(
-                        el.func(self, *args, **kwargs),  # pyright: ignore
+                        el.run(*args, **kwargs),
                         name=f"{event_name} dispatch in {self.__class__.__name__}"
                     )
                 except Exception as e:
