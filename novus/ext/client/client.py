@@ -334,6 +334,82 @@ class Client:
         for p in self.plugins:
             p.dispatch(event_name, *args, **kwargs)
 
+    async def _handle_command_sync(
+            self,
+            application_id: int,
+            guild_id: int | None,
+            commands: dict[str, Command]) -> None:
+        """
+        Handle a guild's list of commands being changed.
+        """
+
+        # Set up our requests
+        state = self.state.interaction
+        if guild_id is None:
+            get = partial(state.get_global_application_commands, application_id)
+            bulk = partial(state.bulk_overwrite_global_application_commands, application_id)
+            create = partial(state.create_global_application_command, application_id)
+            edit = partial(state.edit_global_application_command, application_id)
+            delete = partial(state.delete_global_application_command, application_id)
+        else:
+            get = partial(state.get_guild_application_commands, application_id, guild_id)
+            bulk = partial(state.bulk_overwrite_guild_application_commands, application_id, guild_id)
+            create = partial(state.create_guild_application_command, application_id, guild_id)
+            edit = partial(state.edit_guild_application_command, application_id, guild_id)
+            delete = partial(state.delete_guild_application_command, application_id, guild_id)
+
+        # See what we need to do
+        on_server = await get()
+        unchecked_local = commands.copy()
+        to_add: list[Command] = []
+        to_delete: list[int] = []
+        to_edit: dict[int, Command] = {}
+        for dis_com in on_server:
+            try:
+                local = unchecked_local.pop(dis_com.name)
+            except KeyError:
+                to_delete.append(dis_com.id)
+            else:
+                if local.application_command._to_data() != dis_com._to_data():
+                    to_edit[dis_com.id] = local
+                local.command_ids.add(dis_com.id)
+                self._commands_by_id[dis_com.id] = local
+        to_add = list(unchecked_local.values())
+
+        # Bulk change
+        if len(to_add) + len(to_delete) + len(to_edit) > 1:
+            local_commands = [
+                i.application_command._to_data()
+                for i in commands.values()
+            ]
+            log.info("Bulk updating %s app commands in guild %s", len(local_commands), guild_id)
+            for dis_com in on_server:
+                self._commands_by_id.pop(dis_com.id, None)
+            on_server = await bulk(local_commands)
+            for dis_com in on_server:
+                commands[dis_com.name].add_id(dis_com.id)
+                self._commands_by_id[dis_com.id] = (
+                    self._commands[(guild_id, dis_com.name)]
+                )
+
+        # Add new command
+        elif to_add:
+            log.info("Adding app command %s in guild %s", to_add[0], guild_id)
+            on_server = await create(**to_add[0].application_command._to_data())
+            to_add[0].command_ids.add(on_server.id)
+            self._commands_by_id[on_server.id] = to_add[0]
+
+        # Delete command
+        elif to_delete:
+            log.info("Deleting app command %s in guild %s", to_delete[0], guild_id)
+            await delete(to_delete[0])
+
+        # Edit single command
+        elif to_edit:
+            for id, comm in to_edit.items():
+                log.info("Editing app command %s %s in guild %s", id, comm, guild_id)
+                await edit(id, **comm.application_command._to_data())
+
     async def sync_commands(self) -> None:
         """
         Get all commands from Discord. Determine if they all already exist. If
@@ -365,77 +441,7 @@ class Client:
 
         # See which commands we have that exist already
         for guild_id, commands in commands_by_guild.items():
-
-            # Set up our requests
-            state = self.state.interaction
-            if guild_id is None:
-                get = partial(state.get_global_application_commands, aid)
-                bulk = partial(state.bulk_overwrite_global_application_commands, aid)
-                create = partial(state.create_global_application_command, aid)
-                edit = partial(state.edit_global_application_command, aid)
-                delete = partial(state.delete_global_application_command, aid)
-            else:
-                get = partial(state.get_guild_application_commands, aid, guild_id)
-                bulk = partial(state.bulk_overwrite_guild_application_commands, aid, guild_id)
-                create = partial(state.create_guild_application_command, aid, guild_id)
-                edit = partial(state.edit_guild_application_command, aid, guild_id)
-                delete = partial(state.delete_guild_application_command, aid, guild_id)
-
-            # See what we need to do
-            on_server = await get()
-            unchecked_local = commands.copy()
-            to_add: list[Command] = []
-            to_delete: list[int] = []
-            to_edit: dict[int, Command] = {}
-            for dis_com in on_server:
-                try:
-                    local = unchecked_local.pop(dis_com.name)
-                except KeyError:
-                    to_delete.append(dis_com.id)
-                else:
-                    if local.application_command._to_data() != dis_com._to_data():
-                        to_edit[dis_com.id] = local
-                    local.command_ids.add(dis_com.id)
-                    self._commands_by_id[dis_com.id] = local
-            to_add = list(unchecked_local.values())
-
-            # Do everything of interest
-            if len(to_add) + len(to_delete) + len(to_edit) > 1:
-                local_commands = [
-                    i.application_command._to_data()
-                    for i in commands.values()
-                ]
-                log.info(
-                    "Bulk updating %s app commands in guild %s"
-                    % (len(local_commands), guild_id)
-                )
-                for dis_com in on_server:
-                    self._commands_by_id.pop(dis_com.id, None)
-                on_server = await bulk(local_commands)
-                for dis_com in on_server:
-                    commands[dis_com.name].add_id(dis_com.id)
-                    self._commands_by_id[dis_com.id] = self._commands[(guild_id, dis_com.name)]
-            elif to_add:
-                log.info(
-                    "Adding app command %s in guild %s"
-                    % (to_add[0], guild_id)
-                )
-                on_server = await create(**to_add[0].application_command._to_data())
-                to_add[0].command_ids.add(on_server.id)
-                self._commands_by_id[on_server.id] = to_add[0]
-            elif to_delete:
-                log.info(
-                    "Deleting app command %s in guild %s"
-                    % (to_delete[0], guild_id)
-                )
-                await delete(to_delete[0])
-            elif to_edit:
-                for id, comm in to_edit.items():
-                    log.info(
-                        "Editing app command %s %s in guild %s"
-                        % (id, comm, guild_id)
-                    )
-                    await edit(id, **comm.application_command._to_data())
+            await self._handle_command_sync(aid, guild_id, commands)
 
     async def connect(self) -> None:
         """
@@ -456,6 +462,7 @@ class Client:
         """
 
         log.info("Closing bot")
+        await asyncio.gather(*[i.on_unload() for i in self.plugins])
         await asyncio.gather(
             self.state.gateway.close(),
             self.state.close(),
@@ -474,11 +481,13 @@ class Client:
 
         log.info("Running client")
         await self.load_plugins()
-        if sync:
-            await self.sync_commands()
-        await self.connect()
         try:
-            await self.state.gateway.wait()
-        except asyncio.CancelledError:
-            pass
-        await self.close()
+            if sync:
+                await self.sync_commands()
+            await self.connect()
+            try:
+                await self.state.gateway.wait()
+            except asyncio.CancelledError:
+                pass
+        finally:
+            await self.close()
