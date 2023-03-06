@@ -555,9 +555,7 @@ def command(
 
     def wrapper(func: CommandCallback) -> Command:
         cname = name or func.__name__
-        dname = description or func.__doc__
-        if dname is None:
-            raise ValueError("Missing description for command %s" % cname)
+        dname = description or func.__doc__ or ""
         return cls(
             name=cname,
             type=type,
