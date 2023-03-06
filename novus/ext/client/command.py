@@ -18,11 +18,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import collections
-from collections.abc import Callable, Coroutine, Iterable
-from typing import TYPE_CHECKING, Any, Type, Union, cast
-from typing_extensions import Self, TypeVarTuple
+import functools
 import inspect
 import logging
+from collections.abc import Callable, Coroutine, Iterable
+from typing import TYPE_CHECKING, Any, Type, Union, cast
+
+from typing_extensions import Self, TypeVarTuple
 
 import novus as n
 
@@ -118,24 +120,25 @@ class Command:
         self.owner: Any = None
 
         # Make sure our callback and app command have similar options
-        sig = inspect.signature(self.callback)
-        skip = 2
-        option_iter = iter(self.application_command.options)
-        for pname, _ in sig.parameters.items():
-            if skip > 0:
-                skip -= 1
-                continue
+        if self.type == n.ApplicationCommandType.chat_input:
+            sig = inspect.signature(self.callback)
+            skip = 2
+            option_iter = iter(self.application_command.options)
+            for pname, _ in sig.parameters.items():
+                if skip > 0:
+                    skip -= 1
+                    continue
+                try:
+                    option = next(option_iter)
+                except StopIteration:
+                    raise Exception(f"Missing option {pname} in command {self.name}")
+                if option.name != pname:
+                    raise Exception(f"Missing option {pname} in command {self.name}")
             try:
-                option = next(option_iter)
+                next(option_iter)
+                raise Exception(f"Too many options in command {self.name}")
             except StopIteration:
-                raise Exception(f"Missing option {pname} in command {self.name}")
-            if option.name != pname:
-                raise Exception(f"Missing option {pname} in command {self.name}")
-        try:
-            next(option_iter)
-            raise Exception(f"Too many options in command {self.name}")
-        except StopIteration:
-            pass
+                pass
 
     def to_application_command_option(self) -> n.ApplicationCommandOption:
         """
@@ -220,6 +223,9 @@ class Command:
 
         log.info("Command invoked, %s %s", self, interaction)
         await self.callback(self.owner, interaction, **kwargs)
+
+    def __call__(self) -> CommandCallback:
+        return functools.partial(self.callback, self.owner)
 
     async def run_autocomplete(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
         pass
