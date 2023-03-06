@@ -15,10 +15,17 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
+import sys
 import textwrap
 from argparse import ArgumentParser, Namespace
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from _typeshed import SupportsWrite
 
 from novus.ext import client
 
@@ -71,7 +78,8 @@ async def main(args: Namespace, unknown: list[str]) -> None:
         config = client.Config.from_file(args.config)
         if "loglevel" in args:
             root = logging.Logger.root
-            root.setLevel(getattr(logging, args.loglevel.upper()))
+            level = getattr(logging, args.loglevel.upper())
+            root.setLevel(level)
         config.merge_namespace(args, unknown)
         bot = client.Client(config)
         await bot.run(sync=not args.no_sync)
@@ -108,8 +116,28 @@ async def main(args: Namespace, unknown: list[str]) -> None:
         print(plugin)
 
 
+class MaxLevelFilter(logging.Filter):
+    """
+    A filter that removes anything above a certain level.
+    """
+
+    def __init__(self, max_level: int):
+        self.max_level = max_level
+
+    def filter(self, record: logging.LogRecord):
+        return record.levelno <= self.max_level
+
+
 def main_sync() -> None:
-    logging.basicConfig(level=logging.INFO)
+    stderr = logging.StreamHandler(sys.stderr)
+    stderr.setLevel(logging.WARNING)
+    stdout = logging.StreamHandler(sys.stdout)
+    stdout.addFilter(MaxLevelFilter(logging.INFO))
+    stdout.setLevel(logging.DEBUG)
+    logging.basicConfig(
+        level=logging.INFO,
+        handlers=[stdout, stderr,],
+    )
     args, unknown = get_parser().parse_known_args()
     try:
         asyncio.run(main(args, unknown))
