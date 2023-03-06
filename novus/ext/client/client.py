@@ -47,6 +47,22 @@ IMPORTED_PLUGIN_MODULES: dict[str, ModuleType] = {}
 class Client:
     """
     A gateway and API connection into Discord.
+
+    Attributes
+    ----------
+    config : novus.ext.client.Config
+        The config file for the bot.
+    state : novus.api.HTTPConnection
+        The connection for the bot.
+    plugins : set[novus.ext.client.Plugin]
+        A list of plugins that have been added to the bot. This does *not* mean
+        that the plugin has been loaded necessarily, just that it has been
+        added.
+    me : novus.User | None
+        The user associated with the bot. Will be ``None`` if the bot has not
+        connected to the gateway.
+    commands : set[novus.ext.client.Command]
+        A list of commands that have been loaded into the bot.
     """
 
     def __init__(self, config: Config, *, load_plugins: bool = False) -> None:
@@ -68,7 +84,11 @@ class Client:
             self.add_plugin_file(*lines, load=load_plugins)
 
     @property
-    def commands(self):
+    def me(self) -> n.User | None:
+        return self.state.cache.user
+
+    @property
+    def commands(self) -> set[Command]:
         return set(self._commands.values())
 
     def add_command(self, command: Command) -> None:
@@ -192,7 +212,8 @@ class Client:
         Raises
         ------
         NameError
-            You have tried to remove a command that has not been loaded or is not in the cache.
+            You have tried to remove a command that has not been loaded or is
+            not in the cache.
         """
 
         if command.guild_ids:
@@ -201,13 +222,13 @@ class Client:
                 try:
                     self._commands.pop(key)
                 except KeyError:
-                    raise NameError("Command with name %s is not loaded" % command.name)
+                    raise NameError("Command with name %s is not loaded", command.name)
         else:
             key = (None, command.name,)
             try:
                 self._commands.pop(key)
             except KeyError:
-                raise NameError("Command with name %s is not loaded" % command.name)
+                raise NameError("Command with name %s is not loaded", command.name)
 
     def remove_plugin(self, plugin: Type[Plugin]) -> None:
         """
@@ -235,7 +256,7 @@ class Client:
             self.remove_command(c)
         self.plugins.remove(instance)
 
-        log.info(f"Removed plugin {instance} from client instance")
+        log.info("Removed plugin %s from client instance", instance)
 
     def add_plugin_file(self, *plugin: str, load: bool = False) -> None:
         """

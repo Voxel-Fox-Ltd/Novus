@@ -143,7 +143,9 @@ class GatewayShard:
         self.cache = self.parent.cache
         self.dispatch = GatewayDispatch(self)
         self.identify_semaphore = identify_semaphore
+        self.connecting = asyncio.Event()
         self.ready = asyncio.Event()
+        self.heartbeat_received = asyncio.Event()
 
         # Initial identify data (for entire reconnects)
         self.shard_id: int = shard_id
@@ -162,7 +164,6 @@ class GatewayShard:
         self.sequence: int | None = None
         self.resume_url = self.ws_url
         self.session_id = None
-        self.heartbeat_received = asyncio.Event()
 
         # Temporarily cached data for combining requests
         self.chunk_counter: dict[str, int] = {}  # nonce: req_counter
@@ -187,6 +188,10 @@ class GatewayShard:
         if self.message_task is None:
             return True
         if not self.message_task.done():
+            return True
+
+        # See if we're connecting
+        if self.connecting.is_set():
             return True
 
         # Ay nice
@@ -324,6 +329,7 @@ class GatewayShard:
         Reconnect to the gateway.
         """
 
+        self.connecting.set()
         await self.close(code=0)
         async with self.identify_semaphore:
             await self.connect(
@@ -341,6 +347,7 @@ class GatewayShard:
         """
 
         # Clear caches
+        self.connecting.set()
         self._buffer.clear()
         self._zlib = zlib.decompressobj()
 
@@ -423,6 +430,7 @@ class GatewayShard:
             await self.identify()
         self.message_task = asyncio.create_task(self.message_handler())
         await self.ready.wait()
+        self.connecting.clear()
 
     async def close(self, code: int = 1_000) -> None:
         """
