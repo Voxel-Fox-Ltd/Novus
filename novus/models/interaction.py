@@ -310,19 +310,19 @@ class ContextComandData(ApplicationCommandData):
         target_id = try_snowflake(data.get("target_id"))
         self.target = None  # pyright: ignore
         if self.type == ApplicationCommandType.message:
-            for i in self.resolved.messages:
-                if i.id == target_id:
-                    self.target = i
+            for k, v in self.resolved.messages.items():
+                if k == target_id:
+                    self.target = v
                     break
         elif self.type == ApplicationCommandType.user:
-            for i in self.resolved.members:
-                if i.id == target_id:
-                    self.target = i
+            for k, v in self.resolved.members.items():
+                if k == target_id:
+                    self.target = v
                     break
             else:
-                for i in self.resolved.users:
-                    if i.id == target_id:
-                        self.target = i
+                for k, v in self.resolved.users.items():
+                    if k == target_id:
+                        self.target = v
                         break
         assert self.target is not None
 
