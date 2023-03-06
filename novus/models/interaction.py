@@ -33,8 +33,9 @@ from .ui.select_menu import SelectOption
 from .user import User
 
 if TYPE_CHECKING:
-    from .. import Guild, payloads
+    from .. import payloads
     from ..api import HTTPConnection
+    from . import Guild
     from . import api_mixins as amix
     from .ui.component import InteractableComponent
 
