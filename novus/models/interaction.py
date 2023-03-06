@@ -484,7 +484,7 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
             self.user = GuildMember(
                 state=self.state,
                 data=data["member"],
-                guild_id=data.get("guild_id"),
+                guild_id=self.guild.id,  # pyright: ignore
             )
         else:
             self.user = None  # pyright: ignore  # Ping interactions :(
@@ -537,7 +537,7 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
         self.data = data_object  # pyright: ignore  # Apparently this isn't valid with generics
         self._responded = False
 
-    __repr__ = generate_repr(('id', 'custom_id', 'type', 'application_id', 'data',))
+    __repr__ = generate_repr(('id', 'custom_id', 'type', 'guild', 'application_id', 'data',))
 
     @property
     def custom_id(self) -> str | None:
