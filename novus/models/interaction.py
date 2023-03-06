@@ -17,9 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, TypeVar
 
-from ..enums import ApplicationCommandType, InteractionType, Locale, ApplicationOptionType
+from ..enums import ApplicationCommandType, ApplicationOptionType, InteractionType, Locale
 from ..flags import Permissions
 from ..utils import cached_slot_property, generate_repr, try_snowflake, walk_components
 from .api_mixins.interaction import InteractionAPIMixin
@@ -243,7 +243,7 @@ class ApplicationCommandData(InteractionData):
         self.id = try_snowflake(data["id"])
         self.name = data["name"]
         self.type = ApplicationCommandType(data["type"])
-        self.guild = parent.guild
+        self.guild = self.parent.guild
         self.resolved = InteractionResolved(
             state=self.parent.state,
             data=data.get("resolved"),
@@ -296,12 +296,14 @@ class ContextComandData(ApplicationCommandData):
         self.id = try_snowflake(data["id"])
         self.name = data["name"]
         self.type = ApplicationCommandType(data["type"])
+        self.guild = self.parent.guild
         self.resolved = InteractionResolved(
             state=self.parent.state,
             data=data.get("resolved"),
+            guild=self.guild,
         )
         self.options = [
-            ApplicationCommandOption(d)
+            ApplicationCommandOption._from_data(d)
             for d in data.get("options", [])
         ]
         self.guild = self.parent.state.cache.get_guild(data.get("guild_id"), or_object=True)
