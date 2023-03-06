@@ -32,13 +32,17 @@ from .errors import CommandError
 
 if TYPE_CHECKING:
     Ts = TypeVarTuple('Ts')
+    CommandInteraction = Union[
+        n.Interaction[n.ApplicationCommandData],
+        n.Interaction[n.ContextComandData],
+    ]
     CommandCallback = Union[
         Callable[
-            [Any, n.Interaction[n.ApplicationCommandData], *Ts],
+            [Any, CommandInteraction, *Ts],
             Coroutine[Any, Any, None],
         ],
         Callable[
-            [Any, n.Interaction[n.ApplicationCommandData]],
+            [Any, CommandInteraction],
             Coroutine[Any, Any, None],
         ],
     ]
@@ -178,7 +182,7 @@ class Command:
 
     async def run(
             self,
-            interaction: n.Interaction[n.ApplicationCommandData],
+            interaction: n.Interaction[n.ApplicationCommandData] | n.Interaction[n.ContextComandData],
             options: list[n.InteractionOption] | None = None) -> None:
         """
         Run the command with the given interaction.
@@ -195,7 +199,11 @@ class Command:
 
         kwargs = {}
         if options is None:
-            options = interaction.data.options
+            try:
+                options = interaction.data.options  # pyright: ignore
+            except AttributeError:
+                options = []
+        assert options is not None
         for option in options:
             data: Any = option.value
             if option.type == n.ApplicationOptionType.channel:
@@ -222,7 +230,12 @@ class Command:
             kwargs[option.name] = data
 
         log.info("Command invoked, %s %s", self, interaction)
-        await self.callback(self.owner, interaction, **kwargs)
+        partial = functools.partial(self.callback, self.owner, interaction)
+        match self.application_command.type:
+            case n.ApplicationCommandType.user | n.ApplicationCommandType.message:
+                await partial(interaction.data.target)  # pyright: ignore
+            case _:
+                await partial(**kwargs)
 
     def __call__(self) -> CommandCallback:
         return functools.partial(self.callback, self.owner)
