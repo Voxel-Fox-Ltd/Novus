@@ -237,8 +237,8 @@ class Command:
             case _:
                 await partial(**kwargs)
 
-    def __call__(self) -> CommandCallback:
-        return functools.partial(self.callback, self.owner)
+    async def __call__(self, *args, **kwargs) -> Any:
+        return await self.callback(self.owner, *args, **kwargs)
 
     async def run_autocomplete(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
         pass
