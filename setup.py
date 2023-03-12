@@ -61,7 +61,7 @@ extras_require = {
         "aioredis>=1.3,<2.0",
         "aioredlock>=0.7.0,<0.8",
         "aiodogstatsd>=0.14.0,<0.15",
-        "upgradechatpy>=1.0.3<2.0",
+        "upgradechatpy>=1.0.3,<2.0",
 
         # Web build
         "cryptography",
