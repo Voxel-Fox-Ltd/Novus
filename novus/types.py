@@ -17,7 +17,12 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from .models.interaction import ApplicationCommandData, Interaction, MessageComponentData
+from .models.interaction import (
+    ApplicationCommandData,
+    ContextComandData,
+    Interaction,
+    MessageComponentData,
+)
 
 __all__ = (
     'CommandI',
@@ -25,5 +30,5 @@ __all__ = (
 )
 
 
-CommandI = Interaction[ApplicationCommandData]
+CommandI = Interaction[ApplicationCommandData] | Interaction[ContextComandData]
 ComponentI = Interaction[MessageComponentData]

@@ -277,7 +277,7 @@ class ApplicationCommandChoice:
             name: str,
             value: str | int | float,
             *,
-            name_localizations: LocType):
+            name_localizations: LocType = None):
         self.name = name
         self.value = value
         self.name_localizations = flatten_localization(name_localizations)

@@ -478,6 +478,8 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
     def __init__(self, *, state: HTTPConnection, data: payloads.Interaction):
         self.state = state
         self.id = try_snowflake(data["id"])
+        self._stream = None
+        self._stream_request = None
         self.application_id = try_snowflake(data["application_id"])
         self.type = InteractionType(data["type"])
         self.guild = self.state.cache.get_guild(data.get("guild_id"), or_object=True)

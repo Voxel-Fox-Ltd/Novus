@@ -22,8 +22,7 @@ import functools
 import inspect
 import logging
 from collections.abc import Callable, Coroutine, Iterable
-from typing import TYPE_CHECKING, Any, Type, Union, cast
-
+from typing import TYPE_CHECKING, Any, Type, TypeVar, Union, cast, Optional
 from typing_extensions import Self, TypeVarTuple
 
 import novus as n
@@ -32,19 +31,25 @@ from .errors import CommandError
 
 if TYPE_CHECKING:
     Ts = TypeVarTuple('Ts')
-    CommandInteraction = Union[
-        n.Interaction[n.ApplicationCommandData],
-        n.Interaction[n.ContextComandData],
-    ]
     CommandCallback = Union[
         Callable[
-            [Any, CommandInteraction, *Ts],
+            [Any, n.types.CommandI, *Ts],
             Coroutine[Any, Any, None],
         ],
         Callable[
-            [Any, CommandInteraction],
+            [Any, n.types.CommandI],
             Coroutine[Any, Any, None],
         ],
+    ]
+    APT = TypeVar("APT")
+    AutocompleteCallback = Callable[
+        [
+            Any,
+            n.Interaction[n.ApplicationCommandData],
+            list[n.InteractionOption],
+            str,
+        ],
+        Coroutine[Any, Any, list[n.ApplicationCommandChoice]],
     ]
 
     LocType = dict[str, str] | dict[n.Locale, str] | n.utils.Localization | None
@@ -59,6 +64,23 @@ __all__ = (
 
 
 log = logging.getLogger("novus.ext.bot.command")
+
+
+class Autocomplete:
+    """
+    A function wrapper for autocomplete objects.
+
+    Parameters
+    ----------
+    name : str
+        The name of the option that the autocomplete is a part of.
+    callback
+        The function that acts as the autocomplete.
+    """
+
+    def __init__(self, name: str, callback: AutocompleteCallback):
+        self.name = name
+        self.callback = callback
 
 
 class Command:
@@ -122,6 +144,7 @@ class Command:
             and " " in self.name
         )
         self.owner: Any = None
+        self.autocompletes: dict[str, Autocomplete] = {}
 
         # Make sure our callback and app command have similar options
         if self.type == n.ApplicationCommandType.chat_input:
@@ -240,8 +263,53 @@ class Command:
     async def __call__(self, *args, **kwargs) -> Any:
         return await self.callback(self.owner, *args, **kwargs)
 
-    async def run_autocomplete(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
-        pass
+    def autocomplete(self, name: str) -> Callable[[AutocompleteCallback], AutocompleteCallback]:
+        """
+        Add an autocomplete to this command.
+
+        Parameters
+        ----------
+        name : str
+            The name of the option that should be autocompleted.
+        """
+
+        def wrapper(func: AutocompleteCallback):
+            autocomplete = Autocomplete(name, func)
+            self.autocompletes[name] = autocomplete
+            return func
+        return wrapper
+
+    async def run_autocomplete(
+            self,
+            interaction: n.Interaction[n.ApplicationCommandData],
+            options: list[n.InteractionOption] | None = None) -> None:
+        """
+        This interaction has been triggered to autocomplete! Work out what
+        parameter needs autocompleting, and then run that :)
+
+        Parameters
+        ----------
+        interaction : novus.Interaction
+            The interaction that needs completing.
+        """
+
+        autocomplete: Autocomplete | None = None
+        current_value: str | int | float | None = None
+        options = options or interaction.data.options
+        for i in options:
+            if i.focused:
+                autocomplete = self.autocompletes.get(i.name)
+                current_value = i.value
+                break
+        if autocomplete is None:
+            return await interaction.send_autocomplete([])
+        data = await autocomplete.callback(
+            self.owner,
+            interaction,
+            options,
+            current_value,
+        )
+        return await interaction.send_autocomplete(data)
 
 
 class CommandGroup:
@@ -479,10 +547,25 @@ class CommandGroup:
             command_name_parts.append(option.name)
             option = option.options[0]
         command = self.commands[" ".join([*command_name_parts, option.name])]
-        await command.run(interaction, option.options)
+        return await command.run(interaction, option.options)
 
     async def run_autocomplete(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
-        pass
+        """
+        Run the autocomplete for the given command with the given options.
+
+        Parameters
+        ----------
+        interaction : novus.Interaction
+            The interaction that invoked the autocomplete.
+        """
+
+        command_name_parts = [self.name]
+        option = interaction.data.options[0]
+        while option.type == n.ApplicationOptionType.sub_command_group:
+            command_name_parts.append(option.name)
+            option = option.options[0]
+        command = self.commands[" ".join([*command_name_parts, option.name])]
+        return await command.run_autocomplete(interaction, option.options)
 
 
 class CommandDescription:
