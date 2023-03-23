@@ -24,6 +24,8 @@ from ._route import Route
 from .webhook import WebhookHTTPConnection
 
 if TYPE_CHECKING:
+    from aiohttp import web
+
     from .. import WebhookMessage, payloads
     from ..enums import InteractionResponseType
     from ._http import HTTPConnection
@@ -476,6 +478,52 @@ class InteractionHTTPConnection:
             data=post_data,
             files=files,
         )
+
+    async def create_interaction_response_for_writer(
+            self,
+            writer: web.StreamResponse,
+            request: web.Request,
+            type: InteractionResponseType,
+            interaction_data: dict[str, Any] | None = None) -> None:
+        """
+        Respond to an interaction.
+        """
+
+        interaction_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "content",
+                    "tts",
+                    "custom_id",
+                    "title",
+                ),
+                "object": (
+                    "embeds",
+                    "allowed_mentions",
+                    "components",
+                    "choices"
+                ),
+                "flags": (
+                    "flags",
+                )
+            },
+            interaction_data or {},
+        )
+        files = interaction_data.pop("files", [])
+
+        post_data = {"type": type.value}
+        if interaction_data:
+            post_data["data"] = interaction_data
+
+        data = self.parent.request_params(
+            data=post_data,
+            files=files,
+        )
+        to_write = data["data"]
+        writer.headers.update(data["headers"])
+        await writer.prepare(request)
+        await writer.write(to_write)
+        await writer.write_eof()
 
     async def get_original_interaction_response(
             self,

@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import functools
 from typing import TYPE_CHECKING, Any
 
 from ...enums import InteractionResponseType
@@ -47,16 +48,26 @@ Modal = Any
 
 class InteractionAPIMixin:
 
+    def _get_response_partial(self: Interaction):
+        if self._stream is None:
+            return functools.partial(
+                self.state.interaction.create_interaction_response,
+                self.id,
+                self.token,
+            )
+        else:
+            return functools.partial(
+                self.state.interaction.create_interaction_response_for_writer,
+                self._stream,
+                self._stream_request,  # pyright: ignore
+            )
+
     async def pong(self: Interaction) -> None:
         """
         Send a pong interaction response.
         """
 
-        await self.state.interaction.create_interaction_response(
-            self.id,
-            self.token,
-            InteractionResponseType.pong,
-        )
+        await self._get_response_partial()(InteractionResponseType.pong)
 
     async def send(
             self: Interaction,
@@ -127,9 +138,7 @@ class InteractionAPIMixin:
             data["flags"].ephemeral = True
 
         if self._responded is False:
-            await self.state.interaction.create_interaction_response(
-                self.id,
-                self.token,
+            await self._get_response_partial()(
                 InteractionResponseType.channel_message_with_source,
                 data,
             )
@@ -150,9 +159,7 @@ class InteractionAPIMixin:
         data = None
         if ephemeral:
             data = {"flags": MessageFlags(ephemeral=True)}
-        await self.state.interaction.create_interaction_response(
-            self.id,
-            self.token,
+        await self._get_response_partial()(
             InteractionResponseType.deferred_channel_message_with_source,
             data,
         )
@@ -163,9 +170,7 @@ class InteractionAPIMixin:
         Send a defer update response.
         """
 
-        await self.state.interaction.create_interaction_response(
-            self.id,
-            self.token,
+        await self._get_response_partial()(
             InteractionResponseType.deferred_update_message,
         )
         self._responded = True
@@ -228,9 +233,7 @@ class InteractionAPIMixin:
         if flags is not MISSING:
             data["flags"] = flags
 
-        await self.state.interaction.create_interaction_response(
-            self.id,
-            self.token,
+        await self._get_response_partial()(
             InteractionResponseType.update_message,
             data,
         )
@@ -248,9 +251,7 @@ class InteractionAPIMixin:
             A list of choices to to populate the autocomplete with.
         """
 
-        await self.state.interaction.create_interaction_response(
-            self.id,
-            self.token,
+        await self._get_response_partial()(
             InteractionResponseType.application_command_autocomplete_result,
             {"choices": options},
         )
@@ -268,9 +269,7 @@ class InteractionAPIMixin:
             The modal that you want to send.
         """
 
-        await self.state.interaction.create_interaction_response(
-            self.id,
-            self.token,
+        await self._get_response_partial()(
             InteractionResponseType.application_command_autocomplete_result,
             modal,
         )

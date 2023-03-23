@@ -75,16 +75,15 @@ def get_parser() -> ArgumentParser:
     p = ArgumentParser("novus")
 
     ap = p.add_subparsers(dest="action", required=True)
-
-    rap = ap.add_parser("run")
-    rap.add_argument("--config", nargs="?", const=None, default=None)
     logger_choices = []
     for i in ["debug", "info", "warning", "error"]:
         logger_choices.extend((i, i.upper(),))
+
+    rap = ap.add_parser("run")
+    rap.add_argument("--config", nargs="?", const=None, default=None)
     rap.add_argument("--loglevel", default='info', choices=logger_choices)
     rap.add_argument("--no-sync", default=False, action="store_true")
     rap.add_argument("--token", nargs="?", type=str, default=None)
-    rap.add_argument("--pubkey", nargs="?", type=str, default=None)
     rap.add_argument("--shard-id", nargs="*", type=str, default=None)
     rap.add_argument("--shard-ids", nargs="?", type=str, const="", default=None)
     rap.add_argument("--shard-count", nargs="?", type=str, default=None)
@@ -93,11 +92,18 @@ def get_parser() -> ArgumentParser:
     rap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
     rap.add_argument("--plugin", nargs="*", type=str, default=None)
 
+    rwsap = ap.add_parser("run-webserver")
+    rwsap.add_argument("--config", nargs="?", const=None, default=None)
+    rwsap.add_argument("--port", nargs="?", type=int, default=8000)
+    rwsap.add_argument("--loglevel", default='info', choices=logger_choices)
+    rwsap.add_argument("--no-sync", default=False, action="store_true")
+    rwsap.add_argument("--token", nargs="?", type=str, default=None)
+    rwsap.add_argument("--pubkey", nargs="?", type=str, default=None)
+    rwsap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
+    rwsap.add_argument("--plugin", nargs="*", type=str, default=None)
+
     rsap = ap.add_parser("run-status")
     rsap.add_argument("--config", nargs="?", const=None, default=None)
-    logger_choices = []
-    for i in ["debug", "info", "warning", "error"]:
-        logger_choices.extend((i, i.upper(),))
     rsap.add_argument("--loglevel", default='info', choices=logger_choices)
     rsap.add_argument("--token", nargs="?", type=str, default=None)
     rsap.add_argument("--shard-id", nargs="*", type=str, default=None)
@@ -128,61 +134,72 @@ async def main(args: Namespace, unknown: list[str]) -> None:
     Main input point for our CLI.
     """
 
-    if args.action == "run":
-        config = client.Config.from_file(args.config)
-        if "loglevel" in args:
-            root = logging.Logger.root
-            level = getattr(logging, args.loglevel.upper())
-            root.setLevel(level)
-        config.merge_namespace(args, unknown)
-        bot = client.Client(config)
-        await bot.run(sync=not args.no_sync)
+    match args.action:
+        case "run":
+            config = client.Config.from_file(args.config)
+            if "loglevel" in args:
+                root = logging.Logger.root
+                level = getattr(logging, args.loglevel.upper())
+                root.setLevel(level)
+            config.merge_namespace(args, unknown)
+            bot = client.Client(config)
+            await bot.run(sync=not args.no_sync)
 
-    elif args.action == "run-status":
-        config = client.Config.from_file(args.config)
-        if "loglevel" in args:
-            root = logging.Logger.root
-            level = getattr(logging, args.loglevel.upper())
-            root.setLevel(level)
-        config.merge_namespace(args, unknown)
-        config.plugins = []
-        config.intents = novus.Intents(guilds=True)
-        bot = client.Client(config)
-        bot.state.cache = NothingAPICache(bot.state)
-        bot.state.gateway.guild_ids_only = True
-        bot.add_plugin(GuildLogger)
-        await bot.run(sync=False)
+        case "run-webserver":
+            config = client.Config.from_file(args.config)
+            if "loglevel" in args:
+                root = logging.Logger.root
+                level = getattr(logging, args.loglevel.upper())
+                root.setLevel(level)
+            config.merge_namespace(args, unknown)
+            bot = client.Client(config)
+            await bot.run_webserver(sync=not args.no_sync, port=args.port)
 
-    elif args.action == "config-dump":
-        config = client.Config()
-        logging.Logger.root.setLevel(logging.ERROR)
-        config.merge_namespace(args, unknown)
-        match args.type:
-            case "yaml":
-                print(config.to_yaml())
-            case "json":
-                print(config.to_json())
-            case "toml":
-                print(config.to_toml())
+        case "run-status":
+            config = client.Config.from_file(args.config)
+            if "loglevel" in args:
+                root = logging.Logger.root
+                level = getattr(logging, args.loglevel.upper())
+                root.setLevel(level)
+            config.merge_namespace(args, unknown)
+            config.plugins = []
+            config.intents = novus.Intents(guilds=True)
+            bot = client.Client(config)
+            bot.state.cache = NothingAPICache(bot.state)
+            bot.state.gateway.guild_ids_only = True
+            bot.add_plugin(GuildLogger)
+            await bot.run(sync=False)
 
-    elif args.action == "new-plugin":
-        plugin = textwrap.dedent("""
-            import novus
-            from novus.ext import client
+        case "config-dump":
+            config = client.Config()
+            logging.Logger.root.setLevel(logging.ERROR)
+            config.merge_namespace(args, unknown)
+            match args.type:
+                case "yaml":
+                    print(config.to_yaml())
+                case "json":
+                    print(config.to_json())
+                case "toml":
+                    print(config.to_toml())
+
+        case "new-plugin":
+            plugin = textwrap.dedent("""
+                import novus
+                from novus.ext import client
 
 
-            class {plugin}(client.Plugin):
-        """).format(plugin=args.name).strip() + "\n"
-        if not args.commands:
-            plugin += " " * 4 + "...\n"
-        for i in args.commands:
-            command = textwrap.indent(textwrap.dedent("""
-                @client.command(name="{name}")
-                async def {name}(self, interaction: novus.types.CommandI) -> None:
-                    ...
-            """).strip(), " " * 4).format(name=i)
-            plugin += "\n" + command + "\n"
-        print(plugin)
+                class {plugin}(client.Plugin):
+            """).format(plugin=args.name).strip() + "\n"
+            if not args.commands:
+                plugin += " " * 4 + "...\n"
+            for i in args.commands:
+                command = textwrap.indent(textwrap.dedent("""
+                    @client.command(name="{name}")
+                    async def {name}(self, interaction: novus.types.CommandI) -> None:
+                        ...
+                """).strip(), " " * 4).format(name=i)
+                plugin += "\n" + command + "\n"
+            print(plugin)
 
 
 class MaxLevelFilter(logging.Filter):

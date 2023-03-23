@@ -165,17 +165,15 @@ class HTTPConnection:
         if self._session:
             await self._session.close()
 
-    async def request(
+    def request_params(
             self,
-            route: Route,
             *,
             reason: str | None = None,
-            params: dict | None = None,
             data: dict | list | None = None,
             files: list[File] | None = None,
-            multipart: bool = False) -> Any:
+            multipart: bool = False) -> dict:
         """
-        Perform a web request.
+        Take parameters and return the corresponding web request response.
         """
 
         # Set headers
@@ -230,22 +228,45 @@ class HTTPConnection:
             for v in form:
                 writer.add_field(**v)
 
-        # Send request
-        data_str: str | None = None
+        # And done
+        data_str: bytes | None = None
         if data:
             headers["Content-Type"] = "application/json"
-            data_str = json.dumps(data)
+            data_str = json.dumps(data).encode()
+        return {
+            "data": data_str or writer,
+            "headers": headers,
+        }
+
+    async def request(
+            self,
+            route: Route,
+            *,
+            reason: str | None = None,
+            params: dict | None = None,
+            data: dict | list | None = None,
+            files: list[File] | None = None,
+            multipart: bool = False) -> Any:
+        """
+        Perform a web request.
+        """
+
+        args = self.request_params(
+            reason=reason,
+            data=data,
+            files=files,
+            multipart=multipart,
+        )
         log.debug(
             "Sending {0.method} {0.path} with {1}"
-            .format(route, data_str or writer)
+            .format(route, args["data"])
         )
         session = await self.get_session()
         resp: aiohttp.ClientResponse = await session.request(
             route.method,
             route.url,
             params=params,
-            data=data_str or writer,
-            headers=headers,
+            **args,
             timeout=5,
         )
 

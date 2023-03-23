@@ -22,6 +22,7 @@ import importlib.util
 import itertools
 import logging
 import sys
+import time
 from collections import defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, Type, cast
@@ -502,6 +503,61 @@ class Client:
             max_concurrency=concurrency,
         )
 
+    async def connect_webserver(self, *, port: int = 8000) -> web.BaseSite:
+        """
+        Open a webserver to receive interactions from Discord.
+
+        Parameters
+        ----------
+        port : int
+            The port to open the server on.
+        """
+
+        from nacl.exceptions import BadSignatureError
+        from nacl.signing import VerifyKey
+
+        routes = web.RouteTableDef()
+
+        @routes.post("/")
+        async def handler(request: web.Request) -> web.StreamResponse:
+            verify_key = VerifyKey(bytes.fromhex(self.config.pubkey))
+            signature = request.headers["X-Signature-Ed25519"]
+            timestamp = request.headers["X-Signature-Timestamp"]
+            body = (await request.read()).decode("utf-8")
+            try:
+                verify_key.verify(
+                    f"{timestamp}{body}".encode(),
+                    bytes.fromhex(signature),
+                )
+            except BadSignatureError:
+                return web.Response(text="Invalid signature", status=401)
+
+            data: n.payloads.Interaction = await request.json()
+            if data["type"] == n.InteractionType.ping.value:
+                return web.json_response({"type": 1})
+            interaction = n.Interaction(state=self.state, data=data)
+            stream = web.StreamResponse()
+            interaction._stream = stream
+            interaction._stream_request = request
+            self.dispatch("INTERACTION_CREATE", interaction)
+
+            t0 = time.time()
+            while stream._eof_sent is False and time.time() - t0 < 5.0:
+                await asyncio.sleep(0)
+            return stream
+
+        app = web.Application()
+        app.add_routes(routes)
+        runner = web.AppRunner(app)
+        await runner.setup()
+        webserver = web.TCPSite(
+            runner,
+            host="0.0.0.0",
+            port=port,
+        )
+        await webserver.start()
+        return webserver
+
     async def close(self) -> None:
         """
         Close the gateway and session connection.
@@ -535,5 +591,32 @@ class Client:
                 await self.state.gateway.wait()
             except asyncio.CancelledError:
                 pass
+        finally:
+            await self.close()
+
+    async def run_webserver(self, *, port: int = 8000, sync: bool = True) -> None:
+        """
+        Run a webserver for the bot so as to receive interactions from Discord.
+
+        Parameters
+        ----------
+        port : int
+            The port that you want to open the webserver on.
+        sync : bool
+            Whether or not to sync the bot's commands to Discord.
+        """
+
+        log.info("Running client webserver")
+        await self.load_plugins()
+        try:
+            if sync:
+                await self.sync_commands()
+            site = await self.connect_webserver(port=port)
+            try:
+                while True:
+                    await asyncio.sleep(60)
+            except asyncio.CancelledError:
+                pass
+            await site.stop()
         finally:
             await self.close()

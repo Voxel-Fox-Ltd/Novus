@@ -33,6 +33,8 @@ from .ui.select_menu import SelectOption
 from .user import User
 
 if TYPE_CHECKING:
+    from aiohttp import web
+
     from .. import payloads
     from ..api import HTTPConnection
     from . import Guild
@@ -454,6 +456,8 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
         'locale',
         'guild_locale',
         '_responded',
+        '_stream',
+        '_stream_request',
     )
 
     id: int
@@ -468,6 +472,8 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
     app_permissions: Permissions
     locale: Locale
     guild_locale: Locale | None
+    _stream: web.StreamResponse | None
+    _stream_request: web.Request | None
 
     def __init__(self, *, state: HTTPConnection, data: payloads.Interaction):
         self.state = state
@@ -538,7 +544,14 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
         self.data = data_object  # pyright: ignore  # Apparently this isn't valid with generics
         self._responded = False
 
-    __repr__ = generate_repr(('id', 'custom_id', 'type', 'guild', 'application_id', 'data',))
+    __repr__ = generate_repr((
+        'id',
+        'custom_id',
+        'type',
+        'guild',
+        'application_id',
+        'data',
+    ))
 
     @property
     def custom_id(self) -> str | None:
