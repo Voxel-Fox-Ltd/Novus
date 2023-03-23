@@ -20,7 +20,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, ClassVar, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
 
 import novus as n
 
@@ -119,6 +119,7 @@ class Plugin(metaclass=PluginMeta):
 
     def __init__(self, bot: Client) -> None:
         self.bot: Client = bot
+        self.log = log.getChild(self.__class__.__name__)
 
     def __repr__(self) -> str:
         return f"<Plugin[{self.__class__.__name__}]>"

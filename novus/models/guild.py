@@ -341,7 +341,7 @@ class Guild(Hashable, GuildAPIMixin):
             created = sticker
         else:
             created = Sticker(state=self.state, data=sticker)
-            assert created.guild is self
+            # assert created.guild is self, "Guild instance is not cached"
         self.state.cache.add_stickers(created)
         (new_cache or self._stickers)[created.id] = created
         return created

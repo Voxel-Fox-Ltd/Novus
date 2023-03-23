@@ -60,6 +60,7 @@ class GatewayConnection:
         self.intents: Intents = Intents.none()
         self.shards: set[GatewayShard] = set()
         self.shard_count: int = 1
+        self.guild_ids_only: bool = False
 
     async def connect(
             self,
@@ -95,6 +96,7 @@ class GatewayConnection:
 
             coro = connect_wrapper(identify_semaphore, gs)
             tasks.append(asyncio.create_task(coro))
+        log.info("Opening gateway connection with %s shards (IDs %s)", len(self.shards), shard_ids)
         await asyncio.gather(*tasks)
 
     async def wait(self) -> None:
@@ -140,7 +142,6 @@ class GatewayShard:
             "encoding": "json",
             "compress": "zlib-stream",
         })
-        self.cache = self.parent.cache
         self.dispatch = GatewayDispatch(self)
         self.identify_semaphore = identify_semaphore
         self.connecting = asyncio.Event()
@@ -169,6 +170,10 @@ class GatewayShard:
         self.chunk_counter: dict[str, int] = {}  # nonce: req_counter
         self.chunk_groups: dict[str, list[GuildMember]] = defaultdict(list)
         self.chunk_event: dict[str, asyncio.Event] = {}
+
+    @property
+    def cache(self):
+        return self.parent.cache
 
     @property
     def running(self) -> bool:
@@ -206,17 +211,17 @@ class GatewayShard:
             try:
                 d = await self.receive()
             except GatewayClose:
-                log.info("Gateway closing.")
+                log.info("[%s] Gateway closing.", self.shard_id)
                 await self.reconnect()
                 continue
             except GatewayException as e:
                 if not e.reconnect:
-                    log.info("Cannot reconnect.")
+                    log.info("[%s] Cannot reconnect.", self.shard_id)
                     raise
-                await self.reconnect()
-                continue
+                asyncio.create_task(self.reconnect())
+                return
             except Exception as e:
-                log.error("Hit error receiving", exc_info=e)
+                log.error("[%s] Hit error receiving", self.shard_id, exc_info=e)
                 return
 
             # Yield data
@@ -242,8 +247,9 @@ class GatewayShard:
         if data is not MISSING:
             sendable["d"] = data
         log.debug(
-            "Sending websocket data %s"
-            % dump(sendable).replace(self.parent._token or "\u200b", "TOKEN_REDACTED")
+            "[%s] Sending websocket data %s",
+            self.shard_id,
+            dump(sendable).replace(self.parent._token or "\u200b", "TOKEN_REDACTED")
         )
         dumped = dump(
             sendable,
@@ -273,27 +279,27 @@ class GatewayShard:
             except GatewayException:
                 raise
             except Exception as e:
-                log.error("Failed to read websocket", exc_info=e)
+                log.error("[%s] Failed to read websocket", self.shard_id, exc_info=e)
                 return None
 
             # Catch any errors
             if data.type == aiohttp.WSMsgType.ERROR:
-                log.info("Got error from socket %s" % data)
+                log.info("[%s] Got error from socket %s", self.shard_id, data)
                 return None
             elif data.type == aiohttp.WSMsgType.CLOSING:
                 log.info(
-                    "Websocket currently closing (%s %s)"
-                    % (data, data.extra)
+                    "[%s] Websocket currently closing (%s %s)",
+                    self.shard_id, data, data.extra,
                 )
                 raise GatewayClose()
             elif data.type == aiohttp.WSMsgType.CLOSE:
                 log.info(
-                    "Socket told to close (%s %s)"
-                    % (data, data.extra)
+                    "[%s] Socket told to close (%s %s)",
+                    self.shard_id, data, data.extra,
                 )
                 raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
-                log.info("Socket closed")
+                log.info("[%s] Socket closed", self.shard_id)
                 raise GatewayException()
 
             # Decode data
@@ -301,21 +307,34 @@ class GatewayShard:
             try:
                 self._buffer.extend(data_bytes)
             except Exception as e:
-                log.critical("Failed to extend buffer %s" % str(data), exc_info=e)
+                log.critical("[%s] Failed to extend buffer %s",
+                    self.shard_id, str(data), exc_info=e,
+                )
                 raise
             if data_bytes[-4:] == b"\x00\x00\xff\xff":
                 try:
                     decompressed = self._zlib.decompress(self._buffer)
                 except Exception as e:
                     log.error(
-                        "Failed to decompress buffer (%s)",
-                        data_bytes, exc_info=e,
+                        "[%s] Failed to decompress buffer (%s)",
+                        self.shard_id, data_bytes, exc_info=e,
                     )
                     self._buffer.clear()
                     raise GatewayClose()
-                decoded = decompressed.decode()
-                parsed = json.loads(decoded)
-                log.debug("Received data from gateway %s" % dump(parsed))
+                try:
+                    decoded = decompressed.decode()
+                    parsed = json.loads(decoded)
+                except MemoryError:
+                    log.error(
+                        "[%s] Hit memory error. Whoops.",
+                        self.shard_id,
+                    )
+                    self._buffer.clear()
+                    raise GatewayClose()
+                log.debug(
+                    "[%s] Received data from gateway %s",
+                    self.shard_id, dump(parsed),
+                )
                 self._buffer.clear()
                 return (
                     GatewayOpcode(parsed["op"]),
@@ -355,9 +374,9 @@ class GatewayShard:
         if self.socket and not self.socket.closed:
             log.info(
                 (
-                    "Trying to open new connection while connection is already "
-                    "open - closing current connection before opening a new "
-                    "one (shard %s)"
+                    "[%s] Trying to open new connection while connection is "
+                    "already open - closing current connection before opening "
+                    "a new one"
                 ),
                 self.shard_id,
             )
@@ -386,7 +405,7 @@ class GatewayShard:
             self.sequence = None
         session = await self.parent.get_session()
         ws_url = ws_url or self.ws_url
-        log.info("Creating websocket connection to %s", ws_url)
+        log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
         ws = await session.ws_connect(ws_url)
         self.socket = ws
 
@@ -398,12 +417,12 @@ class GatewayShard:
         except Exception:
             if attempt >= 5:
                 log.info(
-                    "Failed to connect to gateway (shard %s), closing (%s)",
+                    "[%s] Failed to connect to gateway, closing (%s)",
                     self.shard_id, attempt,
                 )
                 return await self.close()
             log.info(
-                "Failed to connect shard %s to gateway, reattempting (%s)",
+                "[%s] Failed to connect to gateway, reattempting (%s)",
                 self.shard_id, attempt,
             )
             return await self.connect(
@@ -414,7 +433,7 @@ class GatewayShard:
         if got is None:
             return
         _, _, _, data = got
-        log.info("Connected to gateway (shard %s) - %s", self.shard_id, dump(data))
+        log.info("[%s] Connected to gateway - %s", self.shard_id, dump(data))
 
         # Start heartbeat
         heartbeat_interval = data["heartbeat_interval"]
@@ -424,10 +443,22 @@ class GatewayShard:
 
         # Send identify or resume
         self.ready.clear()
-        if reconnect:
-            await self.resume()
-        else:
-            await self.identify()
+        timeout = 10
+        try:
+            if reconnect:
+                await asyncio.wait_for(self.resume(), timeout)
+            else:
+                await asyncio.wait_for(self.identify(), timeout)
+        except asyncio.CancelledError:
+            log.info(
+                "[%s] Failed to get a response from resume/idenfity after %s seconds, reattempting connect (%s)",
+                self.shard_id, timeout, attempt,
+            )
+            return await self.connect(
+                ws_url=ws_url,
+                reconnect=reconnect,
+                attempt=attempt + 1,
+            )
         self.message_task = asyncio.create_task(self.message_handler())
         await self.ready.wait()
         self.connecting.clear()
@@ -437,13 +468,20 @@ class GatewayShard:
         Close the gateway connection, cancelling the heartbeat task.
         """
 
-        log.info("Closing socket (shard %s)", self.shard_id)
+        if any((
+                self.heartbeat_task is not None,
+                self.message_task is not None,
+                self.socket and not self.socket.closed)):
+            log.info("[%s] Closing shard connection", self.shard_id)
         if self.heartbeat_task is not None:
             self.heartbeat_task.cancel()
         if self.message_task is not None:
             self.message_task.cancel()
         if self.socket and not self.socket.closed:
-            await self.socket.close(code=0)
+            try:
+                await asyncio.wait_for(self.socket.close(code=0), timeout=0.1)
+            except asyncio.CancelledError:
+                pass
 
     async def heartbeat(
             self,
@@ -472,7 +510,7 @@ class GatewayShard:
             try:
                 await asyncio.sleep(wait / 1_000)
             except asyncio.CancelledError:
-                log.info("Heartbeat has been cancelled (shard %s)", self.shard_id)
+                log.info("[%s] Heartbeat has been cancelled", self.shard_id)
                 return
             for beat_attempt in range(1_000):
                 await self.send(GatewayOpcode.heartbeat, self.sequence)
@@ -506,7 +544,7 @@ class GatewayShard:
         Send an identify to Discord.
         """
 
-        log.info("Sending identify (shard %s)", self.shard_id)
+        log.info("[%s] Sending identify", self.shard_id)
         token = cast(str, self.parent._token)
         await self.send(
             GatewayOpcode.identify,
@@ -518,7 +556,7 @@ class GatewayShard:
                     "device": "Novus",
                 },
                 "shard": [self.shard_id, self.shard_count],
-                "intents": str(self.intents.value),
+                "intents": self.intents.value,
             },
         )
 
@@ -533,7 +571,7 @@ class GatewayShard:
         Send a request to chunk a guild.
         """
 
-        log.info("Chunking guild %s (shard %s)", guild_id, self.shard_id)
+        log.info("[%s] Chunking guild %s", self.shard_id, guild_id)
         data = {
             "guild_id": str(guild_id),
             "limit": limit,
@@ -559,7 +597,7 @@ class GatewayShard:
         Send a resume to Discord.
         """
 
-        log.info("Sending resume (shard %s)", self.shard_id)
+        log.info("[%s] Sending resume", self.shard_id)
         token = cast(str, self.parent._token)
         await self.send(
             GatewayOpcode.resume,
@@ -613,8 +651,12 @@ class GatewayShard:
                         asyncio.create_task(self.reconnect())
                         return
                     else:
-                        log.warning("Session invalidated - creating a new session")
+                        log.warning(
+                            "[%s] Session invalidated - creating a new session",
+                            self.shard_id,
+                        )
                         await self.close()
+                        log.info("done closing %s", self.shard_id)
                         await self.connect()
                         return  # Cancel this task so a new one will be created
 

@@ -26,6 +26,8 @@ from collections import defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, Type, cast
 
+from aiohttp import web
+
 import novus as n
 
 if TYPE_CHECKING:
@@ -90,6 +92,22 @@ class Client:
     @property
     def commands(self) -> set[Command]:
         return set(self._commands.values())
+
+    @property
+    def is_ready(self) -> bool:
+        for i in self.state.gateway.shards:
+            if not i.ready.is_set():
+                return False
+        return True
+
+    async def wait_until_ready(self) -> None:
+        """
+        Wait until all of the shards for the bot have received the "ready"
+        message from the gateway.
+        """
+
+        for i in self.state.gateway.shards:
+            await i.ready.wait()
 
     def add_command(self, command: Command) -> None:
         """
@@ -464,17 +482,24 @@ class Client:
         for guild_id, commands in commands_by_guild.items():
             await self._handle_command_sync(aid, guild_id, commands)
 
-    async def connect(self) -> None:
+    async def connect(self, check_concurrency: bool = False) -> None:
         """
         Connect the bot to the gateway, running the connection in the
         background.
         """
 
+        concurrency = 1
+        if check_concurrency:
+            log.info("Checking max concurrency for bot")
+            d = await self.state.gateway.get_gateway_bot()
+            concurrency = d["session_start_limit"]["max_concurrency"]
+            log.info("Set max concurrency to %s", concurrency)
         log.info("Connecting to gateway")
         await self.state.gateway.connect(
             shard_ids=self.config.shard_ids,
             shard_count=self.config.shard_count,
             intents=self.config.intents,
+            max_concurrency=concurrency,
         )
 
     async def close(self) -> None:
@@ -489,7 +514,7 @@ class Client:
             self.state.close(),
         )
 
-    async def run(self, sync: bool = True) -> None:
+    async def run(self, *, sync: bool = True) -> None:
         """
         Connect the bot to the gateway, keeping the bot's connection to the
         websocket alive.
@@ -505,7 +530,7 @@ class Client:
         try:
             if sync:
                 await self.sync_commands()
-            await self.connect()
+            await self.connect(check_concurrency=True)
             try:
                 await self.state.gateway.wait()
             except asyncio.CancelledError:

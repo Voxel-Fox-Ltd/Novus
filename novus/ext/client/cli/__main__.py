@@ -22,12 +22,53 @@ import logging
 import sys
 import textwrap
 from argparse import ArgumentParser, Namespace
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from _typeshed import SupportsWrite
-
+import novus
+from novus.api._cache import NothingAPICache
 from novus.ext import client
+
+
+class GuildLogger(client.Plugin):
+
+    async def print_loop(self, sleep_time: float = 60.0):
+        self.log.info(
+            "Starting guild logger loop; printing guild count every %s seconds",
+            sleep_time,
+        )
+        while True:
+            self.log.info(
+                "There are currently %s guild IDs in cache",
+                len(self.bot.state.cache.guild_ids),
+            )
+            try:
+                await asyncio.sleep(sleep_time)
+            except asyncio.CancelledError:
+                break
+
+    async def on_load(self) -> None:
+        await self.bot.wait_until_ready()
+        self.print_loop_task = asyncio.create_task(self.print_loop())
+
+    async def on_unload(self) -> None:
+        if not self.print_loop_task.done():
+            self.print_loop_task.cancel()
+
+    @client.event("GUILD_CREATE")
+    async def guild_added(self, guild: novus.Guild):
+        if self.bot.is_ready:
+            if isinstance(guild, novus.Guild):
+                self.log.info("Guild create (%s) %s", guild.id, guild.name)
+            elif isinstance(guild, novus.Object):
+                self.log.info("Guild create (%s)", guild.id)
+            else:
+                self.log.info("Guild create (%s)", guild)
+
+    @client.event("GUILD_DELETE")
+    async def guild_removed(self, guild: novus.Guild | int):
+        if isinstance(guild, int):
+            self.log.info("Guild delete (%s)", guild)
+        else:
+            self.log.info("Guild delete (%s) %s", guild.id, guild.name)
 
 
 def get_parser() -> ArgumentParser:
@@ -43,20 +84,33 @@ def get_parser() -> ArgumentParser:
     rap.add_argument("--loglevel", default='info', choices=logger_choices)
     rap.add_argument("--no-sync", default=False, action="store_true")
     rap.add_argument("--token", nargs="?", type=str, default=None)
-    rap.add_argument("--shard_id", nargs="*", type=str, default=None)
-    rap.add_argument("--shard_ids", nargs="?", type=str, const="", default=None)
-    rap.add_argument("--shard_count", nargs="?", type=str, default=None)
+    rap.add_argument("--pubkey", nargs="?", type=str, default=None)
+    rap.add_argument("--shard-id", nargs="*", type=str, default=None)
+    rap.add_argument("--shard-ids", nargs="?", type=str, const="", default=None)
+    rap.add_argument("--shard-count", nargs="?", type=str, default=None)
     rap.add_argument("--intents", nargs="?", type=str, const="", default=None)
     rap.add_argument("--intent", nargs="*", type=str, default=None)
     rap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
     rap.add_argument("--plugin", nargs="*", type=str, default=None)
 
+    rsap = ap.add_parser("run-status")
+    rsap.add_argument("--config", nargs="?", const=None, default=None)
+    logger_choices = []
+    for i in ["debug", "info", "warning", "error"]:
+        logger_choices.extend((i, i.upper(),))
+    rsap.add_argument("--loglevel", default='info', choices=logger_choices)
+    rsap.add_argument("--token", nargs="?", type=str, default=None)
+    rsap.add_argument("--shard-id", nargs="*", type=str, default=None)
+    rsap.add_argument("--shard-ids", nargs="?", type=str, const="", default=None)
+    rsap.add_argument("--shard-count", nargs="?", type=str, default=None)
+
     cap = ap.add_parser("config-dump")
     cap.add_argument("type", choices=["json", "yaml", "toml"])
     cap.add_argument("--token", nargs="?", type=str, default=None)
-    cap.add_argument("--shard_id", nargs="*", type=str, default=None)
-    cap.add_argument("--shard_ids", nargs="?", type=str, const="", default=None)
-    cap.add_argument("--shard_count", nargs="?", type=str, default=None)
+    cap.add_argument("--pubkey", nargs="?", type=str, default=None)
+    cap.add_argument("--shard-id", nargs="*", type=str, default=None)
+    cap.add_argument("--shard-ids", nargs="?", type=str, const="", default=None)
+    cap.add_argument("--shard-count", nargs="?", type=str, default=None)
     cap.add_argument("--intents", nargs="?", type=str, const="", default=None)
     cap.add_argument("--intent", nargs="*", type=str, default=None)
     cap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
@@ -83,6 +137,21 @@ async def main(args: Namespace, unknown: list[str]) -> None:
         config.merge_namespace(args, unknown)
         bot = client.Client(config)
         await bot.run(sync=not args.no_sync)
+
+    elif args.action == "run-status":
+        config = client.Config.from_file(args.config)
+        if "loglevel" in args:
+            root = logging.Logger.root
+            level = getattr(logging, args.loglevel.upper())
+            root.setLevel(level)
+        config.merge_namespace(args, unknown)
+        config.plugins = []
+        config.intents = novus.Intents(guilds=True)
+        bot = client.Client(config)
+        bot.state.cache = NothingAPICache(bot.state)
+        bot.state.gateway.guild_ids_only = True
+        bot.add_plugin(GuildLogger)
+        await bot.run(sync=False)
 
     elif args.action == "config-dump":
         config = client.Config()

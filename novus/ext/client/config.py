@@ -43,7 +43,8 @@ log = logging.getLogger("novus.ext.client.config")
 class Config:
 
     token: str
-    shard_ids: list[int]
+    pubkey: str
+    shard_ids: list[int] | None
     shard_count: int
     intents: novus.Intents
     plugins: list[str]
@@ -52,13 +53,15 @@ class Config:
             self,
             *,
             token: str = "",
+            pubkey: str = "",
             shard_ids: list[int] | None = None,
             shard_count: int = 1,
             intents: novus.Intents | None = None,
             plugins: list[str] | None = None,
             **kwargs: Any):
         self.token: str = token
-        self.shard_ids: list[int] = shard_ids or []
+        self.pubkey: str = pubkey
+        self.shard_ids: list[int] | None = shard_ids
         self.shard_count: int = shard_count
         self.intents: novus.Intents = intents or novus.Intents()
         self.plugins: list[str] = plugins or []
@@ -87,6 +90,9 @@ class Config:
 
         if check("token"):
             self.token = args.token
+
+        if check("pubkey"):
+            self.pubkey = args.pubkey
 
         if check("shard_ids") and check("shard_id"):
             raise Exception("Cannot have both shard_ids and shard_id in args")
@@ -154,6 +160,7 @@ class Config:
     def to_dict(self) -> dict[str, Any]:
         v = {
             "token": self.token,
+            "pubkey": self.pubkey,
             "shard_ids": self.shard_ids,
             "shard_count": self.shard_count,
             "intents": dict(self.intents.walk()),

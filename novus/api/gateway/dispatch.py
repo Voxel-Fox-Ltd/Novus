@@ -77,7 +77,6 @@ class GatewayDispatch:
     def __init__(self, shard: GatewayShard) -> None:
         self.shard: GatewayShard = shard
         self.parent: HTTPConnection = self.shard.parent
-        self.cache = self.parent.cache
         self.EVENT_HANDLER: dict[
             str,
             Callable[
@@ -146,6 +145,17 @@ class GatewayDispatch:
             # "Voice server update": None,
             # "Webhooks update": None,
         }
+        if self.parent.gateway.guild_ids_only:
+            new_handler = self.EVENT_HANDLER.copy()
+            for k in self.EVENT_HANDLER:
+                new_handler[k] = self.ignore(k)
+            new_handler["GUILD_CREATE"] = self._handle_guild_create_id_only
+            new_handler["GUILD_DELETE"] = self._handle_guild_delete
+            self.EVENT_HANDLER = new_handler
+
+    @property
+    def cache(self):
+        return self.parent.cache
 
     @property
     def intents(self) -> Intents:
@@ -225,14 +235,15 @@ class GatewayDispatch:
         guild = Guild(state=self.parent, data=data)
         self.cache.add_guilds(guild)
         await guild._sync(data=data)
-        # if self.shard.intents.guild_members and self.shard.intents.guilds:
-        #     asyncio.create_task(self.shard.chunk_guild(guild.id))
-        # else:
-        #     log.debug(
-        #         "Not chunking guild (members=%s guilds=%s)",
-        #         self.shard.intents.guild_members, self.shard.intents.guilds,
-        #     )
         yield guild
+
+    async def _handle_guild_create_id_only(
+            self,
+            data: payloads.GatewayGuild) -> OptRet[Guild]:
+        """Listen for guild create."""
+
+        self.cache.guild_ids.add(int(data["id"]))
+        yield Object(data["id"])
 
     async def _handle_guild_update(
             self,
@@ -262,6 +273,10 @@ class GatewayDispatch:
         """Handle being removed from a guild."""
 
         # Get from cache if we can
+        try:
+            self.cache.guild_ids.remove(int(data["id"]))
+        except KeyError:
+            pass
         current = self.cache.guilds.pop(int(data["id"]), None)
         if not current:
             yield int(data["id"])

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     'APICache',
+    'NothingAPICache',
 )
 
 
@@ -52,6 +53,7 @@ class APICache:
         self.application_id: int | None = None
         self.application: Application | None = None
 
+        self.guild_ids: set[int] = set()
         self.guilds: dict[int, Guild] = {}
         self.users: dict[int, User] = {}
         self.channels: dict[int, Channel] = {}
@@ -78,6 +80,7 @@ class APICache:
 
     def add_guilds(self, *items: Guild) -> None:
         for i in items:
+            self.guild_ids.add(i.id)
             self.guilds[i.id] = i
 
     def add_users(self, *items: User) -> None:
@@ -201,3 +204,28 @@ class APICache:
         self.emojis.clear()
         self.stickers.clear()
         self.events.clear()
+
+
+class NothingAPICache(APICache):
+
+    def add_guilds(self, *items: Guild) -> None:
+        for i in items:
+            self.guild_ids.add(i.id)
+
+    def add_users(self, *items: User) -> None:
+        pass
+
+    def add_channels(self, *items: Channel) -> None:
+        pass
+
+    def add_emojis(self, *items: Emoji) -> None:
+        pass
+
+    def add_stickers(self, *items: Sticker) -> None:
+        pass
+
+    def add_events(self, *items: ScheduledEvent) -> None:
+        pass
+
+    def add_messages(self, *items: Message) -> None:
+        pass
