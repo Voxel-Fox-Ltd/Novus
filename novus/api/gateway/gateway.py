@@ -406,7 +406,24 @@ class GatewayShard:
         session = await self.parent.get_session()
         ws_url = ws_url or self.ws_url
         log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
-        ws = await session.ws_connect(ws_url)
+        try:
+            ws = await session.ws_connect(ws_url)
+        except Exception:
+            if attempt >= 5:
+                log.info(
+                    "[%s] Failed to connect to open ws connection, closing (%s)",
+                    self.shard_id, attempt,
+                )
+                return await self.close()
+            log.info(
+                "[%s] Failed to connect to open ws connection, reattempting (%s)",
+                self.shard_id, attempt,
+            )
+            return await self.connect(
+                ws_url=ws_url,
+                reconnect=reconnect,
+                attempt=attempt + 1,
+            )
         self.socket = ws
 
         # Send hello
