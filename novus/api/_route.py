@@ -66,7 +66,7 @@ class Route:
     ).rstrip("/")
     WS_BASE = os.getenv(
         "NOVUS_WS_URL",
-        "wss://gateway.discord.gg",
+        "",
     ).rstrip("/")
 
     def __init__(self, method: str, resource: str, **kwargs: str | int) -> None:

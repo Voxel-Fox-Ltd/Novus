@@ -495,6 +495,13 @@ class Client:
             d = await self.state.gateway.get_gateway_bot()
             concurrency = d["session_start_limit"]["max_concurrency"]
             log.info("Set max concurrency to %s", concurrency)
+            ws_url = d["url"]
+            from novus.api._route import Route
+            if Route.WS_BASE == "":
+                Route.WS_BASE = ws_url
+                log.info("Set websocket connect URL to %s", concurrency)
+            else:
+                log.info("Ignored websocket connect URL in /gateway/bot due to ENV change")
         log.info("Connecting to gateway")
         await self.state.gateway.connect(
             shard_ids=self.config.shard_ids,

@@ -145,13 +145,6 @@ class GatewayDispatch:
             # "Voice server update": None,
             # "Webhooks update": None,
         }
-        if self.parent.gateway.guild_ids_only:
-            new_handler = self.EVENT_HANDLER.copy()
-            for k in self.EVENT_HANDLER:
-                new_handler[k] = self.ignore(k)
-            new_handler["GUILD_CREATE"] = self._handle_guild_create_id_only
-            new_handler["GUILD_DELETE"] = self._handle_guild_delete
-            self.EVENT_HANDLER = new_handler
 
     @property
     def cache(self):
@@ -179,6 +172,11 @@ class GatewayDispatch:
             log.info("Received resumed (shard %s)", self.shard.shard_id)
             return None
 
+        if self.parent.gateway.guild_ids_only:
+            if event_name == "GUILD_CREATE":
+                coro = self._handle_guild_create_id_only
+            else:
+                return
         coro = self.EVENT_HANDLER.get(event_name)
         if coro is None:
             log.warning(

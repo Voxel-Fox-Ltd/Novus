@@ -50,6 +50,10 @@ class GatewayBot(TypedDict):
     session_start_limit: SessionStartLimit
 
 
+class Gateway(TypedDict):
+    url: str
+
+
 class TypingStart(TypedDict):
     channel_id: Snowflake
     timestamp: Timestamp
