@@ -66,7 +66,7 @@ class Config:
         self.intents: novus.Intents = intents or novus.Intents()
         self.plugins: list[str] = plugins or []
         for k, v in kwargs.items():
-            setattr(self, k, v)
+            setattr(self, k.replace("-", "_"), v)
         self._extended: dict[Plugin, dict] = {}
 
     if TYPE_CHECKING:
@@ -130,7 +130,7 @@ class Config:
             for name, value in zip(unknown[::2], unknown[1::2]):
                 if not name.startswith("--"):
                     raise ValueError("Failed to parse unknown args %s" % unknown)
-                setattr(self, name[2:], value)
+                setattr(self, name[2:].replace("-", "_"), value)
 
     @classmethod
     def from_file(cls, filename: str | None) -> Self:
