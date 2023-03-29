@@ -1,48 +1,38 @@
 [build-system]
-    requires = ["setuptools"]
-    build-backend = "setuptools.build_meta"
-
+requires = [ "setuptools", ]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-    packages.find.where = [".", "./novus/ext"]
-
+packages.find.where = [ ".", "./novus/ext", ]
 
 [project]
-    name = "novus"
-    version = "1.0.0"
-    description = "A Python wrapper for the Discord API built with interactions in mind."
-    authors = [
-        {name = "Kae Bartlett", email = "kae@voxelfox.co.uk"},
-    ]
-    readme = "README.md"
-    requires-python = ">=3.10"
-    license = {file = "LICENSE"}
-    classifiers = [
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: GNU Affero General Public License v3",
-        "Natural Language :: English",
-        "Operating System :: OS Independent",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
-        "Topic :: Software Development :: Libraries :: Python Modules",
-        "Typing :: Typed",
-    ]
-    dependencies = [
-        "python-dotenv",
-        "vf-flags>=0.2.2,<0.3",
-        "aiohttp>=3.8.0",
-        "emoji",
-        "typing_extensions",
-    ]
-    scripts = {novus = "novus.ext.client.cli.__main__:main_sync"}
+name = "novus"
+version = "1.0.0"
+description = "A Python wrapper for the Discord API built with interactions in mind."
+authors = [ {name = "Kae Bartlett", email = "kae@voxelfox.co.uk"}, ]
+readme = "README.md"
+requires-python = ">=3.10"
+license.file = "LICENSE"
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+dependencies = [
+    "python-dotenv",
+    "vf-flags>=0.2.2,<0.3",
+    "aiohttp>=3.8.0",
+    "emoji",
+    "typing_extensions",
+]
+scripts.novus = "novus.ext.client.cli.__main__:main_sync"
 
 [project.optional-dependencies]
-    docs = [
-        "sphinx",
-        "furo",
-    ]
-    testing = [
-        "pytest",
-        "pytest-asyncio",
-        "pyyaml",
-    ]
+docs = [ "sphinx", "furo", ]
+testing = [ "pytest", "pytest-asyncio", "pyyaml", ]
+database = [ "asyncpg", ]
