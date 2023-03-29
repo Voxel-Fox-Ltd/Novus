@@ -217,7 +217,8 @@ class Client:
                 name=f"{p.__class__.__name__}.on_load()",
             )
             tasks.append(t)
-        await asyncio.gather(*tasks)
+        returned = await asyncio.gather(*tasks, return_exceptions=True)
+        log.info("Plugin load results: %s", returned)
 
     def remove_command(self, command: Command) -> None:
         """
