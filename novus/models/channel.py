@@ -48,6 +48,8 @@ __all__ = (
     'DMChannel',
     'GroupDMChannel',
     'Thread',
+    'TextChannel',
+    'VoiceChannel',
     'ForumTag',
     'GuildVoiceChannel',
     'GuildStageChannel',

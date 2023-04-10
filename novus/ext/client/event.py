@@ -24,7 +24,13 @@ from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar
 import novus
 
 if TYPE_CHECKING:
-    from novus.models import Interaction, Message, MessageComponentData, ModalSubmitData
+    from novus.models import (
+        Channel,
+        Interaction,
+        Message,
+        MessageComponentData,
+        TextChannel,
+    )
 
 __all__ = (
     'event',
@@ -64,7 +70,11 @@ Self: TypeAlias = Any  # Named Any
 AA = Awaitable[Any]  # Any awaitable
 EL: TypeAlias = EventListener
 T = TypeVar("T")
+T2 = TypeVar("T2")
+T3 = TypeVar("T3")
 W = Callable[[Self, T], AA]  # Wrapper
+W2 = Callable[[Self, T, T2], AA]  # Wrapper
+W3 = Callable[[Self, T, T2, T3], AA]  # Wrapper
 WEL = Callable[[Callable[[Self, T], Any]], EL]  # Wrapped event listener
 
 
@@ -104,6 +114,26 @@ class EventBuilder:
     @classmethod
     def message(cls, func: W[Message]) -> EL:
         return EventListener("MESSAGE_CREATE", func)
+
+    @classmethod
+    def message_update(cls, func: W2[Message | None, Message]) -> EL:
+        return EventListener("MESSAGE_UPDATE", func)
+
+    @classmethod
+    def message_delete(cls, func: W2[TextChannel, Message]) -> EL:
+        return EventListener("MESSAGE_DELETE", func)
+
+    @classmethod
+    def channel_create(cls, func: W[Channel]) -> EL:
+        return EventListener("CHANNEL_CREATE", func)
+
+    @classmethod
+    def channel_update(cls, func: W2[Channel | None, Channel]) -> EL:
+        return EventListener("CHANNEL_UPDATE", func)
+
+    @classmethod
+    def channel_delete(cls, func: W[Channel]) -> EL:
+        return EventListener("CHANNEL_DELETE", func)
 
     @staticmethod
     def __call__(
