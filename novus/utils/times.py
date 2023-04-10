@@ -28,6 +28,7 @@ __all__ = (
     'DiscordDatetime',
     'parse_timestamp',
     'format_timestamp',
+    'utcnow',
 )
 
 
@@ -43,7 +44,7 @@ class DiscordDatetime(dt):
 
     @property
     def naive(self) -> DiscordDatetime:
-        return self.astimezone(timezone.utc).replace(tzinfo=None)
+        return DiscordDatetime.fromtimestamp(self.timestamp())
 
     def deconstruct(self: dt) -> tuple:
         return (
@@ -59,7 +60,7 @@ class DiscordDatetime(dt):
 
 
 @overload
-def parse_timestamp(timestamp: str) -> dt:
+def parse_timestamp(timestamp: str) -> DiscordDatetime:
     ...
 
 
@@ -68,7 +69,7 @@ def parse_timestamp(timestamp: None) -> None:
     ...
 
 
-def parse_timestamp(timestamp: dt | str | None) -> dt | None:
+def parse_timestamp(timestamp: dt | str | None) -> DiscordDatetime | None:
     """
     Parse an isoformat timestamp from Discord.
 
@@ -132,3 +133,17 @@ def format_timestamp(
     if style_str is None:
         return f"<t:{int(timestamp.timestamp())}>"
     return f"<t:{int(timestamp.timestamp())}:{style_str}>"
+
+
+def utcnow() -> DiscordDatetime:
+    """
+    Get the current timestamp with a timezone applied to it.
+
+    Returns
+    -------
+    datetime.datetime
+        The created datetime.
+    """
+
+    ddt = DiscordDatetime.utcnow().replace(tzinfo=timezone.utc)
+    return ddt

@@ -42,5 +42,6 @@ __all__: tuple[str, ...] = (
     'try_id',
     'try_object',
     'try_snowflake',
+    'utcnow',
     'walk_components',
 )
