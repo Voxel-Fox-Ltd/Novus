@@ -23,6 +23,13 @@ import logging
 from novus.ext import client
 import asyncpg
 
+if TYPE_CHECKING:
+    class PoolAcquireContext:
+        async def __aenter__(self) -> asyncpg.Connection:
+            ...
+        async def __aexit__(self, *args, **kwargs) -> None:
+            ...
+
 __all__ = (
     "Database",
 )
@@ -37,7 +44,7 @@ class Database(client.Plugin):
     _log: logging.Logger = logging.getLogger("database")  # pyright: ignore
 
     @classmethod
-    def acquire(cls, *args, **kwargs):
+    def acquire(cls, *args, **kwargs) -> PoolAcquireContext:
         if cls.pool is None:
             cls._log.error(
                 (
@@ -45,7 +52,7 @@ class Database(client.Plugin):
                     "Was there a DSN provided?"
                 )
             )
-        return cls.pool.acquire(*args, **kwargs)
+        return cls.pool.acquire(*args, **kwargs)  # pyright: ignore
 
     async def on_load(self) -> None:
         """
