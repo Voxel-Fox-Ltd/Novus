@@ -24,6 +24,7 @@ __all__ = (
     'HTTPException',
     'NotFound',
     'Unauthorized',
+    'Forbidden',
     'GatewayException',
     'GatewayUnknownError',
     'GatewayUnknownOpcode',
@@ -59,6 +60,10 @@ class NotFound(HTTPException):
 
 
 class Unauthorized(HTTPException):
+    """When you are missing relevant permissions to access a resource."""
+
+
+class Forbidden(HTTPException):
     """When you are missing relevant permissions to access a resource."""
 
 

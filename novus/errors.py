@@ -21,6 +21,7 @@ __all__ = (
     'HTTPException',
     'NotFound',
     'Unauthorized',
+    'Forbidden',
     'GatewayException',
     'GatewayUnknownError',
     'GatewayUnknownOpcode',

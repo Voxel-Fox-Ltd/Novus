@@ -27,7 +27,7 @@ import aiohttp
 from ..models import File
 from ..utils import bytes_to_base64_data
 from ._cache import APICache
-from ._errors import HTTPException, NotFound, Unauthorized
+from ._errors import Forbidden, HTTPException, NotFound, Unauthorized
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
 from .audit_log import AuditLogHTTPConnection
 from .auto_moderation import AutoModerationHTTPConnection
@@ -279,18 +279,20 @@ class HTTPConnection:
                 given = None
             else:
                 raise AssertionError("Cannot parse JSON from response.")
-        if not resp.ok:
-            assert isinstance(given, dict)
-            if resp.status == 401:
-                raise Unauthorized(given)
-            elif resp.status == 404:
-                raise NotFound(given)
-            else:
-                raise HTTPException(given)
         log.debug(
             "Response {0.method} {0.path} returned {1.status} {2}"
             .format(route, resp, given)
         )
+        if not resp.ok:
+            assert isinstance(given, dict)
+            if resp.status == 401:
+                raise Unauthorized(given)
+            elif resp.status == 403:
+                raise Forbidden(given)
+            elif resp.status == 404:
+                raise NotFound(given)
+            else:
+                raise HTTPException(given)
         return given
 
     @classmethod
