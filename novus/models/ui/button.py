@@ -22,10 +22,11 @@ from typing import TYPE_CHECKING, ClassVar, Type
 from typing_extensions import Self
 
 from ...enums import ButtonStyle, ComponentType
+from ..emoji import PartialEmoji
 from .component import ComponentEmojiMixin, InteractableComponent
 
 if TYPE_CHECKING:
-    from ... import PartialEmoji, payloads
+    from ... import payloads
 
 __all__ = (
     'Button',

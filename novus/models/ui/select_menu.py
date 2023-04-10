@@ -23,10 +23,11 @@ from typing_extensions import Self
 
 from ...enums import ComponentType
 from ...utils import MISSING, generate_repr
+from ..emoji import PartialEmoji
 from .component import ComponentEmojiMixin, InteractableComponent
 
 if TYPE_CHECKING:
-    from ... import ChannelType, PartialEmoji, payloads
+    from ... import ChannelType, payloads
 
 __all__ = (
     'SelectOption',
