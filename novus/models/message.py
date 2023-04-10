@@ -122,6 +122,8 @@ class Message(MessageAPIMixin):
         An integer representin the approximate position in the thread.
     role_subscription_data : novus.RoleSubscription | None
         Data of the role subscription purchase.
+    jump_url : str
+        A URL to jump to the message.
     """
 
     __slots__ = (
@@ -268,6 +270,11 @@ class Message(MessageAPIMixin):
         # self.role_subscription_data = data["role_subscription_data"]
 
     __repr__ = generate_repr(('id',))
+
+    @property
+    def jump_url(self):
+        guild_id = self.guild.id if self.guild else "@me"
+        return f"https://discord.com/channels/{guild_id}/{self.channel.id}/{self.id}"
 
 
 class WebhookMessage(Message):
