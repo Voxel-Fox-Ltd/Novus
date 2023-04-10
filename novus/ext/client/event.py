@@ -24,7 +24,7 @@ from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar
 import novus
 
 if TYPE_CHECKING:
-    from novus.models import Interaction, Message, MessageComponentData
+    from novus.models import Interaction, Message, MessageComponentData, ModalSubmitData
 
 __all__ = (
     'event',
@@ -73,13 +73,16 @@ class EventBuilder:
     __slots__ = ()
 
     @classmethod
-    def filtered_component(cls, match_string: str) -> WEL[Interaction[MessageComponentData]]:
-        def wrapper(func: W[Interaction[MessageComponentData]]) -> EL:
+    def filtered_component(cls, match_string: str) -> WEL[Interaction]:
+        def wrapper(func: W[Interaction]) -> EL:
             return EventListener(
                 "INTERACTION_CREATE",
                 func,
                 lambda i: bool(
-                    i.type == novus.InteractionType.message_component
+                    i.type in [
+                        novus.InteractionType.message_component,
+                        novus.InteractionType.modal_submit,
+                    ]
                     and i.custom_id
                     and re.search(match_string, i.custom_id)
                 ),

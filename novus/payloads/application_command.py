@@ -83,7 +83,7 @@ class PartialApplicationCommand(TypedDict):
     type: NotRequired[ApplicationCommandType]
     name: str
     name_localizations: NotRequired[dict[Locale, str] | None]
-    description: str
+    description: str | None
     description_localizations: NotRequired[dict[Locale, str] | None]
     options: NotRequired[list[ApplicationCommandOption]]
     default_member_permissions: str | None

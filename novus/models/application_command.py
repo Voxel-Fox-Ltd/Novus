@@ -344,7 +344,7 @@ class PartialApplicationCommand:
         type: ApplicationCommandType
         name: str
         name_localizations: Localization
-        description: str
+        description: str | None
         description_localizations: Localization
         options: list[ApplicationCommandOption]
         default_member_permissions: flags.Permissions
@@ -354,7 +354,7 @@ class PartialApplicationCommand:
     def __init__(
             self,
             name: str,
-            description: str,
+            description: str | None,
             type: ApplicationCommandType,
             *,
             name_localizations: LocType = MISSING,

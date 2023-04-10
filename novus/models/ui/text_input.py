@@ -139,8 +139,8 @@ class TextInput(InteractableComponent):
     @classmethod
     def _from_data(cls, data: payloads.TextInput) -> Self:
         return cls(
-            label=data["label"],
-            style=TextInputStyle(data["style"]),
+            label=data.get("label", ""),
+            style=TextInputStyle(data.get("style", 1)),
             custom_id=data["custom_id"],
             min_length=data.get("min_length", 0),
             max_length=data.get("max_length", 4_000),

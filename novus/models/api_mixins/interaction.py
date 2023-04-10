@@ -20,7 +20,7 @@ from __future__ import annotations
 import functools
 from typing import TYPE_CHECKING, Any
 
-from ...enums import InteractionResponseType
+from ...enums import InteractionResponseType, InteractionType
 from ...flags import MessageFlags
 from ...utils import MISSING
 
@@ -33,6 +33,7 @@ if TYPE_CHECKING:
         File,
         Interaction,
         Message,
+        Modal,
         Sticker,
         WebhookMessage,
         flags,
@@ -41,9 +42,6 @@ if TYPE_CHECKING:
 __all__ = (
     'InteractionAPIMixin',
 )
-
-
-Modal = Any
 
 
 class InteractionAPIMixin:
@@ -170,23 +168,24 @@ class InteractionAPIMixin:
         Send a defer update response.
         """
 
-        await self._get_response_partial()(
-            InteractionResponseType.deferred_update_message,
-        )
+        t = InteractionResponseType.deferred_channel_message_with_source
+        if self.type == InteractionType.message_component:
+            t = InteractionResponseType.deferred_update_message
+        await self._get_response_partial()(t)
         self._responded = True
 
     async def update(
             self: Interaction,
             *,
-            content: str = MISSING,
+            content: str | None = MISSING,
             tts: bool = MISSING,
-            embeds: list[Embed] = MISSING,
-            allowed_mentions: AllowedMentions = MISSING,
-            components: list[ActionRow] = MISSING,
-            message_reference: Message = MISSING,
-            stickers: list[Sticker] = MISSING,
-            files: list[File] = MISSING,
-            flags: flags.MessageFlags = MISSING) -> None:
+            embeds: list[Embed] | None = MISSING,
+            allowed_mentions: AllowedMentions | None = MISSING,
+            components: list[ActionRow] | None = MISSING,
+            message_reference: Message | None = MISSING,
+            stickers: list[Sticker] | None = MISSING,
+            files: list[File] | None = MISSING,
+            flags: flags.MessageFlags | None = MISSING) -> None:
         """
         Send an update response.
 
@@ -259,19 +258,30 @@ class InteractionAPIMixin:
 
     async def send_modal(
             self: Interaction,
-            modal: Modal) -> None:
+            *,
+            title: str,
+            custom_id: str,
+            components: list[ActionRow]) -> None:
         """
         Send a modal response. Not valid on modal interactions.
 
         Parameters
         ----------
-        modal : novus.Modal
-            The modal that you want to send.
+        title : str
+            The title to be shown in the modal.
+        custom_id : str
+            The custom ID of the modal.
+        components : list[novus.ActionRow]
+            The components shown in the modal.
         """
 
         await self._get_response_partial()(
-            InteractionResponseType.application_command_autocomplete_result,
-            modal,
+            InteractionResponseType.modal,
+            {
+                "title": title,
+                "custom_id": custom_id,
+                "components": [i._to_data() for i in components],
+            },
         )
         self._responded = True
 

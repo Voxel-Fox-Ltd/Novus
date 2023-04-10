@@ -389,6 +389,9 @@ class ModalSubmitData(InteractionData):
 
     __repr__ = generate_repr(('custom_id',))
 
+    def __getitem__(self, index: int) -> ActionRow:
+        return self.components[index]
+
 
 ID = TypeVar(
     "ID",

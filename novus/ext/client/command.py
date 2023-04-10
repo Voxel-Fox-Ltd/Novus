@@ -652,12 +652,16 @@ def command(
     def wrapper(func: CommandCallback) -> Command:
         cname = name or func.__name__
         dname = description or func.__doc__ or ""
+        if type != n.ApplicationCommandType.chat_input:
+            dname = None
+        else:
+            dname = dname.strip()
         return cls(
             name=cname,
             type=type,
             application_command=n.PartialApplicationCommand(
                 name=cname,
-                description=dname.strip(),
+                description=dname,
                 type=type,
                 options=options or [],
                 default_member_permissions=default_member_permissions,

@@ -46,7 +46,7 @@ def component_builder(data: payloads.Component) -> Component:
         case ComponentType.string_select.value:
             factory = StringSelectMenu
         case ComponentType.text_input.value:
-            factoru = TextInput
+            factory = TextInput
         case ComponentType.user_select.value:
             factory = UserSelectMenu
         case ComponentType.role_select.value:
