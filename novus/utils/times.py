@@ -58,6 +58,13 @@ class DiscordDatetime(dt):
             self.tzinfo,
         )
 
+    @property
+    def mention(self) -> str:
+        return format_timestamp(self)
+
+    def format(self, style) -> str:
+        return format_timestamp(self, style)
+
 
 @overload
 def parse_timestamp(timestamp: str) -> DiscordDatetime:
