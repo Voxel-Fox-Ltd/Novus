@@ -133,6 +133,10 @@ class Role(Hashable, RoleAPIMixin):
         else:
             raise ValueError("Missing guild from role init")
 
+    @property
+    def mention(self) -> str:
+        return f"<@&{self.id}>"
+
     @cached_slot_property('_cs_icon')
     def icon(self) -> Asset | None:
         if self.icon_hash is None:
