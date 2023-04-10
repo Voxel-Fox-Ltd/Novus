@@ -57,7 +57,7 @@ class EventListener:
             predicate: Callable[..., bool] | None = None) -> None:
         self.event = event_name
         self.func: Callable[..., Awaitable[Any]] = func
-        self.predicate: Callable[..., bool] = lambda x: True
+        self.predicate: Callable[..., bool] = lambda *x: True
         if predicate:
             self.predicate = predicate
         self.owner: Any = None
