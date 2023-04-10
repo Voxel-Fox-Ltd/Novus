@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 
 from ..utils import try_snowflake
 from .channel import Channel
@@ -28,6 +28,7 @@ from .object import Object
 if TYPE_CHECKING:
     import io
 
+    from .. import Message, payloads
     from ..api import HTTPConnection
     from . import api_mixins as amix
 
@@ -54,17 +55,13 @@ class Reaction:
         Whether the reaction was a burst reaction or not.
     """
 
-    def __init__(self, *, state: HTTPConnection, data: Any):
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: payloads.Reaction,
+            message: Message | amix.MessageAPIMixin):
         self.state = state
-        from .message import Message  # circular import :(
-        message = Object(data["message_id"], state=self.state).add_api(Message)
-        channel = Channel.partial(
-            state=self.state,
-            id=try_snowflake(data["channel_id"]),
-        )
-        message.channel = channel
-        if "guild_id" in data:
-            channel.guild = message.guild = Object(data["guild_id"], state=self.state).add_api(Guild)
         self.message: Message | amix.MessageAPIMixin = message
         self.emoji: PartialEmoji = PartialEmoji(data=data["emoji"])
         self.burst: bool = data.get("burst", False)

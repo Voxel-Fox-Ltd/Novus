@@ -732,11 +732,8 @@ class GatewayDispatch:
             data: gw.ReactionAddRemove) -> tuple[GuildMember | User | amix.UserAPIMixin, Reaction]:
         """Handle reaction add or remove."""
 
-        created = Reaction(state=self.parent, data=data)
-        message = self.cache.get_message(created.message.id, or_object=False)
-        if message:
-            created.message = message
-
+        message = self.cache.get_message(data["message_id"], or_object=True)
+        created = Reaction(state=self.parent, data=data, message=message)  # pyright: ignore
         guild: Guild | None = None
         if "guild_id" in data:
             guild = self.cache.get_guild(data["guild_id"], or_object=False)

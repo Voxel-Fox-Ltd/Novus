@@ -18,28 +18,29 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+
 from typing_extensions import Self
 
 from .. import enums, flags
-from ..utils import generate_repr, parse_timestamp, try_snowflake, try_id
+from ..utils import generate_repr, parse_timestamp, try_id, try_snowflake
 from .api_mixins.message import MessageAPIMixin
 from .channel import Channel, TextChannel, Thread
 from .embed import Embed
 from .guild import Guild
 from .guild_member import GuildMember
 from .reaction import Reaction
+from .role import Role
 from .sticker import Sticker
 from .ui.action_row import ActionRow
 from .user import User
-from .role import Role
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    from ..api import HTTPConnection
     from .. import payloads
-    from . import Webhook
-    from . import api_mixins as amix, abc
+    from ..api import HTTPConnection
+    from . import Webhook, abc
+    from . import api_mixins as amix
 
     AMI = bool | list[int] | list[abc.Snowflake]  # AllowedMentions init
 
@@ -237,7 +238,7 @@ class Message(MessageAPIMixin):
             for d in data.get("embeds", [])
         ]
         self.reactions = [
-            Reaction(state=self.state, data=d)
+            Reaction(state=self.state, data=d, message=self)
             for d in data.get("reactions", [])
         ]
         self.pinned = data.get("pinned")
