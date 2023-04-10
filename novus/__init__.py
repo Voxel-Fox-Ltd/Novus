@@ -147,6 +147,7 @@ __all__: tuple[str, ...] = (
     'TextInputStyle',
     'Thread',
     'ThreadMember',
+    'TimestampFormat',
     'Unauthorized',
     'User',
     'UserFlags',
