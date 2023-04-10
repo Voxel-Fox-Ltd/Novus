@@ -192,6 +192,10 @@ class Channel(Hashable, HasChannel, ChannelAPIMixin):
     async def _get_channel(self) -> int:
         return self.id
 
+    @property
+    def mention(self) -> str:
+        return f"<#{self.id}>"
+
     @classmethod
     def partial(
             cls,
@@ -337,10 +341,6 @@ class GuildChannel(Channel):
 
     def __str__(self) -> str:
         return f"#{self.name}"
-
-    @property
-    def mention(self) -> str:
-        return f"<#{self.id}>"
 
 
 class GuildTextChannel(GuildChannel, TextChannel):
