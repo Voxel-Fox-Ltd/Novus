@@ -52,7 +52,7 @@ class HTTPException(Exception):
     def __init__(self, payload: dict):
         self.payload: dict = payload
         self.message: str = payload['message']
-        self.code: int = payload['code']
+        self.code: int = payload.get('code', -1)
 
 
 class NotFound(HTTPException):
