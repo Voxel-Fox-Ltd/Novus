@@ -40,7 +40,7 @@ from .dispatch import GatewayDispatch
 
 if TYPE_CHECKING:
     from ... import GuildMember, payloads
-    from .._http import HTTPConnection
+    from .._http import APICache, HTTPConnection
 
 __all__ = (
     'GatewayConnection',
@@ -70,12 +70,38 @@ class GatewayConnection:
             max_concurrency: int = 1,
             presence: None = None,
             intents: Intents = Intents.none()) -> None:
-        self.presence = None
+        """
+        Gateway entry point - connect the bot to the gateway across all shards.
+
+        Parameters
+        ----------
+        shard_ids : list[int] | None
+            The IDs of the shards that you want to connect.
+            If ``None`` is provided, then all shards in ``shard_count`` are
+        shard_count : int
+            The total number of shards (across all clusters) that are connecting
+            to the gateway.
+        max_concurrency : int
+            The maximum number of shards that can connect/identify at the same
+            time.
+        presence
+            The bot's initial status.
+        intents : novus.Intents
+            The intents that should be used when identifying.
+        """
+
+        # Store values we'll need elsewhere
+        self.presence = presence
         self.intents = intents
         self.shards = set()
         self.shard_count = shard_count
+
+        # Make some semaphores so we can control which shards connect
+        # simultaneously
         identify_semaphore = asyncio.Semaphore(max_concurrency)
         connect_semaphore = asyncio.Semaphore(1)
+
+        # Create shard objects
         shard_ids = shard_ids or list(range(shard_count))
         tasks: list[asyncio.Task] = []
         for i in shard_ids:
@@ -98,14 +124,24 @@ class GatewayConnection:
 
             coro = connect_wrapper(identify_semaphore, gs)
             tasks.append(asyncio.create_task(coro))
+
+        # Wait for shards to connect
         log.info("Opening gateway connection with %s shards (IDs %s)", len(self.shards), shard_ids)
         await asyncio.gather(*tasks)
 
     async def wait(self) -> None:
+        """
+        A continuous asyncio loop for any shard being connected.
+        """
+
         while any((shard.running for shard in self.shards)):
             await asyncio.sleep(1)
 
     async def close(self) -> None:
+        """
+        Close all connected shards.
+        """
+
         tasks = [
             i.close()
             for i in self.shards
@@ -113,7 +149,9 @@ class GatewayConnection:
         await asyncio.gather(*tasks)
 
     async def get_gateway(self) -> payloads.gateway.Gateway:
-        """Get a gateway connection URL. Doesn't require auth."""
+        """
+        Get a gateway connection URL. Doesn't require auth.
+        """
 
         session = await self.parent.get_session()
         route = Route("GET", "/gateway")
@@ -121,7 +159,9 @@ class GatewayConnection:
         return await resp.json()
 
     async def get_gateway_bot(self) -> payloads.gateway.GatewayBot:
-        """Get a gateway connection URL for the given bot."""
+        """
+        Get a gateway connection URL for the given bot.
+        """
 
         route = Route("GET", "/gateway/bot")
         return await self.parent.request(route)
@@ -176,11 +216,19 @@ class GatewayShard:
         self.chunk_event: dict[str, asyncio.Event] = {}
 
     @property
-    def cache(self):
+    def cache(self) -> APICache:
         return self.parent.cache
 
     @property
     def running(self) -> bool:
+        """
+        Returns whether or not the shard is currently connected to the gateway.
+
+        Returns
+        -------
+        bool
+        """
+
         # Check we have/had a heartbeat
         if self.heartbeat_task is None:
             return True
@@ -208,6 +256,10 @@ class GatewayShard:
 
     async def messages(
             self) -> AG[tuple[GatewayOpcode, str | None, int | None, Any], None]:
+        """
+        Deal with getting and receiving messages.
+        """
+
         while True:
             d = MISSING
 
@@ -306,16 +358,29 @@ class GatewayShard:
                 log.info("[%s] Socket closed", self.shard_id)
                 raise GatewayException()
 
-            # Decode data
+            # Load data into the buffer if we need to
             data_bytes = data.data
-            try:
-                self._buffer.extend(data_bytes)
-            except Exception as e:
-                log.critical("[%s] Failed to extend buffer %s",
-                    self.shard_id, str(data), exc_info=e,
-                )
-                raise
-            if data_bytes[-4:] == b"\x00\x00\xff\xff":
+            if type(data_bytes) is bytes:
+                try:
+                    self._buffer.extend(data_bytes)
+                except Exception as e:
+                    log.critical("[%s] Failed to extend buffer %s",
+                        self.shard_id, str(data), exc_info=e,
+                    )
+                    raise
+
+            # See if we have a complete message now
+            complete_message_received = (
+                self._buffer[-4:] == b"\x00\x00\xff\xff"
+                or type(data_bytes) is not bytes
+            )
+            if not complete_message_received:
+                return
+
+            # Deal with our complete data
+            if type(data_bytes) is not bytes:
+                decompressed = data_bytes
+            else:
                 try:
                     decompressed = self._zlib.decompress(self._buffer)
                 except Exception as e:
@@ -323,29 +388,36 @@ class GatewayShard:
                         "[%s] Failed to decompress buffer (%s)",
                         self.shard_id, data_bytes, exc_info=e,
                     )
-                    self._buffer.clear()
                     raise GatewayClose()
-                try:
+            self._buffer.clear()
+
+            # Deal with our decompressed data
+            try:
+                if isinstance(decompressed, bytes):
                     decoded = decompressed.decode()
-                    parsed = json.loads(decoded)
-                except MemoryError:
-                    log.error(
-                        "[%s] Hit memory error. Whoops.",
-                        self.shard_id,
-                    )
-                    self._buffer.clear()
-                    raise GatewayClose()
-                log.debug(
-                    "[%s] Received data from gateway %s",
-                    self.shard_id, dump(parsed),
+                else:
+                    decoded = decompressed
+                parsed = json.loads(decoded)
+            except MemoryError:
+                log.error(
+                    "[%s] Hit memory error. Whoops.",
+                    self.shard_id,
                 )
                 self._buffer.clear()
-                return (
-                    GatewayOpcode(parsed["op"]),
-                    parsed.get("t"),
-                    parsed.get("s"),
-                    parsed.get("d"),
-                )
+                raise GatewayClose()
+
+            # Return our parsed data :)
+            log.debug(
+                "[%s] Received data from gateway %s",
+                self.shard_id, dump(parsed),
+            )
+            self._buffer.clear()
+            return (
+                GatewayOpcode(parsed["op"]),
+                parsed.get("t"),
+                parsed.get("s"),
+                parsed.get("d"),
+            )
 
     async def reconnect(self) -> None:
         """
