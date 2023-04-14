@@ -573,7 +573,7 @@ class GatewayShard:
             self.message_task.cancel()
         if self.socket and not self.socket.closed:
             try:
-                await asyncio.wait_for(self.socket.close(code=0), timeout=0.1)
+                await asyncio.wait_for(self.socket.close(code=0), timeout=1)
             except asyncio.TimeoutError:
                 pass
 
@@ -749,8 +749,11 @@ class GatewayShard:
                             "[%s] Session invalidated - creating a new session",
                             self.shard_id,
                         )
-                        await self.close()
-                        await self.connect()
+                        try:
+                            await asyncio.wait_for(self.close(), timeout=5)
+                        except asyncio.CancelledError:
+                            pass
+                        asyncio.create_task(self.connect())
                         return  # Cancel this task so a new one will be created
 
                 # Everything else
