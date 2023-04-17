@@ -123,7 +123,7 @@ class Command:
     callback: CommandCallback
     application_command: n.PartialApplicationCommand
     guild_ids: list[int]
-    command_ids: set[int]
+    command_ids: dict[int, int]  # guild_id, command_id
     is_subcommand: bool
 
     def __init__(
@@ -138,7 +138,7 @@ class Command:
         self.callback = callback
         self.application_command = application_command
         self.guild_ids = guild_ids
-        self.command_ids = set()
+        self.command_ids = {}
         self.is_subcommand = (
             self.type == n.ApplicationCommandType.chat_input
             and " " in self.name
@@ -190,7 +190,7 @@ class Command:
 
     __repr__ = n.utils.generate_repr(('name',))
 
-    def add_id(self, id: int) -> None:
+    def add_id(self, guild_id: int | None, id: int) -> None:
         """
         Add an ID to the command. This means that any interaction invokations
         with the given command ID will be routed to this command instance.
@@ -201,7 +201,32 @@ class Command:
             The ID that you want to add.
         """
 
-        self.command_ids.add(id)
+        self.command_ids[guild_id or 0] = id
+
+    @property
+    def mention(self):
+        return self.get_mention()
+
+    def get_mention(self, guild_id: int | None = None) -> str:
+        """
+        Get a mention for the given command.
+
+        Parameters
+        ----------
+        guild_id : int | None
+            The ID of the guild that the command exists in.
+
+        Returns
+        -------
+        str
+            A mention for the command.
+        """
+
+        if guild_id is None:
+            id = self.command_ids[0]
+        else:
+            id = self.command_ids[guild_id]
+        return f"</{self.name}:{id}>"
 
     async def run(
             self,
@@ -294,7 +319,7 @@ class Command:
         """
 
         autocomplete: Autocomplete | None = None
-        current_value: str | int | float | None = None
+        current_value: str | int | float | bool | None = None
         options = options or interaction.data.options
         for i in options:
             if i.focused:
@@ -307,12 +332,12 @@ class Command:
             self.owner,
             interaction,
             options,
-            current_value,
+            current_value,  # pyright: ignore
         )
         return await interaction.send_autocomplete(data)
 
 
-class CommandGroup:
+class CommandGroup(Command):
     """
     A group of commands and subcommands.
 
@@ -341,26 +366,15 @@ class CommandGroup:
         self.name = application_command.name
         self.application_command = application_command
         self.guild_ids = guild_ids
-        self.command_ids = set()
+        self.command_ids = {}
         self.commands: dict[str, Command] = {
             i.name: i
             for i in commands
         }
+        for c in self.commands.values():
+            c.command_ids = self.command_ids
 
     __repr__ = n.utils.generate_repr(('name',))
-
-    def add_id(self, id: int) -> None:
-        """
-        Add an ID to the command. This means that any interaction invokations
-        with the given command ID will be routed to this command instance.
-
-        Parameters
-        ----------
-        id : int
-            The ID that you want to add.
-        """
-
-        self.command_ids.add(id)
 
     def add_description(self, d: CommandDescription) -> None:
         """
@@ -461,7 +475,10 @@ class CommandGroup:
         guild_ids_set = None
         if run_checks:
             permission_set = set(
-                i.application_command.default_member_permissions.value
+                (
+                    i.application_command.default_member_permissions
+                    or n.Permissions()
+                ).value
                 for i in command_map.values()
             )
             if len(permission_set) > 1:

@@ -26,6 +26,7 @@ import time
 from collections import defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, Type, cast
+import json
 
 from aiohttp import web
 
@@ -412,8 +413,13 @@ class Client:
                 to_delete.append(dis_com.id)
             else:
                 if local.application_command._to_data() != dis_com._to_data():
+                    log.debug(
+                        "Commands different: new %s; current %s",
+                        json.dumps(local.application_command._to_data()),
+                        json.dumps(dis_com._to_data()),
+                    )
                     to_edit[dis_com.id] = local
-                local.command_ids.add(dis_com.id)
+                local.add_id(guild_id, dis_com.id)
                 self._commands_by_id[dis_com.id] = local
         to_add = list(unchecked_local.values())
 
@@ -428,7 +434,7 @@ class Client:
                 self._commands_by_id.pop(dis_com.id, None)
             on_server = await bulk(local_commands)
             for dis_com in on_server:
-                commands[dis_com.name].add_id(dis_com.id)
+                commands[dis_com.name].add_id(guild_id, dis_com.id)
                 self._commands_by_id[dis_com.id] = (
                     self._commands[(guild_id, dis_com.name)]
                 )
@@ -437,7 +443,7 @@ class Client:
         elif to_add:
             log.info("Adding app command %s in guild %s", to_add[0], guild_id)
             on_server = await create(**to_add[0].application_command._to_data())
-            to_add[0].command_ids.add(on_server.id)
+            to_add[0].add_id(guild_id, on_server.id)
             self._commands_by_id[on_server.id] = to_add[0]
 
         # Delete command
