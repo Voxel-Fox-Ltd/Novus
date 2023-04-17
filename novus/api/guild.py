@@ -427,7 +427,7 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        return GuildMember(state=self.parent, data=data)
+        return GuildMember(state=self.parent, data=data, guild_id=guild_id)
 
     async def modify_current_guild_member(self, guild_id: int) -> NoReturn:
         raise NotImplementedError()
