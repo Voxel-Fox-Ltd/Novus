@@ -71,10 +71,10 @@ class Config:
 
     if TYPE_CHECKING:
 
-        def __getattr__(self, name: str) -> str | NoReturn:
+        def __getattr__(self, name: str) -> Any | NoReturn:
             ...
 
-        def __setattr__(self, name: str, value: str) -> str:
+        def __setattr__(self, name: str, value: Any) -> Any:
             ...
 
     def merge_namespace(

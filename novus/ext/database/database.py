@@ -39,6 +39,7 @@ class Database(client.Plugin):
 
     CONFIG = {
         "database_dsn": "",
+        "database_connections": 10,
     }
     pool: asyncpg.Pool = None  # pyright: ignore
     _log: logging.Logger = logging.getLogger("database")  # pyright: ignore
@@ -67,11 +68,17 @@ class Database(client.Plugin):
         if not self.bot.config.database_dsn:
             self.log.error("Missing database DSN from config")
             return
+        if self.bot.config.database_connections is None:
+            self.bot.config.database_connections = 10
 
         # Open a pool
         try:
             created = (
-                await asyncpg.create_pool(self.bot.config.database_dsn)
+                await asyncpg.create_pool(
+                    self.bot.config.database_dsn,
+                    max_size=self.bot.config.database_connections,
+                    min_size=min(self.bot.config.database_connections, 10),
+                )
             )
             if created is None:
                 raise AssertionError()
