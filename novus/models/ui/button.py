@@ -133,7 +133,7 @@ class Button(InteractableComponent, ComponentEmojiMixin):
             label=data.get("label"),
             emoji=emoji_object,
             style=ButtonStyle(data["style"]),
-            custom_id=data["custom_id"],
+            custom_id=data.get("custom_id"),
             url=data.get("url"),
             disabled=data.get("disabled", False),
         )
