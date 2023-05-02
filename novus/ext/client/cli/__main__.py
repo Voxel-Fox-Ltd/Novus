@@ -193,11 +193,12 @@ async def main(args: Namespace, unknown: list[str]) -> None:
             if not args.commands:
                 plugin += " " * 4 + "...\n"
             for i in args.commands:
+                typesafe_name = "_".join(i.split(" ")[::-1])
                 command = textwrap.indent(textwrap.dedent("""
                     @client.command(name="{name}")
-                    async def {name}(self, interaction: novus.types.CommandI) -> None:
+                    async def {typesafe_name}(self, ctx: novus.types.CommandI) -> None:
                         ...
-                """).strip(), " " * 4).format(name=i)
+                """).strip(), " " * 4).format(name=i, typesafe_name=typesafe_name)
                 plugin += "\n" + command + "\n"
             print(plugin)
 
