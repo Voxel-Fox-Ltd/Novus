@@ -22,7 +22,8 @@ import functools
 import inspect
 import logging
 from collections.abc import Callable, Coroutine, Iterable
-from typing import TYPE_CHECKING, Any, Type, TypeVar, Union, cast, Optional
+from typing import TYPE_CHECKING, Any, Optional, Type, TypeVar, Union, cast
+
 from typing_extensions import Self, TypeVarTuple
 
 import novus as n
@@ -159,7 +160,7 @@ class Command:
                     option = next(option_iter)
                 except StopIteration:
                     raise Exception(f"Missing option {pname} in command {self.name}")
-                if option.name != pname:
+                if option.name.replace("-", "_") != pname:
                     raise Exception(f"Missing option {pname} in command {self.name}")
             try:
                 next(option_iter)
@@ -275,7 +276,7 @@ class Command:
                     data = interaction.data.resolved.members.get(data_id)
                 if data is None:
                     data = interaction.data.resolved.users.get(data_id)
-            kwargs[option.name] = data
+            kwargs[option.name.replace("-", "_")] = data
 
         log.info("Command invoked, %s %s", self, interaction)
         partial = functools.partial(self.callback, self.owner, interaction)
