@@ -570,6 +570,9 @@ These are models are designed for you to initialize yourself so as to use them i
 .. autoclass:: novus.Embed
     :members:
 
+.. autoclass:: novus.Attachment
+    :members:
+
 .. autoclass:: novus.File
     :members:
 

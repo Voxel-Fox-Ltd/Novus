@@ -367,6 +367,29 @@ class AllowedMentions:
 
 
 class Attachment:
+    """
+    An attachment sent with a message.
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        ...
+    Attributes
+    ----------
+    id : int
+        The ID of the attachment.
+    filename : str
+        The filename for the attachment.
+    size : int
+        The size of the attachment.
+    url : str
+        A URL to the attachment on the CDN.
+    proxy_url : str
+        A proxy URL to the attachment on the CDN.
+    """
+
+    def __init__(self, data: payloads.Attachment) -> None:
+        self.id = try_snowflake(data["id"])
+        self.filename = data["filename"]
+        self.size = data["size"]
+        self.url = data["url"]
+        self.proxy_url = data["proxy_url"]
+
+    def __str__(self) -> str:
+        return self.url
