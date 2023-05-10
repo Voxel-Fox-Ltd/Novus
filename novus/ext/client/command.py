@@ -275,7 +275,7 @@ class Command:
                     data = interaction.data.resolved.members.get(data_id)
                 if data is None:
                     data = interaction.data.resolved.users.get(data_id)
-            kwargs[option.name] = data
+            kwargs[option.name.replace("-", "_")] = data
 
         log.info("Command invoked, %s %s", self, interaction)
         partial = functools.partial(self.callback, self.owner, interaction)
