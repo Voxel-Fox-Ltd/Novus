@@ -30,6 +30,10 @@ if TYPE_CHECKING:
     from ..api import HTTPConnection
     from . import api_mixins as amix
 
+__all__ = (
+    'VoiceState',
+)
+
 
 class VoiceState(Hashable):
     """

@@ -156,6 +156,7 @@ __all__: tuple[str, ...] = (
     'UserSelectMenu',
     'VerificationLevel',
     'VoiceChannel',
+    'VoiceState',
     'Webhook',
     'WebhookMessage',
     'WelcomeScreen',
