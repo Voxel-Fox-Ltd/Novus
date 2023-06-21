@@ -52,7 +52,7 @@ class GuildChannelAPI:
 
         channels = await self.state.guild.get_guild_channels(self.id)
         for c in channels:
-            c.guild = self
+            c.guild = self  # pyright: ignore
         return channels
 
     @overload
@@ -61,16 +61,12 @@ class GuildChannelAPI:
             *,
             name: str,
             type: ChannelType = ChannelType.guild_text,
-            bitrate: int = ...,
-            user_limit: int = ...,
-            rate_limit_per_user: int = ...,
+            topic: str = ...,
             position: int = ...,
             permission_overwrites: list[PermissionOverwrite] = ...,
             parent: int | Snowflake = ...,
             nsfw: bool = ...,
-            default_auto_archive_duration: int = ...,
-            default_reaction_emoji: Reaction = ...,
-            available_tags: list[ForumTag] = ...) -> GuildTextChannel:
+            reason: str = ...) -> GuildTextChannel:
         ...
 
     @overload
@@ -79,16 +75,12 @@ class GuildChannelAPI:
             *,
             name: str,
             type: ChannelType = ChannelType.private_thread,
-            bitrate: int = ...,
-            user_limit: int = ...,
             rate_limit_per_user: int = ...,
             position: int = ...,
-            permission_overwrites: list[PermissionOverwrite] = ...,
             parent: int | Snowflake = ...,
             nsfw: bool = ...,
             default_auto_archive_duration: int = ...,
-            default_reaction_emoji: Reaction = ...,
-            available_tags: list[ForumTag] = ...) -> Thread:
+            reason: str = ...) -> Thread:
         ...
 
     @overload
@@ -97,16 +89,12 @@ class GuildChannelAPI:
             *,
             name: str,
             type: ChannelType = ChannelType.public_thread,
-            bitrate: int = ...,
-            user_limit: int = ...,
             rate_limit_per_user: int = ...,
             position: int = ...,
-            permission_overwrites: list[PermissionOverwrite] = ...,
             parent: int | Snowflake = ...,
             nsfw: bool = ...,
             default_auto_archive_duration: int = ...,
-            default_reaction_emoji: Reaction = ...,
-            available_tags: list[ForumTag] = ...) -> Thread:
+            reason: str = ...) -> Thread:
         ...
 
     async def create_channel(
@@ -114,6 +102,7 @@ class GuildChannelAPI:
             *,
             name: str,
             type: ChannelType = MISSING,
+            topic: str = MISSING,
             bitrate: int = MISSING,
             user_limit: int = MISSING,
             rate_limit_per_user: int = MISSING,
@@ -123,7 +112,8 @@ class GuildChannelAPI:
             nsfw: bool = MISSING,
             default_auto_archive_duration: int = MISSING,
             default_reaction_emoji: Reaction = MISSING,
-            available_tags: list[ForumTag] = MISSING) -> Channel:
+            available_tags: list[ForumTag] = MISSING,
+            reason: str = MISSING) -> Channel:
         """
         Create a channel within the guild.
 
@@ -156,6 +146,8 @@ class GuildChannelAPI:
             use with forum channels.
         available_tags : list[ForumTag]
             The tags available for threads. Only for use with forum channels.
+        reason : str
+            The reason to be shown in the audit log.
 
         Returns
         -------
@@ -169,6 +161,8 @@ class GuildChannelAPI:
             update["name"] = name
         if type is not MISSING:
             update["type"] = type
+        if topic is not MISSING:
+            update["topic"] = topic
         if bitrate is not MISSING:
             update["bitrate"] = bitrate
         if user_limit is not MISSING:
@@ -190,8 +184,8 @@ class GuildChannelAPI:
         if available_tags is not MISSING:
             update["available_tags"] = available_tags
 
-        channel = await self.state.guild.create_guild_channel(self.id, **update)
-        channel.guild = self
+        channel = await self.state.guild.create_guild_channel(self.id, **update, reason=reason)
+        channel.guild = self  # pyright: ignore
         return channel
 
     async def move_channels(self: StateSnowflake) -> None:
