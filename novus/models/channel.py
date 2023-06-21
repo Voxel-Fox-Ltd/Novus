@@ -147,8 +147,8 @@ class PermissionOverwrite:
             id: int,
             type: PermissionOverwriteType,
             *,
-            allow: Permissions,
-            deny: Permissions):
+            allow: Permissions = Permissions(),
+            deny: Permissions = Permissions()):
         self.id = id
         self.type = type
         self.allow = allow
