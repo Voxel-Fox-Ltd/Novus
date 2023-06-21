@@ -67,7 +67,7 @@ class DiscordDatetime(dt):
 
 
 @overload
-def parse_timestamp(timestamp: str) -> DiscordDatetime:
+def parse_timestamp(timestamp: dt | str) -> DiscordDatetime:
     ...
 
 
@@ -94,19 +94,9 @@ def parse_timestamp(timestamp: dt | str | None) -> DiscordDatetime | None:
     if timestamp is None:
         return None
     elif isinstance(timestamp, str):
-        try:
-            parsed = DiscordDatetime.strptime(
-                timestamp,
-                "%Y-%m-%dT%H:%M:%S.%f+00:00",
-            )
-        except ValueError:
-            parsed = DiscordDatetime.strptime(
-                timestamp,
-                "%Y-%m-%dT%H:%M:%S+00:00",
-            )
-        parsed.replace(tzinfo=timezone.utc)
+        parsed = DiscordDatetime.fromisoformat(timestamp)
     elif isinstance(timestamp, dt):
-        parsed = DiscordDatetime(*DiscordDatetime.deconstruct(timestamp))
+        parsed = DiscordDatetime.fromisoformat(timestamp.isoformat())
     return parsed
 
 
