@@ -65,9 +65,11 @@ class ApplicationCommandOption:
     required: bool
         Whether or not the option is required.
     choices: list[novus.ApplicationCommandChoice]
-        Choices for the option.
+        Choices for the option. Only valid if the option is neither a subcommand
+        or a subcommand group.
     options: list[novus.ApplicationCommandOption]
-        Options for the option.
+        Options for the option. Only valid if the option is a subcommand or
+        subcommand group.
     channel_types: list[novus.ChannelType]
         The channel types that are supported by the option, if the option type
         is a channel.
@@ -99,9 +101,11 @@ class ApplicationCommandOption:
     required: bool
         Whether or not the option is required.
     choices: list[novus.ApplicationCommandChoice]
-        Choices for the option.
+        Choices for the option. Only valid if the option is neither a subcommand
+        or a subcommand group.
     options: list[novus.ApplicationCommandOption]
-        Options for the option.
+        Options for the option. Only valid if the option is a subcommand or
+        subcommand group.
     channel_types: list[novus.ChannelType]
         The channel types that are supported by the option, if the option type
         is a channel.
