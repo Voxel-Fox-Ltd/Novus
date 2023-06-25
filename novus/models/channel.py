@@ -156,6 +156,14 @@ class PermissionOverwrite:
 
     __repr__ = generate_repr(('id', 'type', 'allow', 'deny',))
 
+    def _to_data(self):
+        return {
+            "id": str(self.id),
+            "type": self.type.value,
+            "allow": self.allow.value,
+            "deny": self.deny.value,
+        }
+
 
 class Channel(Hashable, HasChannel, ChannelAPIMixin):
     """
