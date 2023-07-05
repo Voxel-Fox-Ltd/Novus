@@ -21,6 +21,8 @@ from datetime import datetime as dt
 from datetime import timezone
 from typing import TYPE_CHECKING, overload
 
+from ..models.abc import Snowflake
+
 if TYPE_CHECKING:
     from ..enums.time import TimestampFormat
 
@@ -67,7 +69,7 @@ class DiscordDatetime(dt):
 
 
 @overload
-def parse_timestamp(timestamp: dt | str) -> DiscordDatetime:
+def parse_timestamp(timestamp: dt | str | Snowflake) -> DiscordDatetime:
     ...
 
 
@@ -76,7 +78,7 @@ def parse_timestamp(timestamp: None) -> None:
     ...
 
 
-def parse_timestamp(timestamp: dt | str | None) -> DiscordDatetime | None:
+def parse_timestamp(timestamp: dt | str | Snowflake | None) -> DiscordDatetime | None:
     """
     Parse an isoformat timestamp from Discord.
 
@@ -97,6 +99,12 @@ def parse_timestamp(timestamp: dt | str | None) -> DiscordDatetime | None:
         parsed = DiscordDatetime.fromisoformat(timestamp)
     elif isinstance(timestamp, dt):
         parsed = DiscordDatetime.fromisoformat(timestamp.isoformat())
+    elif isinstance(timestamp, Snowflake):
+        return (
+            DiscordDatetime
+            .fromtimestamp((timestamp.id >> 22) + 1_420_070_400_000)
+            .replace(tzinfo=timezone.utc)
+        )
     return parsed
 
 
