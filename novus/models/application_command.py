@@ -395,7 +395,7 @@ class PartialApplicationCommand:
     def _to_data(self) -> payloads.PartialApplicationCommand:
         d: payloads.PartialApplicationCommand = {
             "name": self.name,
-            "description": self.description,
+            "description": self.description or None,
             "type": self.type.value,
             "name_localizations": self.name_localizations._to_data(),
             "description_localizations": self.description_localizations._to_data(),
@@ -403,7 +403,8 @@ class PartialApplicationCommand:
             "default_member_permissions": None,
         }
         if self.default_member_permissions is not None:
-            d["default_member_permissions"] = str(self.default_member_permissions.value)
+            if self.default_member_permissions.value:
+                d["default_member_permissions"] = str(self.default_member_permissions.value)
         if self.options:
             d["options"] = [i._to_data() for i in self.options]
         return d
