@@ -31,6 +31,7 @@ __all__ = (
     'parse_timestamp',
     'format_timestamp',
     'utcnow',
+    'now',
 )
 
 
@@ -99,7 +100,7 @@ def parse_timestamp(timestamp: dt | str | Snowflake | None) -> DiscordDatetime |
         parsed = DiscordDatetime.fromisoformat(timestamp)
     elif isinstance(timestamp, dt):
         parsed = DiscordDatetime.fromisoformat(timestamp.isoformat())
-    elif isinstance(timestamp, Snowflake):
+    elif hasattr(timestamp, "id"):
         return (
             DiscordDatetime
             .fromtimestamp((timestamp.id >> 22) + 1_420_070_400_000)
@@ -152,3 +153,6 @@ def utcnow() -> DiscordDatetime:
 
     ddt = DiscordDatetime.utcnow().replace(tzinfo=timezone.utc)
     return ddt
+
+
+now = utcnow
