@@ -238,6 +238,8 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
     __repr__ = generate_repr(('id', 'username', 'bot', 'guild',))
 
     def __str__(self) -> str:
+        if self.discriminator == "0":
+            return self.username
         return f"{self.username}#{self.discriminator}"
 
     @property
