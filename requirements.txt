@@ -4,6 +4,7 @@ aiohttp>=3.8.0
 emoji
 typing_extensions
 pynacl
+aioconsole
 
 # Recommended
 python-dotenv

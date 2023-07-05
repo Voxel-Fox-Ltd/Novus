@@ -18,10 +18,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
+import functools
 import logging
 import sys
 import textwrap
 from argparse import ArgumentParser, Namespace
+
+from aioconsole import AsynchronousCli
 
 import novus
 from novus.api._cache import NothingAPICache
@@ -129,6 +132,36 @@ def get_parser() -> ArgumentParser:
     return p
 
 
+def create_console(bot: client.Client) -> AsynchronousCli:
+    """
+    Create a console that users are able to interact with while the bot is
+    running.
+    """
+
+    add_plugin = ArgumentParser()
+    add_plugin.add_argument("plugin")
+    remove_plugin = ArgumentParser()
+    remove_plugin.add_argument("plugin")
+    reload_plugin = ArgumentParser()
+    reload_plugin.add_argument("plugin")
+
+    async def close():
+        await bot.close()
+        exit(1)
+
+    add = functools.partial(bot.add_plugin, load=True)
+
+    def reload(p):
+        bot.remove_plugin_file(p)
+        bot.add_plugin(p)
+
+    return AsynchronousCli({
+        "add-plugin": (add, add_plugin,),
+        "reload-plugin": (reload, remove_plugin,),
+        "remove-plugin": (bot.remove_plugin, remove_plugin,),
+        "exit": (close, ArgumentParser(),),
+    })
+
 async def main(args: Namespace, unknown: list[str]) -> None:
     """
     Main input point for our CLI.
@@ -143,7 +176,10 @@ async def main(args: Namespace, unknown: list[str]) -> None:
                 root.setLevel(level)
             config.merge_namespace(args, unknown)
             bot = client.Client(config)
-            await bot.run(sync=not args.no_sync)
+            await asyncio.gather(
+                bot.run(sync=not args.no_sync),
+                create_console(bot).interact(banner="Created console :)"),
+            )
 
         case "run-webserver":
             config = client.Config.from_file(args.config)
@@ -153,7 +189,10 @@ async def main(args: Namespace, unknown: list[str]) -> None:
                 root.setLevel(level)
             config.merge_namespace(args, unknown)
             bot = client.Client(config)
-            await bot.run_webserver(sync=not args.no_sync, port=args.port)
+            await asyncio.gather(
+                bot.run_webserver(sync=not args.no_sync, port=args.port),
+                create_console(bot).interact(banner="Created console :)"),
+            )
 
         case "run-status":
             config = client.Config.from_file(args.config)
