@@ -296,7 +296,7 @@ class Client:
 
         module = plugin[0].split(":")[0]
         module = importlib.util.resolve_name(module, None)
-        if module in IMPORTED_PLUGIN_MODULES:
+        if module in IMPORTED_PLUGIN_MODULES and reload_import is False:
             lib = IMPORTED_PLUGIN_MODULES[module]
         else:
             spec = importlib.util.find_spec(module, None)
@@ -305,8 +305,6 @@ class Client:
             lib = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(lib)
             IMPORTED_PLUGIN_MODULES[module] = lib
-        if reload_import:
-            lib = IMPORTED_PLUGIN_MODULES[module] = importlib.reload(lib)
         for p in plugin:
             _, class_name = p.split(":", 1)
             p = getattr(lib, class_name)
