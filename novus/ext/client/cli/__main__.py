@@ -18,7 +18,6 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
-import functools
 import logging
 import sys
 import textwrap
@@ -141,21 +140,24 @@ def create_console(bot: client.Client) -> AsynchronousCli:
     plugin_parser = ArgumentParser()
     plugin_parser.add_argument("plugin")
 
-    async def close():
+    async def add(reader, writer, plugin):
+        bot.add_plugin_file(plugin, load=True)
+
+    async def remove(reader, writer, plugin):
+        bot.remove_plugin_file(plugin)
+
+    async def reload(reader, writer, plugin):
+        bot.remove_plugin_file(plugin)
+        bot.add_plugin_file(plugin, load=True)
+
+    async def close(reader, writer):
         await bot.close()
-        exit(1)
-
-    add = functools.partial(bot.add_plugin, load=True)
-
-    def reload(p):
-        bot.remove_plugin_file(p)
-        bot.add_plugin(p)
+        raise SystemExit
 
     return AsynchronousCli({
         "add-plugin": (add, plugin_parser,),
+        "remove-plugin": (remove, plugin_parser,),
         "reload-plugin": (reload, plugin_parser,),
-        "remove-plugin": (bot.remove_plugin_file, plugin_parser,),
-        "test": (print, plugin_parser,),
         "exit": (close, ArgumentParser(),),
     })
 
