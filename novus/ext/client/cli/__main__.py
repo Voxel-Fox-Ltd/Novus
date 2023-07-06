@@ -138,12 +138,8 @@ def create_console(bot: client.Client) -> AsynchronousCli:
     running.
     """
 
-    add_plugin = ArgumentParser()
-    add_plugin.add_argument("plugin")
-    remove_plugin = ArgumentParser()
-    remove_plugin.add_argument("plugin")
-    reload_plugin = ArgumentParser()
-    reload_plugin.add_argument("plugin")
+    plugin_parser = ArgumentParser()
+    plugin_parser.add_argument("plugin")
 
     async def close():
         await bot.close()
@@ -156,9 +152,10 @@ def create_console(bot: client.Client) -> AsynchronousCli:
         bot.add_plugin(p)
 
     return AsynchronousCli({
-        "add-plugin": (add, add_plugin,),
-        "reload-plugin": (reload, remove_plugin,),
-        "remove-plugin": (bot.remove_plugin, remove_plugin,),
+        "add-plugin": (add, plugin_parser,),
+        "reload-plugin": (reload, plugin_parser,),
+        "remove-plugin": (bot.remove_plugin_file, plugin_parser,),
+        "test": (print, plugin_parser,),
         "exit": (close, ArgumentParser(),),
     })
 
