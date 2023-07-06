@@ -103,7 +103,7 @@ def parse_timestamp(timestamp: dt | str | Snowflake | None) -> DiscordDatetime |
     elif hasattr(timestamp, "id"):
         return (
             DiscordDatetime
-            .fromtimestamp((timestamp.id >> 22) + 1_420_070_400_000)
+            .fromtimestamp(((timestamp.id >> 22) + 1_420_070_400_000) / 1e3)
             .replace(tzinfo=timezone.utc)
         )
     return parsed
