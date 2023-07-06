@@ -148,7 +148,7 @@ def create_console(bot: client.Client) -> AsynchronousCli:
 
     async def reload(reader, writer, plugin):
         bot.remove_plugin_file(plugin)
-        bot.add_plugin_file(plugin, load=True)
+        bot.add_plugin_file(plugin, load=True, reload_import=True)
 
     async def close(reader, writer):
         await bot.close()

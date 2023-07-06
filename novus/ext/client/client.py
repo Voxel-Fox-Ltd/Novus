@@ -279,7 +279,7 @@ class Client:
 
         log.info("Removed plugin %s from client instance", instance)
 
-    def add_plugin_file(self, *plugin: str, load: bool = False) -> None:
+    def add_plugin_file(self, *plugin: str, load: bool = False, reload_import: bool = False) -> None:
         """
         Add a plugin via its filename:ClassName pair.
 
@@ -305,6 +305,8 @@ class Client:
             lib = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(lib)
             IMPORTED_PLUGIN_MODULES[module] = lib
+        if reload_import:
+            lib = IMPORTED_PLUGIN_MODULES[module] = importlib.reload(lib)
         for p in plugin:
             _, class_name = p.split(":", 1)
             p = getattr(lib, class_name)
