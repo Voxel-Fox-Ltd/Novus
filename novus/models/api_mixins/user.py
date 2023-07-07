@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from ..abc import Snowflake, StateSnowflake, StateSnowflakeWithGuild
     from ..channel import DMChannel
     from ..guild import OauthGuild
+    from ..message import Message
     from ..user import GuildMember, User
 
 __all__ = (
@@ -132,6 +133,33 @@ class UserAPIMixin:
         """
 
         return await self.state.user.create_dm(self.id)
+
+    async def send(
+            self: User | GuildMember,  # pyright: ignore
+            *args,
+            **kwargs) -> Message:
+        """
+        Send a message to the user.
+        """
+
+        from ..user import GuildMember
+
+        # See if we have a channel cached
+        if isinstance(self, GuildMember):
+            channel = self._user._dm_channel
+        else:
+            channel = self._dm_channel  # pyright: ignore  # Errors to be raised
+
+        # Get and cache channel from API
+        if channel is None:
+            channel = await self.create_dm_channel()
+            if isinstance(self, GuildMember):
+                self._user._dm_channel = channel
+            else:
+                self._dm_channel = channel
+
+        # Send message
+        return await channel.send(*args, **kwargs)
 
 
 class GuildMemberAPIMixin:
@@ -361,3 +389,4 @@ class GuildMemberAPIMixin:
         return
 
     create_dm_channel = UserAPIMixin.create_dm_channel  # pyright: ignore
+    send = UserAPIMixin.send  # pyright: ignore

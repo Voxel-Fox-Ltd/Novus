@@ -29,7 +29,7 @@ from .mixins import Hashable
 if TYPE_CHECKING:
     from .. import payloads
     from ..api import HTTPConnection
-    from . import GuildMember
+    from . import DMChannel, GuildMember
 
 __all__ = (
     'User',
@@ -101,6 +101,7 @@ class User(Hashable, UserAPIMixin):
         '_cs_avatar',
         '_cs_banner',
         '_guilds',
+        '_dm_channel',
     )
 
     def __init__(
@@ -128,6 +129,7 @@ class User(Hashable, UserAPIMixin):
             )
         self.premium_type = try_enum(UserPremiumType, data.get('premium_type', 0))
         self._guilds: set[int] = set()
+        self._dm_channel: DMChannel | None = None
 
     __repr__ = generate_repr(('id', 'username', 'bot',))
 
