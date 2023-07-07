@@ -27,8 +27,9 @@ if TYPE_CHECKING:
     from ..abc import Snowflake, StateSnowflake, StateSnowflakeWithGuild
     from ..channel import DMChannel
     from ..guild import OauthGuild
+    from ..guild_member import GuildMember
     from ..message import Message
-    from ..user import GuildMember, User
+    from ..user import User
 
 __all__ = (
     'UserAPIMixin',
@@ -142,7 +143,7 @@ class UserAPIMixin:
         Send a message to the user.
         """
 
-        from ..user import GuildMember
+        from ..guild_member import GuildMember
 
         # See if we have a channel cached
         if isinstance(self, GuildMember):

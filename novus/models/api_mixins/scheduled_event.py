@@ -28,8 +28,9 @@ if TYPE_CHECKING:
     from ...api import HTTPConnection
     from ...enums import EventEntityType, EventPrivacyLevel, EventStatus
     from ..abc import Snowflake, StateSnowflakeWithGuild
+    from ..guild_member import GuildMember
     from ..scheduled_event import ScheduledEvent
-    from ..user import GuildMember, User
+    from ..user import User
 
 __all__ = (
     'ScheduledEventAPIMixin',
