@@ -325,7 +325,7 @@ class GuildUserAPI:
             The reason shown in the audit log.
         """
 
-        await self.state.guild.add_guild_member_role(
+        await self.state.guild.remove_guild_member_role(
             self.id,
             try_id(user),
             try_id(role),
