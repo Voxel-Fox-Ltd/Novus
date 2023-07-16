@@ -26,6 +26,7 @@ from ...utils import MISSING, try_object
 
 if TYPE_CHECKING:
     from ...api import HTTPConnection
+    from ...utils import TranslatedString
     from .. import ActionRow, AllowedMentions, Embed, File, Message, Sticker, Webhook
     from ..abc import Snowflake, StateSnowflake
 
@@ -151,7 +152,7 @@ class WebhookAPIMixin:
     @overload
     async def send(
             self: StateSnowflake,
-            content: str,
+            content: str | TranslatedString,
             *,
             wait=False,
             thread: int | Snowflake | None,

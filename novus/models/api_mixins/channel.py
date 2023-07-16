@@ -24,6 +24,7 @@ from ...utils import MISSING, add_not_missing, try_id
 if TYPE_CHECKING:
     from ... import enums, flags
     from ...api import HTTPConnection
+    from ...utils import TranslatedString
     from .. import (
         ActionRow,
         AllowedMentions,
@@ -349,7 +350,7 @@ class TextChannelAPIMixin(ChannelAPIMixin):
 
     async def send(
             self: abc.StateSnowflake,
-            content: str = MISSING,
+            content: str | TranslatedString = MISSING,
             *,
             tts: bool = MISSING,
             embeds: list[Embed] = MISSING,
@@ -575,7 +576,7 @@ class ForumChannelAPIMixin(ChannelAPIMixin):
 
     async def create_thread(
             self: abc.StateSnowflake,
-            name: str,
+            name: str | TranslatedString,
             *,
             reason: str | None = None,
             auto_archive_duration: Literal[60, 1_440, 4_320, 10_080] = MISSING,

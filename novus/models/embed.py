@@ -26,12 +26,12 @@ from typing_extensions import Self
 from ..utils import parse_timestamp
 
 if TYPE_CHECKING:
-
     from ..payloads.embed import Embed as EmbedPayload
     from ..payloads.embed import _EmbedAuthor as AuthorPayload
     from ..payloads.embed import _EmbedField as FieldPayload
     from ..payloads.embed import _EmbedFooter as FooterPayload
     from ..payloads.embed import _EmbedMedia as MediaPayload
+    from ..utils import TranslatedString
 
 __all__ = (
     'Embed',
@@ -40,13 +40,13 @@ __all__ = (
 
 @dataclass
 class EmbedFooter:
-    text: str
+    text: str | TranslatedString
     icon_url: str | None = None
     proxy_icon_url: str | None = None
 
     def _to_data(self) -> FooterPayload:
         v: FooterPayload = {
-            "text": self.text
+            "text": str(self.text)
         }
         if self.icon_url:
             v["icon_url"] = self.icon_url
@@ -82,14 +82,14 @@ class EmbedProvider:
 
 @dataclass
 class EmbedAuthor:
-    name: str
+    name: str | TranslatedString
     url: str | None = None
     icon_url: str | None = None
     proxy_icon_url: str | None = None
 
     def _to_data(self) -> AuthorPayload:
         v: AuthorPayload = {
-            "name": self.name
+            "name": str(self.name)
         }
         if self.url:
             v["url"] = self.url
@@ -100,14 +100,14 @@ class EmbedAuthor:
 
 @dataclass
 class EmbedField:
-    name: str
-    value: str
+    name: str | TranslatedString
+    value: str | TranslatedString
     inline: bool = True
 
     def _to_data(self) -> FieldPayload:
         return {
-            "name": self.name,
-            "value": self.value,
+            "name": str(self.name),
+            "value": str(self.value),
             "inline": self.inline,
         }
 
@@ -200,15 +200,15 @@ class Embed:
     def __init__(
             self,
             *,
-            title: str | None = None,
+            title: str | TranslatedString | None = None,
             type: str = "rich",
-            description: str | None = None,
+            description: str | TranslatedString | None = None,
             url: str | None = None,
             timestamp: dt | None = None,
             color: int | None = None) -> None:
-        self.title: str | None = title
+        self.title: str | TranslatedString | None = title
         self.type: str = type
-        self.description: str | None = description
+        self.description: str | TranslatedString | None = description
         self.url: str | None = url
         self.timestamp: dt | None = timestamp
         self.color: int | None = color
@@ -224,9 +224,9 @@ class Embed:
     def _to_data(self) -> EmbedPayload:
         v: EmbedPayload = {}
         if self.title is not None:
-            v["title"] = self.title
+            v["title"] = str(self.title)
         if self.description is not None:
-            v["description"] = self.description
+            v["description"] = str(self.description)
         if self.url is not None:
             v["url"] = self.url
         if self.timestamp is not None:
@@ -283,7 +283,7 @@ class Embed:
 
     def set_footer(
             self,
-            text: str,
+            text: str | TranslatedString,
             *,
             icon_url: str | None = None) -> Self:
         """
@@ -377,7 +377,7 @@ class Embed:
 
     def set_author(
             self,
-            name: str,
+            name: str | TranslatedString,
             *,
             url: str | None = None,
             icon_url: str | None = None) -> Self:
@@ -415,8 +415,8 @@ class Embed:
 
     def add_field(
             self,
-            name: str,
-            value: str,
+            name: str | TranslatedString,
+            value: str | TranslatedString,
             *,
             inline: bool = True) -> Self:
         """
@@ -457,8 +457,8 @@ class Embed:
     def insert_field_at(
             self,
             index: int,
-            name: str,
-            value: str,
+            name: str | TranslatedString,
+            value: str | TranslatedString,
             *,
             inline: bool = True) -> Self:
         """

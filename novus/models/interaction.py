@@ -17,11 +17,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, TypeVar
+from typing import TYPE_CHECKING, Generic, Literal, TypeVar
 
 from ..enums import ApplicationCommandType, ApplicationOptionType, InteractionType, Locale
 from ..flags import Permissions
-from ..utils import cached_slot_property, generate_repr, try_snowflake, walk_components
+from ..utils import (
+    TranslatedString,
+    cached_slot_property,
+    generate_repr,
+    try_snowflake,
+    walk_components,
+)
 from .api_mixins.interaction import InteractionAPIMixin
 from .application_command import ApplicationCommandOption
 from .channel import Channel, channel_builder
@@ -563,3 +569,11 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
         if self.data is None:
             return None
         return getattr(self.data, "custom_id", None)
+
+    def _(
+            self,
+            string: str,
+            guild: int | Literal[False] = 1,
+            user: int | Literal[False] = 0) -> TranslatedString:
+        return TranslatedString(string, context=self, guild=guild, user=user)
+

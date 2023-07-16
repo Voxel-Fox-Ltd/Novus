@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, Iterable, TypedDict
 import aiohttp
 
 from ..models import File
-from ..utils import bytes_to_base64_data
+from ..utils import TranslatedString, bytes_to_base64_data
 from ._cache import APICache
 from ._errors import Forbidden, HTTPException, NotFound, Unauthorized
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
@@ -66,6 +66,14 @@ class FixableKwargs(TypedDict, total=False):
     object: Iterable[tuple[str, str] | str]
     timestamp: Iterable[tuple[str, str] | str]
     flags: Iterable[tuple[str, str] | str]
+
+
+class NovusJSONEncoder(json.JSONEncoder):
+
+    def default(self, o: Any) -> Any:
+        if isinstance(o, TranslatedString):
+            return str(o)
+        return super().default(o)
 
 
 class HTTPConnection:
@@ -214,7 +222,7 @@ class HTTPConnection:
                 data["attachments"] = attachments
             form.append({
                 "name": "payload_json",
-                "value": json.dumps(data),
+                "value": json.dumps(data, cls=NovusJSONEncoder),
             })
             data = None
 
@@ -232,7 +240,7 @@ class HTTPConnection:
         data_str: bytes | None = None
         if data:
             headers["Content-Type"] = "application/json"
-            data_str = json.dumps(data).encode()
+            data_str = json.dumps(data, cls=NovusJSONEncoder).encode()
         return {
             "data": data_str or writer,
             "headers": headers,

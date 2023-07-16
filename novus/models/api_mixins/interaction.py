@@ -38,6 +38,7 @@ if TYPE_CHECKING:
         WebhookMessage,
         flags,
     )
+    from ...utils import TranslatedString
 
 __all__ = (
     'InteractionAPIMixin',
@@ -69,7 +70,7 @@ class InteractionAPIMixin:
 
     async def send(
             self: Interaction,
-            content: str = MISSING,
+            content: str | TranslatedString = MISSING,
             *,
             tts: bool = MISSING,
             embeds: list[Embed] = MISSING,

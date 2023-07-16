@@ -17,17 +17,19 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import gettext
+from typing import TYPE_CHECKING, Literal, Any
 
 from ..enums import Locale
 from .missing import MISSING
 
 if TYPE_CHECKING:
-    from .. import payloads
+    from .. import Interaction, payloads
 
 __all__ = (
     'Localization',
     'flatten_localization',
+    'TranslatedString',
 )
 
 
@@ -81,4 +83,80 @@ class Localization:
         }
 
 
+# any valid localisation type
 LocType = dict[str, str] | dict[Locale, str] | Localization | None
+
+
+
+class TranslatedString:
+    """
+    An object to help with translation of strings.
+
+    Takes an input, takes a relevant context, gettexts the hell out of it.
+    """
+
+    def __init__(
+            self,
+            original: str,
+            *,
+            context: Interaction[Any] | None = None,
+            guild: int | Literal[False] = 1,
+            user: int | Literal[False] = 0):
+        self.original: str = original
+        self.context: Interaction | None = context
+        self.languages: list[str] | None
+        self.languages = self._get_languages(guild=guild, user=user)
+
+    def _get_languages(
+            self,
+            *,
+            guild: int | Literal[False],
+            user: int | Literal[False]) -> list[str]:
+        """
+        Get the languages for to use for the translation.
+
+        `guild` and `user` are in priority order (defaulting to guild
+        being higher priority), or ``False`` to disable.
+        """
+
+        # We can only reutrn things if we have a context to give
+        if not (ctx := self.context):
+            return []
+
+        # Work out what languages we even have available
+        user_languages: list[str] = [
+            ctx.locale.value,
+            ctx.locale.value.split("-")[0],
+        ]
+        guild_languages: list[str] = []
+        if guild and ctx.guild and ctx.guild_locale:
+            guild_languages = [
+                ctx.guild_locale.value,
+                ctx.guild_locale.value.split("-")[0],
+            ]
+
+        # Work out what we can return
+        if guild is False and user is False:
+            return []
+        elif user is False:
+            return guild_languages
+        elif guild is False:
+            return user_languages
+        else:
+
+            # Return languages in order priority
+            if user == guild or guild > user:
+                return [*guild_languages, *user_languages]
+            else:
+                return [*user_languages, *guild_languages]
+
+    def __str__(self) -> str:
+        return gettext.translation(
+            domain="main",
+            localedir="./locales",
+            languages=self.languages,
+            fallback=True,
+        ).gettext(self.original)
+
+    def __getattr__(self, v):
+        return getattr(str(self), v)
