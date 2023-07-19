@@ -18,7 +18,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import gettext
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, overload
+
+from typing_extensions import Self
 
 from ..enums import Locale
 from .missing import MISSING
@@ -82,6 +84,22 @@ class Localization:
             for i, o in self.localizations.items()
         }
 
+    @classmethod
+    def _(cls, text: str) -> Self:
+        """
+        Return a generic localisation class for the given text.
+        """
+
+        created: dict[Locale, str] = {}
+        for lc in Locale:
+            languages = [lc.value]
+            if "-" in lc.value:
+                languages.append(lc.value.split("-")[0])
+            translated = TranslatedString.translate(text, languages, fallback=False)
+            if translated is not None:
+                created[lc] = translated
+        return cls(created)
+
 
 # any valid localisation type
 LocType = dict[str, str] | dict[Locale, str] | Localization | None
@@ -99,12 +117,15 @@ class TranslatedString:
             original: str,
             *,
             context: Interaction[Any] | None = None,
-            guild: int | Literal[False] = 1,
-            user: int | Literal[False] = 0):
+            guild: int | bool = 1,
+            user: int | bool = 0):
         self.original: str = original
         self.context: Interaction | None = context
         self.languages: list[str] | None
-        self.languages = self._get_languages(guild=guild, user=user)
+        self.languages = self._get_languages(
+            guild=1_000 if guild is True else guild,
+            user=1_000 if user is True else user,
+        )
 
     def _get_languages(
             self,
@@ -150,9 +171,35 @@ class TranslatedString:
                 return [*user_languages, *guild_languages]
 
     def __str__(self) -> str:
-        return gettext.translation(
-            domain="main",
-            localedir="./locales",
-            languages=self.languages,
-            fallback=True,
-        ).gettext(self.original)
+        return self.translate(self.original, self.languages)
+
+    @staticmethod
+    @overload
+    def translate(
+            text: str,
+            languages: list[str] | None,
+            fallback: Literal[True] = ...) -> str:
+        ...
+
+    @staticmethod
+    @overload
+    def translate(
+            text: str,
+            languages: list[str] | None,
+            fallback: Literal[False] = ...) -> str | None:
+        ...
+
+    @staticmethod
+    def translate(
+            text: str,
+            languages: list[str] | None,
+            fallback: bool = True) -> str | None:
+        try:
+            return gettext.translation(
+                domain="main",
+                localedir="./locales",
+                languages=languages,
+                fallback=fallback,
+            ).gettext(text)
+        except OSError:
+            return None

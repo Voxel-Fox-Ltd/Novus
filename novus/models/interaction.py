@@ -588,8 +588,8 @@ class Interaction(Generic[IData]):
     def _(
             self,
             string: str,
-            guild: int | Literal[False] = 1,
-            user: int | Literal[False] = 0) -> str:
+            guild: int | bool = 1,
+            user: int | bool = 0) -> str:
         ts = TranslatedString(string, context=self, guild=guild, user=user)
         return str(ts)
 
