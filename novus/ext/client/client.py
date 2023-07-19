@@ -22,6 +22,7 @@ import importlib.util
 import itertools
 import json
 import logging
+import os
 import sys
 import time
 from collections import defaultdict
@@ -389,16 +390,16 @@ class Client:
         state = self.state.interaction
         if guild_id is None:
             get = partial(state.get_global_application_commands, application_id)
-            bulk = partial(state.bulk_overwrite_global_application_commands, application_id)
             create = partial(state.create_global_application_command, application_id)
             edit = partial(state.edit_global_application_command, application_id)
             delete = partial(state.delete_global_application_command, application_id)
+            bulk = partial(state.bulk_overwrite_global_application_commands, application_id)
         else:
             get = partial(state.get_guild_application_commands, application_id, guild_id)
-            bulk = partial(state.bulk_overwrite_guild_application_commands, application_id, guild_id)
             create = partial(state.create_guild_application_command, application_id, guild_id)
             edit = partial(state.edit_guild_application_command, application_id, guild_id)
             delete = partial(state.delete_guild_application_command, application_id, guild_id)
+            bulk = partial(state.bulk_overwrite_guild_application_commands, application_id, guild_id)
 
         # See what we need to do
         on_server = await get()
@@ -424,7 +425,7 @@ class Client:
         to_add = list(unchecked_local.values())
 
         # Bulk change
-        if len(to_add) + len(to_delete) + len(to_edit) > 1:
+        if len(to_add) + len(to_delete) + len(to_edit) > int(os.getenv("NOVUS_BULK_COMMAND_LIMIT", 10)):
             local_commands = [
                 i.application_command._to_data()
                 for i in commands.values()
@@ -440,19 +441,19 @@ class Client:
                 )
 
         # Add new command
-        elif to_add:
+        if to_add:
             log.info("Adding app command %s in guild %s", to_add[0], guild_id)
             on_server = await create(**to_add[0].application_command._to_data())
             to_add[0].add_id(guild_id, on_server.id)
             self._commands_by_id[on_server.id] = to_add[0]
 
         # Delete command
-        elif to_delete:
+        if to_delete:
             log.info("Deleting app command %s in guild %s", to_delete[0], guild_id)
             await delete(to_delete[0])
 
         # Edit single command
-        elif to_edit:
+        if to_edit:
             for id, comm in to_edit.items():
                 log.info("Editing app command %s %s in guild %s", id, comm, guild_id)
                 await edit(id, **comm.application_command._to_data())
