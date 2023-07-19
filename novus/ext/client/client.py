@@ -307,8 +307,8 @@ class Client:
             IMPORTED_PLUGIN_MODULES[module] = lib
         for p in plugin:
             _, class_name = p.split(":", 1)
-            p = getattr(lib, class_name)
-            self.add_plugin(p, load=load)
+            p_class: Type[Plugin] = getattr(lib, class_name)
+            self.add_plugin(p_class, load=load)
 
     def remove_plugin_file(self, *plugin: str) -> None:
         """
@@ -338,8 +338,8 @@ class Client:
             IMPORTED_PLUGIN_MODULES[module] = lib
         for p in plugin:
             _, class_name = p.split(":", 1)
-            p = getattr(lib, class_name)
-            self.remove_plugin(p)
+            p_class: Type[Plugin] = getattr(lib, class_name)
+            self.remove_plugin(p_class)
 
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
         """
@@ -480,7 +480,7 @@ class Client:
 
         # Group our commands by guild ID
         commands_by_guild: dict[int | None, dict[str, Command]]
-        commands_by_guild = defaultdict(partial(defaultdict, dict))
+        commands_by_guild = defaultdict(dict)
         for (guild_id, command_name), command in self._commands.items():
             if command.is_subcommand:
                 continue  # can't sync command options

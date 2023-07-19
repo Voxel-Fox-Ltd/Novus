@@ -22,6 +22,7 @@ import logging
 import sys
 import textwrap
 from argparse import ArgumentParser, Namespace
+from typing import Any, NoReturn
 
 from aioconsole import AsynchronousCli
 
@@ -32,7 +33,7 @@ from novus.ext import client
 
 class GuildLogger(client.Plugin):
 
-    async def print_loop(self, sleep_time: float = 60.0):
+    async def print_loop(self, sleep_time: float = 60.0) -> None:
         self.log.info(
             "Starting guild logger loop; printing guild count every %s seconds",
             sleep_time,
@@ -56,7 +57,7 @@ class GuildLogger(client.Plugin):
             self.print_loop_task.cancel()
 
     @client.event("GUILD_CREATE")
-    async def guild_added(self, guild: novus.Guild):
+    async def guild_added(self, guild: novus.Guild) -> None:
         if self.bot.is_ready:
             if isinstance(guild, novus.Guild):
                 self.log.info("Guild create (%s) %s", guild.id, guild.name)
@@ -66,7 +67,7 @@ class GuildLogger(client.Plugin):
                 self.log.info("Guild create (%s)", guild)
 
     @client.event("GUILD_DELETE")
-    async def guild_removed(self, guild: novus.Guild | int):
+    async def guild_removed(self, guild: novus.Guild | int) -> None:
         if isinstance(guild, int):
             self.log.info("Guild delete (%s)", guild)
         else:
@@ -77,7 +78,7 @@ def get_parser() -> ArgumentParser:
     p = ArgumentParser("novus")
 
     ap = p.add_subparsers(dest="action", required=True)
-    logger_choices = []
+    logger_choices: list[str] = []
     for i in ["debug", "info", "warning", "error"]:
         logger_choices.extend((i, i.upper(),))
 
@@ -133,13 +134,13 @@ def get_parser() -> ArgumentParser:
 
 class CustomCloseCLI(AsynchronousCli):
 
-    def __init__(self, *args, bot, **kwargs):
+    def __init__(self, *args: Any, bot: client.Client, **kwargs: Any):
         super().__init__(*args, *kwargs)
         self.bot = bot
 
-    async def exit_command(self, reader, writer):
+    async def exit_command(self, reader: Any, writer: Any) -> NoReturn:
         await self.bot.close()
-        return await super().exit_command(reader, writer)
+        raise SystemExit
 
 
 def create_console(bot: client.Client) -> AsynchronousCli:
@@ -151,13 +152,13 @@ def create_console(bot: client.Client) -> AsynchronousCli:
     plugin_parser = ArgumentParser()
     plugin_parser.add_argument("plugin")
 
-    async def add(reader, writer, plugin):
+    async def add(reader: Any, writer: Any, plugin: str) -> None:
         bot.add_plugin_file(plugin, load=True)
 
-    async def remove(reader, writer, plugin):
+    async def remove(reader: Any, writer: Any, plugin: str) -> None:
         bot.remove_plugin_file(plugin)
 
-    async def reload(reader, writer, plugin):
+    async def reload(reader: Any, writer: Any, plugin: str) -> None:
         bot.remove_plugin_file(plugin)
         bot.add_plugin_file(plugin, load=True, reload_import=True)
 
@@ -169,6 +170,7 @@ def create_console(bot: client.Client) -> AsynchronousCli:
         },
         bot=bot,
     )
+
 
 async def main(args: Namespace, unknown: list[str]) -> None:
     """
@@ -255,10 +257,10 @@ class MaxLevelFilter(logging.Filter):
     A filter that removes anything above a certain level.
     """
 
-    def __init__(self, max_level: int):
+    def __init__(self, max_level: int) -> None:
         self.max_level = max_level
 
-    def filter(self, record: logging.LogRecord):
+    def filter(self, record: logging.LogRecord) -> bool:
         return record.levelno <= self.max_level
 
 
