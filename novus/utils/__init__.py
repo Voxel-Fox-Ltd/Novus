@@ -15,6 +15,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from . import types
 from .cached_slots import *
 from .components import *
 from .enums import *
@@ -31,6 +32,7 @@ __all__: tuple[str, ...] = (
     'ME',
     'MISSING',
     'TranslatedString',
+    'UNUSED',
     'add_not_missing',
     'bytes_to_base64_data',
     'cached_slot_property',
@@ -44,6 +46,7 @@ __all__: tuple[str, ...] = (
     'try_id',
     'try_object',
     'try_snowflake',
+    'types',
     'utcnow',
     'walk_components',
 )

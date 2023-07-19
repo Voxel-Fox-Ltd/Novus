@@ -20,13 +20,13 @@ from __future__ import annotations
 import asyncio
 import importlib.util
 import itertools
+import json
 import logging
 import sys
 import time
 from collections import defaultdict
 from functools import partial
 from typing import TYPE_CHECKING, Any, Type, cast
-import json
 
 from aiohttp import web
 

@@ -15,12 +15,13 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import payloads, types, utils
+from . import payloads, utils
 from .api import *
 from .enums import *
 from .errors import *
 from .flags import *
 from .models import *
+from .utils import types
 
 __all__: tuple[str, ...] = (
     'ActionRow',
@@ -46,6 +47,7 @@ __all__: tuple[str, ...] = (
     'AutoModerationRule',
     'AutoModerationTriggerMetadata',
     'AutoModerationTriggerType',
+    'BaseGuild',
     'Button',
     'ButtonStyle',
     'Channel',

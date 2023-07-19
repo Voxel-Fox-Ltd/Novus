@@ -22,7 +22,6 @@ from typing import TYPE_CHECKING, Any, Generator
 from ..enums import AuditLogEventType
 from ..models.channel import channel_builder
 from ..utils import cached_slot_property, generate_repr, try_snowflake
-from .api_mixins.audit_log import AuditLogAPIMixin
 from .auto_moderation import AutoModerationRule
 from .channel import Channel
 from .scheduled_event import ScheduledEvent
@@ -233,7 +232,7 @@ class AuditLogEntry:
                 return None
 
 
-class AuditLog(AuditLogAPIMixin):
+class AuditLog:
     """
     A model containing the audit logs for a guild.
 
@@ -335,3 +334,51 @@ class AuditLog(AuditLogAPIMixin):
         if id in self._webhooks:
             return self._webhooks[id]
         raise NotImplementedError()
+
+    # API methods
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            guild_id: int,
+            *,
+            user_id: int | None = None,
+            action_type: AuditLogEventType | None = None,
+            before: int | None = None,
+            after: int | None = None,
+            limit: int = 50) -> AuditLog:
+        """
+        Get an instance of a user from the API.
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        guild_id : int
+            The ID associated with the user you want to get.
+        user_id: Optional[int]
+            The ID of the moderator you want to to filter by.
+        action_type: Optional[novus.AuditLogEventType]
+            The ID of an action to filter by.
+        before: Optional[int]
+            The snowflake before which to get entries.
+        after: Optional[int]
+            The snowflake after which to get entries.
+        limit: Optional[int]
+            The number of entries to get. Max 100, defaults to 50.
+
+        Returns
+        -------
+        novus.AuditLog
+            The audit log for the guild.
+        """
+
+        return await state.audit_log.get_guild_audit_log(
+            guild_id,
+            user_id=user_id,
+            action_type=action_type,
+            before=before,
+            after=after,
+            limit=limit,
+        )

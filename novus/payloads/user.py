@@ -30,6 +30,7 @@ __all__ = (
     'PartialUser',
     'User',
     'GuildMember',
+    'GuildMemberRemove',
     'UserConnection',
     'ApplicationRoleConnectionMetadata',
     'ApplicationRoleConnection',
@@ -74,6 +75,11 @@ class _GuildMemberOptional(TypedDict, total=False):
     pending: bool
     permissions: str
     communication_disabled_until: Optional[Timestamp]
+
+
+class GuildMemberRemove(TypedDict):
+    user: User
+    guild_id: Snowflake
 
 
 class GuildMember(_GuildMemberOptional):

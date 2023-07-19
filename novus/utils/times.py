@@ -21,10 +21,9 @@ from datetime import datetime as dt
 from datetime import timezone
 from typing import TYPE_CHECKING, overload
 
-from ..models.abc import Snowflake
-
 if TYPE_CHECKING:
     from ..enums.time import TimestampFormat
+    from ..models.abc import Snowflake
 
 __all__ = (
     'DiscordDatetime',
@@ -97,16 +96,16 @@ def parse_timestamp(timestamp: dt | str | Snowflake | None) -> DiscordDatetime |
     if timestamp is None:
         return None
     elif isinstance(timestamp, str):
-        parsed = DiscordDatetime.fromisoformat(timestamp)
+        return DiscordDatetime.fromisoformat(timestamp)
     elif isinstance(timestamp, dt):
-        parsed = DiscordDatetime.fromisoformat(timestamp.isoformat())
+        return DiscordDatetime.fromisoformat(timestamp.isoformat())
     elif hasattr(timestamp, "id"):
         return (
             DiscordDatetime
             .fromtimestamp(((timestamp.id >> 22) + 1_420_070_400_000) / 1e3)
             .replace(tzinfo=timezone.utc)
         )
-    return parsed
+    raise ValueError
 
 
 def format_timestamp(

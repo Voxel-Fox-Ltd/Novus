@@ -18,27 +18,36 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from datetime import datetime as dt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ..enums import EventEntityType, EventPrivacyLevel, EventStatus
-from ..utils import cached_slot_property, generate_repr, parse_timestamp, try_snowflake
-from .api_mixins.scheduled_event import ScheduledEventAPIMixin
+from ..utils import (
+    MISSING,
+    cached_slot_property,
+    generate_repr,
+    parse_timestamp,
+    try_id,
+    try_snowflake,
+)
+from .abc import Hashable
 from .asset import Asset
-from .mixins import Hashable
 from .user import User
 
 if TYPE_CHECKING:
     from .. import payloads
     from ..api import HTTPConnection
-    from . import Channel, Guild
-    from . import api_mixins as amix
+    from ..utils.types import FileT
+    from . import abc
+    from .channel import Channel
+    from .guild import BaseGuild
+    from .guild_member import GuildMember
 
 __all__ = (
     'ScheduledEvent',
 )
 
 
-class ScheduledEvent(Hashable, ScheduledEventAPIMixin):
+class ScheduledEvent(Hashable):
     """
     A model representing a scheduled event for a guild.
 
@@ -103,9 +112,9 @@ class ScheduledEvent(Hashable, ScheduledEventAPIMixin):
     )
 
     id: int
-    guild: Guild | amix.GuildAPIMixin
+    guild: BaseGuild
     channel: Channel | None
-    creator: User | amix.UserAPIMixin | None
+    creator: User | None
     name: str
     description: str | None
     start_time: dt
@@ -121,23 +130,23 @@ class ScheduledEvent(Hashable, ScheduledEventAPIMixin):
     def __init__(self, *, state: HTTPConnection, data: payloads.GuildScheduledEvent):
         self.state = state
         self.id = try_snowflake(data['id'])
-        self.guild = self.state.cache.get_guild(data["guild_id"], or_object=True)
+        self.guild = self.state.cache.get_guild(data["guild_id"])
         channel_id = data.get("channel_id")
         if channel_id is None:
             self.channel = None
         else:
-            self.channel = self.state.cache.get_channel(channel_id, or_object=True)
+            self.channel = self.state.cache.get_channel(channel_id)
         creator_id = data.get("creator_id")
-        if creator_id is None:
-            self.creator = None
-        else:
-            cached = self.state.cache.get_user(creator_id, or_object=False)
-            if cached:
+        self.creator = None
+        if creator_id is not None:
+            cached = self.state.cache.get_user(creator_id)
+            if cached and "creator" in data:
+                cached._sync(data["creator"])
                 self.creator = cached
             elif "creator" in data:
                 self.creator = User(state=self.state, data=data["creator"])
             else:
-                self.creator = self.state.cache.get_user(creator_id, or_object=True)
+                self.creator = None  # no cached user, and no user provided
         self.name = data['name']
         self.description = data.get('description')
         self.start_time = parse_timestamp(data['scheduled_start_time'])
@@ -158,3 +167,282 @@ class ScheduledEvent(Hashable, ScheduledEventAPIMixin):
         if self.image_hash is None:
             return None
         return Asset.from_event_image(self)
+
+    # API methods
+
+    @classmethod
+    async def create(
+            cls,
+            state: HTTPConnection,
+            guild: int | abc.Snowflake,
+            *,
+            name: str,
+            start_time: dt,
+            entity_type: EventEntityType,
+            privacy_level: EventPrivacyLevel,
+            reason: str | None = None,
+            channel: int | abc.Snowflake | None = MISSING,
+            location: str = MISSING,
+            end_time: dt = MISSING,
+            description: str | None = MISSING,
+            status: EventStatus = MISSING,
+            image: FileT | None = MISSING) -> ScheduledEvent:
+        """
+        Create a new scheduled event.
+
+        .. seealso:: :func:`novus.Guild.create_scheduled_event`
+
+        Parameters
+        ----------
+        state : novus.HTTPConnection
+            The API connection.
+        guild : int | novus.abc.Snowflake
+            A representation of the guild the event is to be created in.
+        name : str
+            The name of the event.
+        start_time : datetime.datetime
+            The time to schedule the event start.
+        entity_type : novus.EventEntityType
+            The type of the event.
+        privacy_level : novus.EventPrivacyLevel
+            The privacy level of the event.
+        channel : int | Snowflake | None
+            The channel of the scheduled event. Set to ``None`` if the event
+            type is being set to external.
+        location : str
+            The location of the event.
+        end_time : datetime.datetime
+            The time to schedule the event end.
+        description : str | None
+            The description of the event.
+        status : novus.EventStatus
+            The status of the event.
+        image : str | bytes | io.IOBase | None
+            The cover image of the scheduled event.
+        reason : str | None
+            The reason shown in the audit log.
+
+        Returns
+        -------
+        novus.ScheduledEvent
+            The new scheduled event.
+        """
+
+        update: dict[str, Any] = {}
+        if channel is not MISSING:
+            update['channel'] = channel
+        if location is not MISSING:
+            update['location'] = location
+        if name is not MISSING:
+            update['name'] = name
+        if privacy_level is not MISSING:
+            update['privacy_level'] = privacy_level
+        if start_time is not MISSING:
+            update['start_time'] = start_time
+        if end_time is not MISSING:
+            update['end_time'] = end_time
+        if description is not MISSING:
+            update['description'] = description
+        if entity_type is not MISSING:
+            update['entity_type'] = entity_type
+        if status is not MISSING:
+            update['status'] = status
+        if image is not MISSING:
+            update['image'] = image
+
+        return await state.guild_scheduled_event.create_guild_scheduled_event(
+            try_id(guild),
+            **update,
+            reason=reason,
+        )
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            guild: int | abc.Snowflake,
+            id: int | abc.Snowflake,
+            *,
+            with_user_count: bool = False) -> ScheduledEvent:
+        """
+        Get a scheduled event via its ID.
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        guild : int | novus.abc.Snowflake
+            A representation of the guild the event is from.
+        id : int | novus.abc.Snowflake
+            A representation of the ID of the event.
+        with_user_count : bool
+            Whether or not to include the event's user count.
+
+        Returns
+        -------
+        novus.ScheduledEvent
+            The scheduled event associated with the ID.
+        """
+
+        return await state.guild_scheduled_event.get_guild_scheduled_event(
+            try_id(guild),
+            try_id(id),
+            with_user_count=with_user_count,
+        )
+
+    @classmethod
+    async def fetch_all_for_guild(
+            cls,
+            state: HTTPConnection,
+            guild: int | abc.Snowflake,
+            *,
+            with_user_count: bool = False) -> list[ScheduledEvent]:
+        """
+        Get a list of all of the scheduled events for a guild.
+
+        .. seealso:: :func:`novus.Guild.fetch_scheduled_events`
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        guild : int | novus.abc.Snowflake
+            A representation of the guild the event is from.
+        with_user_count : bool
+            Whether or not to include the event's user count.
+
+        Returns
+        -------
+        list[novus.ScheduledEvent]
+            The scheduled events for the guild.
+        """
+
+        return await state.guild_scheduled_event.list_scheduled_events_for_guild(
+            try_id(guild),
+            with_user_count=with_user_count,
+        )
+
+    async def delete(
+            self: abc.StateSnowflakeWithGuild) -> None:
+        """
+        Delete the scheduled event.
+        """
+
+        await self.state.guild_scheduled_event.delete_guild_scheduled_event(
+            self.guild.id,
+            self.id,
+        )
+
+    async def edit(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            reason: str | None = None,
+            channel: int | abc.Snowflake | None = MISSING,
+            location: str = MISSING,
+            name: str = MISSING,
+            privacy_level: EventPrivacyLevel = MISSING,
+            start_time: dt = MISSING,
+            end_time: dt = MISSING,
+            description: str | None = MISSING,
+            entity_type: EventEntityType | None = MISSING,
+            status: EventStatus = MISSING,
+            image: FileT | None = MISSING) -> ScheduledEvent:
+        """
+        Edit the scheduled event.
+
+        Parameters
+        ----------
+        channel : int | Snowflake | None
+            The channel of the scheduled event. Set to ``None`` if the event
+            type is being set to external.
+        location : str
+            The location of the event.
+        name : str
+            The name of the event.
+        privacy_level : novus.EventPrivacyLevel
+            The privacy level of the event.
+        start_time : datetime.datetime
+            The time to schedule the event start.
+        end_time : datetime.datetime
+            The time to schedule the event end.
+        description : str | None
+            The description of the event.
+        entity_type : novus.EventEntityType | None
+            The type of the event.
+        status : novus.EventStatus
+            The status of the event.
+        image : str | bytes | io.IOBase | None
+            The cover image of the scheduled event.
+        reason : str | None
+            The reason shown in the audit log.
+
+        Returns
+        -------
+        novus.ScheduledEvent
+            The updated scheduled event.
+        """
+
+        update: dict[str, Any] = {}
+        if channel is not MISSING:
+            update['channel'] = channel
+        if location is not MISSING:
+            update['location'] = location
+        if name is not MISSING:
+            update['name'] = name
+        if privacy_level is not MISSING:
+            update['privacy_level'] = privacy_level
+        if start_time is not MISSING:
+            update['start_time'] = start_time
+        if end_time is not MISSING:
+            update['end_time'] = end_time
+        if description is not MISSING:
+            update['description'] = description
+        if entity_type is not MISSING:
+            update['entity_type'] = entity_type
+        if status is not MISSING:
+            update['status'] = status
+        if image is not MISSING:
+            update['image'] = image
+
+        return await self.state.guild_scheduled_event.modify_guild_scheduled_event(
+            self.guild.id,
+            self.id,
+            **update,
+            reason=reason,
+        )
+
+    async def fetch_users(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            limit: int = 100,
+            with_member: bool = False,
+            before: int | None = None,
+            after: int | None = None) -> list[User | GuildMember]:
+        """
+        Get a scheduled event via its ID.
+
+        Parameters
+        ----------
+        limit : int
+            The number of users to return. Max 100.
+        with_member : bool
+            Whether to include guild member data if it exists.
+        before : int
+            Consider only users before the given ID.
+        after : int
+            Consider only users after the given ID.
+
+        Returns
+        -------
+        list[novus.User | novus.GuildMember]
+            The users/members subscribed to the event.
+        """
+
+        return await self.state.guild_scheduled_event.get_guild_scheduled_event_users(
+            self.guild.id,
+            self.id,
+            limit=limit,
+            with_member=with_member,
+            before=before,
+            after=after,
+        )

@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional
 
 from ..enums import (
     AutoModerationActionType,
@@ -25,9 +25,8 @@ from ..enums import (
     AutoModerationKeywordPresetType,
     AutoModerationTriggerType,
 )
-from ..utils import generate_repr, try_enum, try_snowflake
-from .api_mixins.auto_moderation import AutoModerationAPIMixin
-from .guild import Guild
+from ..utils import MISSING, generate_repr, try_enum, try_id, try_object, try_snowflake
+from .guild import BaseGuild, Guild
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
@@ -35,8 +34,9 @@ if TYPE_CHECKING:
     from ..payloads import AutoModerationActionMetadata as ActionMetaPayload
     from ..payloads import AutoModerationRule as RulePayload
     from ..payloads import AutoModerationTriggerMetadata as TriggerMetaPayload
-    from . import GuildMember, User, abc
-    from . import api_mixins as amix
+    from . import abc
+    from .guild_member import GuildMember
+    from .user import User
 
 __all__ = (
     'AutoModerationTriggerMetadata',
@@ -199,7 +199,7 @@ class AutoModerationAction:
         return data
 
 
-class AutoModerationRule(AutoModerationAPIMixin):
+class AutoModerationRule:
     """
     A model representing an auto moderation rule.
 
@@ -248,7 +248,7 @@ class AutoModerationRule(AutoModerationAPIMixin):
 
     id: int
     name: str
-    creator: GuildMember | User | amix.UserAPIMixin
+    creator: GuildMember | User
     event_type: AutoModerationEventType
     trigger_type: AutoModerationTriggerType
     trigger_metadata: AutoModerationTriggerMetadata
@@ -256,7 +256,7 @@ class AutoModerationRule(AutoModerationAPIMixin):
     enabled: bool
     exempt_role_ids: list[int]
     exempt_channel_ids: list[int]
-    guild: Guild | amix.GuildAPIMixin
+    guild: BaseGuild
 
     def __init__(
             self,
@@ -266,13 +266,13 @@ class AutoModerationRule(AutoModerationAPIMixin):
         self.state = state
         self.id = try_snowflake(data['id'])
         self.name = data['name']
-        self.guild = self.state.cache.get_guild(data["guild_id"], or_object=True)
+        self.guild = self.state.cache.get_guild(data["guild_id"])
         creator_id = try_snowflake(data['creator_id'])
         creator = None
         if isinstance(self.guild, Guild):
             creator = self.guild.get_member(creator_id)
         if creator is None:
-            creator = self.state.cache.get_user(creator_id, or_object=True)
+            creator = self.state.cache.get_user(creator_id)
         self.creator = creator
         self.event_type = try_enum(AutoModerationEventType, data['event_type'])
         self.trigger_type = try_enum(AutoModerationTriggerType, data['trigger_type'])
@@ -301,3 +301,215 @@ class AutoModerationRule(AutoModerationAPIMixin):
         'actions',
         'enabled',
     ))
+
+    # API methods
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            guild: int | abc.Snowflake,
+            rule: int | abc.Snowflake) -> AutoModerationRule:
+        """
+        Get an instance of an auto moderation rule from the API.
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        guild : int | novus.abc.Snowflake
+            An association to a guild that you want to get the rule from.
+        rule : int | novus.abc.Snowflake
+            An association to get the rule from.
+
+        Returns
+        -------
+        novus.AutoModerationRule
+            The auto moderation rule.
+        """
+
+        return await state.auto_moderation.get_auto_moderation_rule(
+            try_id(guild),
+            try_id(rule),
+        )
+
+    @classmethod
+    async def fetch_all_for_guild(
+            cls,
+            state: HTTPConnection,
+            guild: int | abc.Snowflake) -> list[AutoModerationRule]:
+        """
+        Get all of the auto moderation rules from the API for a given guild.
+
+        Parameters
+        ----------
+        state : novus.HTTPConnection
+            The API connection to manage the entity with.
+        guild : int | novus.abc.Snowflake
+            The guild that you want to get the rules from.
+
+        Returns
+        -------
+        list[novus.AutoModerationRule]
+            The list of auto moderation rules in the guild.
+        """
+
+        return await state.auto_moderation.list_auto_moderation_rules_for_guild(
+            try_id(guild),
+        )
+
+    async def edit(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            reason: str | None = None,
+            name: str = MISSING,
+            event_type: AutoModerationEventType = MISSING,
+            trigger_type: AutoModerationTriggerType = MISSING,
+            trigger_metadata: AutoModerationTriggerMetadata = MISSING,
+            actions: list[AutoModerationAction] = MISSING,
+            enabled: bool = MISSING,
+            exempt_roles: list[int | abc.Snowflake] = MISSING,
+            exempt_channels: list[int | abc.Snowflake] = MISSING) -> AutoModerationRule:
+        """
+        Edit an instance of the auto moderation rule.
+
+        Parameters
+        ----------
+        name : str
+            The new name for the role.
+        event_type : novus.AutoModerationEventType
+            The event type.
+        trigger_type : novus.AutoModerationTriggerType
+            The trigger type.
+        trigger_metadata : novus.AutoModerationTriggerMetadata
+            The trigger metadata.
+        actions : list[novus.AutoModerationAction]
+            The actions to be taken on trigger.
+        enabled : bool
+            Whether the rule is enabled or not.
+        exempt_roles : list[int | novus.abc.Snowflake]
+            A list of roles that are exempt from the rule.
+        exempt_channels : list[int | novus.abc.Snowflake]
+            A list of channels that are exempt from the rule.
+        reason : str | None
+            The reason shown in the audit log.
+
+        Returns
+        -------
+        novus.AutoModerationRule
+            The updated rule.
+        """
+
+        updates: dict[str, Any] = {}
+
+        if name is not MISSING:
+            updates["name"] = name
+        if event_type is not MISSING:
+            updates["event_type"] = event_type
+        if trigger_type is not MISSING:
+            updates["trigger_type"] = trigger_type
+        if trigger_metadata is not MISSING:
+            updates["trigger_metadata"] = trigger_metadata
+        if actions is not MISSING:
+            updates["actions"] = actions
+        if enabled is not MISSING:
+            updates["enabled"] = enabled
+        if exempt_roles is not MISSING:
+            updates["exempt_roles"] = [try_object(i) for i in exempt_roles]
+        if exempt_channels is not MISSING:
+            updates["exempt_channels"] = [try_object(i) for i in exempt_channels]
+
+        return await self.state.auto_moderation.modify_auto_moderation_rule(
+            self.guild.id,
+            self.id,
+            reason=reason,
+            **updates,
+        )
+
+    async def delete(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            reason: Optional[str] = None) -> None:
+        """
+        Delete this auto moderation rule.
+
+        Parameters
+        ----------
+        reason : str | None
+            The reason shown in the audit log.
+        """
+
+        await self.state.auto_moderation.delete_auto_moderation_rule(
+            self.guild.id,
+            self.id,
+            reason=reason,
+        )
+        return
+
+    @classmethod
+    async def create(
+            cls,
+            state: HTTPConnection,
+            guild: int | abc.Snowflake,
+            *,
+            reason: str | None = None,
+            name: str,
+            event_type: AutoModerationEventType,
+            trigger_type: AutoModerationTriggerType,
+            actions: list[AutoModerationAction],
+            trigger_metadata: AutoModerationTriggerMetadata | None = None,
+            enabled: bool = False,
+            exempt_roles: list[int | abc.Snowflake] | None = None,
+            exempt_channels: list[int | abc.Snowflake] | None = None) -> AutoModerationRule:
+        """
+        Create a new auto moderation rule.
+
+        Parameters
+        ----------
+        state : novus.HTTPConnection
+            The API connection to create the entity with.
+        guild: int | novus.abc.Snowflake
+            The ID of the guild to create the object in.
+        name : str
+            The new name for the role.
+        event_type : novus.AutoModerationEventType
+            The event type.
+        trigger_type : novus.AutoModerationTriggerType
+            The trigger type.
+        actions : list[novus.AutoModerationAction]
+            The actions to be taken on trigger.
+        trigger_metadata : novus.AutoModerationTriggerMetadata | None
+            The trigger metadata.
+        enabled : bool
+            Whether the rule is enabled or not.
+        exempt_roles : list[int | novus.abc.Snowflake] | None
+            A list of roles that are exempt from the rule.
+        exempt_channels : list[int | novus.abc.Snowflake] | None
+            A list of channels that are exempt from the rule.
+        reason : str | None
+            The reason shown in the audit log.
+
+        Returns
+        -------
+        novus.AutoModerationRule
+            The created rule.
+        """
+
+        updates: dict[str, Any] = {}
+        updates["name"] = name
+        updates["event_type"] = event_type
+        updates["trigger_type"] = trigger_type
+        updates["trigger_metadata"] = trigger_metadata
+        if actions:
+            updates["actions"] = actions
+        updates["enabled"] = enabled
+        if exempt_roles:
+            updates["exempt_roles"] = [try_object(i) for i in exempt_roles]
+        if exempt_channels:
+            updates["exempt_channels"] = [try_object(i) for i in exempt_channels]
+
+        return await state.auto_moderation.create_auto_moderation_rule(
+            try_id(guild),
+            reason=reason,
+            **updates,
+        )

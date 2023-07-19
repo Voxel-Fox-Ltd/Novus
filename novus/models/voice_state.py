@@ -20,15 +20,18 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..utils import parse_timestamp
+from .abc import Hashable
 from .guild_member import GuildMember
-from .mixins import Hashable
+from .channel import Channel
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    from .. import Guild, GuildVoiceChannel, User, payloads
+    from .. import payloads
     from ..api import HTTPConnection
-    from . import api_mixins as amix
+    from .channel import GuildVoiceChannel
+    from .guild import BaseGuild
+    from .user import User
 
 __all__ = (
     'VoiceState',
@@ -63,9 +66,9 @@ class VoiceState(Hashable):
         Whether the user is deafened.
     """
 
-    guild: Guild | amix.GuildAPIMixin | None
+    guild: BaseGuild | None
     channel: GuildVoiceChannel
-    user: GuildMember | User | amix.UserAPIMixin
+    user: GuildMember | User
     suppress: bool
     session_id: str
     self_video: bool
@@ -89,12 +92,16 @@ class VoiceState(Hashable):
                 guild_id=guild_id,
             )
         else:
-            self.user = self.state.cache.get_user(data["user_id"], or_object=True)
-        self.guild = self.state.cache.get_guild(data.get("guild_id"), or_object=True)
+            self.user = self.state.cache.get_user(data["user_id"])
+        self.guild = self.state.cache.get_guild(data.get("guild_id"))
         from .guild import Guild
         if isinstance(self.guild, Guild):
             self.guild._add_voice_state(self)
-        self.channel = self.state.cache.get_channel(data["channel_id"], or_object=True)  # pyright: ignore
+        channel = self.state.cache.get_channel(data["channel_id"])
+        if channel is None:
+            self.channel = Channel.partial(self.state, data["channel_id"])  # pyright: ignore  # This is a text channel yknow who really cares
+        else:
+            self.channel = channel  # pyright: ignore  # From cache it just returns a generic channel object
         self.suppress = data.get("suppress", False)
         self.session_id = data["session_id"]
         self.self_video = data.get("self_video", False)

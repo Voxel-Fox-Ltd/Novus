@@ -24,8 +24,7 @@ from typing import TYPE_CHECKING, Any, Iterable, TypedDict
 
 import aiohttp
 
-from ..models import File
-from ..utils import TranslatedString, bytes_to_base64_data
+from ..utils import bytes_to_base64_data
 from ._cache import APICache
 from ._errors import Forbidden, HTTPException, NotFound, Unauthorized
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
@@ -47,6 +46,7 @@ from .voice import VoiceHTTPConnection
 from .webhook import WebhookHTTPConnection
 
 if TYPE_CHECKING:
+    from ..models import File
     from ._route import Route
 
 __all__ = (
@@ -69,10 +69,9 @@ class FixableKwargs(TypedDict, total=False):
 
 
 class NovusJSONEncoder(json.JSONEncoder):
+    """Future proofing."""
 
     def default(self, o: Any) -> Any:
-        if isinstance(o, TranslatedString):
-            return str(o)
         return super().default(o)
 
 

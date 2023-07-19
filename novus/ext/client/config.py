@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import glob
 import logging
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any, NoReturn
 
 from typing_extensions import Self
@@ -107,11 +106,14 @@ class Config:
         if check("intents") and check("intent"):
             raise Exception("Cannot have both intents and intent in args")
         elif check("intents"):
-            self.intents = novus.Intents(**{
-                i.strip(): True
-                for i in args.intents.split(",")
-                if i.strip()
-            })
+            if args.intents == "*":
+                self.intents = novus.Intents.all()
+            else:
+                self.intents = novus.Intents(**{
+                    i.strip(): True
+                    for i in args.intents.split(",")
+                    if i.strip()
+                })
         elif check("intent"):
             self.intents = novus.Intents(**{
                 i.strip(): True

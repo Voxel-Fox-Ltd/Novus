@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, TypedDict
 from typing_extensions import NotRequired
 
 if TYPE_CHECKING:
-    from . import Emoji, GuildMember, PartialEmoji, Role, Sticker, ThreadMember, Presence
+    from . import Emoji, GuildMember, PartialEmoji, Presence, Role, Sticker, ThreadMember
     from ._util import Snowflake, Timestamp
 
 __all__ = (

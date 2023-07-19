@@ -17,17 +17,20 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 import logging
+from typing import TYPE_CHECKING, Any
+
+import asyncpg
 
 from novus.ext import client
-import asyncpg
 
 if TYPE_CHECKING:
     class PoolAcquireContext:
+
         async def __aenter__(self) -> asyncpg.Connection:
             ...
-        async def __aexit__(self, *args, **kwargs) -> None:
+
+        async def __aexit__(self, *args: Any) -> None:
             ...
 
 __all__ = (
@@ -45,9 +48,9 @@ class Database(client.Plugin):
     _log: logging.Logger = logging.getLogger("database")  # pyright: ignore
 
     @classmethod
-    def acquire(cls, *args, **kwargs) -> PoolAcquireContext:
+    def acquire(cls, *args: Any, **kwargs: Any) -> PoolAcquireContext:
         if cls.pool is None:
-            cls._log.error(
+            raise Exception(
                 (
                     "Database pool is not created - was the plugin loaded? "
                     "Was there a DSN provided?"
@@ -99,4 +102,5 @@ class Database(client.Plugin):
         Create any tables that have been instantiated with the database class.
         """
 
-        db: asyncpg.Connection
+        # TODO
+        pass

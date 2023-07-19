@@ -20,7 +20,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, NoReturn
 
 from ..models import (
-    Channel,
     Guild,
     GuildBan,
     GuildMember,
@@ -30,7 +29,7 @@ from ..models import (
     Thread,
     User,
 )
-from ..models.channel import channel_builder
+from ..models.channel import GuildChannel, channel_builder
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -190,7 +189,7 @@ class GuildHTTPConnection:
 
     async def get_guild_channels(
             self,
-            guild_id: int, /) -> list[Channel]:
+            guild_id: int, /) -> list[GuildChannel]:
         """
         Get guild channels.
         """
@@ -206,7 +205,7 @@ class GuildHTTPConnection:
         return [
             channel_builder(state=self.parent, data=d)
             for d in data
-        ]
+        ]  # pyright: ignore
 
     async def create_guild_channel(
             self,
@@ -214,7 +213,7 @@ class GuildHTTPConnection:
             /,
             *,
             reason: str | None = None,
-            **kwargs: Any) -> Channel:
+            **kwargs: Any) -> GuildChannel:
         """
         Create a guild channel.
         """

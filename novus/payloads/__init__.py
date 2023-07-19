@@ -83,6 +83,7 @@ __all__: tuple[str, ...] = (
     'Guild',
     'GuildFeature',
     'GuildMember',
+    'GuildMemberRemove',
     'GuildPreview',
     'GuildScheduledEvent',
     'GuildScheduledEventEntityMetadata',

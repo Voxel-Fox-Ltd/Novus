@@ -18,21 +18,26 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import operator
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from ..flags import Permissions, UserFlags
-from ..utils import cached_slot_property, generate_repr, parse_timestamp, try_snowflake
-from .api_mixins.user import GuildMemberAPIMixin
+from ..utils.cached_slots import cached_slot_property
+from ..utils.missing import MISSING
+from ..utils.repr import generate_repr
+from ..utils.snowflakes import try_id, try_object, try_snowflake
+from ..utils.times import parse_timestamp
+from .abc import Hashable, Messageable
 from .asset import Asset
-from .mixins import Hashable
+from .channel import DMChannel
 from .user import User
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
-    from .. import Guild, VoiceState, enums, payloads
+    from .. import abc, enums, payloads
     from ..api import HTTPConnection
-    from . import api_mixins as amix
+    from .guild import BaseGuild
+    from .voice_state import VoiceState
 
 __all__ = (
     'GuildMember',
@@ -40,7 +45,7 @@ __all__ = (
 )
 
 
-class GuildMember(Hashable, GuildMemberAPIMixin):
+class GuildMember(Hashable, Messageable):
     """
     A model for a guild member object.
 
@@ -179,7 +184,7 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
     pending: bool
     permissions: Permissions
     timeout_until: dt | None
-    guild: Guild | amix.GuildAPIMixin
+    guild: BaseGuild
 
     def __new__(cls, **kwargs: Any) -> GuildMember:
         obj = super().__new__(cls)
@@ -208,34 +213,34 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
         else:
             if user is None:
                 user = data["user"]
-            user_object = self.state.cache.get_user(user["id"], or_object=False)
+            user_object = self.state.cache.get_user(user["id"])
             if user_object is None:
                 user_object = User(state=state, data=user)
         self._user = user_object
-        self.nick = data.get('nick')
-        self.guild_avatar_hash = data.get('avatar')
+        self.nick = data.get("nick")
+        self.guild_avatar_hash = data.get("avatar")
         self.role_ids = [
             try_snowflake(d)
-            for d in data['roles']
+            for d in data["roles"]
         ]
-        self.joined_at = parse_timestamp(data['joined_at'])
-        self.premium_since = parse_timestamp(data.get('premium_since'))
+        self.joined_at = parse_timestamp(data["joined_at"])
+        self.premium_since = parse_timestamp(data.get("premium_since"))
         self.deaf = data.get('deaf', False)
         self.mute = data.get('mute', False)
         self.pending = data.get('pending', False)
         self.permissions = Permissions.none()
-        if 'permissions' in data:
-            self.permissions = Permissions(int(data['permissions']))
+        if "permissions" in data:
+            self.permissions = Permissions(int(data["permissions"]))
         self.timeout_until = None
-        if 'communication_disabled_until' in data:
-            self.timeout_until = parse_timestamp(data['communication_disabled_until'])
+        if "communication_disabled_until" in data:
+            self.timeout_until = parse_timestamp(data["communication_disabled_until"])
         if "guild_id" in data and guild_id is None:
             guild_id = data["guild_id"]
         if guild_id is None:
             raise ValueError("Missing guild from member init")
-        self.guild = self.state.cache.get_guild(guild_id, or_object=True)
+        self.guild = self.state.cache.get_guild(guild_id)
 
-    __repr__ = generate_repr(('id', 'username', 'bot', 'guild',))
+    __repr__ = generate_repr(("id", "username", "bot", "guild",))
 
     def __str__(self) -> str:
         if self.discriminator == "0":
@@ -277,6 +282,236 @@ class GuildMember(Hashable, GuildMemberAPIMixin):
 
     def _to_user(self) -> User:
         return self._user
+
+    # API methods
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            guild_id: int,
+            member_id: int) -> GuildMember:
+        """
+        Get an instance of a user from the API.
+
+        .. seealso:: :func:`novus.Guild.fetch_member`
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        guild_id : int
+            The ID associated with the guild you want to get.
+        member_id : int
+            The ID associated with the user you want to get.
+
+        Returns
+        -------
+        novus.GuildMember
+            The user associated with the given ID.
+        """
+
+        return await state.guild.get_guild_member(guild_id, member_id)
+
+    @classmethod
+    async def fetch_me(
+            cls,
+            state: HTTPConnection,
+            guild_id: int) -> GuildMember:
+        """
+        Get the member object associated with the current connection and a
+        given guild ID.
+
+        .. note:: Only usable via Oauth with the ``guilds.members.read`` scope.
+
+        .. seealso:: :func:`novus.Guild.fetch_me`
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        guild_id : int
+            The ID associated with the guild you want to get.
+
+        Returns
+        -------
+        novus.GuildMember
+            The member within the given guild.
+        """
+
+        return await state.user.get_current_user_guild_member(guild_id)
+
+    async def edit(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            reason: str | None = None,
+            nick: str | None = MISSING,
+            roles: list[int | abc.Snowflake] = MISSING,
+            mute: bool = MISSING,
+            deaf: bool = MISSING,
+            voice_channel: int | abc.Snowflake | None = MISSING,
+            timeout_until: dt | None = MISSING) -> GuildMember:
+        """
+        Edit a guild member.
+
+        .. seealso:: :func:`novus.Guild.edit_member`
+
+        Parameters
+        ----------
+        nick : str | None
+            The nickname you want to set for the user.
+        roles : list[novus.abc.Snowflake]
+            A list of roles that you want the user to have.
+        mute : bool
+            Whether or not the user is muted in voice channels. Will error if
+            the user is not currently in a voice channel.
+        deaf : bool
+            Whether or not the user is deafened in voice channels. Will error
+            if the user is not currently in a voice channel.
+        voice_channel : novus.abc.Snowflake | None
+            The voice channel that the user is in.
+        timeout_until : datetime.datetime | None
+            When the user's timeout should expire (up to 28 days in the
+            future).
+        """
+
+        update: dict[str, Any] = {}
+
+        if nick is not MISSING:
+            update["nick"] = nick
+        if roles is not MISSING:
+            update["roles"] = [try_object(r) for r in roles]
+        if mute is not MISSING:
+            update["mute"] = mute
+        if deaf is not MISSING:
+            update["deaf"] = deaf
+        if voice_channel is not MISSING:
+            update["channel"] = try_object(voice_channel)
+        if timeout_until is not MISSING:
+            update["communication_disabled_until"] = timeout_until
+
+        return await self.state.guild.modify_guild_member(
+            self.guild.id,
+            self.id,
+            reason=reason,
+            **update,
+        )
+
+    async def add_role(
+            self: abc.StateSnowflakeWithGuild,
+            role: int | abc.Snowflake,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Add a role to the user.
+
+        Requires the ``MANAGE_ROLES`` permission.
+
+        .. seealso:: :func:`novus.Guild.add_member_role`
+
+        Parameters
+        ----------
+        role : int | novus.abc.Snowflake
+            The role you want to add.
+        reason : str | None
+            The reason shown in the audit log.
+        """
+
+        await self.state.guild.add_guild_member_role(
+            self.guild.id,
+            self.id,
+            try_id(role),
+            reason=reason,
+        )
+
+    async def remove_role(
+            self: abc.StateSnowflakeWithGuild,
+            role: int | abc.Snowflake,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Remove a role from the user.
+
+        Requires the ``MANAGE_ROLES`` permission.
+
+        .. seealso:: :func:`novus.Guild.remove_member_role`
+
+        Parameters
+        ----------
+        role : int | novus.abc.Snowflake
+            The role you want to remove.
+        reason : str | None
+            The reason shown in the audit log.
+        """
+
+        await self.state.guild.remove_guild_member_role(
+            self.guild.id,
+            self.id,
+            try_id(role),
+            reason=reason,
+        )
+
+    async def kick(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Remove a user from the guild.
+
+        Requires the ``KICK_MEMBERS`` permission.
+
+        .. seealso:: :func:`novus.Guild.kick`
+
+        Parameters
+        ----------
+        reason : str | None
+            The reason to be shown in the audit log.
+        """
+
+        await self.state.guild.remove_guild_member(
+            self.guild.id,
+            self.id,
+            reason=reason,
+        )
+
+    async def ban(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            reason: str | None = None,
+            delete_message_seconds: int = MISSING) -> None:
+        """
+        Ban a user from the guild.
+
+        Requires the ``BAN_MEMBERS`` permission.
+
+        .. seealso:: :func:`novus.Guild.ban`
+
+        Parameters
+        ----------
+        delete_message_seconds : int
+            The number of seconds of messages you want to delete.
+        reason : str | None
+            The reason to be shown in the audit log.
+        """
+
+        updates: dict[str, Any] = {}
+
+        if delete_message_seconds is not MISSING:
+            updates['delete_message_seconds'] = delete_message_seconds
+
+        await self.state.guild.create_guild_ban(
+            self.guild.id,
+            self.id,
+            reason=reason,
+            **updates
+        )
+        return
+
+    async def create_dm_channel(self) -> DMChannel:
+        return await self._user.create_dm_channel()
+
+    async def _get_send_method(self) -> Callable[..., Awaitable[Any]]:
+        return await self._user._get_send_method()
 
 
 class ThreadMember:

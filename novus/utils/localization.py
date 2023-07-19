@@ -18,7 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import gettext
-from typing import TYPE_CHECKING, Literal, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 from ..enums import Locale
 from .missing import MISSING
@@ -85,7 +85,6 @@ class Localization:
 
 # any valid localisation type
 LocType = dict[str, str] | dict[Locale, str] | Localization | None
-
 
 
 class TranslatedString:
@@ -157,6 +156,3 @@ class TranslatedString:
             languages=self.languages,
             fallback=True,
         ).gettext(self.original)
-
-    def __getattr__(self, v):
-        return getattr(str(self), v)

@@ -31,7 +31,6 @@ if TYPE_CHECKING:
     from ..payloads.embed import _EmbedField as FieldPayload
     from ..payloads.embed import _EmbedFooter as FooterPayload
     from ..payloads.embed import _EmbedMedia as MediaPayload
-    from ..utils import TranslatedString
 
 __all__ = (
     'Embed',
@@ -40,7 +39,7 @@ __all__ = (
 
 @dataclass
 class EmbedFooter:
-    text: str | TranslatedString
+    text: str
     icon_url: str | None = None
     proxy_icon_url: str | None = None
 
@@ -82,7 +81,7 @@ class EmbedProvider:
 
 @dataclass
 class EmbedAuthor:
-    name: str | TranslatedString
+    name: str
     url: str | None = None
     icon_url: str | None = None
     proxy_icon_url: str | None = None
@@ -100,8 +99,8 @@ class EmbedAuthor:
 
 @dataclass
 class EmbedField:
-    name: str | TranslatedString
-    value: str | TranslatedString
+    name: str
+    value: str
     inline: bool = True
 
     def _to_data(self) -> FieldPayload:
@@ -200,15 +199,15 @@ class Embed:
     def __init__(
             self,
             *,
-            title: str | TranslatedString | None = None,
+            title: str | None = None,
             type: str = "rich",
-            description: str | TranslatedString | None = None,
+            description: str | None = None,
             url: str | None = None,
             timestamp: dt | None = None,
             color: int | None = None) -> None:
-        self.title: str | TranslatedString | None = title
+        self.title: str | None = title
         self.type: str = type
-        self.description: str | TranslatedString | None = description
+        self.description: str | None = description
         self.url: str | None = url
         self.timestamp: dt | None = timestamp
         self.color: int | None = color
@@ -283,7 +282,7 @@ class Embed:
 
     def set_footer(
             self,
-            text: str | TranslatedString,
+            text: str,
             *,
             icon_url: str | None = None) -> Self:
         """
@@ -377,7 +376,7 @@ class Embed:
 
     def set_author(
             self,
-            name: str | TranslatedString,
+            name: str,
             *,
             url: str | None = None,
             icon_url: str | None = None) -> Self:
@@ -415,8 +414,8 @@ class Embed:
 
     def add_field(
             self,
-            name: str | TranslatedString,
-            value: str | TranslatedString,
+            name: str,
+            value: str,
             *,
             inline: bool = True) -> Self:
         """
@@ -457,8 +456,8 @@ class Embed:
     def insert_field_at(
             self,
             index: int,
-            name: str | TranslatedString,
-            value: str | TranslatedString,
+            name: str,
+            value: str,
             *,
             inline: bool = True) -> Self:
         """

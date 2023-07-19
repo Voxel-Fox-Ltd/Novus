@@ -17,27 +17,31 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import re
+from typing import TYPE_CHECKING, Protocol
 
 from ..models.channel import channel_builder
 from ..utils import generate_repr, parse_timestamp
-from .api_mixins.invite import InviteAPIMixin
-from .guild import PartialGuild
+from .guild import Guild, PartialGuild
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
 
+    from .. import payloads
     from ..api import HTTPConnection
-    from ..payloads import InviteWithMetadata as InviteMetadataPayload
-    from . import Channel, Guild
-    from . import api_mixins as amix
+    from .channel import Channel
 
 __all__ = (
     'Invite',
 )
 
 
-class Invite(InviteAPIMixin):
+class StateWithCode(Protocol):
+    state: HTTPConnection
+    code: str
+
+
+class Invite:
     """
     A model representing a guild invite.
 
@@ -62,6 +66,8 @@ class Invite(InviteAPIMixin):
         leads to a group DM.
     """
 
+    INVITE_LINK_REGEX = re.compile(r"(?:https?://)?discord\.gg/(?P<code>[a-zA-Z0-9]+)")
+
     code: str
     channel: Channel | None
     uses: int | None
@@ -69,9 +75,9 @@ class Invite(InviteAPIMixin):
     max_age: int | None
     temporary: bool | None
     created_at: dt | None
-    guild: Guild | amix.GuildAPIMixin | None
+    guild: Guild | PartialGuild | None
 
-    def __init__(self, *, state: HTTPConnection, data: InviteMetadataPayload):
+    def __init__(self, *, state: HTTPConnection, data: payloads.InviteWithMetadata | payloads.Invite):
         self.state = state
         self.code = data['code']
         self.channel = None
@@ -82,13 +88,13 @@ class Invite(InviteAPIMixin):
         self.created_at = parse_timestamp(data.get('created_at'))
         self.guild = None
         if "guild" in data:
-            if cached := self.state.cache.get_guild(data["guild"]["id"], or_object=False):
+            if isinstance(cached := self.state.cache.get_guild(data["guild"]["id"]), Guild):
                 self.guild = cached
             else:
                 self.guild = PartialGuild(state=self.state, data=data['guild'])
         channel = data.get('channel')
         if channel:
-            if cached := self.state.cache.get_channel(channel["id"], or_object=False):
+            if cached := self.state.cache.get_channel(channel["id"]):
                 self.channel = cached
             else:
                 guild_id = None
@@ -97,3 +103,59 @@ class Invite(InviteAPIMixin):
                 self.channel = channel_builder(state=self.state, data=channel, guild_id=guild_id)
 
     __repr__ = generate_repr(('code', 'channel', 'guild',))
+
+    # API methods
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            code: str) -> Invite:
+        """
+        Get an invite object via its code.
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        code : str
+            The invite code, or URL. If an invalid code/URL is given, this is
+            still passed over to the API for it to reject. This *will*
+            count towards your API limit.
+
+        Returns
+        -------
+        novus.Invite
+            The invite associated with the code.
+        """
+
+        # Try and parse a URL
+        if "/" in code:
+            match = cls.INVITE_LINK_REGEX.search(code)
+            if match is not None:
+                code = match.group("code")
+            else:
+                pass  # Could raise here, but I'd rather the API at this point
+
+        # API request
+        return await state.invite.get_invite(code)
+
+    async def delete(
+            self: StateWithCode,
+            *,
+            reason: str | None = None) -> Invite:
+        """
+        Delete an instance of the invite.
+
+        Parameters
+        ----------
+        reason : str | None
+            The reason shown in the audit log.
+
+        Returns
+        -------
+        novus.Invite
+            The deleted invite object.
+        """
+
+        return await self.state.invite.delete_invite(self.code, reason=reason)

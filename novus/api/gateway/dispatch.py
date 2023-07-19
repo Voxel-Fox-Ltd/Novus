@@ -22,8 +22,11 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any, AsyncIterator, Callable, TypeAlias, TypeVar
 
+from novus.models.guild_member import ThreadMember
+
 from ...models import (
     AuditLogEntry,
+    BaseGuild,
     Channel,
     Emoji,
     Guild,
@@ -43,8 +46,9 @@ from ...models.channel import channel_builder
 from ...utils import try_snowflake
 
 if TYPE_CHECKING:
-    from ... import Intents, payloads
-    from ...models import api_mixins as amix
+    from ... import payloads
+    from ...flags import Intents
+    from ...models import abc
     from ...payloads import gateway as gw
     from .._http import HTTPConnection
     from .gateway import GatewayShard
@@ -237,11 +241,14 @@ class GatewayDispatch:
 
     async def _handle_guild_create_id_only(
             self,
-            data: payloads.GatewayGuild) -> OptRet[Guild]:
+            data: payloads.GatewayGuild) -> OptRet[BaseGuild]:
         """Listen for guild create."""
 
+        # The only reason this returns a baseguild is so that you still have
+        # an object you can perform API methods on.
+
         self.cache.guild_ids.add(int(data["id"]))
-        yield Object(data["id"])
+        yield BaseGuild(state=self.parent, data={"id": data["id"]})  # pyright: ignore
 
     async def _handle_guild_update(
             self,
@@ -319,11 +326,11 @@ class GatewayDispatch:
 
     async def _handle_guild_emojis_update(
             self,
-            data: gw.GuildEmojisUpdate) -> Ret[tuple[Guild | amix.GuildAPIMixin, list[Emoji]]]:
+            data: gw.GuildEmojisUpdate) -> Ret[tuple[BaseGuild | Guild, list[Emoji]]]:
         """Handle guild emojis update. For whatever reason Discord gives us
         the entire guild emoji list for every update."""
 
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        guild = self.cache.get_guild(data["guild_id"])
         if isinstance(guild, Guild):
             for k in guild._emojis.keys():
                 try:
@@ -342,11 +349,11 @@ class GatewayDispatch:
 
     async def _handle_guild_stickers_update(
             self,
-            data: gw.GuildStickersUpdate) -> Ret[tuple[Guild | amix.GuildAPIMixin, list[Sticker]]]:
+            data: gw.GuildStickersUpdate) -> Ret[tuple[BaseGuild | Guild, list[Sticker]]]:
         """Handle guild stickers update. For whatever reason Discord gives us
         the entire guild stickers list for every update."""
 
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        guild = self.cache.get_guild(data["guild_id"])
         if isinstance(guild, Guild):
             for k in guild._stickers.keys():
                 try:
@@ -365,12 +372,15 @@ class GatewayDispatch:
 
     async def _handle_typing(
             self,
-            data: gw.TypingStart) -> OptRet[tuple[Channel, GuildMember | User | amix.UserAPIMixin]]:
+            data: gw.TypingStart) -> OptRet[tuple[Channel, GuildMember | User]]:
         """Handle the typing event; return the guild, channel, and user IDs."""
 
-        guild: Guild | amix.GuildAPIMixin | None = None
+        # This will only dispatch an event if the typing is triggered inside of
+        # a guild. Just for my own ease.
+
+        guild: BaseGuild | None = None
         if "guild_id" in data:
-            guild = self.cache.get_guild(data["guild_id"], or_object=True)
+            guild = self.cache.get_guild(data["guild_id"])
         channel = self.cache.get_channel(data['channel_id'])
         if channel is None:
             channel = Channel.partial(
@@ -390,12 +400,15 @@ class GatewayDispatch:
                     state=self.parent,
                     data=_member,
                 )
-            yield channel, member
+            yield channel, member,
             return
 
-        # Unfortunately it tells us nothing about a user so we just have to
-        # build something that acts like it if they don't exist in cache.
-        user = self.cache.get_user(data["user_id"], or_object=True)
+        # Unfortunately it tells us nothing about a user (ie a non-guild
+        # member) so we just have to build something that acts like it if they
+        # don't exist in cache.
+        user = self.cache.get_user(data["user_id"])
+        if user is None:
+            return
         yield channel, user,
 
     async def _handle_message_generic(
@@ -409,17 +422,17 @@ class GatewayDispatch:
 
         # Create our initial message
         message = Message(state=self.parent, data=data)
-        current = self.cache.get_message(message.id, or_object=False)
+        current = self.cache.get_message(message.id)
         self.cache.add_messages(message)
 
         # Update channel with cached
         channel = self.cache.get_channel(message.channel.id)
         if channel is not None:
-            message.channel = channel
+            message.channel = channel  # pyright: ignore
 
         # Update guild with cached
         if message.guild is not None:
-            guild = self.cache.get_guild(message.guild.id, or_object=True)
+            guild = self.cache.get_guild(message.guild.id)
             message.guild = guild
 
             # Update author with member
@@ -470,8 +483,17 @@ class GatewayDispatch:
         """Handle message delete; returns channel and either cached message or
         the message ID."""
 
-        channel = self.cache.get_channel(data["channel_id"], or_object=True)
+        # Get cached message
         message = self.cache.messages.pop(int(data["id"]), None)
+
+        # Get channel - either from our own cache or from the cached message
+        channel = self.cache.get_channel(data["channel_id"])
+        if channel is None and message:
+            channel = message.channel
+        if channel is None:
+            return  # No cached channel to make use of
+
+        # No message but we do have a channel? Just use an object
         if message is None:
             message = Object(data["id"], state=self.parent)
         yield channel, message,
@@ -488,7 +510,8 @@ class GatewayDispatch:
             data: dict[Any, Any]) -> AI[None]:
         """Handle updating presences for users."""
 
-        log.debug("Ignoring presence update %s" % dump(data))
+        log.debug("Ignoring presence update %s" % dump(data))#
+        # TODO
         yield None
 
     async def _handle_channel_generic(
@@ -497,10 +520,10 @@ class GatewayDispatch:
         """Handle channel create and update events."""
 
         current = self.cache.get_channel(data["id"])
-        guild: Guild | amix.GuildAPIMixin | None = None
+        guild: BaseGuild | None = None
         guild_id: int | None = None
         if "guild_id" in data:
-            guild = self.cache.get_guild(data["guild_id"], or_object=True)
+            guild = self.cache.get_guild(data["guild_id"])
             guild_id = guild.id
         if isinstance(guild, Guild):
             channel = guild._add_channel(data)
@@ -532,7 +555,8 @@ class GatewayDispatch:
 
         # Though we do get a channel in the payload, we'll try and get the one
         # from cache as a first point of contact instead of constructing a new
-        # object
+        # object. Although it may be slower, we'll need to do it anyway in order
+        # to remove it from the cache.
         channel_id = int(data["id"])
         channel = self.cache.channels.pop(channel_id, None)
         if channel:
@@ -547,19 +571,19 @@ class GatewayDispatch:
         # It's not cached - let's just build a new one
         channel = channel_builder(state=self.parent, data=data)
         if "guild_id" in data:
-            guild = self.cache.get_guild(data["guild_id"], or_object=True)
+            guild = self.cache.get_guild(data["guild_id"])
             channel.guild = guild
         yield channel
 
     async def _handle_guild_ban(
             self,
-            data: dict[str, Any]) -> Ret[tuple[Guild | amix.GuildAPIMixin, User | GuildMember]]:
+            data: dict[str, Any]) -> Ret[tuple[Guild, User | GuildMember]]:
         """Handle guild ban event."""
 
-        user = self.cache.get_user(data["user"]["id"], or_object=False)
+        user: User | GuildMember | None = self.cache.get_user(data["user"]["id"])
         if user is None:
             user = User(state=self.parent, data=data["user"])
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        guild = self.cache.get_guild(data["guild_id"])
         try:
             user._guilds.remove(guild.id)
         except KeyError:
@@ -572,13 +596,19 @@ class GatewayDispatch:
 
     async def _handle_guild_unban(
             self,
-            data: dict[str, Any]) -> Ret[tuple[Guild | amix.GuildAPIMixin, User]]:
+            data: dict[str, Any]) -> Ret[tuple[Guild, User]]:
         """Handle guild unban event."""
 
         # We're gonna assume we don't have this user and just build them from
-        # scratch
-        user = User(state=self.parent, data=data["user"])
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        # scratch.
+        # We won't cache them from this, but if they're already cached, we'll
+        # use this new payload to update them.
+        user = self.cache.get_user(data["user"]["id"])
+        if user is None:
+            user = User(state=self.parent, data=data["user"])
+        else:
+            user._sync(data["user"])
+        guild = self.cache.get_guild(data["guild_id"])
         yield guild, user,
 
     async def _handle_invite_create(
@@ -586,32 +616,20 @@ class GatewayDispatch:
             data: payloads.Invite) -> Ret[Invite]:
         """Handle invite create event."""
 
-        invite = Invite(state=self.parent, data=data)  # pyright: ignore
+        # The invite object pulls both the guild and the channel objects from
+        # cache in its constructor -
+        # the guild is actually a more full object than one found in BaseGuild,
+        # so we're just going to leave it as is and let it do what it wants.
 
-        # Because this creates both a channel AND a guild object, we're gonna
-        # try and get those from the cache
-        channel: Channel | None = None
-        if invite.channel:
-            channel = self.cache.get_channel(invite.channel.id)
-            if channel:
-                invite.channel = channel
-        if invite.guild:
-            guild = self.cache.get_guild(invite.guild.id)
-            if guild:
-                invite.guild = guild
-            if channel:
-                channel.guild = guild
-
-        yield invite
+        yield Invite(state=self.parent, data=data)
 
     async def _handle_invite_delete(
             self,
-            data: dict[str, str]) -> Ret[tuple[Guild | amix.GuildAPIMixin, Channel, str]]:
+            data: dict[str, str]) -> Ret[tuple[BaseGuild, Channel | None, str]]:
         """Handle an invite delete."""
 
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
-        channel = self.cache.get_channel(data["channel_id"], or_object=True)
-        channel.guild = guild
+        guild = self.cache.get_guild(data["guild_id"])
+        channel = self.cache.get_channel(data["channel_id"])
         yield guild, channel, data["code"],
 
     async def _handle_role_generic(
@@ -619,7 +637,7 @@ class GatewayDispatch:
             data: gw.RoleCreateUpdate) -> tuple[Role | None, Role]:
         """Handle a role being created."""
 
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        guild = self.cache.get_guild(data["guild_id"])
         role = Role(state=self.parent, data=data["role"], guild=guild)
         current: Role | None = None
         if isinstance(guild, Guild):
@@ -645,24 +663,23 @@ class GatewayDispatch:
 
     async def _handle_role_delete(
             self,
-            data: gw.RoleDelete) -> Ret[Role | amix.RoleAPIMixin]:
+            data: gw.RoleDelete) -> Ret[Role | abc.StateSnowflakeWithGuild]:
         """Handle role delete."""
 
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
-        role: Role | amix.RoleAPIMixin | None = None
+        guild = self.cache.get_guild(data["guild_id"])
+        role: Role | Object | None = None
         if isinstance(guild, Guild):
             role = guild._roles.pop(int(data["role_id"]), None)
         if role is None:
-            role = Object(data["role_id"], state=self.parent).add_api(Role)
-            role.guild = guild
-        yield role
+            role = Object(data["role_id"], state=self.parent, guild=guild)
+        yield role  # pyright: ignore
 
     async def _handle_guild_member_generic(
             self,
             data: payloads.GuildMember) -> tuple[GuildMember | None, GuildMember]:
         """Handle member create and update."""
 
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        guild = self.cache.get_guild(data["guild_id"])
         member = GuildMember(state=self.parent, data=data)
         current: GuildMember | None = None
         if isinstance(guild, Guild):
@@ -688,29 +705,33 @@ class GatewayDispatch:
 
     async def _handle_guild_member_remove(
             self,
-            data: dict[str, Any]) -> Ret[tuple[Guild | amix.GuildAPIMixin, GuildMember | User]]:
+            data: payloads.GuildMemberRemove) -> Ret[tuple[BaseGuild, GuildMember | User]]:
         """Handle guild member being removed."""
 
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
-        user: GuildMember | User | None = None
+        guild = self.cache.get_guild(data["guild_id"])
+        member: GuildMember | User | None = None
         if isinstance(guild, Guild):
-            user = guild._members.pop(int(data["user"]["id"]), None)
-            if user:
+            member = guild._members.pop(int(data["user"]["id"]), None)
+            if member:
                 try:
-                    user._user._guilds.remove(guild.id)
+                    member._user._guilds.remove(guild.id)
                 except KeyError:
                     pass
-                if not user._user._guilds:
-                    self.cache.users.pop(user.id, None)
-        if user is None:
-            user = User(state=self.parent, data=data["user"])  # don't cache
-        yield guild, user,
+                if not member._user._guilds:
+                    self.cache.users.pop(member.id, None)
+        if member is None:
+            member = self.cache.get_user(data["user"]["id"])
+            if member is None:
+                member = User(state=self.parent, data=data["user"])  # don't cache
+            else:
+                member._sync(data["user"])
+        yield guild, member,
 
     async def _handle_guild_member_chunk(self, data: gw.GuildMemberChunk) -> Ret[None]:
         """Handle response from chunk request."""
 
-        guild = self.cache.get_guild(data["guild_id"], or_object=False)
-        if guild is None:
+        guild = self.cache.get_guild(data["guild_id"])
+        if not isinstance(guild, Guild):
             return
         nonce = None
         if "nonce" in data:
@@ -729,27 +750,38 @@ class GatewayDispatch:
 
     async def _handle_message_reaction_generic(
             self,
-            data: gw.ReactionAddRemove) -> tuple[GuildMember | User | amix.UserAPIMixin, Reaction]:
+            data: gw.ReactionAddRemove) -> tuple[GuildMember | User | Object, Reaction]:
         """Handle reaction add or remove."""
 
-        message = self.cache.get_message(data["message_id"], or_object=True)
-        created = Reaction(state=self.parent, data=data, message=message)  # pyright: ignore
-        guild: Guild | None = None
-        if "guild_id" in data:
-            guild = self.cache.get_guild(data["guild_id"], or_object=False)
+        # Get message from cache
+        message = self.cache.get_message(data["message_id"])
 
-        user: User | GuildMember | amix.UserAPIMixin | None = None
-        if created.message is not None and "member" in data:
-            assert guild
+        # Create a new reaction object using that cached message (which may not
+        # exist)
+        created = Reaction(state=self.parent, data=data, message=message)  # pyright: ignore
+
+        # Get the guild from cache if one exists
+        guild: BaseGuild | Guild | None = None
+        if "guild_id" in data:
+            guild = self.cache.get_guild(data["guild_id"])
+
+        # Update our cache with the created member object
+        user: User | GuildMember | Object | None = None
+        if "member" in data:
+            assert isinstance(guild, Guild)
             user = guild._add_member(data["member"])
+
+        # Probably didn't happen in a guild. That sucks
         if user is None:
-            user = self.cache.get_user(data["user_id"], or_object=True)
+            user = self.cache.get_user(data["user_id"])
+            if user is None:
+                user = Object(data["user_id"], state=self.parent)
 
         return user, created
 
     async def _handle_message_reaction_add(
             self,
-            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User | amix.UserAPIMixin, Reaction]]:
+            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User | Object, Reaction]]:
         """Handle reaction add."""
 
         created = await self._handle_message_reaction_generic(data)
@@ -757,7 +789,7 @@ class GatewayDispatch:
 
     async def _handle_message_reaction_remove(
             self,
-            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User | amix.UserAPIMixin, Reaction]]:
+            data: gw.ReactionAddRemove) -> Ret[tuple[GuildMember | User | Object, Reaction]]:
         """Handle reaction remove."""
 
         created = await self._handle_message_reaction_generic(data)
@@ -765,10 +797,13 @@ class GatewayDispatch:
 
     async def _handle_message_reaction_remove_all(
             self,
-            data: gw.ReactionAddRemove) -> Ret[Message | amix.MessageAPIMixin]:
+            data: gw.ReactionAddRemove) -> Ret[Message | Object]:
         """Handle reaction remove all."""
 
-        message = self.cache.get_message(data["message_id"], or_object=True)
+        message = self.cache.get_message(data["message_id"])
+        if message is None:
+            yield Object(data["message_id"], state=self.parent)
+            return
         yield message
 
     async def _handle_message_reaction_remove_all_emoji(
@@ -784,8 +819,8 @@ class GatewayDispatch:
             data: payloads.Channel) -> Ret[Thread]:
         """Handle thread creation."""
 
-        assert "guild_id" in data
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        assert "guild_id" in data  # You can only have threads in guilds
+        guild = self.cache.get_guild(data["guild_id"])
         created = channel_builder(state=self.parent, data=data, guild_id=guild.id)
         assert isinstance(created, Thread)
         if isinstance(guild, Guild):
@@ -797,8 +832,8 @@ class GatewayDispatch:
             data: payloads.Channel) -> Ret[tuple[Thread | None, Thread]]:
         """Handle thread update."""
 
-        assert "guild_id" in data
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        assert "guild_id" in data  # You can only have threads in guilds
+        guild = self.cache.get_guild(data["guild_id"])
         created = channel_builder(state=self.parent, data=data, guild_id=guild.id)
         assert isinstance(created, Thread)
         current = None
@@ -812,20 +847,16 @@ class GatewayDispatch:
             data: gw.ThreadMemberListUpdate) -> Ret[Thread | Channel]:
         """Handle a thread's member list being updated."""
 
-        thread = self.cache.get_channel(data["id"], or_object=True)
-        guild = self.cache.get_guild(data["guild_id"], or_object=True)
+        thread = self.cache.get_channel(data["id"])
+        if thread is None:
+            return
         if isinstance(thread, Thread):
             for member_payload in data.get("added_members", []):
-                member: GuildMember | None = None
-                if isinstance(guild, Guild):
-                    member_id = int(member_payload["member"]["user"]["id"])
-                    member = guild.get_member(member_id)
-                if member is None:
-                    member = GuildMember(
-                        state=self.parent,
-                        data=member_payload["member"],
-                        guild_id=guild.id,
-                    )
+                assert "member" in member_payload
+                member = ThreadMember(
+                    state=self.parent,
+                    data=member_payload,
+                )
                 thread._add_member(member)
             for member_id in data.get("removed_member_ids", []):
                 thread._remove_member(member_id)
@@ -840,9 +871,9 @@ class GatewayDispatch:
         if "guild_id" not in data:
             return
         created = VoiceState(state=self.parent, data=data)
-        guild = self.cache.get_guild(data["guild_id"], or_object=False)
+        guild = self.cache.get_guild(data["guild_id"])
         user_id = int(data["user_id"])
-        if guild is None:
+        if guild is None or not isinstance(guild, Guild):
             yield None, created
             return
         current = guild._voice_states.get(user_id)

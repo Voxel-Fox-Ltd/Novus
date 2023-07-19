@@ -17,18 +17,25 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Generic, Literal, TypeVar
+import functools
+from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar
 
-from ..enums import ApplicationCommandType, ApplicationOptionType, InteractionType, Locale
-from ..flags import Permissions
+from ..enums import (
+    ApplicationCommandType,
+    ApplicationOptionType,
+    InteractionResponseType,
+    InteractionType,
+    Locale,
+)
+from ..flags import MessageFlags, Permissions
 from ..utils import (
+    MISSING,
     TranslatedString,
     cached_slot_property,
     generate_repr,
     try_snowflake,
     walk_components,
 )
-from .api_mixins.interaction import InteractionAPIMixin
 from .application_command import ApplicationCommandOption
 from .channel import Channel, channel_builder
 from .guild_member import GuildMember
@@ -41,10 +48,13 @@ from .user import User
 if TYPE_CHECKING:
     from aiohttp import web
 
-    from .. import payloads
+    from .. import flags, payloads
     from ..api import HTTPConnection
-    from . import Guild
-    from . import api_mixins as amix
+    from .application_command import ApplicationCommandChoice
+    from .file import File
+    from .guild import BaseGuild
+    from .message import AllowedMentions, Embed, WebhookMessage
+    from .sticker import Sticker
     from .ui.component import InteractableComponent
 
 __all__ = (
@@ -56,6 +66,7 @@ __all__ = (
     'MessageComponentData',
     'ModalSubmitData',
     'Interaction',
+    'GuildInteraction',
 )
 
 
@@ -96,10 +107,10 @@ class InteractionResolved:
             *,
             state: HTTPConnection,
             data: payloads.InteractionResolved | None,
-            guild: Guild | None = None):
+            guild: BaseGuild | None = None):
         self.state = state
         self.data = data or {}
-        self.guild: Guild | None = guild
+        self.guild: BaseGuild | None = guild
 
     __repr__ = generate_repr(())
 
@@ -241,7 +252,7 @@ class ApplicationCommandData(InteractionData):
     type: ApplicationCommandType
     resolved: InteractionResolved
     options: list[InteractionOption]
-    guild: Guild | amix.GuildAPIMixin | None
+    guild: BaseGuild | None
 
     def __init__(
             self,
@@ -293,7 +304,7 @@ class ContextComandData(ApplicationCommandData):
     type: ApplicationCommandType
     resolved: InteractionResolved
     options: list[ApplicationCommandOption]
-    guild: Guild | amix.GuildAPIMixin | None
+    guild: BaseGuild | None
     target: Message | User | GuildMember
 
     def __init__(
@@ -315,7 +326,7 @@ class ContextComandData(ApplicationCommandData):
             ApplicationCommandOption._from_data(d)
             for d in data.get("options", [])
         ]
-        self.guild = self.parent.state.cache.get_guild(data.get("guild_id"), or_object=True)
+        self.guild = self.parent.state.cache.get_guild(data.get("guild_id"))
         target_id = try_snowflake(data.get("target_id"))
         self.target = None  # pyright: ignore
         if self.type == ApplicationCommandType.message:
@@ -399,8 +410,8 @@ class ModalSubmitData(InteractionData):
         return self.components[index]
 
 
-ID = TypeVar(
-    "ID",
+IData = TypeVar(
+    "IData",
     None,
     ApplicationCommandData,
     ContextComandData,
@@ -409,7 +420,7 @@ ID = TypeVar(
 )
 
 
-class Interaction(InteractionAPIMixin, Generic[ID]):
+class Interaction(Generic[IData]):
     """
     An interaction received from Discord.
 
@@ -472,8 +483,8 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
     id: int
     application_id: int
     type: InteractionType
-    data: ID
-    guild: Guild | amix.GuildAPIMixin | None
+    data: IData
+    guild: BaseGuild | None
     channel: Channel
     user: GuildMember | User
     token: str
@@ -491,8 +502,12 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
         self._stream_request = None
         self.application_id = try_snowflake(data["application_id"])
         self.type = InteractionType(data["type"])
-        self.guild = self.state.cache.get_guild(data.get("guild_id"), or_object=True)
-        self.channel = self.state.cache.get_channel(data.get("channel_id"), or_object=True)
+        self.guild = self.state.cache.get_guild(data.get("guild_id"))
+        channel = self.state.cache.get_channel(data.get("channel_id"))
+        if channel is None:
+            self.channel = Channel.partial(self.state, data["channel_id"])
+        else:
+            self.channel = channel
         if "user" in data:
             self.user = User(
                 state=self.state,
@@ -574,6 +589,291 @@ class Interaction(InteractionAPIMixin, Generic[ID]):
             self,
             string: str,
             guild: int | Literal[False] = 1,
-            user: int | Literal[False] = 0) -> TranslatedString:
-        return TranslatedString(string, context=self, guild=guild, user=user)
+            user: int | Literal[False] = 0) -> str:
+        ts = TranslatedString(string, context=self, guild=guild, user=user)
+        return str(ts)
 
+    # API methods
+
+    def _get_response_partial(self: Interaction):
+        if self._stream is None:
+            return functools.partial(
+                self.state.interaction.create_interaction_response,
+                self.id,
+                self.token,
+            )
+        else:
+            return functools.partial(
+                self.state.interaction.create_interaction_response_for_writer,
+                self._stream,
+                self._stream_request,  # pyright: ignore
+            )
+
+    async def pong(self: Interaction) -> None:
+        """
+        Send a pong interaction response.
+        """
+
+        await self._get_response_partial()(InteractionResponseType.pong)
+
+    async def send(
+            self: Interaction,
+            content: str = MISSING,
+            *,
+            tts: bool = MISSING,
+            embeds: list[Embed] = MISSING,
+            allowed_mentions: AllowedMentions = MISSING,
+            components: list[ActionRow] = MISSING,
+            message_reference: Message = MISSING,
+            stickers: list[Sticker] = MISSING,
+            files: list[File] = MISSING,
+            flags: MessageFlags = MISSING,
+            ephemeral: bool = False) -> None:
+        """
+        Send a message associated with the interaction response.
+
+        Parameters
+        ----------
+        content : str
+            The content that you want to have in the message
+        tts : bool
+            If you want the message to be sent with the TTS flag.
+        embeds : list[novus.Embed]
+            The embeds you want added to the message.
+        allowed_mentions : novus.AllowedMentions
+            The mentions you want parsed in the message.
+        components : list[novus.ActionRow]
+            A list of action rows to be added to the message.
+        message_reference : novus.Message
+            A reference to a message you want replied to.
+        stickers : list[novus.Sticker]
+            A list of stickers to add to the message.
+        files : list[novus.File]
+            A list of files to be sent with the message.
+        flags : novus.MessageFlags
+            The flags to be sent with the message.
+        ephemeral : bool
+            Whether the message should be sent so only the calling user can see
+            it.
+            This is ignored if this is the first message you're sending
+            relating to this interaction and you've previously deferred.
+        """
+
+        data: dict[str, Any] = {}
+
+        if content is not MISSING:
+            data["content"] = content
+        if tts is not MISSING:
+            data["tts"] = tts
+        if embeds is not MISSING:
+            data["embeds"] = embeds
+        if allowed_mentions is not MISSING:
+            data["allowed_mentions"] = allowed_mentions
+        if components is not MISSING:
+            data["components"] = components
+        if message_reference is not MISSING:
+            data["message_reference"] = message_reference
+        if stickers is not MISSING:
+            data["stickers"] = stickers
+        if files is not MISSING:
+            data["files"] = files
+        if flags is MISSING:
+            data["flags"] = MessageFlags()
+        else:
+            data["flags"] = flags
+        if ephemeral:
+            data["flags"].ephemeral = True
+
+        if self._responded is False:
+            await self._get_response_partial()(
+                InteractionResponseType.channel_message_with_source,
+                data,
+            )
+            self._responded = True
+        else:
+            await self.state.interaction.create_followup_message(
+                self.application_id,
+                self.token,
+                **data,
+            )
+        return
+
+    async def defer(self: Interaction, *, ephemeral: bool = False) -> None:
+        """
+        Send a defer response.
+        """
+
+        data = None
+        if ephemeral:
+            data = {"flags": MessageFlags(ephemeral=True)}
+        await self._get_response_partial()(
+            InteractionResponseType.deferred_channel_message_with_source,
+            data,
+        )
+        self._responded = True
+
+    async def defer_update(self: Interaction) -> None:
+        """
+        Send a defer update response.
+        """
+
+        t = InteractionResponseType.deferred_channel_message_with_source
+        if self.type == InteractionType.message_component:
+            t = InteractionResponseType.deferred_update_message
+        await self._get_response_partial()(t)
+        self._responded = True
+
+    async def update(
+            self: Interaction,
+            *,
+            content: str | None = MISSING,
+            tts: bool = MISSING,
+            embeds: list[Embed] | None = MISSING,
+            allowed_mentions: AllowedMentions | None = MISSING,
+            components: list[ActionRow] | None = MISSING,
+            message_reference: Message | None = MISSING,
+            stickers: list[Sticker] | None = MISSING,
+            files: list[File] | None = MISSING,
+            flags: flags.MessageFlags | None = MISSING) -> None:
+        """
+        Send an update response.
+
+        Parameters
+        ----------
+        content : str
+            The content that you want to have in the message
+        tts : bool
+            If you want the message to be sent with the TTS flag.
+        embeds : list[novus.Embed]
+            The embeds you want added to the message.
+        allowed_mentions : novus.AllowedMentions
+            The mentions you want parsed in the message.
+        components : list[novus.ActionRow]
+            A list of action rows to be added to the message.
+        message_reference : novus.Message
+            A reference to a message you want replied to.
+        stickers : list[novus.Sticker]
+            A list of stickers to add to the message.
+        files : list[novus.File]
+            A list of files to be sent with the message.
+        flags : novus.MessageFlags
+            The flags to be sent with the message.
+        """
+
+        data: dict[str, Any] = {}
+
+        if content is not MISSING:
+            data["content"] = content
+        if tts is not MISSING:
+            data["tts"] = tts
+        if embeds is not MISSING:
+            data["embeds"] = embeds
+        if allowed_mentions is not MISSING:
+            data["allowed_mentions"] = allowed_mentions
+        if components is not MISSING:
+            data["components"] = components
+        if message_reference is not MISSING:
+            data["message_reference"] = message_reference
+        if stickers is not MISSING:
+            data["stickers"] = stickers
+        if files is not MISSING:
+            data["files"] = files
+        if flags is not MISSING:
+            data["flags"] = flags
+
+        await self._get_response_partial()(
+            InteractionResponseType.update_message,
+            data,
+        )
+        self._responded = True
+
+    async def send_autocomplete(
+            self: Interaction,
+            options: list[ApplicationCommandChoice]) -> None:
+        """
+        Send an autocomplete response.
+
+        Parameters
+        ----------
+        options : list[novus.ApplicationCommandChoice]
+            A list of choices to to populate the autocomplete with.
+        """
+
+        await self._get_response_partial()(
+            InteractionResponseType.application_command_autocomplete_result,
+            {"choices": options},
+        )
+        self._responded = True
+
+    async def send_modal(
+            self: Interaction,
+            *,
+            title: str,
+            custom_id: str,
+            components: list[ActionRow]) -> None:
+        """
+        Send a modal response. Not valid on modal interactions.
+
+        Parameters
+        ----------
+        title : str
+            The title to be shown in the modal.
+        custom_id : str
+            The custom ID of the modal.
+        components : list[novus.ActionRow]
+            The components shown in the modal.
+        """
+
+        await self._get_response_partial()(
+            InteractionResponseType.modal,
+            {
+                "title": title,
+                "custom_id": custom_id,
+                "components": [i._to_data() for i in components],
+            },
+        )
+        self._responded = True
+
+    async def delete_original(self: Interaction) -> None:
+        """
+        Delete the original message that is associated with the interaction.
+        """
+
+        await self.state.interaction.delete_original_interaction_response(
+            self.application_id,
+            self.token,
+        )
+
+    async def fetch_original(
+            self: Interaction) -> WebhookMessage:
+        """
+        Get the original message associated with the interaction.
+        """
+
+        return await self.state.interaction.get_original_interaction_response(
+            self.application_id,
+            self.token,
+        )
+
+    async def edit_original(
+            self: Interaction,
+            **kwargs: Any) -> WebhookMessage:
+        """
+        Edit the original message associated with the interaction.
+        """
+
+        return await self.state.interaction.edit_original_interaction_response(
+            self.application_id,
+            self.token,
+            **kwargs,
+        )
+
+
+class GuildInteraction(Interaction):
+    """
+    A type-hinting version of interactions that have all guild attributes set
+    properly for you.
+    """
+
+    guild: BaseGuild
+    user: GuildMember

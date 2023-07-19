@@ -18,24 +18,27 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, TypeAlias, overload
+from typing import TYPE_CHECKING, Any, overload
 
 import emoji
 
-from ..utils import cached_slot_property, generate_repr, try_snowflake
-from .api_mixins.emoji import EmojiAPIMixin
+from ..utils import (
+    MISSING,
+    cached_slot_property,
+    generate_repr,
+    try_id,
+    try_object,
+    try_snowflake,
+)
+from .abc import Hashable
 from .asset import Asset
-from .mixins import Hashable
 
 if TYPE_CHECKING:
-    import io
-
     from .. import payloads
     from ..api import HTTPConnection
-    from . import Guild
-    from . import api_mixins as amix
-
-    FileT: TypeAlias = str | bytes | io.IOBase
+    from ..utils.types import FileT
+    from . import abc
+    from .guild import BaseGuild
 
 __all__ = (
     'PartialEmoji',
@@ -177,7 +180,7 @@ class PartialEmoji(Hashable):
         raise ValueError("Failed to convert %s to an emoji" % value)
 
 
-class Emoji(PartialEmoji, EmojiAPIMixin):
+class Emoji(PartialEmoji):
     """
     A custom emoji in a guild.
 
@@ -227,7 +230,7 @@ class Emoji(PartialEmoji, EmojiAPIMixin):
     requires_colons: bool
     managed: bool
     available: bool
-    guild: Guild | amix.GuildAPIMixin | None
+    guild: BaseGuild | None
 
     def __init__(
             self,
@@ -235,7 +238,7 @@ class Emoji(PartialEmoji, EmojiAPIMixin):
             state: HTTPConnection,
             data: payloads.PartialEmoji | payloads.Emoji,
             guild_id: int | None = None,
-            guild: Guild | None = None):
+            guild: BaseGuild | None = None):
         self.state = state
         super().__init__(data=data)
         self.role_ids = [
@@ -251,3 +254,156 @@ class Emoji(PartialEmoji, EmojiAPIMixin):
             self.guild = self.state.cache.get_guild(guild_id)
         else:
             self.guild = None
+
+    # API methods
+
+    @classmethod
+    async def create(
+            cls,
+            state: HTTPConnection,
+            guild: int | abc.Snowflake,
+            *,
+            name: str,
+            image: FileT,
+            roles: list[int | abc.Snowflake] | None = None,
+            reason: str | None = None) -> Emoji:
+        """
+        Create an emoji within a guild.
+
+        Parameters
+        ----------
+        state : novus.HTTPConnection
+            The API connection to create the entity with.
+        guild : int | novus.abc.Snowflake
+            The guild that the emoji is to be created in.
+        name : str
+            The name of the emoji you want to add.
+        image : str | bytes | io.IOBase
+            The image that you want to add.
+        roles : list[int | novus.abc.Snowflake] | None
+            A list of roles that are allowed to use the emoji.
+        reason : str | None
+            A reason you're adding the emoji to be shown in the audit log.
+
+        Returns
+        -------
+        novus.Emoji
+            The newly created emoji.
+        """
+
+        return await state.emoji.create_guild_emoji(
+            try_id(guild),
+            reason=reason,
+            **{
+                "name": name,
+                "image": image,
+                "roles": [try_object(i) for i in roles or ()],
+            },
+        )
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            guild_id: int,
+            emoji_id: int) -> Emoji:
+        """
+        Fetch a specific emoji by its ID from the API.
+
+        .. seealso:: :func:`novus.Guild.fetch_emoji`
+
+        Parameters
+        ----------
+        guild_id : int
+            The ID of the guild that you want to fetch from.
+        emoji_id : int
+            The ID of the emoji that you want to fetch.
+
+        Returns
+        -------
+        novus.Emoji
+            The emoji from the API.
+        """
+
+        return await state.emoji.get_emoji(guild_id, emoji_id)
+
+    @classmethod
+    async def fetch_all_for_guild(
+            cls,
+            state: HTTPConnection,
+            guild: int | abc.Snowflake) -> list[Emoji]:
+        """
+        Fetch all of the emojis from a guild.
+
+        .. seealso:: :func:`novus.Guild.fetch_emojis`
+
+        Parameters
+        ----------
+        guild : int | novus.abc.Snowflake
+            The guild that you want to fetch from.
+
+        Returns
+        -------
+        list[novus.Emoji]
+            The list of emojis that the guild has.
+        """
+
+        return await state.emoji.list_guild_emojis(try_id(guild))
+
+    async def delete(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            reason: str | None = None) -> None:
+        """
+        Delete this emoji.
+
+        Parameters
+        ----------
+        reason : str | None
+            The reason shown in the audit log.
+        """
+
+        await self.state.emoji.delete_guild_emoji(
+            self.guild.id,
+            self.id,
+            reason=reason,
+        )
+        return None
+
+    async def edit(
+            self: abc.StateSnowflakeWithGuild,
+            *,
+            reason: str | None = None,
+            name: str = MISSING,
+            roles: list[int | abc.Snowflake] = MISSING) -> Emoji:
+        """
+        Edit the current emoji.
+
+        Parameters
+        ----------
+        name : str
+            The new name for the emoji.
+        roles : list[int | novus.abc.Snowflake]
+            A list of the roles that can use the emoji.
+        reason : str | None
+            The reason shown in the audit log.
+
+        Returns
+        -------
+        novus.Emoji
+            The newly updated emoji.
+        """
+
+        update: dict[str, Any] = {}
+
+        if name is not MISSING:
+            update["name"] = name
+        if roles is not MISSING:
+            update["roles"] = [try_object(i) for i in roles]
+
+        return await self.state.emoji.modify_guild_emoji(
+            self.guild.id,
+            self.id,
+            reason=reason,
+            **update,
+        )

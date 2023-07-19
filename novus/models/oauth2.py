@@ -69,7 +69,7 @@ class TeamMember:
         self.accepted = data["membership_state"] == 2
         self.permissions = data["permissions"]
         self.team_id = try_snowflake(data["team_id"])
-        user = self.state.cache.get_user(data["user"]["id"], or_object=False)
+        user = self.state.cache.get_user(data["user"]["id"])
         if user is None:
             user = User(state=self.state, data=data["user"])
         self.user = user
@@ -249,7 +249,7 @@ class Application:
         self.terms_of_service_url = data.get("terms_of_service_url")
         self.privacy_policy_url = data.get("privacy_policy_url")
         if "owner" in data:
-            owner = self.state.cache.get_user(data["owner"]["id"], or_object=False)
+            owner = self.state.cache.get_user(data["owner"]["id"])
             if owner is None:
                 owner = User(state=self.state, data=data["owner"])
             self.owner = owner

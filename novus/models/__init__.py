@@ -15,7 +15,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from . import abc, mixins
+from . import abc
 from .application_command import *
 from .asset import *
 from .audit_log import *
@@ -58,6 +58,7 @@ __all__: tuple[str, ...] = (
     'AutoModerationAction',
     'AutoModerationRule',
     'AutoModerationTriggerMetadata',
+    'BaseGuild',
     'Button',
     'Channel',
     'ChannelSelectMenu',
@@ -121,5 +122,4 @@ __all__: tuple[str, ...] = (
     'WelcomeScreen',
     'WelcomeScreenChannel',
     'abc',
-    'mixins',
 )

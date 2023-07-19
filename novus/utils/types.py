@@ -17,18 +17,33 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from .models.interaction import (
-    ApplicationCommandData,
-    ContextComandData,
-    Interaction,
-    MessageComponentData,
-)
+from typing import TYPE_CHECKING, TypeAlias
 
 __all__ = (
+    'AnySnowflake',
     'CommandI',
     'ComponentI',
+    'FileT',
 )
 
+if TYPE_CHECKING:
+    import io
 
-CommandI = Interaction[ApplicationCommandData] | Interaction[ContextComandData]
-ComponentI = Interaction[MessageComponentData]
+    from ..models.abc import Snowflake
+    from ..models.interaction import (
+        ApplicationCommandData,
+        ContextComandData,
+        Interaction,
+        MessageComponentData,
+    )
+
+    CommandI: TypeAlias = Interaction[ApplicationCommandData] | Interaction[ContextComandData]
+    ComponentI: TypeAlias = Interaction[MessageComponentData]
+    AnySnowflake: TypeAlias = str | int | Snowflake
+    FileT: TypeAlias = str | bytes | io.IOBase
+
+else:
+    CommandI: TypeAlias
+    ComponentI: TypeAlias
+    AnySnowflake: TypeAlias
+    FileT: TypeAlias

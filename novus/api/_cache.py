@@ -18,13 +18,15 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Any, Literal, overload
+from typing import TYPE_CHECKING, Any, overload
 
-from ..models import Channel, Guild, Message, Object, User
+from ..models.channel import Channel
+from ..models.guild import BaseGuild, Guild
+from ..models.message import Message
+from ..models.user import User
 
 if TYPE_CHECKING:
-    from .. import Application, DMChannel, Emoji, GuildChannel, ScheduledEvent, Sticker
-    from ..models import api_mixins as amix
+    from .. import Application, Emoji, ScheduledEvent, Sticker
     from ._http import HTTPConnection
 
 __all__ = (
@@ -110,64 +112,34 @@ class APICache:
             self.messages[i.id] = i
 
     @overload
-    def get_guild(self, id: None, or_object: bool) -> None:
+    def get_guild(self, id: None) -> None:
         ...
 
     @overload
-    def get_guild(self, id: int | str, or_object: Literal[True] = ...) -> Guild | amix.GuildAPIMixin:
+    def get_guild(self, id: int | str) -> Guild | BaseGuild:
         ...
 
     @overload
-    def get_guild(self, id: int | str, or_object: Literal[False] = ...) -> Guild | None:
+    def get_guild(self, id: int | str) -> Guild | None:
         ...
 
-    def get_guild(self, id: int | str | None, or_object: bool = False) -> Guild | amix.GuildAPIMixin | None:
+    def get_guild(self, id: int | str | None) -> Guild | BaseGuild | None:
         if id is None:
             return None
         v = self.guilds.get(int(id))
         if v:
             return v
-        if or_object is False:
-            return None
-        return Object(id, state=self.parent).add_api(Guild)
+        return BaseGuild(state=self.parent, data={"id": id})  # pyright: ignore
 
-    @overload
-    def get_user(self, id: int | str, or_object: Literal[True] = ...) -> User | amix.UserAPIMixin:
-        ...
-
-    @overload
-    def get_user(self, id: int | str, or_object: Literal[False] = ...) -> User | None:
-        ...
-
-    def get_user(self, id: int | str, or_object: bool = False) -> User | amix.UserAPIMixin | None:
+    def get_user(self, id: int | str) -> User | None:
         v = self.users.get(int(id))
-        if v:
-            return v
-        if or_object is False:
-            return None
-        return Object(id, state=self.parent).add_api(User)
+        return v or None
 
-    @overload
-    def get_channel(self, id: None, or_object: bool = ...) -> None:
-        ...
-
-    @overload
-    def get_channel(self, id: int | str, or_object: Literal[True] = ...) -> GuildChannel | DMChannel | Channel:
-        ...
-
-    @overload
-    def get_channel(self, id: int | str, or_object: Literal[False] = ...) -> GuildChannel | DMChannel | Channel | None:
-        ...
-
-    def get_channel(self, id: int | str | None, or_object: bool = False) -> GuildChannel | DMChannel | Channel | None:
+    def get_channel(self, id: int | str | None) -> Channel | None:
         if id is None:
             return None
         v = self.channels.get(int(id))
-        if v:
-            return v
-        if or_object is False:
-            return None
-        return Channel.partial(self.parent, id)
+        return v or Channel.partial(self.parent, id)
 
     def get_emoji(self, id: int | str) -> Emoji | None:
         return self.emojis.get(int(id))
@@ -178,21 +150,9 @@ class APICache:
     def get_event(self, id: int | str) -> ScheduledEvent | None:
         return self.events.get(int(id))
 
-    @overload
-    def get_message(self, id: int | str, or_object: Literal[True] = ...) -> Message | amix.MessageAPIMixin:
-        ...
-
-    @overload
-    def get_message(self, id: int | str, or_object: Literal[False] = ...) -> Message | None:
-        ...
-
-    def get_message(self, id: int | str, or_object: bool = False) -> Message | amix.MessageAPIMixin | None:
+    def get_message(self, id: int | str) -> Message | None:
         v = self.messages.get(int(id))
-        if v:
-            return v
-        if or_object is False:
-            return None
-        return Object(id, state=self.parent).add_api(Message)
+        return v
 
     def clear(self) -> None:
         self.user = None

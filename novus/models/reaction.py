@@ -17,22 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeAlias
+from typing import TYPE_CHECKING
 
-from ..utils import try_snowflake
-from .channel import Channel
 from .emoji import PartialEmoji
-from .guild import Guild
-from .object import Object
 
 if TYPE_CHECKING:
-    import io
-
     from .. import Message, payloads
     from ..api import HTTPConnection
-    from . import api_mixins as amix
-
-    FileT: TypeAlias = str | bytes | io.IOBase
 
 __all__ = (
     'Reaction',
@@ -60,8 +51,8 @@ class Reaction:
             *,
             state: HTTPConnection,
             data: payloads.Reaction,
-            message: Message | amix.MessageAPIMixin):
+            message: Message):
         self.state = state
-        self.message: Message | amix.MessageAPIMixin = message
+        self.message: Message = message
         self.emoji: PartialEmoji = PartialEmoji(data=data["emoji"])
         self.burst: bool = data.get("burst", False)

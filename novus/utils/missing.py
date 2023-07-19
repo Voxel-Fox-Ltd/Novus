@@ -18,7 +18,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from typing import Any, Callable, Literal, Mapping
 
 __all__ = (
+    'UNUSED',
     'MISSING',
+    'UNUSED',
     'ME',
     'add_not_missing',
 )
@@ -31,20 +33,29 @@ class MissingObject:
     def __bool__(self) -> Literal[False]:
         return False
 
-    def __repr__(self) -> Literal['MISSING']:
-        return 'MISSING'
+    def __repr__(self) -> Literal["MISSING"]:
+        return "MISSING"
 
 
 class MeObject:
 
     __slots__ = ()
 
-    def __repr__(self) -> Literal['ME']:
-        return 'ME'
+    def __repr__(self) -> Literal["ME"]:
+        return "ME"
+
+
+class UnusedObject:
+
+    __slots__ = ()
+
+    def __repr__(self) -> Literal["UNUSED"]:
+        return "UNUSED"
 
 
 MISSING: Any = MissingObject()
 ME: Any = MeObject()
+UNUSED: Any = UnusedObject()
 
 
 def add_not_missing(

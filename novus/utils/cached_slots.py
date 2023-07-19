@@ -60,7 +60,10 @@ class CachedSlotProperty(Generic[T, R]):
             return value
 
     def __delete__(self, instance: T) -> None:
-        delattr(instance, self.name)
+        try:
+            delattr(instance, self.name)
+        except AttributeError:
+            pass
 
 
 def cached_slot_property(name: str) -> Callable[[Callable[[T], R]], CachedSlotProperty[T, R]]:

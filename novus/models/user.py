@@ -17,26 +17,26 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import functools
+from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from ..enums import Locale, UserPremiumType
 from ..flags import UserFlags
 from ..utils import cached_slot_property, generate_repr, try_enum, try_snowflake
-from .api_mixins.user import UserAPIMixin
+from .abc import Hashable, Messageable
 from .asset import Asset
-from .mixins import Hashable
 
 if TYPE_CHECKING:
-    from .. import payloads
+    from .. import abc, payloads
     from ..api import HTTPConnection
-    from . import DMChannel, GuildMember
+    from . import DMChannel, GuildMember, OauthGuild
 
 __all__ = (
     'User',
 )
 
 
-class User(Hashable, UserAPIMixin):
+class User(Hashable, Messageable):
     """
     A model for a user object.
 
@@ -111,25 +111,9 @@ class User(Hashable, UserAPIMixin):
             data: payloads.User | payloads.PartialUser):
         self.state = state
         self.id = try_snowflake(data['id'])
-        self.username = data['username']
-        self.discriminator = data['discriminator']
-        self.avatar_hash = data.get('avatar')
-        self.bot = data.get('bot', False)
-        self.system = data.get('system', False)
-        self.mfa_enabled = data.get('mfa_enabled', False)
-        self.banner_hash = data.get('banner')
-        self.accent_color = data.get('accent_color')
-        self.locale = try_enum(Locale, data.get('locale'))
-        self.verified = data.get('verified', False)
-        self.email = data.get('email')
-        self.flags = UserFlags(0)
-        if 'flags' in data or 'public_flags' in data:
-            self.flags = UserFlags(
-                data.get('flags', 0) | data.get('public_flags', 0)
-            )
-        self.premium_type = try_enum(UserPremiumType, data.get('premium_type', 0))
         self._guilds: set[int] = set()
         self._dm_channel: DMChannel | None = None
+        self._sync(data)
 
     __repr__ = generate_repr(('id', 'username', 'bot',))
 
@@ -172,3 +156,134 @@ class User(Hashable, UserAPIMixin):
 
     def _to_user(self) -> User:
         return self
+
+    def _sync(self, data: payloads.User | payloads.PartialUser) -> None:
+        """
+        Update the user instance if we get any new data from the API.
+        """
+
+        self.username = data['username']
+        self.discriminator = data['discriminator']
+        self.avatar_hash = data.get('avatar')
+        del self.avatar
+        self.bot = data.get('bot', False)
+        self.system = data.get('system', False)
+        self.mfa_enabled = data.get('mfa_enabled', False)
+        self.banner_hash = data.get('banner')
+        del self.banner
+        self.accent_color = data.get('accent_color')
+        self.locale = try_enum(Locale, data.get('locale'))
+        self.verified = data.get('verified', False)
+        self.email = data.get('email')
+        self.flags = UserFlags(0)
+        if 'flags' in data or 'public_flags' in data:
+            self.flags = UserFlags(
+                data.get('flags', 0) | data.get('public_flags', 0)
+            )
+        self.premium_type = try_enum(UserPremiumType, data.get('premium_type', 0))
+
+    # API methods
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            id: int) -> User:
+        """
+        Get an instance of a user from the API.
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        id : int
+            The ID associated with the user you want to get.
+
+        Returns
+        -------
+        novus.User
+            The user associated with the given ID.
+        """
+
+        return await state.user.get_user(id)
+
+    @classmethod
+    async def fetch_me(
+            cls,
+            state: HTTPConnection) -> User:
+        """
+        Get the user associated with the current connection.
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+
+        Returns
+        -------
+        novus.User
+            The user associated with the given ID.
+        """
+
+        return await state.user.get_current_user()
+
+    @classmethod
+    async def fetch_my_guilds(
+            cls,
+            state: HTTPConnection,
+            *,
+            before: int | None = None,
+            after: int | None = None,
+            limit: int = 200) -> list[OauthGuild]:
+        """
+        Return a list of partial guild objects that the current user is a
+        member of.
+
+        The endpoint returns 200 guilds by default, which is the maximum number
+        of guilds that a non-bot can join.
+
+        Parameters
+        ----------
+        state : HTTPConnection
+            The API connection.
+        before: int | None
+            The snowflake before which to get guilds.
+        after: int | None
+            The snowflake after which to get guilds.
+        limit: int
+            The number of guilds you want to return.
+
+        Returns
+        -------
+        list[novus.OauthGuild]
+            A list of guilds associated with the current user.
+        """
+
+        return await state.user.get_current_user_guilds(
+            before=before,
+            after=after,
+            limit=limit,
+        )
+
+    async def create_dm_channel(
+            self: abc.StateSnowflake) -> DMChannel:
+        """
+        Open a DM channel with the given user.
+
+        Returns
+        -------
+        novus.DMChannel
+            The DM channel for the user.
+        """
+
+        return await self.state.user.create_dm(self.id)
+
+    async def _get_send_method(self) -> Callable[..., Awaitable[Any]]:
+        """
+        Return a snowflake implementation with the ID of the channel, and the
+        sendable method.
+        """
+
+        if self._dm_channel is None:
+            self._dm_channel = await self.create_dm_channel()
+        return functools.partial(self.state.channel.create_message, self._dm_channel.id)

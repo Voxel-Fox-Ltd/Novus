@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Literal, overload
 
 if TYPE_CHECKING:
     from ..models.abc import Snowflake
@@ -62,7 +62,7 @@ def try_snowflake(given: str | int | None) -> int | None:
 
 
 @overload
-def try_id(given: None) -> None:
+def try_id(given: Literal[None]) -> None:
     ...
 
 
@@ -98,7 +98,7 @@ def try_id(given: int | Snowflake | str | None) -> int | None:
 
 
 @overload
-def try_object(given: int | Snowflake) -> Snowflake:
+def try_object(given: int | str | Snowflake) -> Snowflake:
     ...
 
 
@@ -107,7 +107,7 @@ def try_object(given: None) -> None:
     ...
 
 
-def try_object(given: int | Snowflake | None) -> Snowflake | None:
+def try_object(given: int | str | Snowflake | None) -> Snowflake | None:
     """
     Wrap the given ID in a ``novus.Object``, or return ``None`` if the
     item is not an int (or if the object is a snowflake already, return it
@@ -126,7 +126,7 @@ def try_object(given: int | Snowflake | None) -> Snowflake | None:
 
     if given is None:
         return None
-    if isinstance(given, int):
+    if isinstance(given, (int, str)):
         from ..models import Object  # Circular import :(
         return Object(given, state=None)  # pyright: ignore
     return given
