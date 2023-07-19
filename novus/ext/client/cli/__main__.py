@@ -131,6 +131,17 @@ def get_parser() -> ArgumentParser:
     return p
 
 
+class CustomCloseCLI(AsynchronousCli):
+
+    def __init__(self, *args, bot, **kwargs):
+        super().__init__(*args, *kwargs)
+        self.bot = bot
+
+    async def exit_command(self, reader, writer):
+        await self.bot.close()
+        return await super().exit_command(reader, writer)
+
+
 def create_console(bot: client.Client) -> AsynchronousCli:
     """
     Create a console that users are able to interact with while the bot is
@@ -150,16 +161,14 @@ def create_console(bot: client.Client) -> AsynchronousCli:
         bot.remove_plugin_file(plugin)
         bot.add_plugin_file(plugin, load=True, reload_import=True)
 
-    async def close(reader, writer):
-        await bot.close()
-        raise SystemExit
-
-    return AsynchronousCli({
-        "add-plugin": (add, plugin_parser,),
-        "remove-plugin": (remove, plugin_parser,),
-        "reload-plugin": (reload, plugin_parser,),
-        "exit": (close, ArgumentParser(),),
-    })
+    return CustomCloseCLI(
+        {
+            "add-plugin": (add, plugin_parser,),
+            "remove-plugin": (remove, plugin_parser,),
+            "reload-plugin": (reload, plugin_parser,),
+        },
+        bot=bot,
+    )
 
 async def main(args: Namespace, unknown: list[str]) -> None:
     """

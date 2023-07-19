@@ -578,11 +578,10 @@ class Client:
         """
 
         log.info("Closing bot")
-        await asyncio.gather(*[i.on_unload() for i in self.plugins])
-        await asyncio.gather(
-            self.state.gateway.close(),
-            self.state.close(),
-        )
+        for i in self.plugins:
+            await i.on_unload()
+        await self.state.gateway.close()
+        await self.state.close()
 
     async def run(self, *, sync: bool = True) -> None:
         """

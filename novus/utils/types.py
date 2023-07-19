@@ -43,7 +43,7 @@ if TYPE_CHECKING:
     FileT: TypeAlias = str | bytes | io.IOBase
 
 else:
-    CommandI: TypeAlias
-    ComponentI: TypeAlias
-    AnySnowflake: TypeAlias
-    FileT: TypeAlias
+    CommandI: TypeAlias = None
+    ComponentI: TypeAlias = None
+    AnySnowflake: TypeAlias = None
+    FileT: TypeAlias = None
