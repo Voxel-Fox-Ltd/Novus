@@ -196,8 +196,7 @@ class ApplicationCommandOption:
         elif self.type == ApplicationOptionType.sub_command_group:
             pass
         else:
-            if self.required:
-                d["required"] = self.required
+            d["required"] = self.required
             if self.choices:
                 d["choices"] = [i._to_data() for i in self.choices]
             if self.channel_types:

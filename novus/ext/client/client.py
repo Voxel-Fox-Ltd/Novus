@@ -389,13 +389,13 @@ class Client:
         # Set up our requests
         state = self.state.interaction
         if guild_id is None:
-            get = partial(state.get_global_application_commands, application_id)
+            get = partial(state.get_global_application_commands, application_id, with_localizations=True)
             create = partial(state.create_global_application_command, application_id)
             edit = partial(state.edit_global_application_command, application_id)
             delete = partial(state.delete_global_application_command, application_id)
             bulk = partial(state.bulk_overwrite_global_application_commands, application_id)
         else:
-            get = partial(state.get_guild_application_commands, application_id, guild_id)
+            get = partial(state.get_guild_application_commands, application_id, guild_id, with_localizations=True)
             create = partial(state.create_guild_application_command, application_id, guild_id)
             edit = partial(state.edit_guild_application_command, application_id, guild_id)
             delete = partial(state.delete_guild_application_command, application_id, guild_id)
