@@ -476,10 +476,7 @@ class CommandGroup(Command):
         guild_ids_set = None
         if run_checks:
             permission_set = set(
-                (
-                    i.application_command.default_member_permissions
-                    or n.Permissions()
-                ).value
+                i.application_command.default_member_permissions
                 for i in command_map.values()
             )
             if len(permission_set) > 1:
@@ -504,7 +501,7 @@ class CommandGroup(Command):
                 raise CommandError("Cannot have different guild IDs for group")
         else:
             for i in commands:
-                permission_set = [i.application_command.default_member_permissions.value]
+                permission_set = [i.application_command.default_member_permissions]
                 dm_permission_set = [i.application_command.dm_permission]
                 nsfw_set = [i.application_command.nsfw]
                 guild_ids_set = [i.guild_ids]
@@ -520,7 +517,7 @@ class CommandGroup(Command):
             name=list(names[0])[0],
             description="...",
             type=n.ApplicationCommandType.chat_input,
-            default_member_permissions=n.Permissions(list(permission_set)[0]),
+            default_member_permissions=list(permission_set)[0],
             dm_permission=list(dm_permission_set)[0],
             nsfw=list(nsfw_set)[0],
         )
