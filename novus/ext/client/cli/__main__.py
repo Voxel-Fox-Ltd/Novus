@@ -167,6 +167,9 @@ def create_console(bot: client.Client) -> AsynchronousCli:
             "add-plugin": (add, plugin_parser,),
             "remove-plugin": (remove, plugin_parser,),
             "reload-plugin": (reload, plugin_parser,),
+            "add": (add, plugin_parser,),
+            "remove": (remove, plugin_parser,),
+            "reload": (reload, plugin_parser,),
         },
         bot=bot,
     )
