@@ -236,7 +236,9 @@ async def main(args: Namespace, unknown: list[str]) -> None:
 
         case "new-plugin":
             plugin = textwrap.dedent("""
-                import novus
+                import novus as n
+                from novus import types as t
+                from novus.utils import Localization as LC
                 from novus.ext import client
 
 
@@ -248,7 +250,7 @@ async def main(args: Namespace, unknown: list[str]) -> None:
                 typesafe_name = "_".join(i.split(" ")[::-1])
                 command = textwrap.indent(textwrap.dedent("""
                     @client.command(name="{name}")
-                    async def {typesafe_name}(self, ctx: novus.types.CommandI) -> None:
+                    async def {typesafe_name}(self, ctx: t.CommandI) -> None:
                         ...
                 """).strip(), " " * 4).format(name=i, typesafe_name=typesafe_name)
                 plugin += "\n" + command + "\n"
