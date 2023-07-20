@@ -21,8 +21,9 @@ import asyncio
 import logging
 import sys
 import textwrap
-from argparse import ArgumentParser, Namespace
+from argparse import ArgumentParser, Namespace, REMAINDER
 from typing import Any, NoReturn
+import re
 
 from aioconsole import AsynchronousCli
 
@@ -151,6 +152,9 @@ def create_console(bot: client.Client) -> AsynchronousCli:
 
     plugin_parser = ArgumentParser()
     plugin_parser.add_argument("plugin")
+    run_parser = ArgumentParser()
+    run_parser.add_argument("command", nargs=REMAINDER)
+    command_locals = {}
 
     async def add(reader: Any, writer: Any, plugin: str) -> None:
         bot.add_plugin_file(plugin, load=True)
@@ -162,14 +166,41 @@ def create_console(bot: client.Client) -> AsynchronousCli:
         bot.remove_plugin_file(plugin)
         bot.add_plugin_file(plugin, load=True, reload_import=True)
 
+    async def run_state(reader: Any, writer: asyncio.StreamWriter, command: list[str]) -> None:
+        command_full = " ".join(command)
+        match = re.search(r"^((\S+) ?= ?)?(await )?(.*)", command_full)
+        assert match is not None
+        store = match.group(2) or "_"
+        await_ = bool(match.group(3))
+        command_string = match.group(4)
+        ret = eval(
+            command_string,
+            {
+                **globals(),
+                "asyncio": asyncio,
+                "novus": novus,
+                "bot": bot,
+                **command_locals
+            },
+        )
+        if await_:
+            ret = await ret
+        command_locals[store] = ret
+        command_locals["_"] = ret
+        writer.write(repr(ret).encode())
+        writer.write(b"\n")
+
     return CustomCloseCLI(
         {
             "add-plugin": (add, plugin_parser,),
             "remove-plugin": (remove, plugin_parser,),
             "reload-plugin": (reload, plugin_parser,),
+
             "add": (add, plugin_parser,),
             "remove": (remove, plugin_parser,),
             "reload": (reload, plugin_parser,),
+
+            "eval": (run_state, run_parser,),
         },
         bot=bot,
     )
@@ -204,7 +235,7 @@ async def main(args: Namespace, unknown: list[str]) -> None:
             bot = client.Client(config)
             await asyncio.gather(
                 bot.run_webserver(sync=not args.no_sync, port=args.port),
-                create_console(bot).interact(banner="Created console :)"),
+                create_console(bot).interact(banner="Created console :)", stop=False),
             )
 
         case "run-status":
