@@ -142,11 +142,8 @@ class GatewayConnection:
         Close all connected shards.
         """
 
-        tasks = [
-            i.close()
-            for i in self.shards
-        ]
-        await asyncio.gather(*tasks)
+        for i in self.shards:
+            await i.close()
 
     async def get_gateway(self) -> payloads.gateway.Gateway:
         """
