@@ -580,8 +580,7 @@ class GuildHTTPConnection:
             guild_id=guild_id,
             user_id=user_id,
         )
-        post_data: dict[str, Any] = {}
-        self.parent._get_kwargs(
+        post_data = self.parent._get_kwargs(
             {
                 "type": (
                     "delete_message_seconds",
@@ -656,8 +655,7 @@ class GuildHTTPConnection:
             "/guilds/{guild_id}/roles",
             guild_id=guild_id,
         )
-        post_data: dict[str, Any] = {}
-        self.parent._get_kwargs(
+        post_data = self.parent._get_kwargs(
             {
                 "type": (
                     "name",
@@ -703,8 +701,7 @@ class GuildHTTPConnection:
             guild_id=guild_id,
             role_id=role_id,
         )
-        post_data: dict[str, Any] = {}
-        self.parent._get_kwargs(
+        post_data = self.parent._get_kwargs(
             {
                 "type": (
                     "name",
