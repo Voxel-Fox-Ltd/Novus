@@ -442,15 +442,17 @@ class Client:
 
         # Add new command
         if to_add:
-            log.info("Adding app command %s in guild %s", to_add[0], guild_id)
-            on_server = await create(**to_add[0].application_command._to_data())
-            to_add[0].add_id(guild_id, on_server.id)
-            self._commands_by_id[on_server.id] = to_add[0]
+            for comm in to_add:
+                log.info("Adding app command %s in guild %s", comm, guild_id)
+                on_server = await create(**comm.application_command._to_data())
+                comm.add_id(guild_id, on_server.id)
+                self._commands_by_id[on_server.id] = comm
 
         # Delete command
         if to_delete:
-            log.info("Deleting app command %s in guild %s", to_delete[0], guild_id)
-            await delete(to_delete[0])
+            for comm in to_delete:
+                log.info("Deleting app command %s in guild %s", comm, guild_id)
+                await delete(comm)
 
         # Edit single command
         if to_edit:
