@@ -530,7 +530,12 @@ class ThreadMember:
         The guild member object.
     """
 
-    def __init__(self, *, state: HTTPConnection, data: payloads.ThreadMember):
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: payloads.ThreadMember,
+            guild_id: int | Snowflake | None = None):
         self.state = state
 
         # either set here or updated elsewhere
@@ -540,4 +545,8 @@ class ThreadMember:
         self.join_timestamp = parse_timestamp(data["join_timestamp"])
         self.member: GuildMember | None = None
         if "member" in data:
-            self.member = GuildMember(state=self.state, data=data["member"])
+            self.member = GuildMember(
+                state=self.state,
+                data=data["member"],
+                guild_id=guild_id,
+            )

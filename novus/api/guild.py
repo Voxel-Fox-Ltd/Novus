@@ -318,7 +318,7 @@ class GuildHTTPConnection:
             }
         )
         return [
-            GuildMember(state=self.parent, data=d)
+            GuildMember(state=self.parent, data=d, guild_id=guild_id)
             for d in data
         ]
 

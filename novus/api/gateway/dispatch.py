@@ -856,6 +856,7 @@ class GatewayDispatch:
                 member = ThreadMember(
                     state=self.parent,
                     data=member_payload,
+                    guild_id=data["guild_id"],
                 )
                 thread._add_member(member)
             for member_id in data.get("removed_member_ids", []):
