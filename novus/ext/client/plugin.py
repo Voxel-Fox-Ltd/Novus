@@ -121,6 +121,10 @@ class Plugin(metaclass=PluginMeta):
         self.bot: Client = bot
         self.log = log.getChild(self.__class__.__name__)
 
+    @property
+    def state(self) -> n.HTTPConnection:
+        return self.bot.state
+
     def __repr__(self) -> str:
         return f"<Plugin[{self.__class__.__name__}]>"
 
