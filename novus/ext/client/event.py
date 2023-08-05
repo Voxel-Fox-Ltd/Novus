@@ -22,6 +22,9 @@ from collections.abc import Awaitable
 from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar
 
 import novus
+from novus.models.audit_log import AuditLogEntry
+from novus.models.invite import Invite
+from novus.models.reaction import Reaction
 
 if TYPE_CHECKING:
     from novus.models import (
@@ -37,6 +40,7 @@ if TYPE_CHECKING:
         Emoji,
         Sticker,
         Role,
+        BaseGuild,
     )
 
 __all__ = (
@@ -89,8 +93,27 @@ class EventBuilder:
 
     __slots__ = ()
 
+    @staticmethod
+    def __call__(
+            event_name: str,
+            predicate: Callable[..., bool] | None = None) -> WEL:
+        def wrapper(func: Callable[..., AA]) -> EL:
+            return EventListener(event_name, func, predicate)
+        return wrapper  # pyright: ignore
+
     @classmethod
     def filtered_component(cls, match_string: str) -> WEL[Interaction]:
+        """
+        Match an component or modal interaction based on a regex
+        match with its custom ID.
+
+        Parameters
+        ----------
+        match_string : str
+            The regex that should match with the component's custom
+            ID.
+        """
+
         def wrapper(func: W[Interaction]) -> EL:
             return EventListener(
                 "INTERACTION_CREATE",
@@ -114,163 +137,165 @@ class EventBuilder:
             lambda i: i.type == novus.InteractionType.message_component,
         )
 
-    # "Application command permissions update": None
-
-    # "Auto moderation rule create": None
-
-    # "Auto moderation rule update": None
-
-    # "Auto moderation rule delete": None
-
-    # "Auto moderation action execution": None
+    @classmethod
+    def modal(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+        return EventListener(
+            "INTERACTION_CREATE",
+            func,
+            lambda i: i.type == novus.InteractionType.modal_submit,
+        )
 
     @classmethod
-    def channel_create(cls, func: W[Channel]) -> EL:
-        return EventListener("CHANNEL_CREATE", func)
+    def command(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+        return EventListener(
+            "INTERACTION_CREATE",
+            func,
+            lambda i: i.type == novus.InteractionType.application_command,
+        )
 
     @classmethod
-    def channel_update(cls, func: W2[Channel, Channel]) -> EL:
-        return EventListener("CHANNEL_UPDATE", func)
+    def autocomplete(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+        return EventListener(
+            "INTERACTION_CREATE",
+            func,
+            lambda i: i.type == novus.InteractionType.autocomplete,
+        )
 
     @classmethod
-    def channel_delete(cls, func: W[Channel]) -> EL:
-        return EventListener("CHANNEL_DELETE", func)
+    def raw_guild_create(cls, func: W[int]):
+        return EventListener("RAW_GUILD_CREATE", func)
 
     @classmethod
-    def thread_create(cls, func: W[Thread]) -> EL:
-        return EventListener("THREAD_CREATE", func)
-
-    @classmethod
-    def thread_update(cls, func: W[Thread]) -> EL:
-        return EventListener("THREAD_UPDATE", func)
-
-    # "Thread delete": None
-
-    # "Thread list sync": None
-
-    # "Thread member update": None
-
-    # "THREAD_MEMBERS_UPDATE": self._handle_thread_member_list_update
-
-    @classmethod
-    def guild_create(cls, func: W[Guild]) -> EL:
+    def guild_create(cls, func: W[Guild]):
         return EventListener("GUILD_CREATE", func)
 
     @classmethod
-    def guild_update(cls, func: W2[Guild, Guild]) -> EL:
+    def raw_guild_update(cls, func: W[Guild]):
+        return EventListener("RAW_GUILD_UPDATE", func)
+
+    @classmethod
+    def guild_update(cls, func: W2[Guild, Guild]):
         return EventListener("GUILD_UPDATE", func)
 
     @classmethod
-    def guild_delete(cls, func: W[Guild]) -> EL:
+    def raw_guild_delete(cls, func: W[int]):
+        return EventListener("RAW_GUILD_DELETE", func)
+
+    @classmethod
+    def guild_delete(cls, func: W[Guild]):
         return EventListener("GUILD_DELETE", func)
 
     @classmethod
-    def audit_log_create(cls, func: W[AuditLog]) -> EL:
-        return EventListener("GUILD_AUDIT_LOG_ENTRY_CREATE", func)
+    def raw_typing(cls, func: W2[int, int]):
+        return EventListener("RAW_TYPING", func)
 
     @classmethod
-    def user_ban(cls, func: W2[Guild, User | GuildMember]) -> EL:
-        return EventListener("GUILD_BAN_ADD", func)
+    def typing(cls, func: W2[Channel, User | GuildMember]):
+        return EventListener("TYPING", func)
 
     @classmethod
-    def user_unban(cls, func: W2[Guild, User]) -> EL:
-        return EventListener("GUILD_BAN_REMOVE", func)
-
-    @classmethod
-    def emojis_update(cls, func: W2[Guild, list[Emoji]]) -> EL:
-        return EventListener("GUILD_EMOJIS_UPDATE", func)
-
-    @classmethod
-    def stickers_update(cls, func: W2[Guild, list[Sticker]]) -> EL:
-        return EventListener("GUILD_STICKERS_UPDATE", func)
-
-    @classmethod
-    def guild_member_add(cls, func: W[GuildMember]) -> EL:
-        return EventListener("GUILD_MEMBER_ADD", func)
-
-    @classmethod
-    def guild_member_remove(cls, func: W2[Guild, User | GuildMember]) -> EL:
-        return EventListener("GUILD_MEMBER_REMOVE", func)
-
-    @classmethod
-    def guild_member_update(cls, func: W2[GuildMember, GuildMember]) -> EL:
-        return EventListener("GUILD_MEMBER_UPDATE", func)
-
-    @classmethod
-    def role_create(cls, func: W[Role]) -> EL:
-        return EventListener("GUILD_ROLE_CREATE", func)
-
-    @classmethod
-    def role_update(cls, func: W[Role, Role]) -> EL:
-        return EventListener("GUILD_ROLE_UPDATE", func)
-
-    @classmethod
-    def role_delete(cls, func: W[Role]) -> EL:
-        return EventListener("GUILD_ROLE_DELETE", func)
-
-    # "Guild scheduled event create": None
-
-    # "Guild scheduled event update": None
-
-    # "Guild scheduled event delete": None
-
-    # "Guild scheduled event user add": None
-
-    # "Guild scheduled event user remove": None
-
-    # "INTERACTION_CREATE": self._handle_interaction
-
-    # "INVITE_CREATE": self._handle_invite_create
-
-    # "INVITE_DELETE": self._handle_invite_delete
-
-    @classmethod
-    def message(cls, func: W[Message]) -> EL:
+    def message(cls, func: W[Message]):
         return EventListener("MESSAGE_CREATE", func)
 
     @classmethod
-    def message_update(cls, func: W2[Message | None, Message]) -> EL:
+    def raw_message_edit(cls, func: W[Message]):
+        return EventListener("RAW_MESSAGE_UPDATE", func)
+
+    @classmethod
+    def message_edit(cls, func: W2[Message, Message]):
         return EventListener("MESSAGE_UPDATE", func)
 
     @classmethod
-    def message_delete(cls, func: W2[TextChannel, Message]) -> EL:
+    def raw_message_delete(cls, func: W2[int, int]):
+        return EventListener("RAW_MESSAGE_DELETE", func)
+
+    @classmethod
+    def message_delete(cls, func: W[Message]):
         return EventListener("MESSAGE_DELETE", func)
 
-    # "Message delete bulk": None
+    @classmethod
+    def channel_create(cls, func: W[Channel]):
+        return EventListener("CHANNEL_CREATE", func)
 
-    # "MESSAGE_REACTION_ADD": self._handle_message_reaction_add
+    @classmethod
+    def raw_channel_update(cls, func: W[Channel]):
+        return EventListener("RAW_CHANNEL_UPDATE", func)
 
-    # "MESSAGE_REACTION_REMOVE": self._handle_message_reaction_remove
+    @classmethod
+    def channel_update(cls, func: W2[Channel, Channel]):
+        return EventListener("CHANNEL_UPDATE", func)
 
-    # "MESSAGE_REACTION_REMOVE_ALL": self._handle_message_reaction_remove_all
+    @classmethod
+    def channel_delete(cls, func: W[Channel]):
+        return EventListener("CHANNEL_DELETE", func)
 
-    # "MESSAGE_REACTION_REMOVE_EMOJI": self._handle_message_reaction_remove_all_emoji
+    @classmethod
+    def guild_ban_add(cls, func: W2[BaseGuild, User | GuildMember]):
+        return EventListener("GUILD_BAN_ADD", func)
 
-    # "PRESENCE_UPDATE": self._handle_presence_update
+    @classmethod
+    def guild_ban_remove(cls, func: W2[BaseGuild, User]):
+        return EventListener("GUILD_BAN_REMOVE", func)
 
-    # "Stage instance create": None
+    @classmethod
+    def invite_create(cls, func: W[Invite]):
+        return EventListener("INVITE_CREATE", func)
 
-    # "Stage instance update": None
+    @classmethod
+    def invite_delete(cls, func: W2[Invite, str]):
+        return EventListener("INVITE_DELETE", func)
 
-    # "Stage instance delete": None
+    @classmethod
+    def role_create(cls, func: W[Role]):
+        return EventListener("ROLE_CREATE", func)
 
-    # "TYPING_START": self._handle_typing
+    @classmethod
+    def raw_role_update(cls, func: W[Role]):
+        return EventListener("RAW_ROLE_UPDATE", func)
 
-    # "User update": None
+    @classmethod
+    def role_update(cls, func: W2[Role, Role]):
+        return EventListener("ROLE_UPDATE", func)
 
-    # "VOICE_STATE_UPDATE": self._handle_voice_state
+    @classmethod
+    def raw_role_delete(cls, func: W2[int, int]):
+        return EventListener("RAW_ROLE_DELETE", func)
 
-    # "Voice server update": None
+    @classmethod
+    def role_delete(cls, func: W[Role]):
+        return EventListener("ROLE_DELETE", func)
 
-    # "Webhooks update": None
+    @classmethod
+    def guild_member_add(cls, func: W[GuildMember]):
+        return EventListener("GUILD_MEMBER_ADD", func)
 
-    @staticmethod
-    def __call__(
-            event_name: str,
-            predicate: Callable[..., bool] | None = None) -> WEL:
-        def wrapper(func: Callable[..., AA]) -> EL:
-            return EventListener(event_name, func, predicate)
-        return wrapper  # pyright: ignore
+    @classmethod
+    def raw_guild_member_update(cls, func: W[GuildMember]):
+        return EventListener("RAW_GUILD_MEMBER_UPDATE", func)
+
+    @classmethod
+    def guild_member_update(cls, func: W2[GuildMember, GuildMember]):
+        return EventListener("GUILD_MEMBER_UPDATE", func)
+
+    @classmethod
+    def raw_guild_member_remove(cls, func: W2[int, int]):
+        return EventListener("RAW_GUILD_MEMBER_REMOVE", func)
+
+    @classmethod
+    def guild_member_remove(cls, func: W2[BaseGuild, GuildMember | User]):
+        return EventListener("GUILD_MEMBER_REMOVE", func)
+
+    @classmethod
+    def reaction_add(cls, func: W2[User | GuildMember | int, Reaction]):
+        return EventListener("REACTION_ADD", func)
+
+    @classmethod
+    def reaction_remove(cls, func: W2[User | GuildMember | int, Reaction]):
+        return EventListener("REACTION_REMOVE", func)
+
+    @classmethod
+    def audit_log_entry(cls, func: W[AuditLogEntry]):
+        return EventListener("AUDIT_LOG_ENTRY", func)
 
 
 event = EventBuilder()

@@ -41,6 +41,7 @@ from .role import Role
 from .sticker import Sticker
 from .ui.action_row import ActionRow
 from .user import User
+from .guild import Guild
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -172,7 +173,7 @@ class Message(Hashable):
     )
 
     id: int
-    channel: TextChannel
+    channel: Channel
     author: User | GuildMember
     guild: BaseGuild | None
     content: str
@@ -202,21 +203,46 @@ class Message(Hashable):
         self.id = try_snowflake(data["id"])
         channel = self.state.cache.get_channel(data["channel_id"])
         if channel is None:
-            self.channel = Channel.partial(self.state, data["channel_id"])
-        else:
-            self.channel = channel
+            channel = Channel.partial(self.state, data["channel_id"])
+        self.channel = channel
         self.guild = None
         if "guild_id" in data:
             self.guild = self.state.cache.get_guild(data["guild_id"])
-        self.author = User(state=self.state, data=data["author"])
+            assert isinstance(self.guild, Guild)
+
+        # Get author user
+        author = self.state.cache.get_user(data["author"]["id"])
+        if author is None:
+            self.author = User(state=self.state, data=data["author"])
+        else:
+            self.author = author._update(data["author"])
+
+        # Try upgrade author to member
         if "member" in data:
-            assert self.guild
-            self.author = GuildMember(
-                state=self.state,
-                data=data["member"],
-                user=self.author,
-                guild_id=self.guild.id,
-            )
+            assert "guild_id" in data
+            try:
+                member = self.guild.get_member(self.author.id)  # pyright: ignore
+            except AttributeError:
+                member = None
+            if member is None:
+                self.author = GuildMember(
+                    state=self.state,
+                    data=data["member"],
+                    user=self.author,
+                    guild_id=data["guild_id"],
+                )
+            else:
+                self.author = member._update(data["member"])
+        self._update(data)
+
+    __repr__ = generate_repr(('id',))
+
+    @property
+    def jump_url(self) -> str:
+        guild_id = self.guild.id if self.guild else "@me"
+        return f"https://discord.com/channels/{guild_id}/{self.channel.id}/{self.id}"
+
+    def _update(self, data: payloads.Message) -> Self:
         self.content = data.get("content", "")
         self.timestamp = parse_timestamp(data.get("timestamp"))
         self.edited_timestamp = parse_timestamp(data.get("edited_timestamp"))
@@ -280,15 +306,9 @@ class Message(Hashable):
             Sticker(state=self.state, data=d)
             for d in data.get("sticker_items", [])
         ]
-        self.position = data.get("position")
+        self.position = data.get("position")  # position of message in a thread
         # self.role_subscription_data = data["role_subscription_data"]
-
-    __repr__ = generate_repr(('id',))
-
-    @property
-    def jump_url(self) -> str:
-        guild_id = self.guild.id if self.guild else "@me"
-        return f"https://discord.com/channels/{guild_id}/{self.channel.id}/{self.id}"
+        return self
 
     # API methods
 

@@ -118,14 +118,14 @@ def channel_builder(
         *,
         state: HTTPConnection,
         data: payloads.Channel,
-        guild_id: int | None = None) -> Channel:
+        guild_id: AnySnowflake | None = None) -> Channel:
     """
     Create a channel object given its data.
     """
 
     factory = channel_factory(data['type'])
     if guild_id:
-        return factory(state=state, data=data, guild_id=guild_id)  # type: ignore
+        return factory(state=state, data=data, guild_id=int(guild_id))  # type: ignore
     return factory(state=state, data=data)
 
 

@@ -192,6 +192,9 @@ class _GatewayGuildOptional(TypedDict, total=False):
 
 
 class GuildSyncable(TypedDict):
+    emojis: NotRequired[list[Emoji]]
+    stickers: NotRequired[list[Sticker]]
+    roles: NotRequired[list[Role]]
     voice_states: NotRequired[list[VoiceState]]
     members: NotRequired[list[GuildMember]]
     channels: NotRequired[list[Channel]]

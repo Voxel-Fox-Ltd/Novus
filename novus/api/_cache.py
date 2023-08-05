@@ -119,10 +119,6 @@ class APICache:
     def get_guild(self, id: int | str) -> Guild | BaseGuild:
         ...
 
-    @overload
-    def get_guild(self, id: int | str) -> Guild | None:
-        ...
-
     def get_guild(self, id: int | str | None) -> Guild | BaseGuild | None:
         if id is None:
             return None

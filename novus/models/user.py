@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import functools
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from typing_extensions import Self
 
 from ..enums import Locale, UserPremiumType
 from ..flags import UserFlags
@@ -113,7 +114,7 @@ class User(Hashable, Messageable):
         self.id = try_snowflake(data['id'])
         self._guilds: set[int] = set()
         self._dm_channel: DMChannel | None = None
-        self._sync(data)
+        self._update(data)
 
     __repr__ = generate_repr(('id', 'username', 'bot',))
 
@@ -154,7 +155,7 @@ class User(Hashable, Messageable):
         self._guilds.add(v.guild.id)
         return v
 
-    def _update(self, data: payloads.User | payloads.PartialUser) -> None:
+    def _update(self, data: payloads.User | payloads.PartialUser) -> Self:
         """
         Update the user instance if we get any new data from the API.
         """
@@ -178,6 +179,7 @@ class User(Hashable, Messageable):
                 data.get('flags', 0) | data.get('public_flags', 0)
             )
         self.premium_type = try_enum(UserPremiumType, data.get('premium_type', 0))
+        return self
 
     # API methods
 

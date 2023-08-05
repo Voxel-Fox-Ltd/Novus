@@ -89,13 +89,13 @@ class Invite:
         self.guild = None
         if "guild" in data:
             if isinstance(cached := self.state.cache.get_guild(data["guild"]["id"]), Guild):
-                self.guild = cached
+                self.guild = cached._update(data["guild"])
             else:
                 self.guild = PartialGuild(state=self.state, data=data['guild'])
         channel = data.get('channel')
         if channel:
             if cached := self.state.cache.get_channel(channel["id"]):
-                self.channel = cached
+                self.channel = cached._update(channel)
             else:
                 guild_id = None
                 if self.guild:

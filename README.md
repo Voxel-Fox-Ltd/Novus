@@ -4,6 +4,12 @@ Novus is an asyncio Discord Python library, designed with scale in mind.
 
 This is a work in progress, and is not yet ready for use.
 
+## Cache
+
+As a general rule, when instances are created they will try to read from the state cache in order to fill their own attributes, but they will not write back into the cache. The exception is upgrading cached instances - some classes like `Message` receive a full member and user object when they are created. These will write back into the cache after they read from the cache instance.
+
+All cache-adding operations should be handled by the dispatch class.
+
 ## Overview
 
 ```py

@@ -24,6 +24,7 @@ from .emoji import PartialEmoji
 if TYPE_CHECKING:
     from .. import Message, payloads
     from ..api import HTTPConnection
+    from ..utils.types import AnySnowflake
 
 __all__ = (
     'Reaction',
@@ -50,9 +51,21 @@ class Reaction:
             self,
             *,
             state: HTTPConnection,
-            data: payloads.Reaction,
-            message: Message):
+            data: payloads.Reaction | payloads.gateway.ReactionAddRemove,
+            message_id: int | str | None = None,
+            channel_id: int | str | None = None):
         self.state = state
-        self.message: Message = message
+        self.message_id: int
+        if message_id:
+            self.message_id = int(message_id)
+        else:
+            assert "message_id" in data
+            self.message_id = int(data["message_id"])
+        self.channel_id: int
+        if channel_id:
+            self.channel_id = int(channel_id)
+        else:
+            assert "channel_id" in data
+            self.channel_id = int(data["channel_id"])
         self.emoji: PartialEmoji = PartialEmoji(data=data["emoji"])
         self.burst: bool = data.get("burst", False)

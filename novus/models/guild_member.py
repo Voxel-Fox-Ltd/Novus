@@ -53,6 +53,9 @@ class GuildMember(Hashable, Messageable):
     This model does not extend the `novus.User` object, but but has the same
     methods and attributes.
 
+    Creating a GuildMember instance WILL update the cached user instance, if
+    one exists. Otherwise, a new instance will be created.
+
     Attributes
     ----------
     id : int
@@ -217,6 +220,8 @@ class GuildMember(Hashable, Messageable):
             user_object = self.state.cache.get_user(user["id"])
             if user_object is None:
                 user_object = User(state=state, data=user)
+            else:
+                user_object._update(user)
         self._user = user_object
         self.nick = data.get("nick")
         self.guild_avatar_hash = data.get("avatar")
@@ -280,7 +285,8 @@ class GuildMember(Hashable, Messageable):
         return Asset.from_guild_member_avatar(self)
 
     def _update(self, data: payloads.GuildMember) -> Self:
-        self._user._update(data["user"])
+        if "user" in data:
+            self._user._update(data["user"])
         self.nick = data.get("nick")
         self.guild_avatar_hash = data.get("guild_avatar_hash")
         self.role_ids = try_snowflake(data["roles"])
