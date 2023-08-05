@@ -33,6 +33,7 @@ from ..utils import (
 )
 from .abc import Hashable, Messageable
 from .user import User
+from .guild import BaseGuild
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -45,7 +46,6 @@ if TYPE_CHECKING:
     from .embed import Embed
     from .emoji import PartialEmoji
     from .file import File
-    from .guild import BaseGuild
     from .guild_member import GuildMember, ThreadMember
     from .invite import Invite
     from .message import AllowedMentions, Message
@@ -56,19 +56,7 @@ if TYPE_CHECKING:
 __all__ = (
     'PermissionOverwrite',
     'Channel',
-    'GuildChannel',
-    'GuildTextChannel',
-    'DMChannel',
-    'GroupDMChannel',
-    'Thread',
-    'TextChannel',
-    'VoiceChannel',
     'ForumTag',
-    'GuildVoiceChannel',
-    'GuildStageChannel',
-    'GuildCategory',
-    'GuildAnnouncementChannel',
-    'GuildForumChannel',
 )
 
 
@@ -81,37 +69,7 @@ def channel_factory(
     Return the correct channel object given the channel type.
     """
 
-    match channel_type:
-        case ChannelType.guild_text.value:
-            return GuildTextChannel
-        case ChannelType.dm.value:
-            return DMChannel
-        case ChannelType.guild_voice.value:
-            return GuildVoiceChannel
-        case ChannelType.group_dm.value:
-            return GroupDMChannel
-        case ChannelType.guild_category.value:
-            return GuildCategory
-        case ChannelType.guild_announcement.value:
-            return GuildAnnouncementChannel
-        case ChannelType.announcement_thread.value:
-            return GuildAnnouncementChannel
-        case ChannelType.public_thread.value:
-            return Thread
-        case ChannelType.private_thread.value:
-            return Thread
-        case ChannelType.guild_stage_voice.value:
-            return GuildStageChannel
-        # case ChannelType.guild_directory.value:
-        #     return Channel  # bots should never receive these
-        case ChannelType.guild_forum.value:
-            return GuildForumChannel
-        case _:
-            log.warning(
-                "Unknown channel type %s"
-                % channel_type
-            )
-            return TextChannel
+    return Channel
 
 
 def channel_builder(
@@ -166,12 +124,20 @@ class PermissionOverwrite:
     def __init__(
             self,
             id: AnySnowflake,
-            type: PermissionOverwriteType,
+            type: PermissionOverwriteType | None = None,
             *,
             allow: Permissions = Permissions(),
             deny: Permissions = Permissions()):
         self.id = try_id(id)
-        self.type = type
+        self.type: PermissionOverwriteType
+        if type:
+            self.type = type
+        elif isinstance(id, (BaseGuild, Role)):
+            self.type = PermissionOverwriteType.role
+        elif isinstance(id, (User, GuildMember)):
+            self.type = PermissionOverwriteType.member
+        else:
+            raise TypeError("Type cannot be set implicitly from a non guild/role/user type.")
         self.allow = allow
         self.deny = deny
 
@@ -184,95 +150,6 @@ class PermissionOverwrite:
             "allow": str(self.allow.value),
             "deny": str(self.deny.value),
         }
-
-
-class Channel(Hashable):
-    """
-    The base channel object that all other channels inherit from. This is also
-    the object that will be returned if there is an unknown channel type.
-
-    Attributes
-    ----------
-    id : int
-        The ID of the channel.
-    type : novus.ChannelType
-        The type of the channel.
-    guild : novus.abc.Snowflake | None
-        The guild that the channel is attached to.
-    raw : dict
-        The raw data used to construct the channel object.
-    """
-
-    id: int
-    type: ChannelType
-    raw: payloads.Channel
-    guild: BaseGuild | None
-
-    def __init__(self, *, state: HTTPConnection, data: payloads.Channel):
-        self.state = state
-        self.id = try_snowflake(data['id'])
-        self.type = ChannelType(data.get('type', 0))
-        self.raw = data
-        if "guild" in self.__slots__:
-            self.guild = None
-
-    __repr__ = generate_repr(('id',))
-
-    @property
-    def mention(self) -> str:
-        return f"<#{self.id}>"
-
-    @classmethod
-    def partial(
-            cls,
-            state: HTTPConnection,
-            id: int | str,
-            type: ChannelType = ChannelType.guild_text) -> TextChannel:
-        """
-        Create a partial channel object that you can use to run API methods on.
-
-        Parameters
-        ----------
-        state : novus.api.HTTPConnection
-            The API connection.
-        id : int
-            The ID of the channel.
-
-        Returns
-        -------
-        novus.TextChannel
-            A created channel object.
-        """
-
-        return TextChannel(
-            state=state,
-            data={"id": id, "type": type.value}  # pyright: ignore
-        )
-
-    # API methods
-
-    @classmethod
-    async def fetch(
-            cls,
-            state: HTTPConnection,
-            id: int | abc.Snowflake) -> Channel:
-        """
-        Fetch a channel from the API.
-
-        Parameters
-        ----------
-        state : novus.api.HTTPConnection
-            The API connection.
-        id : int | novus.abc.Snowflake
-            The ID of the channel you want to fetch.
-
-        Returns
-        -------
-        novus.Channel
-            The channel instance.
-        """
-
-        return await state.channel.get_channel(try_id(id))
 
 
 class Typing:
@@ -300,210 +177,66 @@ class Typing:
             self.typing_loop.cancel()
 
 
-class TextChannel(Channel, Messageable):
+class Channel(Hashable, Messageable):
     """
-    An abstract channel class.
+    The base channel object that all other channels inherit from. This is also
+    the object that will be returned if there is an unknown channel type.
 
-    Represents any channel that implements a ``send`` method.
+    Attributes
+    ----------
+    id : int
+        The ID of the channel.
+    type : novus.ChannelType
+        The type of the channel.
+    guild : novus.abc.Snowflake | None
+        The guild that the channel is attached to.
+    raw : dict
+        The raw data used to construct the channel object.
     """
 
-    state: HTTPConnection
     id: int
     type: ChannelType
-
-    # API methods
-
-    async def fetch_messages(
-            self,
-            *,
-            limit: int = 100,
-            around: int | abc.Snowflake | Message = MISSING,
-            before: int | abc.Snowflake | Message = MISSING,
-            after: int | abc.Snowflake | Message = MISSING) -> list[Message]:
-        """
-        Get a number of messages from the channel.
-
-        Parameters
-        ----------
-        limit : int
-            The number of messages that you want to get. Maximum 100.
-        around : int | novus.abc.Snowflake
-            Get messages around this ID.
-            Only one of ``around``, ``before``, and ``after`` can be set.
-        before : int | novus.abc.Snowflake
-            Get messages before this ID.
-            Only one of ``around``, ``before``, and ``after`` can be set.
-        after : int | novus.abc.Snowflake
-            Get messages after this ID.
-            Only one of ``around``, ``before``, and ``after`` can be set.
-
-        Returns
-        -------
-        list[novus.Message]
-            The messages that were retrieved.
-        """
-
-        params: dict[str, int] = {}
-        add_not_missing(params, "limit", limit)
-        add_not_missing(params, "around", around, try_id)
-        add_not_missing(params, "before", before, try_id)
-        add_not_missing(params, "after", after, try_id)
-        return await self.state.channel.get_channel_messages(
-            self.id,
-            **params,
-        )
-
-    async def fetch_message(self, id: int | abc.Snowflake) -> Message:
-        """
-        Get a single message from the channel.
-
-        .. seealso:: :func:`novus.Message.fetch`
-
-        Parameters
-        ----------
-        id : int | novus.abc.Snowflake
-            The message that you want to get.
-
-        Returns
-        -------
-        novus.Message
-            The retrieved message.
-        """
-
-        return await self.state.channel.get_channel_message(
-            self.id,
-            try_id(id),
-        )
-
-    async def trigger_typing(self: abc.StateSnowflake) -> None:
-        """
-        Send a typing indicator to the channel.
-        """
-
-        await self.state.channel.trigger_typing_indicator(self.id)
-
-    def typing(self) -> Typing:
-        """
-        A typing context manager.
-
-        .. examples::
-
-            async with channel.typing():
-                ...
-        """
-
-        return Typing(self.state, self)
-
-    async def fetch_pinned_messages(self: abc.StateSnowflake) -> list[Message]:
-        """
-        Get a list of pinned messages in the channel.
-        """
-
-        return await self.state.channel.get_pinned_messages(self.id)
-
-
-class VoiceChannel(Channel):
-    """
-    An abstract channel class.
-
-    Represents any channel that has voice capability.
-    """
-
-    state: HTTPConnection
-    id: int
-    type: ChannelType
-
-
-class DMChannel(TextChannel):
-    """
-    A channel associated with a user's DMs.
-    """
-
-    __slots__ = (
-        'state',
-        'id',
-        'type',
-        'raw',
-    )
-
-    state: HTTPConnection
-    id: int
-    type: ChannelType
-
-
-class GroupDMChannel(TextChannel):
-    """
-    A channel associated with a group DM.
-    """
-
-    __slots__ = (
-        'state',
-        'id',
-        'type',
-        'raw',
-    )
-
-    state: HTTPConnection
-    id: int
-    type: ChannelType
-
-
-class GuildChannel(Channel):
-    """
-    An abstract channel class.
-
-    Any channel inside of a guild.
-    """
-
-    id: int
-    guild: BaseGuild
-    position: int
-    overwrites: list[PermissionOverwrite]
-    name: str
+    guild_id: int | None
+    # guild: BaseGuild | None
+    position: int | None
+    overwrites: list[PermissionOverwrite] | None
+    name: str | None
     topic: str | None
     nsfw: bool
     last_message_id: int | None
-    parent: Channel | None
+    bitrate: int | None
+    user_limit: int | None
     rate_limit_per_user: int | None
+    recipients: list[User] | None
+    icon_hash: str | None
+    # icon: Asset | None
+    owner_id: int | None
+    # owner: User | None
+    application_id: int | None
+    managed: bool
+    parent_id: int | None
+    # parent: Channel | None
+    last_pin_timestamp: DiscordDatetime | None
+    rtc_region: str | None
+    video_quality_mode: None
+    message_count: int | None
+    member_count: int | None
+    # <thread_metadata>
+    archived: bool | None
+    auto_archive_duration: int | None
+    archive_timestsamp: DiscordDatetime | None
+    locked: bool | None
+    invitable: bool | None
+    create_timestamp: DiscordDatetime | None
+    # </thread_metadata>
 
-    def __init__(
-            self,
-            *,
-            state: HTTPConnection,
-            data: payloads.Channel,
-            guild_id: int | None = None):
-        super().__init__(state=state, data=data)
-        del self.raw  # Not needed for known types
-        guild_id = try_snowflake(data.get('guild_id')) or guild_id
-        if guild_id is None:
-            raise ValueError("Missing guild ID from guild channel %s" % data)
-        self.guild = self.state.cache.get_guild(guild_id)
-        self.position = data.get('position', 0)
-        self.overwrites = [
-            PermissionOverwrite(
-                id=int(d['id']),
-                type=PermissionOverwriteType(d['type']),
-                allow=Permissions(int(d['allow'])),
-                deny=Permissions(int(d['deny'])),
-            )
-            for d in data.get('permission_overwrites', list())
-        ]
-        if "name" not in data:
-            raise TypeError(
-                "Missing channel name from channel payload %s"
-                % data
-            )
-        self.name = data['name']
-        self.topic = data.get('topic', None)
-        self.nsfw = data.get('nsfw', False)
-        self.last_message_id = try_snowflake(data.get('last_message_id'))
-        parent_id = try_snowflake(data.get('parent_id'))
-        self.parent = None
-        if parent_id:
-            self.parent = self.state.cache.get_channel(parent_id)
-        self.rate_limit_per_user = data.get('rate_limit_per_user')
+    def __init__(self, *, state: HTTPConnection, data: payloads.Channel):
+        self.state = state
+        self.id = try_snowflake(data['id'])
+        self.type = ChannelType(data.get('type', 0))
+        self._update(data)
 
-    __repr__ = generate_repr(('id', 'guild', 'name',))
+    __repr__ = generate_repr(('id',))
 
     def __str__(self) -> str:
         return f"#{self.name}"
@@ -527,7 +260,73 @@ class GuildChannel(Channel):
         self.rate_limit_per_user = data.get("rate_limit_per_user")
         return self
 
+    @property
+    def mention(self) -> str:
+        return f"<#{self.id}>"
+
+    @classmethod
+    def partial(
+            cls,
+            state: HTTPConnection,
+            id: int | str,
+            type: ChannelType = ChannelType.guild_text) -> Self:
+        """
+        Create a partial channel object that you can use to run API methods on.
+
+        Parameters
+        ----------
+        state : novus.api.HTTPConnection
+            The API connection.
+        id : int
+            The ID of the channel.
+
+        Returns
+        -------
+        novus.TextChannel
+            A created channel object.
+        """
+
+        return cls(
+            state=state,
+            data={"id": id, "type": type.value}  # pyright: ignore
+        )
+
+    # Non-API thread only
+
+    def _add_member(self, member: ThreadMember) -> None:
+        self._members[member.id] = member
+
+    def _remove_member(self, id: int | str) -> None:
+        self._members.pop(try_snowflake(id), None)
+
+    @property
+    def members(self) -> list[ThreadMember]:
+        return list(self._members.values())
+
     # API methods
+
+    @classmethod
+    async def fetch(
+            cls,
+            state: HTTPConnection,
+            id: int | abc.Snowflake) -> Channel:
+        """
+        Fetch a channel from the API.
+
+        Parameters
+        ----------
+        state : novus.api.HTTPConnection
+            The API connection.
+        id : int | novus.abc.Snowflake
+            The ID of the channel you want to fetch.
+
+        Returns
+        -------
+        novus.Channel
+            The channel instance.
+        """
+
+        return await state.channel.get_channel(try_id(id))
 
     async def edit(
             self: abc.StateSnowflake,
@@ -791,60 +590,99 @@ class GuildChannel(Channel):
             type=overwrite_type,
         )
 
+    # API methods - text channel
 
-class GuildTextChannel(GuildChannel, TextChannel):
-    """
-    A text channel inside of a guild.
+    async def fetch_messages(
+            self,
+            *,
+            limit: int = 100,
+            around: int | abc.Snowflake | Message = MISSING,
+            before: int | abc.Snowflake | Message = MISSING,
+            after: int | abc.Snowflake | Message = MISSING) -> list[Message]:
+        """
+        Get a number of messages from the channel.
 
-    Attributes
-    ----------
-    id : int
-        The ID of the channel.
-    type : novus.ChannelType
-        The type of the channel.
-    guild : novus.BaseGuild | None
-        The ID of the guild associated with the channel. May be ``None`` for
-        some channel objects received over gateway guild dispatches.
-    position: int
-        The sorting position of the channel (relative to its parent container).
-    overwrites: list[novus.PermissionOverwrite]
-        The permission overwrites assoicated with this channel.
-    name : str
-        The name of the channel.
-    topic : str | None
-        The topic set in the channel.
-    nsfw : bool
-        Whether or not the channel is marked as NSFW.
-    last_message_id : int | None
-        The ID of the last message sent in the channel. May or may not point to
-        an existing or valid message or thread.
-    parent : novus.Channel | None
-        The parent container channel.
-    rate_limit_per_user: int | None
-        The amount of seconds a user has to wait before sending another
-        message.
-    """
+        Parameters
+        ----------
+        limit : int
+            The number of messages that you want to get. Maximum 100.
+        around : int | novus.abc.Snowflake
+            Get messages around this ID.
+            Only one of ``around``, ``before``, and ``after`` can be set.
+        before : int | novus.abc.Snowflake
+            Get messages before this ID.
+            Only one of ``around``, ``before``, and ``after`` can be set.
+        after : int | novus.abc.Snowflake
+            Get messages after this ID.
+            Only one of ``around``, ``before``, and ``after`` can be set.
 
-    __slots__ = (
-        'state',
-        'id',
-        'type',
-        'guild',
-        'position',
-        'overwrites',
-        'name',
-        'topic',
-        'nsfw',
-        'last_message_id',
-        'parent',
-        'rate_limit_per_user',
-    )
+        Returns
+        -------
+        list[novus.Message]
+            The messages that were retrieved.
+        """
 
-    # API methods
+        params: dict[str, int] = {}
+        add_not_missing(params, "limit", limit)
+        add_not_missing(params, "around", around, try_id)
+        add_not_missing(params, "before", before, try_id)
+        add_not_missing(params, "after", after, try_id)
+        return await self.state.channel.get_channel_messages(
+            self.id,
+            **params,
+        )
+
+    async def fetch_message(self, id: int | abc.Snowflake) -> Message:
+        """
+        Get a single message from the channel.
+
+        .. seealso:: :func:`novus.Message.fetch`
+
+        Parameters
+        ----------
+        id : int | novus.abc.Snowflake
+            The message that you want to get.
+
+        Returns
+        -------
+        novus.Message
+            The retrieved message.
+        """
+
+        return await self.state.channel.get_channel_message(
+            self.id,
+            try_id(id),
+        )
+
+    async def trigger_typing(self: abc.StateSnowflake) -> None:
+        """
+        Send a typing indicator to the channel.
+        """
+
+        await self.state.channel.trigger_typing_indicator(self.id)
+
+    def typing(self) -> Typing:
+        """
+        A typing context manager.
+
+        .. examples::
+
+            async with channel.typing():
+                ...
+        """
+
+        return Typing(self.state, self)
+
+    async def fetch_pinned_messages(self: abc.StateSnowflake) -> list[Message]:
+        """
+        Get a list of pinned messages in the channel.
+        """
+
+        return await self.state.channel.get_pinned_messages(self.id)
 
     async def bulk_delete_messages(
             self: abc.StateSnowflake,
-            messages: list[int | abc.Snowflake],
+            messages: list[int] | list[abc.Snowflake],
             *,
             reason: str | None = None) -> None:
         """
@@ -861,7 +699,7 @@ class GuildTextChannel(GuildChannel, TextChannel):
         await self.state.channel.bulk_delete_messages(
             self.id,
             reason=reason,
-            message_ids=[try_id(i) for i in messages],
+            message_ids=try_id(messages),
         )
 
     async def create_thread(
@@ -871,7 +709,7 @@ class GuildTextChannel(GuildChannel, TextChannel):
             *,
             reason: str | None = None,
             invitable: bool = MISSING,
-            rate_limit_per_user: int) -> Thread:
+            rate_limit_per_user: int) -> Channel:
         """
         Create a thread that is not connected to an existing message.
 
@@ -902,212 +740,6 @@ class GuildTextChannel(GuildChannel, TextChannel):
             **params,
         )
 
-
-class GuildVoiceChannel(GuildTextChannel, VoiceChannel):
-    """
-    A voice channel inside of a guild.
-
-    Attributes
-    ----------
-    id : int
-        The ID of the channel.
-    type : novus.ChannelType
-        The type of the channel.
-    guild : novus.BaseGuild
-        The ID of the guild associated with the channel. May be ``None`` for
-        some channel objects received over gateway guild dispatches.
-    position: int
-        The sorting position of the channel (relative to its parent container).
-    overwrites: list[novus.PermissionOverwrite]
-        The permission overwrites assoicated with this channel.
-    name : str
-        The name of the channel.
-    topic : str | None
-        The topic set in the channel.
-    nsfw : bool
-        Whether or not the channel is marked as NSFW.
-    last_message_id : int | None
-        The ID of the last message sent in the channel. May or may not point to
-        an existing or valid message or thread.
-    parent : novus.Channel | None
-        The parent container channel.
-    rate_limit_per_user: int | None
-        The amount of seconds a user has to wait before sending another
-        message.
-    bitrate : int
-        The bitrate (in bits) of the voice channel.
-    user_limit : int | None
-        The user limit of the voice channel.
-    """
-
-    __slots__ = (
-        'state',
-        'id',
-        'type',
-        'guild',
-        'position',
-        'overwrites',
-        'name',
-        'topic',
-        'nsfw',
-        'last_message_id',
-        'parent',
-        'rate_limit_per_user',
-        'bitrate',
-        'user_limit',
-    )
-
-    bitrate: int
-    user_limit: int | None
-
-    def __init__(
-            self,
-            *,
-            state: HTTPConnection,
-            data: payloads.Channel,
-            guild_id: int | None = None):
-        super().__init__(state=state, data=data, guild_id=guild_id)
-        self.bitrate = data.get("bitrate", 0)
-        self.user_limit = data.get("user_limit")
-
-    def _update(self, data: payloads.Channel) -> Self:
-        super()._update(data)
-        self.bitrate = data.get("bitrate", 0)
-        self.user_limit = data.get("user_limit")
-        return self
-
-
-class GuildStageChannel(GuildChannel, VoiceChannel):
-    """
-    A stage channel within a guild.
-    """
-
-
-class GuildCategory(GuildChannel):
-    """
-    A guild category channel.
-    """
-
-
-class GuildAnnouncementChannel(GuildTextChannel):
-    """
-    An announcement channel within a guild.
-    """
-
-    async def follow(
-            self: abc.StateSnowflake,
-            destination: int | abc.Snowflake | Channel) -> None:
-        """
-        Follow an announcement channel to send messages to the specific target
-        channel.
-
-        Parameters
-        ----------
-        destination : int | novus.abc.Snowflake
-            The channel you want to send the announcements to.
-        """
-
-        await self.state.channel.delete_channel_permission(
-            self.id,
-            try_id(destination),
-        )
-
-
-class GuildForumChannel(GuildChannel):
-    """
-    A forum channel within a guild.
-    """
-
-
-class Thread(GuildTextChannel):
-    """
-    A model representing a thread.
-    """
-
-    __slots__ = (
-        'state',
-        'id',
-        'type',
-        'guild',
-        'position',
-        'overwrites',
-        'name',
-        'topic',
-        'nsfw',
-        'last_message_id',
-        'parent',
-        'rate_limit_per_user',
-        '_members',
-        'owner',
-        'member_count',
-        'message_count',
-        'total_message_sent',
-        'applied_tags',
-        'archived',
-        'auto_archive_duration',
-        'archive_timestamp',
-        'locked',
-    )
-
-    owner: GuildMember | User
-    member_count: int
-    message_count: int
-    total_message_sent: int
-    applied_tags: list[int]
-    archived: bool
-    auto_archive_duration: int
-    archive_timestamp: dt | None
-    locked: bool
-
-    def __init__(
-            self,
-            *,
-            state: HTTPConnection,
-            data: payloads.Channel,
-            guild_id: int | None = None):
-        super().__init__(state=state, data=data, guild_id=guild_id)
-        self._members: dict[int, ThreadMember] = {}
-        assert "owner_id" in data
-        try:
-            self.owner = self.guild.get_member(data["owner_id"])  # pyright: ignore
-            if self.owner is None:
-                raise ValueError
-        except (AttributeError, ValueError):
-            self.owner = self.state.cache.get_user(data["owner_id"])
-        self.member_count = data.get("member_count", 0)
-        self.message_count = data.get("message_count", 0)
-        self.total_message_sent = data.get("total_message_sent", 0)
-        self.applied_tags = []
-        metadata = data.get("thread_metadata", {})
-        self.archived = metadata.get("archived", False)
-        self.auto_archive_duration = metadata.get("auto_archive_duration", 0)
-        self.archive_timestamp = parse_timestamp(metadata.get("archive_timestamp"))
-        self.locked = metadata.get("locked", False)
-
-    def _add_member(self, member: ThreadMember) -> None:
-        self._members[member.id] = member
-
-    def _remove_member(self, id: int | str) -> None:
-        self._members.pop(try_snowflake(id), None)
-
-    @property
-    def members(self) -> list[ThreadMember]:
-        return list(self._members.values())
-
-    def _update(self, data: payloads.Channel) -> Self:
-        super()._update(data)
-        self.member_count = data.get("member_count", 0)
-        self.message_count = data.get("message_count", 0)
-        self.total_message_sent = data.get("total_message_sent", 0)
-        # self.applied_tags = data.get("applied_tags", list())  # TODO
-        self.archived = data.get("archived", False)
-        self.auto_archive_duration = data.get("auto_archive_duration", 0)
-        self.archive_timestamp = parse_timestamp(data.get("archive_timestamp"))
-        self.locked = data.get("locked", False)
-        return self
-
-    # API methods
-
     async def create_thread(
             self: abc.StateSnowflake,
             name: str,
@@ -1121,7 +753,7 @@ class Thread(GuildTextChannel):
             allowed_mentions: AllowedMentions = MISSING,
             components: list[ActionRow] = MISSING,
             files: list[File] = MISSING,
-            flags: MessageFlags = MISSING) -> Thread:
+            flags: MessageFlags = MISSING) -> Channel:
         """
         Create a thread that is not connected to an existing message.
 
@@ -1161,6 +793,28 @@ class Thread(GuildTextChannel):
             reason=reason,
             **params,
         )
+
+    # API methods - announcement channel
+
+    async def follow(
+            self: abc.StateSnowflake,
+            destination: AnySnowflake) -> None:
+        """
+        Follow an announcement channel to send messages to the specific target
+        channel.
+
+        Parameters
+        ----------
+        destination : int | novus.abc.Snowflake
+            The channel you want to send the announcements to.
+        """
+
+        await self.state.channel.follow_announcement_channel(
+            try_id(self),
+            try_id(destination),
+        )
+
+    # API methods - threads
 
     async def join_thread(self: abc.StateSnowflake) -> None:
         """
