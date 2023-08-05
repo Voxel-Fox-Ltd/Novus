@@ -595,7 +595,6 @@ class ChannelHTTPConnection:
     async def follow_announcement_channel(
             self,
             channel_id: int,
-            *,
             webhook_channel_id: int) -> int:
         """
         Follow an announcement channel. Returns the created webhook ID.
