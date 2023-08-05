@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
+from typing_extensions import NotRequired
 
 from novus.payloads.stage_instance import StageInstance
 
@@ -35,6 +36,7 @@ __all__ = (
     'Role',
     'GuildWidget',
     'GuildPreview',
+    'GuildSyncable',
     'UnavailableGuild',
     'GuildWelcomeScreenChannel',
     'GuildWelcomeScreen',
@@ -189,17 +191,20 @@ class _GatewayGuildOptional(TypedDict, total=False):
     unavailable: bool
 
 
-class GatewayGuild(Guild, _GatewayGuildOptional):
+class GuildSyncable(TypedDict):
+    voice_states: NotRequired[list[VoiceState]]
+    members: NotRequired[list[GuildMember]]
+    channels: NotRequired[list[Channel]]
+    threads: NotRequired[list[Channel]]
+    presences: NotRequired[list[Presence]]
+    stage_instances: NotRequired[list[StageInstance]]
+    guild_scheduled_events: NotRequired[list[GuildScheduledEvent]]
+
+
+class GatewayGuild(Guild, GuildSyncable, _GatewayGuildOptional):
     joined_at: Timestamp
     large: bool
     member_count: int
-    voice_states: list[VoiceState]
-    members: list[GuildMember]
-    channels: list[Channel]
-    threads: list[Channel]
-    presences: list[Presence]
-    stage_instances: list[StageInstance]
-    guild_scheduled_events: list[GuildScheduledEvent]
 
 
 class _IntegrationApplicationOptional(TypedDict, total=False):
