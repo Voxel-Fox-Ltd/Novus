@@ -219,10 +219,7 @@ class GuildMember(Hashable, Messageable):
         self._user = user_object
         self.nick = data.get("nick")
         self.guild_avatar_hash = data.get("avatar")
-        self.role_ids = [
-            try_snowflake(d)
-            for d in data["roles"]
-        ]
+        self.role_ids = try_snowflake(data["roles"])
         self.joined_at = parse_timestamp(data["joined_at"])
         self.premium_since = parse_timestamp(data.get("premium_since"))
         self.deaf = data.get('deaf', False)

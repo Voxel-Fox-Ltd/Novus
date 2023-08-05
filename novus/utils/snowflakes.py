@@ -16,6 +16,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
 from __future__ import annotations
+from collections.abc import Iterable
 
 from typing import TYPE_CHECKING, Literal, overload
 
@@ -30,6 +31,11 @@ __all__ = (
 
 
 @overload
+def try_snowflake(given: list[str] | list[int]) -> list[int]:
+    ...
+
+
+@overload
 def try_snowflake(given: str | int) -> int:
     ...
 
@@ -39,26 +45,28 @@ def try_snowflake(given: None) -> None:
     ...
 
 
-def try_snowflake(given: str | int | None) -> int | None:
+def try_snowflake(given: str | int | list[str] | list[int] | None) -> int | list[int] | None:
     """
     Try and turn a given string into a snowflake, returning ``None`` if the
     given value is ``None``.
 
     Parameters
     ----------
-    given : str | int | None
+    given : str | int | list[str] | list[int] | None
         The given "snowflake".
 
     Returns
     -------
-    int | None
+    int | list[int] | None
         If the given value was castable to an int, that value. Otherwise,
         ``None``.
     """
 
     if given is None:
         return None
-    return int(given)
+    if isinstance(given, (int, str)):
+        return int(given)
+    return [int(i) for i in given]
 
 
 @overload

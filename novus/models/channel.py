@@ -51,6 +51,7 @@ if TYPE_CHECKING:
     from .message import AllowedMentions, Message
     from .role import Role
     from .ui.action_row import ActionRow
+    from ..utils.types import AnySnowflake
 
 __all__ = (
     'PermissionOverwrite',
@@ -164,12 +165,12 @@ class PermissionOverwrite:
 
     def __init__(
             self,
-            id: int,
+            id: AnySnowflake,
             type: PermissionOverwriteType,
             *,
             allow: Permissions = Permissions(),
             deny: Permissions = Permissions()):
-        self.id = id
+        self.id = try_id(id)
         self.type = type
         self.allow = allow
         self.deny = deny

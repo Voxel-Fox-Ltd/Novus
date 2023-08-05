@@ -241,10 +241,7 @@ class Emoji(PartialEmoji):
             guild: BaseGuild | None = None):
         self.state = state
         super().__init__(data=data)
-        self.role_ids = [
-            try_snowflake(i)
-            for i in data.get('roles', [])
-        ]
+        self.role_ids = try_snowflake(data.get("roles", list()))  # pyright: ignore
         self.requires_colons = data.get('require_colons', True)
         self.managed = data.get('managed', False)
         self.available = data.get('available', True)
