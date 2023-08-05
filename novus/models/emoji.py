@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING, Any, overload
+from typing_extensions import Self
 
 import emoji
 
@@ -251,6 +252,11 @@ class Emoji(PartialEmoji):
             self.guild = self.state.cache.get_guild(guild_id)
         else:
             self.guild = None
+
+    def _update(self, data: payloads.Emoji) -> Self:
+        self.name = data["name"]
+        self.role_ids = try_snowflake(data.get("roles", list()))  # pyright: ignore
+        return self
 
     # API methods
 

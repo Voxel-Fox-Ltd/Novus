@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import operator
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from typing_extensions import Self
 
 from ..flags import Permissions, UserFlags
 from ..utils.cached_slots import cached_slot_property
@@ -236,6 +237,7 @@ class GuildMember(Hashable, Messageable):
         if guild_id is None:
             raise ValueError("Missing guild from member init")
         self.guild = self.state.cache.get_guild(guild_id)
+        self._user._guilds.add(self.guild.id)
 
     __repr__ = generate_repr(("id", "username", "bot", "guild",))
 
@@ -277,8 +279,19 @@ class GuildMember(Hashable, Messageable):
             return None
         return Asset.from_guild_member_avatar(self)
 
-    def _to_user(self) -> User:
-        return self._user
+    def _update(self, data: payloads.GuildMember) -> Self:
+        self._user._update(data["user"])
+        self.nick = data.get("nick")
+        self.guild_avatar_hash = data.get("guild_avatar_hash")
+        self.role_ids = try_snowflake(data["roles"])
+        self.joined_at = parse_timestamp(data["joined_at"])
+        self.premium_since = parse_timestamp(data.get("premium_since"))
+        self.deaf = data["deaf"]
+        self.mute = data["mute"]
+        if "pending" in data:
+            self.pending = data["pending"]
+        self.timeout_until = parse_timestamp(data.get("communication_disabled_until"))
+        return self
 
     # API methods
 

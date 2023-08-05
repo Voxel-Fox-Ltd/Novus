@@ -154,10 +154,7 @@ class User(Hashable, Messageable):
         self._guilds.add(v.guild.id)
         return v
 
-    def _to_user(self) -> User:
-        return self
-
-    def _sync(self, data: payloads.User | payloads.PartialUser) -> None:
+    def _update(self, data: payloads.User | payloads.PartialUser) -> None:
         """
         Update the user instance if we get any new data from the API.
         """

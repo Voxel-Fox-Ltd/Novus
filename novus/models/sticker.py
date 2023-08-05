@@ -105,6 +105,11 @@ class Sticker(Hashable):
     def asset(self) -> Asset:
         return Asset.from_sticker(self)
 
+    def _update(self, data: payloads.Sticker) -> Self:
+        self.name = data["name"]
+        self.description = data["description"]
+        return self
+
     # API methods
 
     @classmethod

@@ -508,6 +508,25 @@ class GuildChannel(Channel):
     def __str__(self) -> str:
         return f"#{self.name}"
 
+    def _update(self, data: payloads.Channel) -> Self:
+        self.position = int(data.get("position", 0))
+        self.overwrites = [
+            PermissionOverwrite(
+                id=int(d['id']),
+                type=PermissionOverwriteType(d['type']),
+                allow=Permissions(int(d['allow'])),
+                deny=Permissions(int(d['deny'])),
+            )
+            for d in data.get('permission_overwrites', list())
+        ]
+        self.name = data.get("name", "")
+        self.topic = data.get("topic")
+        self.nsfw = data.get("nsfw", False)
+        self.last_message_id = try_snowflake(data.get("last_message_id"))
+        self.parent = self.state.cache.get_channel(data.get("parent_id"))
+        self.rate_limit_per_user = data.get("rate_limit_per_user")
+        return self
+
     # API methods
 
     async def edit(
@@ -951,6 +970,12 @@ class GuildVoiceChannel(GuildTextChannel, VoiceChannel):
         self.bitrate = data.get("bitrate", 0)
         self.user_limit = data.get("user_limit")
 
+    def _update(self, data: payloads.Channel) -> Self:
+        super()._update(data)
+        self.bitrate = data.get("bitrate", 0)
+        self.user_limit = data.get("user_limit")
+        return self
+
 
 class GuildStageChannel(GuildChannel, VoiceChannel):
     """
@@ -1068,6 +1093,18 @@ class Thread(GuildTextChannel):
     @property
     def members(self) -> list[ThreadMember]:
         return list(self._members.values())
+
+    def _update(self, data: payloads.Channel) -> Self:
+        super()._update(data)
+        self.member_count = data.get("member_count", 0)
+        self.message_count = data.get("message_count", 0)
+        self.total_message_sent = data.get("total_message_sent", 0)
+        # self.applied_tags = data.get("applied_tags", list())  # TODO
+        self.archived = data.get("archived", False)
+        self.auto_archive_duration = data.get("auto_archive_duration", 0)
+        self.archive_timestamp = parse_timestamp(data.get("archive_timestamp"))
+        self.locked = data.get("locked", False)
+        return self
 
     # API methods
 

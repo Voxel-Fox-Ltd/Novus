@@ -23,6 +23,7 @@ import random
 import string
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, NoReturn, overload
+from typing_extensions import Self
 
 from ..enums import (
     ChannelType,
@@ -1864,7 +1865,7 @@ class Guild(Hashable, BaseGuild):
         self._channels: dict[int, GuildChannel] = {}
         self._update(data)
 
-    def _update(self, data: payloads.Guild | payloads.GatewayGuild) -> None:
+    def _update(self, data: payloads.Guild | payloads.GatewayGuild) -> Self:
         self.name = data['name']
         self.icon_hash = data['icon'] or data.get('icon_hash')
         self.splash_hash = data['splash']
@@ -1901,6 +1902,8 @@ class Guild(Hashable, BaseGuild):
         self.welcome_screen = None
         if 'welcome_screen' in data:
             self.welcome_screen = WelcomeScreen(data=data['welcome_screen'])
+
+        return self
 
     @property
     def emojis(self) -> list[Emoji]:
@@ -1939,18 +1942,27 @@ class Guild(Hashable, BaseGuild):
             emoji: payloads.Emoji | Emoji,
             new_cache: dict[int, Any] | None = None) -> Emoji | None:
         """
-        Add an emoji to the guild's cache, updating the state cache at the same
-        time.
+        Add an emoji to the guild's cache, updating the state cache
+        at the same time.
         """
 
+        # Use created object
         if isinstance(emoji, Emoji):
             created = emoji
+            created.guild = self
+
+        # Update cached object if possible
         else:
-            if emoji.get("id") is None:
+            if emoji.get("id") is None or emoji["id"] is None:
                 return None
-            created = Emoji(state=self.state, data=emoji, guild=self)
+            cached = self.state.cache.get_emoji(emoji["id"])
+            if cached:
+                created = cached._update(emoji)
+            else:
+                created = Emoji(state=self.state, data=emoji, guild=self)
+
+        # Store in given cache
         assert created.id
-        created.guild = self
         self.state.cache.add_emojis(created)
         (new_cache or self._emojis)[created.id] = created
         return created
@@ -1966,9 +1978,13 @@ class Guild(Hashable, BaseGuild):
 
         if isinstance(sticker, Sticker):
             created = sticker
+            created.guild = self
         else:
-            created = Sticker(state=self.state, data=sticker)
-            # assert created.guild is self, "Guild instance is not cached"
+            cached = self.state.cache.get_sticker(sticker["id"])
+            if cached:
+                created = cached._update(sticker)
+            else:
+                created = Sticker(state=self.state, data=sticker)
         self.state.cache.add_stickers(created)
         (new_cache or self._stickers)[created.id] = created
         return created
@@ -1985,7 +2001,11 @@ class Guild(Hashable, BaseGuild):
             created = role
             created.guild = self
         else:
-            created = Role(state=self.state, data=role, guild=self)
+            cached = self._roles.get(int(role["id"]))
+            if cached:
+                created = cached._update(role)
+            else:
+                created = Role(state=self.state, data=role, guild=self)
         (new_cache or self._roles)[created.id] = created
         return created
 
@@ -2001,13 +2021,12 @@ class Guild(Hashable, BaseGuild):
         if isinstance(member, GuildMember):
             created = member
         else:
-            created = GuildMember(state=self.state, data=member, guild_id=self.id)
+            cached = self._members.get(int(member["user"]["id"]))
+            if cached:
+                created = cached._update(member)
+            else:
+                created = GuildMember(state=self.state, data=member, guild_id=self.id)
         created.guild = self
-        user = self.state.cache.get_user(created.id)  # get cached user
-        self.state.cache.add_users(created._user)  # add new user
-        if user is not None and isinstance(user, User):
-            created._user._guilds.update(user._guilds)  # update guild ids
-        created._user._guilds.add(self.id)
         (new_cache or self._members)[created.id] = created
         return created
 
@@ -2020,7 +2039,11 @@ class Guild(Hashable, BaseGuild):
         the same time.
         """
 
-        created = ScheduledEvent(state=self.state, data=event)
+        cached = self.state.cache.get_event(event["id"])
+        if cached:
+            created = cached._update(event)
+        else:
+            created = ScheduledEvent(state=self.state, data=event)
         self.state.cache.add_events(created)
         (new_cache or self._guild_scheduled_events)[created.id] = created
         return created
@@ -2037,7 +2060,12 @@ class Guild(Hashable, BaseGuild):
         if isinstance(thread, Thread):
             created = thread
         else:
-            created = Thread(state=self.state, data=thread)
+            cached: Thread | None
+            cached = self.state.cache.get_channel(thread["id"])  # pyright: ignore
+            if cached:
+                created = cached._update(thread)
+            else:
+                created = Thread(state=self.state, data=thread)
         self.state.cache.add_channels(created)
         (new_cache or self._threads)[created.id] = created
         return created
@@ -2053,7 +2081,11 @@ class Guild(Hashable, BaseGuild):
         if isinstance(voice_state, VoiceState):
             created = voice_state
         else:
-            created = VoiceState(state=self.state, data=voice_state)
+            cached = self._voice_states.get(int(voice_state["user_id"]))
+            if cached:
+                created = cached._update(voice_state)
+            else:
+                created = VoiceState(state=self.state, data=voice_state)
         (new_cache or self._voice_states)[created.user.id] = created
         return created
 
@@ -2067,24 +2099,20 @@ class Guild(Hashable, BaseGuild):
         """
 
         created: GuildChannel
-        try:
+        cached = self.state.cache.get_channel(channel["id"])
+        if cached:
+            created = cached._update(channel)
+        else:
             created = channel_builder(
                 state=self.state,
                 data=channel,
                 guild_id=self.id,
             )  # pyright: ignore
-        except ValueError as e:
-            log.error(
-                "Error building channel in guild %s" % self.id,
-                exc_info=e,
-            )
-            raise
-        else:
-            self.state.cache.add_channels(created)
-            (new_cache or self._channels)[created.id] = created
-            return created
+        self.state.cache.add_channels(created)
+        (new_cache or self._channels)[created.id] = created
+        return created
 
-    async def _sync(self, *, data: payloads.GatewayGuild) -> None:
+    async def _sync(self, data: payloads.GuildSyncable) -> Self:
         """
         Sync the gateway-specific values into the guild.
 
@@ -2103,21 +2131,21 @@ class Guild(Hashable, BaseGuild):
 
         if "emojis" in data:
             new_cache = {}
-            for d in data['emojis']:
+            for d in data["emojis"]:
                 self._add_emoji(d, new_cache)
                 await asyncio.sleep(0)
             self._emojis = new_cache
 
         if "stickers" in data:
             new_cache = {}
-            for d in data['stickers']:
+            for d in data["stickers"]:
                 self._add_sticker(d, new_cache)
                 await asyncio.sleep(0)
             self._stickers = new_cache
 
         if "roles" in data:
             new_cache = {}
-            for d in data['roles']:
+            for d in data["roles"]:
                 self._add_role(d, new_cache)
                 await asyncio.sleep(0)
             self._roles = new_cache
@@ -2156,6 +2184,8 @@ class Guild(Hashable, BaseGuild):
                 self._add_channel(d, new_cache)
                 await asyncio.sleep(0)
             self._channels = new_cache
+
+        return self
 
     __repr__ = generate_repr(
         ('id', 'name',),

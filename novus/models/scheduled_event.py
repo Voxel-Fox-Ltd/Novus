@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Any
+from typing_extensions import Self
 
 from ..enums import EventEntityType, EventPrivacyLevel, EventStatus
 from ..utils import (
@@ -141,7 +142,7 @@ class ScheduledEvent(Hashable):
         if creator_id is not None:
             cached = self.state.cache.get_user(creator_id)
             if cached and "creator" in data:
-                cached._sync(data["creator"])
+                cached._update(data["creator"])
                 self.creator = cached
             elif "creator" in data:
                 self.creator = User(state=self.state, data=data["creator"])
@@ -167,6 +168,20 @@ class ScheduledEvent(Hashable):
         if self.image_hash is None:
             return None
         return Asset.from_event_image(self)
+
+    def _update(self, data: payloads.GuildScheduledEvent) -> Self:
+        self.name = data["name"]
+        self.description = data.get("description")
+        self.start_time = parse_timestamp(data["scheduled_start_time"])
+        self.end_time = parse_timestamp(data.get("scheduled_end_time"))
+        self.privacy_level = EventPrivacyLevel(data["privacy_level"])
+        self.status = EventStatus(data["status"])
+        self.entity_type = EventEntityType(data["entity_type"])
+        self.entity_id = try_snowflake(data.get('entity_id'))
+        self.location = (data.get('entity_metadata') or {}).get('location')
+        self.image_hash = data.get("image")
+        del self.image
+        return self
 
     # API methods
 

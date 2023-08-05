@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+from typing_extensions import Self
 
 from ..flags import Permissions
 from ..utils import MISSING, cached_slot_property, try_snowflake
@@ -26,7 +27,7 @@ from .asset import Asset
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection
-    from ..payloads import Role as RolePayload
+    from .. import payloads
     from . import abc
     from .file import File
     from .guild import BaseGuild
@@ -111,7 +112,7 @@ class Role(Hashable):
             self,
             *,
             state: HTTPConnection,
-            data: RolePayload,
+            data: payloads.Role,
             guild_id: int | None = None,
             guild: BaseGuild | None = None):
         self.state = state
@@ -142,6 +143,18 @@ class Role(Hashable):
         if self.icon_hash is None:
             return None
         return Asset.from_role(self)
+
+    def _update(self, data: payloads.Role) -> Self:
+        self.name = data['name']
+        self.color = data['color']
+        self.hoist = data['hoist']
+        self.icon_hash = data.get('icon')
+        del self.icon
+        self.unicode_emoji = data.get('unicode_emoji')
+        self.position = data['position']
+        self.permissions = Permissions(int(data['permissions']))
+        self.mentionable = data['mentionable']
+        return self
 
     # API methods
 

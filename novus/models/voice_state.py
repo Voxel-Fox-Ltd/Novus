@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+from typing_extensions import Self
 
 from ..utils import parse_timestamp
 from .abc import Hashable
@@ -92,16 +93,12 @@ class VoiceState(Hashable):
                 guild_id=guild_id,
             )
         else:
-            self.user = self.state.cache.get_user(data["user_id"])
+            self.user = self.state.cache.get_user(data["user_id"])  # pyright: ignore
         self.guild = self.state.cache.get_guild(data.get("guild_id"))
         from .guild import Guild
         if isinstance(self.guild, Guild):
             self.guild._add_voice_state(self)
-        channel = self.state.cache.get_channel(data["channel_id"])
-        if channel is None:
-            self.channel = Channel.partial(self.state, data["channel_id"])  # pyright: ignore  # This is a text channel yknow who really cares
-        else:
-            self.channel = channel  # pyright: ignore  # From cache it just returns a generic channel object
+        self.channel = self.state.cache.get_channel(data["channel_id"])  # pyright: ignore
         self.suppress = data.get("suppress", False)
         self.session_id = data["session_id"]
         self.self_video = data.get("self_video", False)
@@ -110,3 +107,16 @@ class VoiceState(Hashable):
         self.request_to_speak_timestamp = parse_timestamp(data.get("request_to_speak_timestamp"))
         self.mute = data.get("mute", False)
         self.deaf = data.get("deaf", False)
+
+    def _update(self, data: payloads.VoiceState) -> Self:
+        if "member" in data:
+            self.user = self.user._update(data["member"])
+        self.channel = self.state.cache.get_channel(data["channel_id"])  # pyright: ignore
+        self.suppress = data.get("suppress", False)
+        self.self_video = data.get("self_video", False)
+        self.self_mute = data.get("self_mute", False)
+        self.self_deaf = data.get("self_deaf", False)
+        self.request_to_speak_timestamp = parse_timestamp(data.get("request_to_speak_timestamp"))
+        self.mute = data.get("mute", False)
+        self.deaf = data.get("deaf", False)
+        return self
