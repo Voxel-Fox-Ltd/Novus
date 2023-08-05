@@ -20,6 +20,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Literal, Type, overload
+from typing_extensions import Self
 
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import Permissions
