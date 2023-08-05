@@ -79,14 +79,19 @@ def try_id(given: int | Snowflake | str) -> int:
     ...
 
 
-def try_id(given: int | Snowflake | str | None) -> int | None:
+@overload
+def try_id(given: list[int] | list[Snowflake] | list[str]) -> list[int]:
+    ...
+
+
+def try_id(given: int | Snowflake | str | list[int] | list[str] | list[Snowflake] | None) -> int | list[int] | None:
     """
     Get the ID from the given object if it is a snowflake; return the object
     unchanged otherwise.
 
     Parameters
     ----------
-    given : int | novus.abc.Snowflake | None
+    given : int | novus.abc.Snowflake | str | None
         The object you want an ID from.
 
     Returns
@@ -98,9 +103,17 @@ def try_id(given: int | Snowflake | str | None) -> int | None:
 
     if given is None:
         return None
-    if isinstance(given, int):
-        return given
-    elif isinstance(given, str):
+    elif isinstance(given, list):
+        if not given:
+            return []
+        builder = []
+        for i in given:
+            if isinstance(i, (int, str)):
+                builder.append(int(i))
+            else:
+                builder.append(i.id)
+        return builder
+    elif isinstance(given, (int, str)):
         return int(given)
     return given.id
 
