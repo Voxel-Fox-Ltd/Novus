@@ -23,8 +23,6 @@ import logging
 from typing import TYPE_CHECKING, Any, Callable, Awaitable
 from copy import copy
 
-from novus.models.guild_member import ThreadMember
-
 from ...models import (
     AuditLogEntry,
     BaseGuild,
@@ -41,8 +39,9 @@ from ...models import (
     Sticker,
     User,
     VoiceState,
+    ThreadMember,
 )
-from ...utils import try_snowflake
+from ...utils import try_snowflake, try_id
 
 if TYPE_CHECKING:
     from ... import payloads
@@ -330,6 +329,7 @@ class GatewayDispatch:
         channel = self.cache.get_channel(data["channel_id"])
         if channel is None:
             return
+        channel.guild_id = try_id(data.get("guild_id"))
 
         # This event isn't good for a lot, but it DOES give us a new
         # member payload if the typing was started in a guild

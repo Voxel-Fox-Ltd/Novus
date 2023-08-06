@@ -2086,7 +2086,10 @@ class Guild(Hashable, BaseGuild):
                 created = cached._update(voice_state)
             else:
                 created = VoiceState(state=self.state, data=voice_state)
-        (new_cache or self._voice_states)[created.user.id] = created
+        try:
+            (new_cache or self._voice_states)[created.user.id] = created
+        except AttributeError:
+            log.warning(f"Voice state {created} does not have an attached user")
         return created
 
     def _add_channel(
@@ -2097,6 +2100,7 @@ class Guild(Hashable, BaseGuild):
         Add a channel to the guild's cache, updating the state cache at the same
         time.
         """
+
         cached = self.state.cache.get_channel(channel["id"])
         if cached:
             created = cached._update(channel)
@@ -2104,6 +2108,7 @@ class Guild(Hashable, BaseGuild):
             created = Channel(
                 state=self.state,
                 data=channel,
+                guild_id=self.id,
             )
         self.state.cache.add_channels(created)
         (new_cache or self._channels)[created.id] = created

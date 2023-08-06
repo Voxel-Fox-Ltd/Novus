@@ -19,13 +19,13 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import TYPE_CHECKING, Any, Literal, Type, overload
+from typing import TYPE_CHECKING, Any, Literal, Type
 from typing_extensions import Self
 
 from novus.utils.cached_slots import cached_slot_property
 
-from ..enums import ChannelType, PermissionOverwriteType
-from ..flags import Permissions
+from ..enums import ChannelType, PermissionOverwriteType, ForumLayout, ForumSortOrder
+from ..flags import Permissions, ChannelFlags
 from ..utils import (
     MISSING,
     add_not_missing,
@@ -37,17 +37,14 @@ from ..utils import (
 )
 from .abc import Hashable, Messageable
 from .user import User
+from .emoji import PartialEmoji
 
 if TYPE_CHECKING:
-    from datetime import datetime as dt
-
     from .. import payloads
     from ..api import HTTPConnection
-    from ..enums import ForumLayout, ForumSortOrder
-    from ..flags import ChannelFlags, MessageFlags
+    from ..flags import MessageFlags
     from . import abc
     from .embed import Embed
-    from .emoji import PartialEmoji
     from .file import File
     from .guild_member import GuildMember, ThreadMember
     from .invite import Invite
@@ -271,10 +268,19 @@ class Channel(Hashable, Messageable):
     default_sort_order: ForumSortOrder | None
     default_forum_layout: ForumLayout | None
 
-    def __init__(self, *, state: HTTPConnection, data: payloads.Channel):
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: payloads.Channel,
+            guild_id: int | str | None = None):
         self.state = state
         self.id = try_snowflake(data['id'])
         self.type = ChannelType(data.get('type', 0))
+        self.guild_id = (
+            try_snowflake(data.get("guild_id"))
+            or try_snowflake(guild_id)
+        )
         self._members = {}
         self._channels = {}
         self._update(data)
@@ -310,9 +316,12 @@ class Channel(Hashable, Messageable):
         # self.managed = data.get("managed")
         pid = data.get("parent_id")
         ipid = int(pid) if pid is not None else None
-        if ipid != self.parent_id:
+        try:
+            if ipid != self.parent_id:
+                del self._cs_parent
+                raise ValueError
+        except (AttributeError, ValueError):
             self.parent_id = ipid
-            del self._cs_parent
         self.last_pin_timestamp = parse_timestamp(data.get("last_pin_timestamp"))
         self.rtc_region = data.get("rtc_region")
         # self.video_quality_mode =  data.get("video_quality_mode")  # TODO make enum class
@@ -344,7 +353,7 @@ class Channel(Hashable, Messageable):
             data.get("applied_tags", [])
         ]
         emoji = data.get("default_reaction_emoji")
-        self.default_reaction_emoji = PartialEmoji(data=emoji)
+        self.default_reaction_emoji = PartialEmoji(data=emoji) if emoji else None
         self.default_thread_rate_limit_per_user = data.get("default_thread_rate_limit_per_user")
         dso = data.get("default_sort_order")
         self.default_sort_order = ForumSortOrder(dso) if dso is not None else None
@@ -383,13 +392,15 @@ class Channel(Hashable, Messageable):
             data={"id": id, "type": type.value}  # pyright: ignore
         )
 
-    @cached_slot_property("_cs_guild")
+    # @cached_slot_property("_cs_guild")
+    @property
     def guild(self) -> BaseGuild | None:
         if self.guild_id is None:
             return None
         return self.state.cache.get_guild(self.guild_id)
 
-    @cached_slot_property("_cs_parent")
+    # @cached_slot_property("_cs_parent")
+    @property
     def parent(self) -> Channel | None:
         if self.parent_id is None:
             return None
@@ -1102,4 +1113,6 @@ class Channel(Hashable, Messageable):
 
 
 class ForumTag:
-    ...  # TODO
+
+    def __init__(self, *, data: dict):
+        ...  # TODO

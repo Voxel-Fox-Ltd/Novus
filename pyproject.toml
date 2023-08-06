@@ -25,7 +25,7 @@ classifiers = [
 ]
 dependencies = [
     "python-dotenv",
-    "vf-flags>=0.2.2,<0.3",
+    "vf-flags>=0.2.5,<0.3",
     "aiohttp>=3.8.0",
     "emoji",
     "typing_extensions",

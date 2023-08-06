@@ -40,6 +40,8 @@ if TYPE_CHECKING:
     from .config import Config
     from .plugin import Plugin
 
+    from novus.api._cache import APICache
+
 __all__ = (
     'Client',
 )
@@ -102,6 +104,22 @@ class Client:
             if not i.ready.is_set():
                 return False
         return True
+
+    @property
+    def cache(self) -> APICache:
+        return self.state.cache
+
+    @property
+    def guilds(self) -> list[n.Guild]:
+        return list(self.cache.guilds.values())
+
+    @property
+    def users(self) -> list[n.User]:
+        return list(self.cache.users.values())
+
+    @property
+    def channels(self) -> list[n.Channel]:
+        return list(self.cache.channels.values())
 
     async def wait_until_ready(self) -> None:
         """
