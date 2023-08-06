@@ -46,13 +46,14 @@ if TYPE_CHECKING:
     from . import abc
     from .embed import Embed
     from .file import File
-    from .guild_member import GuildMember, ThreadMember
+    from .guild_member import ThreadMember
     from .invite import Invite
     from .message import AllowedMentions, Message
-    from .role import Role
     from .guild import BaseGuild
     from .ui.action_row import ActionRow
     from ..utils.types import AnySnowflake
+    from .role import Role
+    from .guild_member import GuildMember
 
 __all__ = (
     'PermissionOverwrite',
@@ -111,15 +112,22 @@ class PermissionOverwrite:
     def __init__(
             self,
             id: AnySnowflake,
-            type: PermissionOverwriteType | None = None,
+            type: PermissionOverwriteType | type[Role] | type[User] | None = None,
             *,
             allow: Permissions = Permissions(),
             deny: Permissions = Permissions()):
         self.id = try_id(id)
         self.type: PermissionOverwriteType
         from .guild import BaseGuild
+        from .role import Role
+        from .guild_member import GuildMember
         if type:
-            self.type = type
+            if type is Role:
+                self.type = PermissionOverwriteType.role
+            elif type is User:
+                self.type = PermissionOverwriteType.member
+            else:
+                self.type = type
         elif isinstance(id, (BaseGuild, Role)):
             self.type = PermissionOverwriteType.role
         elif isinstance(id, (User, GuildMember)):
