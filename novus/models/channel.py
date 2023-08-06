@@ -22,8 +22,6 @@ import logging
 from typing import TYPE_CHECKING, Any, Literal, Type
 from typing_extensions import Self
 
-from novus.utils.cached_slots import cached_slot_property
-
 from ..enums import ChannelType, PermissionOverwriteType, ForumLayout, ForumSortOrder
 from ..flags import Permissions, ChannelFlags
 from ..utils import (
@@ -114,8 +112,8 @@ class PermissionOverwrite:
             id: AnySnowflake,
             type: PermissionOverwriteType | type[Role] | type[User] | None = None,
             *,
-            allow: Permissions = Permissions(),
-            deny: Permissions = Permissions()):
+            allow: Permissions | None = None,
+            deny: Permissions | None = None):
         self.id = try_id(id)
         self.type: PermissionOverwriteType
         from .guild import BaseGuild
@@ -134,8 +132,8 @@ class PermissionOverwrite:
             self.type = PermissionOverwriteType.member
         else:
             raise TypeError("Type cannot be set implicitly from a non guild/role/user type.")
-        self.allow = allow
-        self.deny = deny
+        self.allow: Permissions = allow or Permissions()
+        self.deny: Permissions = deny or Permissions()
 
     __repr__ = generate_repr(('id', 'type', 'allow', 'deny',))
 
