@@ -563,8 +563,6 @@ class BaseGuild:
         """
 
         channels = await self.state.guild.get_guild_channels(self.id)
-        for c in channels:
-            c.guild = self  # pyright: ignore
         return channels
 
     # @overload
@@ -697,7 +695,6 @@ class BaseGuild:
             update["available_tags"] = available_tags
 
         channel = await self.state.guild.create_guild_channel(self.id, **update, reason=reason)
-        channel.guild = self  # pyright: ignore
         return channel
 
     async def move_channels(self: abc.StateSnowflake) -> None:
@@ -714,8 +711,6 @@ class BaseGuild:
         """
 
         threads = await self.state.guild.get_active_guild_threads(self.id)
-        for t in threads:
-            t.guild = self  # pyright: ignore
         return threads
 
     async def fetch_emoji(self: abc.StateSnowflake, id: int) -> Emoji:
@@ -731,7 +726,6 @@ class BaseGuild:
         """
 
         emoji = await self.state.emoji.get_emoji(self.id, id)
-        emoji.guild = self  # pyright: ignore
         return emoji
 
     async def fetch_all_emojis(
@@ -748,8 +742,6 @@ class BaseGuild:
         """
 
         emojis = await self.state.emoji.list_guild_emojis(self.id)
-        for e in emojis:
-            e.guild = self  # pyright: ignore
         return emojis
 
     async def create_emoji(
@@ -799,8 +791,6 @@ class BaseGuild:
         """
 
         roles = await self.state.guild.get_guild_roles(self.id)
-        for r in roles:
-            r.guild = self  # pyright: ignore
         return roles
 
     async def create_role(
@@ -861,7 +851,6 @@ class BaseGuild:
             reason=reason,
             **update,
         )
-        role.guild = self  # pyright: ignore
         return role
 
     async def move_roles(self) -> NoReturn:
@@ -929,7 +918,6 @@ class BaseGuild:
             reason=reason,
             **update,
         )
-        role.guild = self  # pyright: ignore
         return role
 
     async def delete_role(
@@ -1079,7 +1067,6 @@ class BaseGuild:
         """
 
         sticker = await self.state.sticker.get_guild_sticker(self.id, try_id(id))
-        sticker.guild = self  # pyright: ignore
         return sticker
 
     async def fetch_all_stickers(self: abc.StateSnowflake) -> list[Sticker]:
@@ -1095,8 +1082,6 @@ class BaseGuild:
         """
 
         stickers = await self.state.sticker.list_guild_stickers(self.id)
-        for s in stickers:
-            s.guild = self  # pyright: ignore
         return stickers
 
     async def create_sticker(
@@ -1164,7 +1149,6 @@ class BaseGuild:
         """
 
         member = await self.state.user.get_current_user_guild_member(self.id)
-        member.guild = self  # pyright: ignore
         return member
 
     async def leave(
@@ -1195,7 +1179,6 @@ class BaseGuild:
         """
 
         member = await self.state.guild.get_guild_member(self.id, member_id)
-        member.guild = self
         return member
 
     async def fetch_members(
@@ -1233,8 +1216,6 @@ class BaseGuild:
             limit=limit,
             after=after,
         )
-        for m in members:
-            m.guild = self
         return members
 
     async def search_members(
@@ -1268,8 +1249,6 @@ class BaseGuild:
             query=query,
             limit=limit,
         )
-        for m in members:
-            m.guild = self
         return members
 
     async def add_member(
@@ -1326,8 +1305,6 @@ class BaseGuild:
             user_id,
             **params,
         )
-        if member:
-            member.guild = self  # pyright: ignore  # Assigned an Oauth state
         return member
 
     async def edit_member(
@@ -1388,7 +1365,6 @@ class BaseGuild:
             reason=reason,
             **update,
         )
-        member.guild = self
         return member
 
     async def add_member_role(
@@ -1949,7 +1925,6 @@ class Guild(Hashable, BaseGuild):
         # Use created object
         if isinstance(emoji, Emoji):
             created = emoji
-            created.guild = self
 
         # Update cached object if possible
         else:
@@ -1978,7 +1953,6 @@ class Guild(Hashable, BaseGuild):
 
         if isinstance(sticker, Sticker):
             created = sticker
-            created.guild = self
         else:
             cached = self.state.cache.get_sticker(sticker["id"])
             if cached:
@@ -1999,7 +1973,6 @@ class Guild(Hashable, BaseGuild):
 
         if isinstance(role, Role):
             created = role
-            created.guild = self
         else:
             cached = self._roles.get(int(role["id"]))
             if cached:
@@ -2026,7 +1999,6 @@ class Guild(Hashable, BaseGuild):
                 created = cached._update(member)
             else:
                 created = GuildMember(state=self.state, data=member, guild_id=self.id)
-        created.guild = self
         (new_cache or self._members)[created.id] = created
         return created
 
