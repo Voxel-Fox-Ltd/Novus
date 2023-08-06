@@ -103,37 +103,40 @@ class Config:
         if check("shard_count"):
             self.shard_count = int(args.shard_count)
 
-        self.intents = None
-        if check("intents"):
-            if args.intents == "*":
-                self.intents = novus.Intents.all()
-            else:
-                self.intents = novus.Intents(**{
-                    i.strip(): True
-                    for i in args.intents.split(",")
-                    if i.strip()
-                })
+        self.intents: novus.Intents = novus.Intents()
+        if check("intents") and args.intents == "*":
+            self.intents = novus.Intents.all()
+        intent_kwargs = {}
+        for i in (args.intents or "").split(","):
+            if i and i != "*":
+                intent_kwargs[i.strip().lower().replace("-", "_")] = True
+        for i in args.intent or []:
+            if i:
+                intent_kwargs[i.strip().lower().replace("-", "_")] = True
+        for i in (args.no_intents or "").split(","):
+            if i:
+                intent_kwargs[i.strip().lower().replace("-", "_")] = False
+        for i in args.no_intent or []:
+            if i:
+                intent_kwargs[i.strip().lower().replace("-", "_")] = False
+        self.intents.update(**intent_kwargs)
+
         if check("intent"):
-            if self.intents is None:
-                self.intents = novus.Intents(0)
-            self.intents.update(**{
+            self.intents = self.intents.update(**{
                 i.strip(): True
                 for i in args.intent
                 if i.strip()
             })
-        if self.intents is None:
-            self.intents = novus.Intents(0)
-
         if check("no-intents"):
-            self.intents.update(**{
+            self.intents = self.intents.update(**{
                 i.strip(): False
-                for i in args.intents.split(",")
+                for i in args.no_intents.split(",")
                 if i.strip()
             })
         if check("no-intent"):
-            self.intents.update(**{
+            self.intents = self.intents.update(**{
                 i.strip(): False
-                for i in args.intent
+                for i in args.no_intent
                 if i.strip()
             })
 
