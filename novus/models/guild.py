@@ -46,7 +46,7 @@ from ..utils import (
 )
 from .abc import Hashable
 from .asset import Asset
-from .channel import GuildChannel, Thread, channel_builder
+from .channel import Channel
 from .emoji import Emoji
 from .guild_member import GuildMember
 from .role import Role
@@ -552,13 +552,13 @@ class BaseGuild:
             **updates,
         )
 
-    async def fetch_channels(self: abc.StateSnowflake) -> list[GuildChannel]:
+    async def fetch_channels(self: abc.StateSnowflake) -> list[Channel]:
         """
         Fetch all of the channels from a guild.
 
         Returns
         -------
-        list[novus.model.GuildChannel]
+        list[novus.Channel]
             A list of channels from the guild.
         """
 
@@ -567,47 +567,47 @@ class BaseGuild:
             c.guild = self  # pyright: ignore
         return channels
 
-    @overload
-    async def create_channel(
-            self: abc.StateSnowflake,
-            *,
-            name: str,
-            type: ChannelType = ChannelType.guild_text,
-            topic: str = ...,
-            position: int = ...,
-            permission_overwrites: list[PermissionOverwrite] = ...,
-            parent: AnySnowflake = ...,
-            nsfw: bool = ...,
-            reason: str = ...) -> GuildTextChannel:
-        ...
+    # @overload
+    # async def create_channel(
+    #         self: abc.StateSnowflake,
+    #         *,
+    #         name: str,
+    #         type: ChannelType = ChannelType.guild_text,
+    #         topic: str = ...,
+    #         position: int = ...,
+    #         permission_overwrites: list[PermissionOverwrite] = ...,
+    #         parent: AnySnowflake = ...,
+    #         nsfw: bool = ...,
+    #         reason: str = ...) -> Channel:
+    #     ...
 
-    @overload
-    async def create_channel(
-            self: abc.StateSnowflake,
-            *,
-            name: str,
-            type: ChannelType = ChannelType.private_thread,
-            rate_limit_per_user: int = ...,
-            position: int = ...,
-            parent: AnySnowflake = ...,
-            nsfw: bool = ...,
-            default_auto_archive_duration: int = ...,
-            reason: str = ...) -> Thread:
-        ...
+    # @overload
+    # async def create_channel(
+    #         self: abc.StateSnowflake,
+    #         *,
+    #         name: str,
+    #         type: ChannelType = ChannelType.private_thread,
+    #         rate_limit_per_user: int = ...,
+    #         position: int = ...,
+    #         parent: AnySnowflake = ...,
+    #         nsfw: bool = ...,
+    #         default_auto_archive_duration: int = ...,
+    #         reason: str = ...) -> Channel:
+    #     ...
 
-    @overload
-    async def create_channel(
-            self: abc.StateSnowflake,
-            *,
-            name: str,
-            type: ChannelType = ChannelType.public_thread,
-            rate_limit_per_user: int = ...,
-            position: int = ...,
-            parent: AnySnowflake = ...,
-            nsfw: bool = ...,
-            default_auto_archive_duration: int = ...,
-            reason: str = ...) -> Thread:
-        ...
+    # @overload
+    # async def create_channel(
+    #         self: abc.StateSnowflake,
+    #         *,
+    #         name: str,
+    #         type: ChannelType = ChannelType.public_thread,
+    #         rate_limit_per_user: int = ...,
+    #         position: int = ...,
+    #         parent: AnySnowflake = ...,
+    #         nsfw: bool = ...,
+    #         default_auto_archive_duration: int = ...,
+    #         reason: str = ...) -> Thread:
+    #     ...
 
     async def create_channel(
             self: abc.StateSnowflake,
@@ -625,7 +625,7 @@ class BaseGuild:
             default_auto_archive_duration: int = MISSING,
             default_reaction_emoji: Reaction = MISSING,
             available_tags: list[ForumTag] = MISSING,
-            reason: str = MISSING) -> GuildChannel:
+            reason: str = MISSING) -> Channel:
         """
         Create a channel within the guild.
 
@@ -703,7 +703,7 @@ class BaseGuild:
     async def move_channels(self: abc.StateSnowflake) -> None:
         raise NotImplementedError()
 
-    async def fetch_active_threads(self: abc.StateSnowflake) -> list[Thread]:
+    async def fetch_active_threads(self: abc.StateSnowflake) -> list[Channel]:
         """
         Get the active threads from inside the guild.
 
@@ -1860,9 +1860,9 @@ class Guild(Hashable, BaseGuild):
         self._roles: dict[int, Role] = {}
         self._members: dict[int, GuildMember] = {}
         self._guild_scheduled_events: dict[int, ScheduledEvent] = {}
-        self._threads: dict[int, Thread] = {}
+        self._threads: dict[int, Channel] = {}
         self._voice_states: dict[int, VoiceState] = {}
-        self._channels: dict[int, GuildChannel] = {}
+        self._channels: dict[int, Channel] = {}
         self._update(data)
 
     def _update(self, data: payloads.Guild | payloads.GatewayGuild) -> Self:
@@ -1926,7 +1926,7 @@ class Guild(Hashable, BaseGuild):
         return list(self._guild_scheduled_events.values())
 
     @property
-    def threads(self) -> list[Thread]:
+    def threads(self) -> list[Channel]:
         return list(self._threads.values())
 
     @property
@@ -1934,7 +1934,7 @@ class Guild(Hashable, BaseGuild):
         return list(self._voice_states.values())
 
     @property
-    def channels(self) -> list[GuildChannel]:
+    def channels(self) -> list[Channel]:
         return list(self._channels.values())
 
     def _add_emoji(
@@ -2050,22 +2050,22 @@ class Guild(Hashable, BaseGuild):
 
     def _add_thread(
             self,
-            thread: payloads.Channel | Thread,
-            new_cache: dict[int, Any] | None = None) -> Thread:
+            thread: payloads.Channel | Channel,
+            new_cache: dict[int, Any] | None = None) -> Channel:
         """
         Add a thread to the guild's cache, updating the state cache at the same
         time.
         """
 
-        if isinstance(thread, Thread):
+        if isinstance(thread, Channel):
             created = thread
         else:
-            cached: Thread | None
+            cached: Channel | None
             cached = self.state.cache.get_channel(thread["id"])  # pyright: ignore
             if cached:
                 created = cached._update(thread)
             else:
-                created = Thread(state=self.state, data=thread)
+                created = Channel(state=self.state, data=thread)
         self.state.cache.add_channels(created)
         (new_cache or self._threads)[created.id] = created
         return created
@@ -2092,22 +2092,19 @@ class Guild(Hashable, BaseGuild):
     def _add_channel(
             self,
             channel: payloads.Channel,
-            new_cache: dict[int, Any] | None = None) -> GuildChannel:
+            new_cache: dict[int, Any] | None = None) -> Channel:
         """
         Add a channel to the guild's cache, updating the state cache at the same
         time.
         """
-
-        created: GuildChannel
         cached = self.state.cache.get_channel(channel["id"])
         if cached:
             created = cached._update(channel)
         else:
-            created = channel_builder(
+            created = Channel(
                 state=self.state,
                 data=channel,
-                guild_id=self.id,
-            )  # pyright: ignore
+            )
         self.state.cache.add_channels(created)
         (new_cache or self._channels)[created.id] = created
         return created
@@ -2277,7 +2274,7 @@ class Guild(Hashable, BaseGuild):
 
         return self._threads.get(try_id(id))
 
-    def get_channel(self, id: AnySnowflake) -> GuildChannel | None:
+    def get_channel(self, id: AnySnowflake) -> Channel | None:
         """
         Get a channel from cache.
 
@@ -2288,7 +2285,7 @@ class Guild(Hashable, BaseGuild):
 
         Returns
         -------
-        novus.GuildChannel | None
+        novus.Channel | None
             A channel object, if one was cached.
         """
 

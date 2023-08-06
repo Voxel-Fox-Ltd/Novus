@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Protocol
 
-from ..models.channel import channel_builder
+from .channel import Channel
 from ..utils import generate_repr, parse_timestamp
 from .guild import Guild, PartialGuild
 
@@ -29,7 +29,6 @@ if TYPE_CHECKING:
 
     from .. import payloads
     from ..api import HTTPConnection
-    from .channel import Channel
 
 __all__ = (
     'Invite',
@@ -100,7 +99,7 @@ class Invite:
                 guild_id = None
                 if self.guild:
                     guild_id = self.guild.id
-                self.channel = channel_builder(state=self.state, data=channel, guild_id=guild_id)
+                self.channel = Channel(state=self.state, data=channel)
 
     __repr__ = generate_repr(('code', 'channel', 'guild',))
 

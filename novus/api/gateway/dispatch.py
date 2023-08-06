@@ -39,11 +39,9 @@ from ...models import (
     Reaction,
     Role,
     Sticker,
-    Thread,
     User,
     VoiceState,
 )
-from ...models.channel import channel_builder
 from ...utils import try_snowflake
 
 if TYPE_CHECKING:
@@ -444,7 +442,7 @@ class GatewayDispatch:
             channel = cached._update(data)
         else:
             current = None
-            channel = channel_builder(state=self.parent, data=data, guild_id=data.get("guild_id"))
+            channel = Channel(state=self.parent, data=data)
             guild = channel.guild
             if isinstance(guild, Guild):
                 guild._add_channel(channel)
@@ -488,7 +486,7 @@ class GatewayDispatch:
         if channel:
             self.dispatch("CHANNEL_DELETE", channel)
             return
-        channel = channel_builder(state=self.parent, data=data)
+        channel = Channel(state=self.parent, data=data)
         self.dispatch("CHANNEL_DELETE", channel)
 
     async def _handle_guild_ban(

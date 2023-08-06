@@ -20,7 +20,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Generator
 
 from ..enums import AuditLogEventType
-from ..models.channel import channel_builder
 from ..utils import cached_slot_property, generate_repr, try_snowflake
 from .auto_moderation import AutoModerationRule
 from .channel import Channel
@@ -312,7 +311,7 @@ class AuditLog:
         if id in self._targets['threads']:
             self._threads[id] = None
             return None
-        self._threads[id] = u = channel_builder(
+        self._threads[id] = u = Channel(
             data=self._targets['threads'][id],
             state=self.state,
         )

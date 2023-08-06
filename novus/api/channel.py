@@ -32,7 +32,6 @@ from ..models import (
     ThreadMember,
     User,
 )
-from ..models.channel import channel_builder
 from ..utils import MISSING
 from ._route import Route
 
@@ -62,7 +61,7 @@ class ChannelHTTPConnection:
             channel_id=channel_id,
         )
         data: payloads.Channel = await self.parent.request(route)
-        return channel_builder(state=self.parent, data=data)
+        return Channel(state=self.parent, data=data)
 
     async def modify_channel(
             self,
@@ -126,7 +125,7 @@ class ChannelHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        return channel_builder(state=self.parent, data=data)
+        return Channel(state=self.parent, data=data)
 
     async def delete_channel(
             self,
@@ -693,7 +692,7 @@ class ChannelHTTPConnection:
             message_id: int,
             *,
             reason: str | None = None,
-            **kwargs: dict[str, Any]) -> Thread:
+            **kwargs: dict[str, Any]) -> Channel:
         """
         Create a thread from a message.
         """
@@ -721,14 +720,14 @@ class ChannelHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        return channel_builder(state=self.parent, data=data)  # pyright: ignore
+        return Channel(state=self.parent, data=data)
 
     async def start_thread_without_message(
             self,
             channel_id: int,
             *,
             reason: str | None = None,
-            **kwargs: dict[str, Any]) -> Thread:
+            **kwargs: dict[str, Any]) -> Channel:
         """
         Create a thread not connected to an existing message.
         """
@@ -759,14 +758,14 @@ class ChannelHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        return channel_builder(state=self.parent, data=data)  # pyright: ignore
+        return Channel(state=self.parent, data=data)
 
     async def start_thread_in_forum_channel(
             self,
             channel_id: int,
             *,
             reason: str | None = None,
-            **kwargs: dict[str, Any]) -> Thread:
+            **kwargs: dict[str, Any]) -> Channel:
         """
         Create a thread inside of a forum channel.
         """
@@ -819,7 +818,7 @@ class ChannelHTTPConnection:
             data=post_data,
             files=files,
         )
-        return channel_builder(state=self.parent, data=data)  # pyright: ignore
+        return Channel(state=self.parent, data=data)
 
     async def add_thread_member(
             self,
@@ -913,7 +912,7 @@ class ChannelHTTPConnection:
             channel_id: int,
             *,
             before: dt = MISSING,
-            limit: int = MISSING) -> list[Thread]:
+            limit: int = MISSING) -> list[Channel]:
         """
         Get the archived threads inthe channel that are public.
         """
@@ -935,7 +934,7 @@ class ChannelHTTPConnection:
             params=params,
         )
         return [
-            channel_builder(state=self.parent, data=d)
+            Channel(state=self.parent, data=d)
             for d in data["threads"]
         ]  # pyright: ignore
 
@@ -944,7 +943,7 @@ class ChannelHTTPConnection:
             channel_id: int,
             *,
             before: dt = MISSING,
-            limit: int = MISSING) -> list[Thread]:
+            limit: int = MISSING) -> list[Channel]:
         """
         Get the archived threads inthe channel that are private.
         """
@@ -966,7 +965,7 @@ class ChannelHTTPConnection:
             params=params,
         )
         return [
-            channel_builder(state=self.parent, data=d)
+            Channel(state=self.parent, data=d)
             for d in data["threads"]
         ]  # pyright: ignore
 
@@ -975,7 +974,7 @@ class ChannelHTTPConnection:
             channel_id: int,
             *,
             before: dt = MISSING,
-            limit: int = MISSING) -> list[Thread]:
+            limit: int = MISSING) -> list[Channel]:
         """
         Get the archived threads inthe channel that are private.
         """
@@ -997,6 +996,6 @@ class ChannelHTTPConnection:
             params=params,
         )
         return [
-            channel_builder(state=self.parent, data=d)
+            Channel(state=self.parent, data=d)
             for d in data["threads"]
-        ]  # pyright: ignore
+        ]

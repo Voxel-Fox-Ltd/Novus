@@ -31,7 +31,7 @@ from ..utils import (
     try_snowflake,
 )
 from .abc import Hashable
-from .channel import Channel, TextChannel, Thread
+from .channel import Channel
 from .embed import Embed
 from .emoji import PartialEmoji
 from .file import File
@@ -123,7 +123,7 @@ class Message(Hashable):
         The message associated with the reference.
     interaction : novus.Interaction | None
         Data referring to the interaction if the message is associated with one.
-    thread : novus.Thread | None
+    thread : novus.Channel | None
         The thread that was started from this message.
     components : list[novus.ActionRow]
         The components associated with the message.
@@ -193,7 +193,7 @@ class Message(Hashable):
     application_id: int | None
     flags: flags.MessageFlags
     referenced_message: Message | None
-    thread: Thread | None
+    thread: Channel | None
     components: list[ActionRow]
     sticker_items: list[Sticker]
     position: int | None
@@ -297,7 +297,7 @@ class Message(Hashable):
         self.thread = None
         if "thread" in data:
             assert self.guild
-            self.thread = Thread(state=self.state, data=data["thread"])
+            self.thread = Channel(state=self.state, data=data["thread"])
         self.components = [
             ActionRow._from_data(d)
             for d in data.get("components", [])
@@ -628,7 +628,7 @@ class Message(Hashable):
             *,
             reason: str | None = None,
             auto_archive_duration: Literal[60, 1_440, 4_320, 10_080] = MISSING,
-            rate_limit_per_user: int = MISSING) -> Thread:
+            rate_limit_per_user: int = MISSING) -> Channel:
         """
         Create a thread from the message.
 

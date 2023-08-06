@@ -26,10 +26,9 @@ from ..models import (
     GuildPreview,
     Invite,
     Role,
-    Thread,
     User,
 )
-from ..models.channel import GuildChannel, channel_builder
+from ..models.channel import Channel
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -189,7 +188,7 @@ class GuildHTTPConnection:
 
     async def get_guild_channels(
             self,
-            guild_id: int, /) -> list[GuildChannel]:
+            guild_id: int, /) -> list[Channel]:
         """
         Get guild channels.
         """
@@ -203,9 +202,9 @@ class GuildHTTPConnection:
             route,
         )
         return [
-            channel_builder(state=self.parent, data=d)
+            Channel(state=self.parent, data=d)
             for d in data
-        ]  # pyright: ignore
+        ]
 
     async def create_guild_channel(
             self,
@@ -213,7 +212,7 @@ class GuildHTTPConnection:
             /,
             *,
             reason: str | None = None,
-            **kwargs: Any) -> GuildChannel:
+            **kwargs: Any) -> Channel:
         """
         Create a guild channel.
         """
@@ -253,12 +252,12 @@ class GuildHTTPConnection:
             reason=reason,
             data=post_data,
         )
-        return channel_builder(state=self.parent, data=data)
+        return Channel(state=self.parent, data=data)
 
     async def move_guild_channels(self, guild_id: int) -> NoReturn:
         raise NotImplementedError()
 
-    async def get_active_guild_threads(self, guild_id: int) -> list[Thread]:
+    async def get_active_guild_threads(self, guild_id: int) -> list[Channel]:
         """
         Get the threads from the guild.
         """
@@ -272,7 +271,7 @@ class GuildHTTPConnection:
             route,
         )
         return [
-            Thread(state=self.parent, data=d)
+            Channel(state=self.parent, data=d)
             for d in data
         ]
 

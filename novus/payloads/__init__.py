@@ -79,6 +79,7 @@ __all__: tuple[str, ...] = (
     'Embed',
     'EmbedType',
     'Emoji',
+    'ForumDefaultReaction',
     'GatewayGuild',
     'Guild',
     'GuildFeature',

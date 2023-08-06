@@ -22,6 +22,8 @@ import logging
 from typing import TYPE_CHECKING, Any, Literal, Type, overload
 from typing_extensions import Self
 
+from novus.utils.cached_slots import cached_slot_property
+
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import Permissions
 from ..utils import (
@@ -31,10 +33,10 @@ from ..utils import (
     parse_timestamp,
     try_id,
     try_snowflake,
+    DiscordDatetime,
 )
 from .abc import Hashable, Messageable
 from .user import User
-from .guild import BaseGuild
 
 if TYPE_CHECKING:
     from datetime import datetime as dt
@@ -51,6 +53,7 @@ if TYPE_CHECKING:
     from .invite import Invite
     from .message import AllowedMentions, Message
     from .role import Role
+    from .guild import BaseGuild
     from .ui.action_row import ActionRow
     from ..utils.types import AnySnowflake
 
@@ -58,34 +61,20 @@ __all__ = (
     'PermissionOverwrite',
     'Channel',
     'ForumTag',
+
+    # 'GuildTextChannel',
+    # 'DMChannel',
+    # 'GroupDMChannel',
+    # 'Thread',
+    # 'GuildVoiceChannel',
+    # 'GuildStageChannel',
+    # 'GuildCategory',
+    # 'GuildAnnouncementChannel',
+    # 'GuildForumChannel',
 )
 
 
 log = logging.getLogger("novus.channel")
-
-
-def channel_factory(
-        channel_type: int) -> Type[Channel]:
-    """
-    Return the correct channel object given the channel type.
-    """
-
-    return Channel
-
-
-def channel_builder(
-        *,
-        state: HTTPConnection,
-        data: payloads.Channel,
-        guild_id: AnySnowflake | None = None) -> Channel:
-    """
-    Create a channel object given its data.
-    """
-
-    factory = channel_factory(data['type'])
-    if guild_id:
-        return factory(state=state, data=data, guild_id=int(guild_id))  # type: ignore
-    return factory(state=state, data=data)
 
 
 class PermissionOverwrite:
@@ -131,6 +120,7 @@ class PermissionOverwrite:
             deny: Permissions = Permissions()):
         self.id = try_id(id)
         self.type: PermissionOverwriteType
+        from .guild import BaseGuild
         if type:
             self.type = type
         elif isinstance(id, (BaseGuild, Role)):
@@ -191,9 +181,48 @@ class Channel(Hashable, Messageable):
         The type of the channel.
     guild : novus.abc.Snowflake | None
         The guild that the channel is attached to.
-    raw : dict
-        The raw data used to construct the channel object.
     """
+
+    __slots__ = (
+        'state',
+        'id',
+        'type',
+        'guild_id',
+        'position',
+        'overwrites',
+        'name',
+        'topic',
+        'nsfw',
+        'last_message_id',
+        'bitrate',
+        'user_limit',
+        'rate_limit_per_user',
+        'parent_id',
+        'last_pin_timestamp',
+        'rtc_region',
+        'video_quality_mode',
+        'message_count',
+        'member_count',
+        'archived',
+        'auto_archive_duration',
+        'archive_timestsamp',
+        'locked',
+        'invitable',
+        'create_timestamp',
+        'default_auto_archive_duration',
+        'flags',
+        'total_messages_sent',
+        'available_tags',
+        'applied_tags',
+        'default_reaction_emoji',
+        'default_thread_rate_limit_per_user',
+        'default_sort_order',
+        'default_forum_layout',
+        '_cs_parent',
+        '_cs_guild',
+        '_members',
+        '_channels',
+    )
 
     id: int
     type: ChannelType
@@ -208,13 +237,13 @@ class Channel(Hashable, Messageable):
     bitrate: int | None
     user_limit: int | None
     rate_limit_per_user: int | None
-    recipients: list[User] | None
-    icon_hash: str | None
+    # recipients: list[User] | None
+    # icon_hash: str | None
     # icon: Asset | None
-    owner_id: int | None
-    # owner: User | None
-    application_id: int | None
-    managed: bool
+    # owner_id: int | None
+    # owner: User | None  # Only group DMs
+    # application_id: int | None
+    # managed: bool
     parent_id: int | None
     # parent: Channel | None
     last_pin_timestamp: DiscordDatetime | None
@@ -230,11 +259,24 @@ class Channel(Hashable, Messageable):
     invitable: bool | None
     create_timestamp: DiscordDatetime | None
     # </thread_metadata>
+    # member: ThreadMember | None  # Ignoring
+    default_auto_archive_duration: int | None
+    # permissions: Permissions  # Only included in interactions
+    flags: ChannelFlags | None
+    total_messages_sent: int | None
+    available_tags: list[ForumTag] | None
+    applied_tags: list[ForumTag] | None
+    default_reaction_emoji: PartialEmoji | None
+    default_thread_rate_limit_per_user: int | None
+    default_sort_order: ForumSortOrder | None
+    default_forum_layout: ForumLayout | None
 
     def __init__(self, *, state: HTTPConnection, data: payloads.Channel):
         self.state = state
         self.id = try_snowflake(data['id'])
         self.type = ChannelType(data.get('type', 0))
+        self._members = {}
+        self._channels = {}
         self._update(data)
 
     __repr__ = generate_repr(('id',))
@@ -243,7 +285,7 @@ class Channel(Hashable, Messageable):
         return f"#{self.name}"
 
     def _update(self, data: payloads.Channel) -> Self:
-        self.position = int(data.get("position", 0))
+        self.position = data.get("position")
         self.overwrites = [
             PermissionOverwrite(
                 id=int(d['id']),
@@ -253,12 +295,61 @@ class Channel(Hashable, Messageable):
             )
             for d in data.get('permission_overwrites', list())
         ]
-        self.name = data.get("name", "")
+        self.name = data.get("name")
         self.topic = data.get("topic")
         self.nsfw = data.get("nsfw", False)
-        self.last_message_id = try_snowflake(data.get("last_message_id"))
-        self.parent = self.state.cache.get_channel(data.get("parent_id"))
+        lmid = data.get("last_message_id")
+        self.last_message_id = int(lmid) if lmid is not None else None
+        self.bitrate = data.get("bitrate")
+        self.user_limit = data.get("user_limit")
         self.rate_limit_per_user = data.get("rate_limit_per_user")
+        # self.recipients = data.get("recipients")
+        # self.icon_hash = data.get("icon_hash")
+        # self.owner_id = data.get("owner_id")
+        # self.application_id = data.get("application_id")
+        # self.managed = data.get("managed")
+        pid = data.get("parent_id")
+        ipid = int(pid) if pid is not None else None
+        if ipid != self.parent_id:
+            self.parent_id = ipid
+            del self._cs_parent
+        self.last_pin_timestamp = parse_timestamp(data.get("last_pin_timestamp"))
+        self.rtc_region = data.get("rtc_region")
+        # self.video_quality_mode =  data.get("video_quality_mode")  # TODO make enum class
+        self.message_count = data.get("message_count")
+        self.member_count = data.get("member_count")
+        self.archived = None
+        self.auto_archive_duration = None
+        self.archive_timestsamp = None
+        self.locked = None
+        self.invitable = None
+        self.create_timestamp = None
+        if "thread_metadata" in data:
+            tmd = data["thread_metadata"]
+            self.archived = tmd["archived"]
+            self.auto_archive_duration = tmd["auto_archive_duration"]
+            self.archive_timestsamp = parse_timestamp(tmd.get("archive_timestsamp"))
+            self.locked = tmd["locked"]
+            self.invitable = tmd.get("invitable")
+            self.create_timestamp = parse_timestamp(tmd.get("create_timestamp"))
+        self.default_auto_archive_duration = data.get("default_auto_archive_duration")
+        self.flags = ChannelFlags(data.get("flags", 0))
+        self.total_messages_sent = data.get("total_messages_sent")
+        self.available_tags = [
+            ForumTag(data=i) for i in
+            data.get("available_tags", [])
+        ]
+        self.applied_tags = [
+            ForumTag(data=i) for i in
+            data.get("applied_tags", [])
+        ]
+        emoji = data.get("default_reaction_emoji")
+        self.default_reaction_emoji = PartialEmoji(data=emoji)
+        self.default_thread_rate_limit_per_user = data.get("default_thread_rate_limit_per_user")
+        dso = data.get("default_sort_order")
+        self.default_sort_order = ForumSortOrder(dso) if dso is not None else None
+        dfl = data.get("default_forum_layout")
+        self.default_forum_layout = ForumLayout(dfl) if dfl is not None else None
         return self
 
     @property
@@ -292,7 +383,19 @@ class Channel(Hashable, Messageable):
             data={"id": id, "type": type.value}  # pyright: ignore
         )
 
-    # Non-API thread only
+    @cached_slot_property("_cs_guild")
+    def guild(self) -> BaseGuild | None:
+        if self.guild_id is None:
+            return None
+        return self.state.cache.get_guild(self.guild_id)
+
+    @cached_slot_property("_cs_parent")
+    def parent(self) -> Channel | None:
+        if self.parent_id is None:
+            return None
+        return self.state.cache.get_channel(self.parent_id)
+
+    # Non-API thread/category only
 
     def _add_member(self, member: ThreadMember) -> None:
         self._members[member.id] = member
@@ -301,8 +404,18 @@ class Channel(Hashable, Messageable):
         self._members.pop(try_snowflake(id), None)
 
     @property
-    def members(self) -> list[ThreadMember]:
-        return list(self._members.values())
+    def channels(self) -> list[Channel]:
+        return list(self._channels.values())
+
+    def _add_channel(self, channel: Channel) -> None:
+        self._channels[channel.id] = channel
+
+    def _remove_channel(self, id: int | str) -> None:
+        self._channels.pop(try_snowflake(id), None)
+
+    @property
+    def channel(self) -> list[Channel]:
+        return list(self._channels.values())
 
     # API methods
 
@@ -858,6 +971,134 @@ class Channel(Hashable, Messageable):
         """
 
         await self.state.channel.remove_thread_member(self.id, try_id(user))
+
+
+# class GuildTextChannel(Channel):
+#     guild_id: int
+#     guild: BaseGuild
+#     position: int
+#     overwrites: list[PermissionOverwrite]
+#     name: str
+#     topic: str
+#     nsfw: bool
+#     last_message_id: None
+#     bitrate: None
+#     user_limit: None
+#     rate_limit_per_user: None
+#     last_pin_timestamp: DiscordDatetime | None
+#     rtc_region: None
+#     video_quality_mode: None
+#     message_count: None
+#     member_count: None
+#     archived: None
+#     auto_archive_duration: None
+#     archive_timestsamp: None
+#     locked: None
+#     invitable: None
+#     create_timestamp: None
+#     default_auto_archive_duration: None
+#     flags: ChannelFlags
+#     total_messages_sent: None
+#     available_tags: None
+#     applied_tags: None
+#     default_reaction_emoji: None
+#     default_thread_rate_limit_per_user: None
+#     default_sort_order: None
+#     default_forum_layout: None
+
+
+# class DMChannel(Channel):
+#     guild_id: None
+#     guild: None
+#     position: None
+#     overwrites: None
+#     name: None
+#     topic: None
+#     nsfw: bool
+#     last_message_id: int | None
+#     bitrate: None
+#     user_limit: None
+#     rate_limit_per_user: None
+#     parent_id: None
+#     last_pin_timestamp: DiscordDatetime | None
+#     rtc_region: None
+#     video_quality_mode: None
+#     message_count: None
+#     member_count: None
+#     archived: None
+#     auto_archive_duration: None
+#     archive_timestsamp: None
+#     locked: None
+#     invitable: None
+#     create_timestamp: None
+#     default_auto_archive_duration: None
+#     flags: None
+#     total_messages_sent: None
+#     available_tags: None
+#     applied_tags: None
+#     default_reaction_emoji: None
+#     default_thread_rate_limit_per_user: None
+#     default_sort_order: None
+#     default_forum_layout: None
+
+
+# # class GroupDMChannel(Channel):
+# #     ...
+
+
+# class Thread(Channel):
+#     guild_id: int
+#     guild: BaseGuild
+#     position: None
+#     overwrites: None
+#     name: str
+#     topic: None
+#     nsfw: bool
+#     last_message_id: int | None
+#     bitrate: int
+#     user_limit: None
+#     rate_limit_per_user: None
+#     parent_id: int
+#     last_pin_timestamp: DiscordDatetime | None
+#     rtc_region: None
+#     video_quality_mode: None
+#     message_count: int
+#     member_count: int
+#     archived: bool
+#     auto_archive_duration: int
+#     archive_timestsamp: DiscordDatetime | None
+#     locked: bool
+#     invitable: bool | None
+#     create_timestamp: DiscordDatetime
+#     default_auto_archive_duration: int
+#     flags: None
+#     total_messages_sent: int
+#     available_tags: list[ForumTag] | None
+#     applied_tags: list[ForumTag] | None
+#     default_reaction_emoji: PartialEmoji | None
+#     default_thread_rate_limit_per_user: int | None
+#     default_sort_order: None
+#     default_forum_layout: None
+
+
+# class GuildVoiceChannel(Channel):
+#     ...
+
+
+# class GuildStageChannel(Channel):
+#     ...
+
+
+# class GuildCategory(Channel):
+#     ...
+
+
+# class GuildAnnouncementChannel(Channel):
+#     ...
+
+
+# class GuildForumChannel(Channel):
+#     ...
 
 
 class ForumTag:

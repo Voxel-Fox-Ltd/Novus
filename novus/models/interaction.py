@@ -37,7 +37,7 @@ from ..utils import (
     walk_components,
 )
 from .application_command import ApplicationCommandOption
-from .channel import Channel, channel_builder
+from .channel import Channel
 from .guild_member import GuildMember
 from .message import Attachment, Message
 from .role import Role
@@ -163,10 +163,9 @@ class InteractionResolved:
             return {}
         ret: dict[int, Channel] = {}
         for d in data.values():
-            u = channel_builder(
+            u = Channel(
                 state=self.state,
                 data=d,
-                guild_id=self.guild.id if self.guild else None,
             )
             ret[u.id] = u
         return ret

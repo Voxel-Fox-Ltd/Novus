@@ -125,8 +125,8 @@ def get_parser() -> ArgumentParser:
     cap.add_argument("--shard-count", nargs="?", type=str, default=None)
     cap.add_argument("--intents", nargs="?", type=str, const="", default=None)
     cap.add_argument("--intent", nargs="*", type=str, default=None)
-    rap.add_argument("--no-intents", nargs="?", type=str, const="", default=None)
-    rap.add_argument("--no-intent", nargs="*", type=str, default=None)
+    cap.add_argument("--no-intents", nargs="?", type=str, const="", default=None)
+    cap.add_argument("--no-intent", nargs="*", type=str, default=None)
     cap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
     cap.add_argument("--plugin", nargs="*", type=str, default=None)
 

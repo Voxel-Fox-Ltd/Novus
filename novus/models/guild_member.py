@@ -29,7 +29,7 @@ from ..utils.snowflakes import try_id, try_object, try_snowflake
 from ..utils.times import parse_timestamp
 from .abc import Hashable, Messageable
 from .asset import Asset
-from .channel import DMChannel
+from .channel import Channel
 from .user import User
 
 if TYPE_CHECKING:
@@ -523,7 +523,7 @@ class GuildMember(Hashable, Messageable):
         )
         return
 
-    async def create_dm_channel(self) -> DMChannel:
+    async def create_dm_channel(self) -> Channel:
         return await self._user.create_dm_channel()
 
     async def _get_send_method(self) -> Callable[..., Awaitable[Any]]:

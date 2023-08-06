@@ -29,6 +29,7 @@ __all__ = (
     'ChannelOverwrite',
     'ThreadMetadata',
     'ThreadMember',
+    'ForumDefaultReaction',
 )
 
 

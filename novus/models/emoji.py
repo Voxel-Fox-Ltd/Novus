@@ -77,7 +77,7 @@ class PartialEmoji(Hashable):
     name: str | None
     animated: bool
 
-    def __init__(self, *, data: payloads.PartialEmoji | payloads.Emoji):
+    def __init__(self, *, data: payloads.PartialEmoji | payloads.Emoji | payloads.ForumDefaultReaction):
         self.id = try_snowflake(data.get('id'))
         self.name = data.get('name')
         self.animated = data.get('animated', False)
