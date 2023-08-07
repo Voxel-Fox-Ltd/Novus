@@ -396,7 +396,7 @@ class GatewayDispatch:
         message = await self._handle_message_generic(data)
         if message is None:
             return
-        self.dispatch("MESSAGE_CREATE", message)
+        self.dispatch("MESSAGE_CREATE", message[1])
 
     async def _handle_message_edit(
             self,
