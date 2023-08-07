@@ -19,6 +19,7 @@ from __future__ import annotations
 
 from datetime import datetime as dt
 from typing import TYPE_CHECKING, Any
+
 from typing_extensions import Self
 
 from ..enums import EventEntityType, EventPrivacyLevel, EventStatus

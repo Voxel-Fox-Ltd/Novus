@@ -28,19 +28,19 @@ from novus.models.reaction import Reaction
 
 if TYPE_CHECKING:
     from novus.models import (
+        AuditLog,
+        BaseGuild,
         Channel,
+        Emoji,
+        Guild,
+        GuildMember,
         Interaction,
         Message,
         MessageComponentData,
-        TextChannel,
-        Guild,
-        AuditLog,
-        User,
-        GuildMember,
-        Emoji,
-        Sticker,
         Role,
-        BaseGuild,
+        Sticker,
+        TextChannel,
+        User,
     )
 
 __all__ = (

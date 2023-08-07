@@ -19,15 +19,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NoReturn
 
-from ..models import (
-    Guild,
-    GuildBan,
-    GuildMember,
-    GuildPreview,
-    Invite,
-    Role,
-    User,
-)
+from ..models import Guild, GuildBan, GuildMember, GuildPreview, Invite, Role, User
 from ..models.channel import Channel
 from ._route import Route
 

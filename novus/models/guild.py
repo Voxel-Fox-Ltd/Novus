@@ -23,6 +23,7 @@ import random
 import string
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, NoReturn, overload
+
 from typing_extensions import Self
 
 from ..enums import (
@@ -76,7 +77,7 @@ if TYPE_CHECKING:
         AutoModerationRule,
         AutoModerationTriggerMetadata,
     )
-    from .channel import ForumTag, Channel, PermissionOverwrite
+    from .channel import Channel, ForumTag, PermissionOverwrite
     from .file import File
     from .invite import Invite
     from .reaction import Reaction

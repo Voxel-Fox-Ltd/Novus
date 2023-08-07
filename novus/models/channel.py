@@ -20,38 +20,38 @@ from __future__ import annotations
 import asyncio
 import logging
 from typing import TYPE_CHECKING, Any, Literal, Type
+
 from typing_extensions import Self
 
-from ..enums import ChannelType, PermissionOverwriteType, ForumLayout, ForumSortOrder
-from ..flags import Permissions, ChannelFlags
+from ..enums import ChannelType, ForumLayout, ForumSortOrder, PermissionOverwriteType
+from ..flags import ChannelFlags, Permissions
 from ..utils import (
     MISSING,
+    DiscordDatetime,
     add_not_missing,
     generate_repr,
     parse_timestamp,
     try_id,
     try_snowflake,
-    DiscordDatetime,
 )
 from .abc import Hashable, Messageable
-from .user import User
 from .emoji import PartialEmoji
+from .user import User
 
 if TYPE_CHECKING:
     from .. import payloads
     from ..api import HTTPConnection
     from ..flags import MessageFlags
+    from ..utils.types import AnySnowflake
     from . import abc
     from .embed import Embed
     from .file import File
-    from .guild_member import ThreadMember
+    from .guild import BaseGuild
+    from .guild_member import GuildMember, ThreadMember
     from .invite import Invite
     from .message import AllowedMentions, Message
-    from .guild import BaseGuild
-    from .ui.action_row import ActionRow
-    from ..utils.types import AnySnowflake
     from .role import Role
-    from .guild_member import GuildMember
+    from .ui.action_row import ActionRow
 
 __all__ = (
     'PermissionOverwrite',
@@ -117,8 +117,8 @@ class PermissionOverwrite:
         self.id = try_id(id)
         self.type: PermissionOverwriteType
         from .guild import BaseGuild
-        from .role import Role
         from .guild_member import GuildMember
+        from .role import Role
         if type:
             if type is Role:
                 self.type = PermissionOverwriteType.role
@@ -543,8 +543,6 @@ class Channel(Hashable, Messageable):
             Only applies to forum channels.
         parent : novus.abc.Snowflake
             A parent channel.
-        type : novus.ChannelType
-            The channel type.
         overwrites : list[novus.PermissionOverwrite]
             A list of permission overwrites for the channel.
         available_tags : list[novus.ForumTag]
@@ -578,7 +576,6 @@ class Channel(Hashable, Messageable):
         add_not_missing(params, "default_sort_order", default_sort_order)
         add_not_missing(params, "default_forum_layout", default_forum_layout)
         add_not_missing(params, "parent", parent)
-        add_not_missing(params, "type", type)
         add_not_missing(params, "overwrites", overwrites)
         add_not_missing(params, "available_tags", available_tags)
         add_not_missing(params, "default_reaction_emoji", default_reaction_emoji)

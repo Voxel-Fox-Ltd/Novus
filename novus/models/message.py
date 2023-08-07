@@ -35,13 +35,13 @@ from .channel import Channel
 from .embed import Embed
 from .emoji import PartialEmoji
 from .file import File
+from .guild import Guild
 from .guild_member import GuildMember
 from .reaction import Reaction
 from .role import Role
 from .sticker import Sticker
 from .ui.action_row import ActionRow
 from .user import User
-from .guild import Guild
 
 if TYPE_CHECKING:
     from datetime import datetime as dt

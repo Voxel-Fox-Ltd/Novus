@@ -19,11 +19,11 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import sys
 import textwrap
-from argparse import ArgumentParser, Namespace, REMAINDER
+from argparse import REMAINDER, ArgumentParser, Namespace
 from typing import Any, NoReturn
-import re
 
 from aioconsole import AsynchronousCli
 

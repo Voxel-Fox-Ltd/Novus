@@ -36,11 +36,11 @@ import novus as n
 if TYPE_CHECKING:
     from types import ModuleType
 
+    from novus.api._cache import APICache
+
     from .command import Command, CommandGroup
     from .config import Config
     from .plugin import Plugin
-
-    from novus.api._cache import APICache
 
 __all__ = (
     'Client',

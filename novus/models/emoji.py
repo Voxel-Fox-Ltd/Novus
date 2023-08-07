@@ -19,9 +19,9 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING, Any, overload
-from typing_extensions import Self
 
 import emoji
+from typing_extensions import Self
 
 from ..utils import (
     MISSING,

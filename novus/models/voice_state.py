@@ -18,12 +18,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+
 from typing_extensions import Self
 
 from ..utils import parse_timestamp
 from .abc import Hashable
-from .guild_member import GuildMember
 from .channel import Channel
+from .guild_member import GuildMember
 
 if TYPE_CHECKING:
     from datetime import datetime as dt

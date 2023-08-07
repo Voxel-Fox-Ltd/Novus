@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
+
 from typing_extensions import NotRequired
 
 from novus.payloads.stage_instance import StageInstance

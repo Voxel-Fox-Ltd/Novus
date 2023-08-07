@@ -16,8 +16,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
 from __future__ import annotations
-from collections.abc import Iterable
 
+from collections.abc import Iterable
 from typing import TYPE_CHECKING, Literal, overload
 
 if TYPE_CHECKING:

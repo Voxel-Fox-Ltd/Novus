@@ -20,8 +20,8 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import TYPE_CHECKING, Any, Callable, Awaitable
 from copy import copy
+from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from ...models import (
     AuditLogEntry,
@@ -37,11 +37,11 @@ from ...models import (
     Reaction,
     Role,
     Sticker,
+    ThreadMember,
     User,
     VoiceState,
-    ThreadMember,
 )
-from ...utils import try_snowflake, try_id
+from ...utils import try_id, try_snowflake
 
 if TYPE_CHECKING:
     from ... import payloads

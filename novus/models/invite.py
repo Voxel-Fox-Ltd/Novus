@@ -20,8 +20,8 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Protocol
 
-from .channel import Channel
 from ..utils import generate_repr, parse_timestamp
+from .channel import Channel
 from .guild import Guild, PartialGuild
 
 if TYPE_CHECKING:

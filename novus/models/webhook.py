@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING, Any, Literal, Protocol, overload
+
 from typing_extensions import override
 
 from ..utils import (

@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+
 from typing_extensions import Self
 
 from ..flags import Permissions
@@ -26,8 +27,8 @@ from .abc import Hashable
 from .asset import Asset
 
 if TYPE_CHECKING:
-    from ..api import HTTPConnection
     from .. import payloads
+    from ..api import HTTPConnection
     from . import abc
     from .file import File
     from .guild import BaseGuild
