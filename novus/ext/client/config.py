@@ -103,7 +103,6 @@ class Config:
         if check("shard_count"):
             self.shard_count = int(args.shard_count)
 
-        self.intents: novus.Intents = novus.Intents()
         if check("intents") and args.intents == "*":
             self.intents = novus.Intents.all()
         intent_kwargs = {}
@@ -122,19 +121,19 @@ class Config:
         self.intents.update(**intent_kwargs)
 
         if check("intent"):
-            self.intents = self.intents.update(**{
+            self.intents.update(**{
                 i.strip(): True
                 for i in args.intent
                 if i.strip()
             })
         if check("no-intents"):
-            self.intents = self.intents.update(**{
+            self.intents.update(**{
                 i.strip(): False
                 for i in args.no_intents.split(",")
                 if i.strip()
             })
         if check("no-intent"):
-            self.intents = self.intents.update(**{
+            self.intents.update(**{
                 i.strip(): False
                 for i in args.no_intent
                 if i.strip()
@@ -143,9 +142,9 @@ class Config:
         if check("plugins") and check("plugin"):
             raise Exception("Cannot have both plugins and plugin in args")
         elif check("plugins"):
-            self.plugins = [i.strip() for i in args.plugins.split(",") if i.strip()]
+            self.plugins.extend([i.strip() for i in args.plugins.split(",") if i.strip()])
         elif check("plugin"):
-            self.plugins = [i.strip() for i in args.plugin if i.strip()]
+            self.plugins.extend([i.strip() for i in args.plugin if i.strip()])
 
         if unknown:
             for name, value in zip(unknown[::2], unknown[1::2]):
