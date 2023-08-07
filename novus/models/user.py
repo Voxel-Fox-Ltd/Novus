@@ -30,7 +30,7 @@ from .asset import Asset
 if TYPE_CHECKING:
     from .. import abc, payloads
     from ..api import HTTPConnection
-    from . import DMChannel, GuildMember, OauthGuild
+    from . import Channel, GuildMember, OauthGuild
 
 __all__ = (
     'User',
@@ -113,7 +113,7 @@ class User(Hashable, Messageable):
         self.state = state
         self.id = try_snowflake(data['id'])
         self._guilds: set[int] = set()
-        self._dm_channel: DMChannel | None = None
+        self._dm_channel: Channel | None = None
         self._update(data)
 
     __repr__ = generate_repr(('id', 'username', 'bot',))
@@ -265,13 +265,13 @@ class User(Hashable, Messageable):
         )
 
     async def create_dm_channel(
-            self: abc.StateSnowflake) -> DMChannel:
+            self: abc.StateSnowflake) -> Channel:
         """
         Open a DM channel with the given user.
 
         Returns
         -------
-        novus.DMChannel
+        novus.Channel
             The DM channel for the user.
         """
 

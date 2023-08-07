@@ -76,7 +76,7 @@ if TYPE_CHECKING:
         AutoModerationRule,
         AutoModerationTriggerMetadata,
     )
-    from .channel import ForumTag, GuildTextChannel, PermissionOverwrite
+    from .channel import ForumTag, Channel, PermissionOverwrite
     from .file import File
     from .invite import Invite
     from .reaction import Reaction
@@ -706,7 +706,7 @@ class BaseGuild:
 
         Returns
         -------
-        list[novus.model.Thread]
+        list[novus.Channel]
             A list of threads.
         """
 
@@ -2234,7 +2234,7 @@ class Guild(Hashable, BaseGuild):
 
         return self._guild_scheduled_events.get(try_id(id))
 
-    def get_thread(self, id: AnySnowflake) -> Thread | None:
+    def get_thread(self, id: AnySnowflake) -> Channel | None:
         """
         Get a thread from cache.
 
@@ -2245,7 +2245,7 @@ class Guild(Hashable, BaseGuild):
 
         Returns
         -------
-        novus.Thread | None
+        novus.Channel | None
             A thread object, if one was cached.
         """
 

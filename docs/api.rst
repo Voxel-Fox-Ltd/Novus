@@ -293,56 +293,6 @@ Discord Models
     :inherited-members:
     :no-special-members:
 
-.. autoclass:: novus.GuildChannel
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.GuildTextChannel
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.DMChannel
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.GroupDMChannel
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.Thread
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.GuildVoiceChannel
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.GuildStageChannel
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.GuildCategory
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.GuildAnnouncementChannel
-    :members:
-    :inherited-members:
-    :no-special-members:
-
-.. autoclass:: novus.GuildForumChannel
-    :members:
-    :inherited-members:
-    :no-special-members:
-
 .. autoclass:: novus.User
     :members:
     :inherited-members:

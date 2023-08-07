@@ -37,7 +37,7 @@ from ._route import Route
 
 if TYPE_CHECKING:
     from .. import payloads
-    from ..models import Thread
+    from ..models import Channel
     from ._http import HTTPConnection
 
 __all__ = (

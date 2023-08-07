@@ -30,7 +30,6 @@ if TYPE_CHECKING:
 
     from .. import payloads
     from ..api import HTTPConnection
-    from .channel import GuildVoiceChannel
     from .guild import BaseGuild
     from .user import User
 
@@ -68,7 +67,7 @@ class VoiceState(Hashable):
     """
 
     guild: BaseGuild | None
-    channel: GuildVoiceChannel
+    channel: Channel
     user: GuildMember | User
     suppress: bool
     session_id: str
