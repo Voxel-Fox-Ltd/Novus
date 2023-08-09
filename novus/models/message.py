@@ -277,7 +277,7 @@ class Message(Hashable):
             for d in data.get("embeds", [])
         ]
         self.reactions = [
-            Reaction(state=self.state, data=d, message=self)
+            Reaction(state=self.state, data=d, message_id=self.id, channel_id=self.channel.id)
             for d in data.get("reactions", [])
         ]
         self.pinned = data.get("pinned")
