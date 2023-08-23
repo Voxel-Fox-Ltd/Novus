@@ -121,7 +121,9 @@ class BaseGuild:
         self.state = state
         self.id: int = try_snowflake(data["id"])
         self.name: str | None = data.get("name")
-
+    
+    def __str__(self) -> str:
+        return f"{self.name}" 
     # API methods
 
     @classmethod
