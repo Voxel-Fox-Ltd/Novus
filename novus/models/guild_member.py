@@ -248,9 +248,7 @@ class GuildMember(Hashable, Messageable):
     __repr__ = generate_repr(("id", "username", "bot", "guild",))
 
     def __str__(self) -> str:
-        if self.discriminator == "0":
-            return self.username
-        return f"{self.username}#{self.discriminator}"
+        return str(self._user)
 
     @property
     def mention(self) -> str:

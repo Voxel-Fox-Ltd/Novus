@@ -120,6 +120,8 @@ class User(Hashable, Messageable):
     __repr__ = generate_repr(('id', 'username', 'bot',))
 
     def __str__(self) -> str:
+        if self.discriminator == "0":
+            return self.username
         return f"{self.username}#{self.discriminator}"
 
     @property
