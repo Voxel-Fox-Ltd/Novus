@@ -27,7 +27,7 @@ from ..utils.cached_slots import cached_slot_property
 from ..utils.missing import MISSING
 from ..utils.repr import generate_repr
 from ..utils.snowflakes import try_id, try_object, try_snowflake
-from ..utils.times import parse_timestamp
+from ..utils.times import parse_timestamp, DiscordDatetime
 from .abc import Hashable, Messageable
 from .asset import Asset
 from .channel import Channel
@@ -182,13 +182,13 @@ class GuildMember(Hashable, Messageable):
     nick: str | None
     guild_avatar_hash: str | None
     role_ids: list[int]
-    joined_at: dt
-    premium_since: dt | None
+    joined_at: DiscordDatetime
+    premium_since: DiscordDatetime | None
     deaf: bool
     mute: bool
     pending: bool
     permissions: Permissions
-    timeout_until: dt | None
+    timeout_until: DiscordDatetime | None
     guild: BaseGuild
 
     def __new__(cls, **kwargs: Any) -> GuildMember:

@@ -30,6 +30,7 @@ from ..utils import (
     parse_timestamp,
     try_id,
     try_snowflake,
+    DiscordDatetime,
 )
 from .abc import Hashable
 from .asset import Asset
@@ -119,8 +120,8 @@ class ScheduledEvent(Hashable):
     creator: User | None
     name: str
     description: str | None
-    start_time: dt
-    end_time: dt | None
+    start_time: DiscordDatetime
+    end_time: DiscordDatetime | None
     privacy_level: EventPrivacyLevel
     status: EventStatus
     entity_type: EventEntityType

@@ -21,14 +21,12 @@ from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
-from ..utils import parse_timestamp
+from ..utils import parse_timestamp, DiscordDatetime
 from .abc import Hashable
 from .channel import Channel
 from .guild_member import GuildMember
 
 if TYPE_CHECKING:
-    from datetime import datetime as dt
-
     from .. import payloads
     from ..api import HTTPConnection
     from .guild import BaseGuild
@@ -59,7 +57,7 @@ class VoiceState(Hashable):
         Whether the user has muted themselves.
     self_deaf : bool
         Whether the user has deafened themselves.
-    request_to_speak_timestamp : dt | None
+    request_to_speak_timestamp : novus.utils.DiscordDatetime | None
         When the user requested to speak.
     mute : bool
         Whether the user is muted.
@@ -75,7 +73,7 @@ class VoiceState(Hashable):
     self_video: bool
     self_mute: bool
     self_deaf: bool
-    request_to_speak_timestamp: dt | None
+    request_to_speak_timestamp: DiscordDatetime | None
     mute: bool
     deaf: bool
 

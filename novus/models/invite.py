@@ -20,13 +20,11 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Protocol
 
-from ..utils import generate_repr, parse_timestamp
+from ..utils import generate_repr, parse_timestamp, DiscordDatetime
 from .channel import Channel
 from .guild import Guild, PartialGuild
 
 if TYPE_CHECKING:
-    from datetime import datetime as dt
-
     from .. import payloads
     from ..api import HTTPConnection
 
@@ -73,7 +71,7 @@ class Invite:
     max_uses: int | None
     max_age: int | None
     temporary: bool | None
-    created_at: dt | None
+    created_at: DiscordDatetime | None
     guild: Guild | PartialGuild | None
 
     def __init__(self, *, state: HTTPConnection, data: payloads.InviteWithMetadata | payloads.Invite):

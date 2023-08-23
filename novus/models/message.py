@@ -29,6 +29,7 @@ from ..utils import (
     parse_timestamp,
     try_id,
     try_snowflake,
+    DiscordDatetime,
 )
 from .abc import Hashable
 from .channel import Channel
@@ -177,8 +178,8 @@ class Message(Hashable):
     author: User | GuildMember
     guild: BaseGuild | None
     content: str
-    timestamp: dt
-    edited_timestamp: dt | None
+    timestamp: DiscordDatetime
+    edited_timestamp: DiscordDatetime | None
     tts: bool
     mention_everyone: bool
     mentions: list[User]
