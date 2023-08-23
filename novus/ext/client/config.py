@@ -156,10 +156,17 @@ class Config:
     def from_file(cls, filename: str | None) -> Self:
         if filename is None:
             try:
-                filename = glob.glob("config.*")[0]
+                possible_filenames: list[str] = glob.glob("config.*")
+                possible_filenames[0]
             except IndexError:
                 log.warning("Missing config file from current directory")
                 return cls()
+            for end in ["yaml", "yml", "toml", "json"]:
+                if f"config.{end}" in possible_filenames:
+                    filename = f"config.{end}"
+                    break
+            else:
+                filename = possible_filenames[0]
         try:
             if filename.endswith(".yaml") or filename.endswith(".yml"):
                 return cls.from_yaml(filename)
