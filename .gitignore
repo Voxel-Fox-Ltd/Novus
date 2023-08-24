@@ -5,6 +5,7 @@ _GATEWAY/
 __pycache__/
 *.py[cod]
 *$py.class
+*.isorted
 
 # C extensions
 *.so

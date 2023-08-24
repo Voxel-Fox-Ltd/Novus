@@ -77,7 +77,7 @@ if TYPE_CHECKING:
         AutoModerationRule,
         AutoModerationTriggerMetadata,
     )
-    from .channel import Channel, ForumTag, PermissionOverwrite
+    from .channel import ForumTag, PermissionOverwrite
     from .file import File
     from .invite import Invite
     from .reaction import Reaction
@@ -121,9 +121,13 @@ class BaseGuild:
         self.state = state
         self.id: int = try_snowflake(data["id"])
         self.name: str | None = data.get("name")
-    
+
     def __str__(self) -> str:
-        return f"{self.name}" 
+        return str(self.name)
+
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} id={self.id!r} name={self.name!r}>"
+
     # API methods
 
     @classmethod
@@ -567,48 +571,6 @@ class BaseGuild:
 
         channels = await self.state.guild.get_guild_channels(self.id)
         return channels
-
-    # @overload
-    # async def create_channel(
-    #         self: abc.StateSnowflake,
-    #         *,
-    #         name: str,
-    #         type: ChannelType = ChannelType.guild_text,
-    #         topic: str = ...,
-    #         position: int = ...,
-    #         permission_overwrites: list[PermissionOverwrite] = ...,
-    #         parent: AnySnowflake = ...,
-    #         nsfw: bool = ...,
-    #         reason: str = ...) -> Channel:
-    #     ...
-
-    # @overload
-    # async def create_channel(
-    #         self: abc.StateSnowflake,
-    #         *,
-    #         name: str,
-    #         type: ChannelType = ChannelType.private_thread,
-    #         rate_limit_per_user: int = ...,
-    #         position: int = ...,
-    #         parent: AnySnowflake = ...,
-    #         nsfw: bool = ...,
-    #         default_auto_archive_duration: int = ...,
-    #         reason: str = ...) -> Channel:
-    #     ...
-
-    # @overload
-    # async def create_channel(
-    #         self: abc.StateSnowflake,
-    #         *,
-    #         name: str,
-    #         type: ChannelType = ChannelType.public_thread,
-    #         rate_limit_per_user: int = ...,
-    #         position: int = ...,
-    #         parent: AnySnowflake = ...,
-    #         nsfw: bool = ...,
-    #         default_auto_archive_duration: int = ...,
-    #         reason: str = ...) -> Thread:
-    #     ...
 
     async def create_channel(
             self: abc.StateSnowflake,
