@@ -284,7 +284,7 @@ class GuildHTTPConnection:
         data: payloads.GuildMember = await self.parent.request(
             route,
         )
-        return GuildMember(state=self.parent, data=data)
+        return GuildMember(state=self.parent, data=data, guild_id=guild_id)
 
     async def get_guild_members(
             self,

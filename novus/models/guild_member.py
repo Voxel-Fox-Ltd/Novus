@@ -27,7 +27,7 @@ from ..utils.cached_slots import cached_slot_property
 from ..utils.missing import MISSING
 from ..utils.repr import generate_repr
 from ..utils.snowflakes import try_id, try_object, try_snowflake
-from ..utils.times import parse_timestamp, DiscordDatetime
+from ..utils.times import DiscordDatetime, parse_timestamp
 from .abc import Hashable, Messageable
 from .asset import Asset
 from .channel import Channel
@@ -38,6 +38,7 @@ if TYPE_CHECKING:
 
     from .. import abc, enums, payloads
     from ..api import HTTPConnection
+    from ..utils.types import AnySnowflake
     from .guild import BaseGuild
     from .voice_state import VoiceState
 
@@ -200,7 +201,11 @@ class GuildMember(Hashable, Messageable):
             setattr(
                 cls,
                 attr,
-                property(getter, doc=f'Equivalent to :attr:`novus.User.{attr}`')
+                property(
+                    getter,
+                    lambda a, b: None,  # so that copy works properly
+                    doc=f'Equivalent to :attr:`novus.User.{attr}`',
+                ),
             )
         return obj
 
@@ -295,6 +300,8 @@ class GuildMember(Hashable, Messageable):
         self.mute = data["mute"]
         if "pending" in data:
             self.pending = data["pending"]
+        else:
+            self.pending = False
         self.timeout_until = parse_timestamp(data.get("communication_disabled_until"))
         return self
 
@@ -550,7 +557,7 @@ class ThreadMember:
             *,
             state: HTTPConnection,
             data: payloads.ThreadMember,
-            guild_id: int | Snowflake | None = None):
+            guild_id: AnySnowflake | None = None):
         self.state = state
 
         # either set here or updated elsewhere
