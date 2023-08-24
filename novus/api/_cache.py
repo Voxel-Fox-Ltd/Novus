@@ -21,7 +21,7 @@ from collections import OrderedDict
 from typing import TYPE_CHECKING, Any, overload
 
 from ..models.channel import Channel
-from ..models.guild import BaseGuild, Guild
+from ..models.guild import Guild
 from ..models.message import Message
 from ..models.user import User
 
@@ -116,26 +116,21 @@ class APICache:
         ...
 
     @overload
-    def get_guild(self, id: int | str) -> Guild | BaseGuild:
+    def get_guild(self, id: int | str) -> Guild | None:
         ...
 
-    def get_guild(self, id: int | str | None) -> Guild | BaseGuild | None:
+    def get_guild(self, id: int | str | None) -> Guild | None:
         if id is None:
             return None
-        v = self.guilds.get(int(id))
-        if v:
-            return v
-        return BaseGuild(state=self.parent, data={"id": id})  # pyright: ignore
+        return self.guilds.get(int(id))
 
     def get_user(self, id: int | str) -> User | None:
-        v = self.users.get(int(id))
-        return v or None
+        return self.users.get(int(id))
 
     def get_channel(self, id: int | str | None) -> Channel | None:
         if id is None:
             return None
-        v = self.channels.get(int(id))
-        return v or Channel.partial(self.parent, id)
+        return self.channels.get(int(id))
 
     def get_emoji(self, id: int | str) -> Emoji | None:
         return self.emojis.get(int(id))

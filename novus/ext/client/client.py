@@ -27,7 +27,7 @@ import sys
 import time
 from collections import defaultdict
 from functools import partial
-from typing import TYPE_CHECKING, Any, Type, cast
+from typing import TYPE_CHECKING, Any, Literal, Type, cast, overload
 
 from aiohttp import web
 
@@ -37,10 +37,12 @@ if TYPE_CHECKING:
     from types import ModuleType
 
     from novus.api._cache import APICache
+    from novus.utils.types import AnySnowflake
 
     from .command import Command, CommandGroup
     from .config import Config
     from .plugin import Plugin
+
 
 __all__ = (
     'Client',
@@ -113,13 +115,80 @@ class Client:
     def guilds(self) -> list[n.Guild]:
         return list(self.cache.guilds.values())
 
+    def get_guild(self, id: AnySnowflake) -> n.Guild | None:
+        """
+        Get a guild from the bot's internal cache.
+
+        Parameters
+        ----------
+        id : int | str
+            The ID of the guild that you want to get.
+
+        Returns
+        -------
+        novus.Guild | None
+            The object from the cache.
+        """
+
+        return self.cache.get_guild(n.utils.try_id(id))
+
     @property
     def users(self) -> list[n.User]:
         return list(self.cache.users.values())
 
+    def get_user(self, id: AnySnowflake) -> n.User | None:
+        """
+        Get a user from the bot's internal cache.
+
+        Parameters
+        ----------
+        id : int | str
+            The ID of the user that you want to get.
+
+        Returns
+        -------
+        novus.User | None
+            The object from the cache.
+        """
+
+        return self.cache.get_user(n.utils.try_id(id))
+
     @property
     def channels(self) -> list[n.Channel]:
         return list(self.cache.channels.values())
+
+    @overload
+    def get_channel(self, id: AnySnowflake, or_partial: Literal[True]) -> n.Channel:
+        ...
+
+    @overload
+    def get_channel(self, id: AnySnowflake, or_partial: Literal[False]) -> n.Channel | None:
+        ...
+
+    def get_channel(self, id: AnySnowflake, or_partial: bool = False) -> n.Channel | None:
+        """
+        Get a channel from the bot's internal cache.
+
+        Parameters
+        ----------
+        id : int | str
+            The ID of the channel that you want to get.
+        or_partial : bool
+            If set to ``True``, the bot will return a partial object if a channel
+            was not available.
+
+        Returns
+        -------
+        novus.Channel | None
+            The object from the cache.
+        """
+
+        v = self.cache.get_channel(n.utils.try_id(id))
+        if v:
+            return v
+        if or_partial:
+            return n.Channel.partial(self.state, n.utils.try_id(id))
+        return None
 
     async def wait_until_ready(self) -> None:
         """
@@ -287,7 +356,7 @@ class Client:
 
         instance = None
         for p in self.plugins:
-            if type(p) == plugin:
+            if type(p) == plugin:  # noqa: E721  # Flake8 doesn't like this line
                 instance = p
         if instance is None:
             raise TypeError("Plugin %s is not loaded" % plugin)
