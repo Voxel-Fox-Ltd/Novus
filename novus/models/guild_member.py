@@ -296,8 +296,8 @@ class GuildMember(Hashable, Messageable):
         self.role_ids = try_snowflake(data["roles"])
         self.joined_at = parse_timestamp(data["joined_at"])
         self.premium_since = parse_timestamp(data.get("premium_since"))
-        self.deaf = data["deaf"]
-        self.mute = data["mute"]
+        self.deaf = data.get("deaf", False)
+        self.mute = data.get("mute", False)
         if "pending" in data:
             self.pending = data["pending"]
         else:
