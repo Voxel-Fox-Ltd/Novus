@@ -221,7 +221,7 @@ class ApplicationCommandOption:
             type=ApplicationOptionType(data["type"]),
             name_localizations=data.get("name_localizations"),
             description_localizations=data.get("description_localizations"),
-            required=data.get("required", True),
+            required=data.get("required", False),
             choices=[
                 ApplicationCommandChoice(**d)
                 for d in data.get("choices") or []
