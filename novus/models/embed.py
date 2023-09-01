@@ -31,6 +31,8 @@ if TYPE_CHECKING:
     from ..payloads.embed import _EmbedField as FieldPayload
     from ..payloads.embed import _EmbedFooter as FooterPayload
     from ..payloads.embed import _EmbedMedia as MediaPayload
+    from .guild_member import GuildMember
+    from .user import User
 
 __all__ = (
     'Embed',
@@ -399,6 +401,21 @@ class Embed:
             icon_url=icon_url,
         )
         return self
+
+    def set_author_from_user(self, user: User | GuildMember):
+        """
+        Set the author of the embed with the attributes present on a user.
+
+        Parameters
+        ----------
+        user : novus.User | novus.GuildMember
+            The user that you want to set into the embed.
+        """
+
+        return self.set_author(
+            name=str(user),
+            icon_url=str(user.avatar)
+        )
 
     def remove_author(self) -> Self:
         """
