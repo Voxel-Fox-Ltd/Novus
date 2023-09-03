@@ -2120,7 +2120,7 @@ class Guild(Hashable, BaseGuild):
             new_cache = {}
             for d in data["voice_states"]:
                 new = self._add_voice_state(d, new_cache)
-                new_cache[new.id] = new
+                new_cache[new.user.id] = new
                 await asyncio.sleep(0)
             self._voice_states = new_cache
 
