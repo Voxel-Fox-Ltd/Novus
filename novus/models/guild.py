@@ -2071,56 +2071,64 @@ class Guild(Hashable, BaseGuild):
         if "emojis" in data:
             new_cache = {}
             for d in data["emojis"]:
-                self._add_emoji(d, new_cache)
+                new = self._add_emoji(d, new_cache)
+                new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._emojis = new_cache
 
         if "stickers" in data:
             new_cache = {}
             for d in data["stickers"]:
-                self._add_sticker(d, new_cache)
+                new = self._add_sticker(d, new_cache)
+                new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._stickers = new_cache
 
         if "roles" in data:
             new_cache = {}
             for d in data["roles"]:
-                self._add_role(d, new_cache)
+                new = self._add_role(d, new_cache)
+                new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._roles = new_cache
 
         if "members" in data:
             new_cache = {}
             for d in data["members"]:
-                self._add_member(d, new_cache)
+                new = self._add_member(d, new_cache)
+                new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._members = new_cache
 
         if "guild_scheduled_events" in data:
             new_cache = {}
             for d in data["guild_scheduled_events"]:
-                self._add_guild_scheduled_event(d, new_cache)
+                new = self._add_guild_scheduled_event(d, new_cache)
+                new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._guild_scheduled_events = new_cache
 
         if "threads" in data:
             new_cache = {}
             for d in data["threads"]:
-                self._add_thread(d, new_cache)
+                new = self._add_thread(d, new_cache)
+                new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._threads = new_cache
 
         if "voice_states" in data:
             new_cache = {}
             for d in data["voice_states"]:
-                self._add_voice_state(d, new_cache)
+                new = self._add_voice_state(d, new_cache)
+                new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._voice_states = new_cache
 
         if "channels" in data:
             new_cache = {}
             for d in data["channels"]:
-                self._add_channel(d, new_cache)
+                new = self._add_channel(d, new_cache)
+                new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._channels = new_cache
 

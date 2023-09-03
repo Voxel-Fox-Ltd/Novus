@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import logging
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Any, overload
 
@@ -33,6 +34,8 @@ __all__ = (
     'APICache',
     'NothingAPICache',
 )
+
+log = logging.getLogger("novus.api.cache")
 
 
 class MaxLenDict(OrderedDict):
@@ -81,33 +84,40 @@ class APICache:
         pass
 
     def add_guilds(self, *items: Guild) -> None:
+        log.debug("Caching guilds %s", items)
         for i in items:
             self.guild_ids.add(i.id)
             self.guilds[i.id] = i
 
     def add_users(self, *items: User) -> None:
+        log.debug("Caching users %s", items)
         for i in items:
             self.users[i.id] = i
 
     def add_channels(self, *items: Channel) -> None:
+        log.debug("Caching channels %s", items)
         for i in items:
             self.channels[i.id] = i
 
     def add_emojis(self, *items: Emoji) -> None:
+        log.debug("Caching emojis %s", items)
         for i in items:
             if i.id is None:
                 continue
             self.emojis[i.id] = i
 
     def add_stickers(self, *items: Sticker) -> None:
+        log.debug("Caching stickers %s", items)
         for i in items:
             self.stickers[i.id] = i
 
     def add_events(self, *items: ScheduledEvent) -> None:
+        log.debug("Caching events %s", items)
         for i in items:
             self.events[i.id] = i
 
     def add_messages(self, *items: Message) -> None:
+        log.debug("Caching messages %s", items)
         for i in items:
             self.messages[i.id] = i
 
