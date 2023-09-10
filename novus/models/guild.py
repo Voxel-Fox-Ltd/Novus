@@ -1964,6 +1964,7 @@ class Guild(Hashable, BaseGuild):
                 created = cached._update(member)
             else:
                 created = GuildMember(state=self.state, data=member, guild_id=self.id)
+                self.state.cache.add_users(created._user)
         (new_cache or self._members)[created.id] = created
         return created
 
@@ -2050,7 +2051,6 @@ class Guild(Hashable, BaseGuild):
                 )
         else:
             created = channel
-        else:
         self.state.cache.add_channels(created)
         (new_cache or self._channels)[created.id] = created
         return created
