@@ -2031,22 +2031,26 @@ class Guild(Hashable, BaseGuild):
 
     def _add_channel(
             self,
-            channel: payloads.Channel,
+            channel: payloads.Channel | Channel,
             new_cache: dict[int, Any] | None = None) -> Channel:
         """
         Add a channel to the guild's cache, updating the state cache at the same
         time.
         """
 
-        cached = self.state.cache.get_channel(channel["id"])
-        if cached:
-            created = cached._update(channel)
+        if isinstance(channel, dict):
+            cached = self.state.cache.get_channel(channel["id"])
+            if cached:
+                created = cached._update(channel)
+            else:
+                created = Channel(
+                    state=self.state,
+                    data=channel,
+                    guild_id=self.id,
+                )
         else:
-            created = Channel(
-                state=self.state,
-                data=channel,
-                guild_id=self.id,
-            )
+            created = channel
+        else:
         self.state.cache.add_channels(created)
         (new_cache or self._channels)[created.id] = created
         return created
