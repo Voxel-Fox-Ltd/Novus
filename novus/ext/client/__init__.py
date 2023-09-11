@@ -20,6 +20,7 @@ from .command import *
 from .config import *
 from .errors import *
 from .event import *
+from .loop import *
 from .plugin import *
 
 __all__: tuple[str, ...] = (
@@ -30,8 +31,10 @@ __all__: tuple[str, ...] = (
     'CommandGroup',
     'Config',
     'EventListener',
+    'Loop',
+    'LoopBehavior',
     'Plugin',
     'command',
     'event',
-    'loadable',
+    'loop',
 )

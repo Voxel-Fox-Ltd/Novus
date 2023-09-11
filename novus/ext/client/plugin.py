@@ -20,12 +20,13 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any, ClassVar, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 import novus as n
 
 from .command import Command, CommandDescription, CommandGroup
 from .event import EventListener
+from .loop import Loop
 
 if TYPE_CHECKING:
     from .client import Client
@@ -33,23 +34,14 @@ if TYPE_CHECKING:
     JsonPrimitive = str | bool | int | float
     JsonPrimList = list['JsonPrimitive' | list['JsonPrimList'] | list['JsonPrimDict']]
     JsonPrimDict = dict[str, 'JsonPrimitive' | 'JsonPrimList' | 'JsonPrimDict']
-    JsonValue =  JsonPrimDict
+    JsonValue = JsonPrimDict
 
 __all__ = (
-    'loadable',
     'Plugin',
 )
 
 
 log = logging.getLogger("novus.ext.bot.plugin")
-
-
-T = TypeVar("T")
-
-
-def loadable(cls: T) -> T:
-    cls.__novus_loadable__ = None  # type: ignore
-    return cls
 
 
 class PluginMeta(type):
@@ -60,6 +52,7 @@ class PluginMeta(type):
         # Clear caches
         cls._event_listeners: dict[str, set[EventListener]] = {}
         cls._commands: set[Command | CommandGroup] = set()
+        cls._loops: set[Loop] = set()
 
         # Iterate over items
         subcommands: dict[str, set[Command]] = defaultdict(set)
@@ -71,6 +64,14 @@ class PluginMeta(type):
                 if val.event not in cls._event_listeners:
                     cls._event_listeners[val.event] = set()
                 cls._event_listeners[val.event].add(val)
+                continue
+
+            # Add loops to cache
+            if isinstance(val, Loop):
+                cls._loops.add(val)
+                if val.autostart:
+                    val.start()
+                continue
 
             # Add commands to cache
             if isinstance(val, Command):
@@ -78,10 +79,12 @@ class PluginMeta(type):
                 if val.type == n.ApplicationCommandType.chat_input and " " in val.name:
                     subcommands[val.name.split(" ")[0]].add(val)
                 cls._commands.add(val)
+                continue
 
             # Temporarily cache command descriptions
             if isinstance(val, CommandDescription):
                 descriptions[name] = val
+                continue
 
         # Group subcommands
         groups: dict[str, CommandGroup] = {}
@@ -115,6 +118,8 @@ class Plugin(metaclass=PluginMeta):
         for i in cls._event_listeners.values():
             for i2 in i:
                 i2.owner = created
+        for i in cls._loops:
+            i.owner = created
         return created
 
     def __init__(self, bot: Client) -> None:
@@ -144,6 +149,7 @@ class Plugin(metaclass=PluginMeta):
         bot.
         This function is not run if there is not an event loop running.
         """
+
         pass
 
     def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
