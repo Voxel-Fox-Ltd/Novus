@@ -392,7 +392,7 @@ class BaseGuild:
             query: str = "",
             limit: int = 0,
             user_ids: list[int] | None = None,
-            wait: bool = False) -> list[GuildMember] | None:
+            wait: bool = True) -> list[GuildMember] | None:
         """
         Request member chunks from the gateway.
 
