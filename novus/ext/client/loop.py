@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import logging
 from enum import Enum, auto
 from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
@@ -30,6 +31,8 @@ __all__ = (
     'loop',
     'Loop',
 )
+
+log = logging.getLogger("novus.ext.client.loop")
 
 
 class LoopBehavior(Enum):
@@ -150,7 +153,7 @@ class Loop:
 
         if self.task is not None:
             raise RuntimeError("Loop is already running!")
-        self.bg_task = asyncio.create_task(self._run(), name=f"Loop task in {self.func.__name__}")
+        self.bg_task = asyncio.create_task(self._run(), name=f"Looping task in {self.func.__name__}")
 
     async def _run(self) -> None:
         if self.wait_until_ready:
@@ -162,6 +165,7 @@ class Loop:
                 await asyncio.sleep(self.loop_time)
             except asyncio.CancelledError:
                 return
+            log.info("Running task in loop %s", self.func.__name__)
             task = asyncio.create_task(self.func())
             if self.end_behavior == LoopBehavior.end:
                 await asyncio.wait([task])

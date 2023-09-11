@@ -64,7 +64,7 @@ __all__ = (
 )
 
 
-log = logging.getLogger("novus.ext.bot.command")
+log = logging.getLogger("novus.ext.client.command")
 
 
 class Autocomplete:

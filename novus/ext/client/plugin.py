@@ -41,7 +41,7 @@ __all__ = (
 )
 
 
-log = logging.getLogger("novus.ext.bot.plugin")
+log = logging.getLogger("novus.ext.client.plugin")
 
 
 class PluginMeta(type):
