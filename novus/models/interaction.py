@@ -44,6 +44,7 @@ from .role import Role
 from .ui.action_row import ActionRow
 from .ui.select_menu import SelectOption
 from .user import User
+from .guild import BaseGuild
 
 if TYPE_CHECKING:
     from aiohttp import web
@@ -52,7 +53,6 @@ if TYPE_CHECKING:
     from ..api import HTTPConnection
     from .application_command import ApplicationCommandChoice
     from .file import File
-    from .guild import BaseGuild
     from .message import AllowedMentions, Embed, WebhookMessage
     from .sticker import Sticker
     from .ui.component import InteractableComponent
@@ -502,6 +502,8 @@ class Interaction(Generic[IData]):
         self.application_id = try_snowflake(data["application_id"])
         self.type = InteractionType(data["type"])
         self.guild = self.state.cache.get_guild(data.get("guild_id"))
+        if self.guild is None and data.get("guild_id"):
+            self.guild = BaseGuild(state=state, data={"id": data["guild_id"]})  # pyright: ignore
         channel = self.state.cache.get_channel(data.get("channel_id"))
         if channel is None:
             self.channel = Channel.partial(self.state, data["channel_id"])

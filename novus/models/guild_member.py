@@ -247,8 +247,14 @@ class GuildMember(Hashable, Messageable):
             guild_id = data["guild_id"]
         if guild_id is None:
             raise ValueError("Missing guild from member init")
-        self.guild = self.state.cache.get_guild(guild_id)
-        self._user._guilds.add(self.guild.id)
+        guild = self.state.cache.get_guild(guild_id)
+        if guild is not None:
+            self._user._guilds.add(guild.id)
+        else:
+            from .guild import BaseGuild
+            guild = BaseGuild(state=state, data={"id": guild_id})  # pyright: ignore
+        self.guild = guild
+
 
     __repr__ = generate_repr(("id", "username", "bot", "guild",))
 
