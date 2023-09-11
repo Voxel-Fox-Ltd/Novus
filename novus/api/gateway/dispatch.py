@@ -166,6 +166,7 @@ class GatewayDispatch:
             self.shard.session_id = data['session_id']
             self.shard.ready.set()
             log.info("Received ready (shard %s)", self.shard.shard_id)
+            self.dispatch("READY")
             return None
         elif event_name == "RESUMED":
             self.shard.ready.set()

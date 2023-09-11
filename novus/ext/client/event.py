@@ -83,6 +83,7 @@ EL: TypeAlias = EventListener
 T = TypeVar("T")
 T2 = TypeVar("T2")
 T3 = TypeVar("T3")
+W0 = Callable[[Self], AA]  # Wrapper
 W = Callable[[Self, T], AA]  # Wrapper
 W2 = Callable[[Self, T, T2], AA]  # Wrapper
 W3 = Callable[[Self, T, T2, T3], AA]  # Wrapper
@@ -128,6 +129,10 @@ class EventBuilder:
                 ),
             )
         return wrapper
+
+    @classmethod
+    def ready(cls, func: W0) -> EL:
+        return EventListener("READY", func)
 
     @classmethod
     def component(cls, func: W[Interaction[MessageComponentData]]) -> EL:
