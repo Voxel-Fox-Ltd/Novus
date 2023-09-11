@@ -79,7 +79,7 @@ class Client:
         self.state: n.api.HTTPConnection = n.api.HTTPConnection(self.config.token)
         self.state.dispatch = self.dispatch
 
-        self.plugins: set[Plugin] = set()
+        self.plugins: list[Plugin] = []
 
         self._commands: dict[tuple[int | None, str], Command] = {}
         self._commands_by_id: dict[int, Command] = {}
@@ -265,7 +265,7 @@ class Client:
             log.error(f"Failed to load plugin {plugin} via __init__", exc_info=e)
             return
         log.info(f"Added plugin {created} to client instance")
-        self.plugins.add(created)
+        self.plugins.append(created)
         for c in created._commands:
             self.add_command(c)
         self.config._extended[created] = created.CONFIG
@@ -292,6 +292,9 @@ class Client:
         except Exception as e:
             self.plugins.remove(plugin)
             log.error(f"Failed to load plugin {plugin} via on_load", exc_info=e)
+        for loop in plugin._loops:
+            if loop.autostart:
+                loop.start()
 
     async def load_plugins(self) -> None:
         """
@@ -364,6 +367,9 @@ class Client:
         for c in instance._commands:
             self.remove_command(c)
         self.plugins.remove(instance)
+
+        for loop in instance._loops:
+            loop.stop()
 
         log.info("Removed plugin %s from client instance", instance)
 

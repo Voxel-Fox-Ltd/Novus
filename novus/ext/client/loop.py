@@ -76,7 +76,7 @@ def loop(
         before beginning its task.
     """
 
-    @functools.wraps
+    @functools.wraps(loop)
     def wrapper(func: Callable[[], Coroutine[None, None, Any]]) -> Loop:
         return Loop(
             func,
@@ -85,7 +85,7 @@ def loop(
             autostart,
             wait_until_ready,
         )
-    return wrapper  # pyright: ignore
+    return wrapper
 
 
 class Loop:
@@ -120,6 +120,8 @@ class Loop:
         'bg_task',
         'task',
         '_before',
+        '_args',
+        '_kwargs',
     )
 
     def __init__(
@@ -138,6 +140,7 @@ class Loop:
         self.bg_task: asyncio.Task | None = None
         self.task: asyncio.Task | None = None
         self._before: Callable[[], Coroutine[None, None, Any]] | None = None
+        self._args, self._kwargs = (), {}
 
     def before(self, func: Callable[[], Coroutine[None, None, Any]]) -> None:
         """
@@ -146,14 +149,17 @@ class Loop:
 
         self._before = func
 
-    def start(self) -> None:
+    def start(self, *args, **kwargs) -> None:
         """
         Start the loop.
         """
 
         if self.task is not None:
             raise RuntimeError("Loop is already running!")
-        self.bg_task = asyncio.create_task(self._run(), name=f"Looping task in {self.func.__name__}")
+        log.info("Starting in background Loop[%s.%s]", self.owner.__name__, self.func.__name__)
+        self._args = args
+        self._kwargs = kwargs
+        self.bg_task = asyncio.create_task(self._run(), name=f"Loop[{self.owner.__name__}.{self.func.__name__}()]")
 
     async def _run(self) -> None:
         if self.wait_until_ready:
@@ -165,10 +171,13 @@ class Loop:
                 await asyncio.sleep(self.loop_time)
             except asyncio.CancelledError:
                 return
-            log.info("Running task in loop %s", self.func.__name__)
-            task = asyncio.create_task(self.func())
+            log.info("Running Loop[%s.%s()]", self.owner.__name__, self.func.__name__)
+            task = asyncio.create_task(self.func(self.owner, *self._args, **self._kwargs))  # pyright: ignore
             if self.end_behavior == LoopBehavior.end:
                 await asyncio.wait([task])
+
+    def __call__(self, *args, **kwargs):
+        return self.func(self.owner, *args, **kwargs)  # pyright: ignore
 
     def stop(self) -> None:
         """

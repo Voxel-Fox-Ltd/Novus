@@ -69,8 +69,6 @@ class PluginMeta(type):
             # Add loops to cache
             if isinstance(val, Loop):
                 cls._loops.add(val)
-                if val.autostart:
-                    val.start()
                 continue
 
             # Add commands to cache
@@ -113,6 +111,7 @@ class Plugin(metaclass=PluginMeta):
 
     def __new__(cls, *args, **kwargs):
         created = super().__new__(cls)
+        created.__name__ = cls.__name__
         for i in cls._commands:
             i.owner = created
         for i in cls._event_listeners.values():

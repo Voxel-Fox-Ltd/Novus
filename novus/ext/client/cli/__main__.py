@@ -23,13 +23,16 @@ import re
 import sys
 import textwrap
 from argparse import REMAINDER, ArgumentParser, Namespace
-from typing import Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from aioconsole import AsynchronousCli
 
 import novus
 from novus.api._cache import NothingAPICache
 from novus.ext import client
+
+if TYPE_CHECKING:
+    from asyncio import StreamReader, StreamWriter
 
 
 class GuildLogger(client.Plugin):
@@ -143,8 +146,9 @@ class CustomCloseCLI(AsynchronousCli):
         super().__init__(*args, *kwargs)
         self.bot = bot
 
-    async def exit_command(self, reader: Any, writer: Any) -> NoReturn:
+    async def exit_command(self, reader: StreamReader, writer: StreamWriter) -> NoReturn:
         await self.bot.close()
+        writer.close()
         raise SystemExit
 
 
@@ -226,7 +230,11 @@ async def main(args: Namespace, unknown: list[str]) -> None:
             bot = client.Client(config)
             await asyncio.gather(
                 bot.run(sync=not args.no_sync),
-                create_console(bot).interact(banner="Created console :)"),
+                create_console(bot).interact(
+                    banner="Interactive bot console created; try \"help\".",
+                    stop=False,
+                    handle_sigint=False,
+                ),
             )
 
         case "run-webserver":
