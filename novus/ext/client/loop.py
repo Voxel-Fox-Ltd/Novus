@@ -74,6 +74,15 @@ def loop(
     wait_until_ready: bool
         If the plugin should wait until the bot has received the ready payload
         before beginning its task.
+
+    Examples
+    --------
+
+    .. code-block::
+
+        @client.loop(60)
+        async def every_minute(self):
+            self.log.info("Ping")
     """
 
     @functools.wraps(loop)
@@ -184,7 +193,7 @@ class Loop:
         Stop the loop. This will not stop the currently running task instance,
         if one is running.
 
-        .. seealso:: novus.ext.client.Loop.cancel
+        .. seealso:: :meth:`novus.ext.client.Loop.cancel`
         """
 
         if self.bg_task is None:
@@ -195,7 +204,7 @@ class Loop:
         """
         Stop the loop and cancel any running tasks.
 
-        .. seealso:: novus.ext.client.Loop.stop
+        .. seealso:: :meth:`novus.ext.client.Loop.stop`
         """
 
         self.stop()

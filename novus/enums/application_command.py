@@ -24,12 +24,20 @@ __all__ = (
 
 
 class ApplicationCommandType(Enum):
+    """
+    Types of application command.
+    """
+
     chat_input = 1
     user = 2
     message = 3
 
 
 class ApplicationOptionType(Enum):
+    """
+    Types of option supported in application commands.
+    """
+
     sub_command = 1
     sub_command_group = 2
     string = 3

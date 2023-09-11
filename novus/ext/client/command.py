@@ -662,6 +662,31 @@ def command(
         The command is missing a description.
     Exception
         The command's parameters and the options don't match up.
+
+    Examples
+    --------
+
+    .. code-block::
+
+        @client.command()
+        async def ping(self, ctx):
+            '''Command description goes here.'''
+            await ctx.send("Pong")
+
+    .. code-block::
+
+        @client.command(
+            options=[
+                novus.ApplicationCommandOption(
+                    name="user",
+                    type=novus.ApplicationOptionType.user,
+                    description="The user you want to mention.",
+                )
+            ]
+        )
+        async def mention(self, ctx, user):
+            '''Command description goes here.'''
+            await ctx.send(user.mention)
     """
 
     def wrapper(func: CommandCallback) -> Command:

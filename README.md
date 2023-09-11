@@ -19,7 +19,7 @@ USER_ID: int
 
 # In Novus, a client is a secondary citizen, whereas the HTTP
 # connection is who we love - you can just put down your token
-# and pass that around the classes like me at a party
+# and pass that around as necessary
 state = novus.HTTPConnection(TOKEN)
 
 # As such, models now have classmethods using their state in order
@@ -32,10 +32,6 @@ user1 = await guild.fetch_member(USER_ID)
 user2 = await novus.GuildMember.fetch(state, GUILD_ID, USER_ID)
 assert user1 == user2
 ```
-
-## Tests
-
-In an attempt to build a testing suite, I'm writing some test cases to go into the `tests/` directory so as to test each of the API methods. These use `pytest` with `pytest-asyncio`.
 
 ## Environment Variables
 

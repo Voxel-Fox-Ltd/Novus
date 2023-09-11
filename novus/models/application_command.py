@@ -431,6 +431,8 @@ class ApplicationCommand(PartialApplicationCommand):
     """
     An application command object.
 
+    .. note:: This should not be user instantiated.
+
     Attributes
     ----------
     id : int

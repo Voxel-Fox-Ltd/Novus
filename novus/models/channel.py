@@ -793,7 +793,7 @@ class Channel(Hashable, Messageable):
         """
         A typing context manager.
 
-        .. examples::
+        .. code-block::
 
             async with channel.typing():
                 ...

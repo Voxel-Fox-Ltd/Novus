@@ -12,7 +12,9 @@ pyyaml
 
 # Docs
 sphinx
-furo
+# furo
+# sphinx-book-theme
+sphinx_rtd_theme
 
 # Testing
 pytest
