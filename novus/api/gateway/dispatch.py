@@ -832,26 +832,30 @@ class GatewayDispatch:
     #         thread.member_count = data["member_count"]
     #     yield thread
 
-    # async def _handle_voice_state(
-    #         self,
-    #         data: payloads.VoiceState) -> Ret[tuple[VoiceState | None, VoiceState | None]]:
-    #     """Handle voice state update."""
+    async def _handle_voice_state(
+            self,
+            data: payloads.VoiceState) -> None:
+        """Handle voice state update."""
 
-    #     if "guild_id" not in data:
-    #         return
-    #     created = VoiceState(state=self.parent, data=data)
-    #     guild = self.cache.get_guild(data["guild_id"])
-    #     user_id = int(data["user_id"])
-    #     if guild is None or not isinstance(guild, Guild):
-    #         yield None, created
-    #         return
-    #     current = guild._voice_states.get(user_id)
-    #     if created.channel:
-    #         guild._add_voice_state(created)
-    #         yield current, created
-    #     else:
-    #         guild._voice_states.pop(user_id, None)
-    #         yield current, None
+        if "guild_id" not in data:
+            return
+        guild = self.cache.get_guild(data["guild_id"])
+        user_id = int(data["user_id"])
+        if guild is None or not isinstance(guild, Guild):
+            return
+        current = guild._voice_states.get(user_id)
+        if current:
+            created = current
+            current = copy.copy(current)
+            created._update(data)
+        else:
+            created = VoiceState(state=self.parent, data=data)
+        if created.channel:
+            guild._add_voice_state(created)
+            self.dispatch("VOICE_STATE_UPDATE", current, created)
+        else:
+            guild._voice_states.pop(user_id, None)
+            self.dispatch("VOICE_STATE_UPDATE", current, None)
 
     async def _handle_audit_log_entry(
             self,
