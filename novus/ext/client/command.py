@@ -313,13 +313,13 @@ class Command:
         else:
             param_count = self._autocomplete._param_count = len(inspect.signature(self._autocomplete).parameters)
         if param_count == 3:
-            data = await self._autocomplete.callback(
+            data = await self._autocomplete(
                 self.owner,
                 interaction,
                 {i.name: i for i in options},
             )
         else:
-            data = await self._autocomplete.callback(
+            data = await self._autocomplete(
                 self.owner,
                 interaction,
             )
