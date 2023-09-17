@@ -251,7 +251,8 @@ class ApplicationCommandChoice:
     name : str
         The name of the choice.
     value : str | int | float
-        The value associated with the choice.
+        The value associated with the choice. If not provided, the given name
+        will be used instead.
 
         .. note::
 
@@ -265,10 +266,10 @@ class ApplicationCommandChoice:
     ----------
     name : str
         The name of the choice.
+    value : str | int | float | None
+        The value associated with the choice.
     name_localizations : novus.Localization
         Localizations for the command name.
-    value : str | int | float
-        The value associated with the choice.
     """
 
     name: str
@@ -278,11 +279,11 @@ class ApplicationCommandChoice:
     def __init__(
             self,
             name: str,
-            value: str | int | float,
+            value: str | int | float | None = None,
             *,
             name_localizations: LocType = None):
         self.name = name
-        self.value = value
+        self.value = value or name
         self.name_localizations = flatten_localization(name_localizations)
 
     def _to_data(self) -> payloads.ApplicationCommandChoice:

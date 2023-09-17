@@ -283,10 +283,22 @@ class Command:
         """
         Add an autocomplete to this command.
 
-        Parameters
-        ----------
-        name : str
-            The name of the option that should be autocompleted.
+        Examples
+        --------
+
+        .. code-block::
+
+            @client.command(...)
+            async def echo(self, ctx: novus.Interaction, text: str):
+                ...
+
+            @echo.autocomplete
+            async def echo_autocomplete(self, ctx: novus.Interaction):
+                return [
+                    novus.ApplicationCommandChoice("name", "value"),
+                    novus.ApplicationCommandChoice("name2", "value2"),
+                    novus.ApplicationCommandChoice("name3", "value3"),
+                ]
         """
 
         self._autocomplete = func
@@ -316,13 +328,13 @@ class Command:
             data = await self._autocomplete(
                 self.owner,
                 interaction,
-                {i.name: i for i in options},
+                {i.name: i for i in options},  # pyright: ignore
             )
         else:
             data = await self._autocomplete(
                 self.owner,
                 interaction,
-            )
+            )  # pyright: ignore
         if data is None:
             return await interaction.send_autocomplete([])
         return await interaction.send_autocomplete(data)
