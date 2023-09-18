@@ -39,9 +39,10 @@ class DiscordDatetime(dt):
     A simple wrapper around the `datetime.datetime` object with a ``naive``
     property so as to add a timezone object.
 
-    Properties
+    Attributes
     ----------
     naive : novus.utils.DiscordDatetime
+        The associated naive datetime for the timestamp.
     """
 
     @property
@@ -64,7 +65,7 @@ class DiscordDatetime(dt):
     def mention(self) -> str:
         return format_timestamp(self)
 
-    def format(self, style) -> str:
+    def format(self, style: TimestampFormat | str | None = None) -> str:
         return format_timestamp(self, style)
 
 
