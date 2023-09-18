@@ -279,7 +279,7 @@ class Command:
     async def __call__(self, *args, **kwargs) -> Any:
         return await self.callback(self.owner, *args, **kwargs)
 
-    def autocomplete(self, func: AutocompleteCallback) -> None:
+    def autocomplete(self, func: AutocompleteCallback) -> AutocompleteCallback:
         """
         Add an autocomplete to this command.
 
@@ -302,6 +302,7 @@ class Command:
         """
 
         self._autocomplete = func
+        return func
 
     async def run_autocomplete(
             self,
