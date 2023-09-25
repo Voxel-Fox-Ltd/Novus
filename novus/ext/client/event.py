@@ -37,9 +37,13 @@ if TYPE_CHECKING:
         Interaction,
         Message,
         MessageComponentData,
+        ApplicationCommandData,
+        ContextComandData,
+        MessageComponentData,
+        ModalSubmitData,
         Role,
         Sticker,
-        TextChannel,
+        Channel,
         User,
     )
 
@@ -143,7 +147,7 @@ class EventBuilder:
         )
 
     @classmethod
-    def modal(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+    def modal(cls, func: W[Interaction[ModalSubmitData]]) -> EL:
         return EventListener(
             "INTERACTION_CREATE",
             func,
@@ -151,7 +155,7 @@ class EventBuilder:
         )
 
     @classmethod
-    def command(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+    def command(cls, func: W[Interaction[ContextComandData]] | W[Interaction[ApplicationCommandData]] | W[Interaction[ContextComandData] | Interaction[ApplicationCommandData]] | W[Interaction[ContextComandData | ApplicationCommandData]]) -> EL:
         return EventListener(
             "INTERACTION_CREATE",
             func,
@@ -159,7 +163,7 @@ class EventBuilder:
         )
 
     @classmethod
-    def autocomplete(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+    def autocomplete(cls, func: W[Interaction[ApplicationCommandData]]) -> EL:
         return EventListener(
             "INTERACTION_CREATE",
             func,
