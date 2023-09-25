@@ -256,6 +256,10 @@ Models that relate to interactions.
     :members:
     :inherited-members:
     :no-special-members:
+.. autoclass:: MessageInteraction
+    :members:
+    :inherited-members:
+    :no-special-members:
 .. autoclass:: ContextComandData
     :members:
     :inherited-members:

@@ -111,6 +111,7 @@ __all__: tuple[str, ...] = (
     'Message',
     'MessageActivity',
     'MessageComponentData',
+    'MessageInteraction',
     'MessageReference',
     'ModalSubmitData',
     'PartialApplicationCommand',

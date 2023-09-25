@@ -57,10 +57,49 @@ if TYPE_CHECKING:
 
 __all__ = (
     'Message',
+    'MessageInteraction',
     'WebhookMessage',
     'AllowedMentions',
     'Attachment',
 )
+
+
+class MessageInteraction:
+    """
+    An interaction attached to a message.
+
+    Attributes
+    ----------
+    id : int
+        The ID of the interaction.
+    type : novus.InteractionType
+        The type of the interaction.
+    name : str
+        The name of the invoked application command.
+    user : novus.GuildMember | novus.User
+        The user who invoked the interaction.
+    """
+
+    def __init__(self, *, state: HTTPConnection, data: payloads.MessageInteraction):
+        self.id = try_snowflake(data["id"])
+        self.type = enums.InteractionType(data["type"])
+        self.name = data["name"]
+        cached_user = state.cache.get_user(data["user"]["id"])
+        if cached_user is not None:
+            user = cached_user._update(data["user"])
+        else:
+            user = User(state=state, data=data["user"])
+        if "member" in data:
+            cached_guild = state.cache.get_guild(data["member"]["guild_id"])
+            if cached_guild:
+                cached_member = cached_guild.get_member(user.id)
+                if cached_member:
+                    user = cached_member._update(data["member"])
+                else:
+                    user = GuildMember(state=state, data=data["member"], user=user)
+            else:
+                user = GuildMember(state=state, data=data["member"], user=user)
+        self.user = user
 
 
 class Message(Hashable):
@@ -118,6 +157,8 @@ class Message(Hashable):
         is the ID of the application.
     message_reference : novus.MessageReference | None
         Data showing the source of a crosspost, channel follow, pin, or reply.
+    interaction : novus.MessageInteraction | None
+        Interaction data associated with the message.
     flags : novus.MessageFlags
         The message flags.
     referenced_message : novus.Message | None
@@ -161,6 +202,7 @@ class Message(Hashable):
         'application',
         'application_id',
         'message_reference',
+        'interaction',
         'flags',
         'referenced_message',
         'interaction',
@@ -192,6 +234,7 @@ class Message(Hashable):
     webhook_id: int | None
     type: enums.MessageType
     application_id: int | None
+    interaction: MessageInteraction | None
     flags: flags.MessageFlags
     referenced_message: Message | None
     thread: Channel | None
@@ -294,7 +337,9 @@ class Message(Hashable):
                 state=self.state,
                 data=data["referenced_message"],
             )
-        # self.interaction = data["interaction"]
+        self.interaction = None
+        if "interaction" in data:
+            self.interaction = MessageInteraction(state=self.state, data=data["interaction"])
         self.thread = None
         if "thread" in data:
             assert self.guild

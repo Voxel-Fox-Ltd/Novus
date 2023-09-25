@@ -84,6 +84,7 @@ __all__: tuple[str, ...] = (
     'MentionableSelectMenu',
     'Message',
     'MessageComponentData',
+    'MessageInteraction',
     'ModalSubmitData',
     'OauthGuild',
     'Object',

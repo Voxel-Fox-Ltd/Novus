@@ -28,7 +28,6 @@ if TYPE_CHECKING:
     from .components import ActionRow
     from .embed import Embed
     from .emoji import Emoji
-    from .interaction import Interaction
     from .sticker import PartialSticker
     from .user import GuildMember, PartialUser, User
 
@@ -37,6 +36,7 @@ __all__ = (
     'AllowedMentions',
     'ChannelMention',
     'Reaction',
+    'MessageInteraction',
     'MessageActivity',
     'MessageReference',
     'Message',
@@ -94,6 +94,14 @@ class MessageReference(TypedDict, total=False):
     fail_if_not_exists: bool
 
 
+class MessageInteraction(TypedDict):
+    id: Snowflake
+    type: int
+    name: str
+    user: User
+    member: NotRequired[GuildMember]
+
+
 class _MessageOptional(TypedDict, total=False):
     mention_channels: list[ChannelMention]
     reactions: list[Reaction]
@@ -105,7 +113,7 @@ class _MessageOptional(TypedDict, total=False):
     message_reference: MessageReference
     flags: int
     referenced_message: Optional[Message]
-    interaction: Interaction
+    interaction: MessageInteraction
     thread: Channel
     components: list[ActionRow]
     sticker_items: list[PartialSticker]
