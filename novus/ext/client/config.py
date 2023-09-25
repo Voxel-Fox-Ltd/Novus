@@ -103,22 +103,23 @@ class Config:
         if check("shard_count"):
             self.shard_count = int(args.shard_count)
 
-        if check("intents") and args.intents == "*":
-            self.intents = novus.Intents.all()
-        intent_kwargs = {}
-        for i in (args.intents or "").split(","):
-            if i and i != "*":
-                intent_kwargs[i.strip().lower().replace("-", "_")] = True
-        for i in args.intent or []:
-            if i:
-                intent_kwargs[i.strip().lower().replace("-", "_")] = True
-        for i in (args.no_intents or "").split(","):
-            if i:
-                intent_kwargs[i.strip().lower().replace("-", "_")] = False
-        for i in args.no_intent or []:
-            if i:
-                intent_kwargs[i.strip().lower().replace("-", "_")] = False
-        self.intents.update(**intent_kwargs)
+        if check("intents"):
+            if args.intents == "*":
+                self.intents = novus.Intents.all()
+            intent_kwargs = {}
+            for i in (args.intents or "").split(","):
+                if i and i != "*":
+                    intent_kwargs[i.strip().lower().replace("-", "_")] = True
+            for i in args.intent or []:
+                if i:
+                    intent_kwargs[i.strip().lower().replace("-", "_")] = True
+            for i in (args.no_intents or "").split(","):
+                if i:
+                    intent_kwargs[i.strip().lower().replace("-", "_")] = False
+            for i in args.no_intent or []:
+                if i:
+                    intent_kwargs[i.strip().lower().replace("-", "_")] = False
+            self.intents.update(**intent_kwargs)
 
         if check("intent"):
             self.intents.update(**{
