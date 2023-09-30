@@ -147,6 +147,7 @@ class GuildMember(Hashable, Messageable):
         'premium_type',
         '_cs_avatar',
         '_cs_banner',
+        '_cs_default_avatar',
 
         '_user',
         'nick',
@@ -293,6 +294,14 @@ class GuildMember(Hashable, Messageable):
         if self.guild_avatar_hash is None:
             return None
         return Asset.from_guild_member_avatar(self)
+
+    @property
+    def default_avatar(self) -> Asset:
+        return self._user.default_avatar
+
+    @property
+    def display_avatar(self) -> Asset:
+        return self.guild_avatar or self.avatar or self.default_avatar
 
     def _update(self, data: payloads.GuildMember) -> Self:
         if "user" in data:

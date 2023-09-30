@@ -143,6 +143,14 @@ class Asset:
         return cls(f"/avatars/{user.id}/{user.avatar_hash}")
 
     @classmethod
+    def from_default_user_avatar(cls, user: User | GuildMember) -> Self:
+        if user.discriminator == "0":
+            index = (user.id >> 22) % 6
+        else:
+            index = int(user.discriminator) % 5
+        return cls(f"/embed/avatars/{index}", default_format="png")
+
+    @classmethod
     def from_user_banner(cls, user: User | GuildMember) -> Self:
         return cls(f"/banners/{user.id}/{user.avatar_hash}")
 

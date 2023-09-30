@@ -101,6 +101,7 @@ class User(Hashable, Messageable):
         'flags',
         'premium_type',
         '_cs_avatar',
+        '_cs_default_avatar',
         '_cs_banner',
         '_guilds',
         '_dm_channel',
@@ -138,6 +139,14 @@ class User(Hashable, Messageable):
             return None
         return Asset.from_user_avatar(self)
 
+    @cached_slot_property('_cs_default_avatar')
+    def default_avatar(self) -> Asset:
+        return Asset.from_default_user_avatar(self)
+
+    @property
+    def display_avatar(self) -> Asset:
+        return self.avatar or self.default_avatar
+
     @cached_slot_property('_cs_banner')
     def banner(self) -> Asset | None:
         if self.banner_hash is None:
@@ -165,6 +174,7 @@ class User(Hashable, Messageable):
 
         self.username = data['username']
         self.discriminator = data['discriminator']
+        del self.default_avatar
         self.avatar_hash = data.get('avatar')
         del self.avatar
         self.bot = data.get('bot', False)
