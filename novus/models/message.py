@@ -80,7 +80,7 @@ class MessageInteraction:
         The user who invoked the interaction.
     """
 
-    def __init__(self, *, state: HTTPConnection, data: payloads.MessageInteraction):
+    def __init__(self, *, state: HTTPConnection, data: payloads.MessageInteraction, guild: Guild | None):
         self.id = try_snowflake(data["id"])
         self.type = enums.InteractionType(data["type"])
         self.name = data["name"]
@@ -90,7 +90,7 @@ class MessageInteraction:
         else:
             user = User(state=state, data=data["user"])
         if "member" in data:
-            cached_guild = state.cache.get_guild(data["member"]["guild_id"])
+            cached_guild = guild
             if cached_guild:
                 cached_member = cached_guild.get_member(user.id)
                 if cached_member:
@@ -339,7 +339,7 @@ class Message(Hashable):
             )
         self.interaction = None
         if "interaction" in data:
-            self.interaction = MessageInteraction(state=self.state, data=data["interaction"])
+            self.interaction = MessageInteraction(state=self.state, data=data["interaction"], guild=self.guild)
         self.thread = None
         if "thread" in data:
             assert self.guild

@@ -29,6 +29,7 @@ dependencies = [
     "aiohttp>=3.8.0",
     "emoji",
     "typing_extensions",
+    "pynacl",
     "aioconsole",
 ]
 scripts.novus = "novus.ext.client.cli.__main__:main_sync"
