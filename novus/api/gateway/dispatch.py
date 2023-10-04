@@ -137,7 +137,7 @@ class GatewayDispatch:
             # "Stage instance delete": None,
             "TYPING_START": self._handle_typing,
             # "User update": None,
-            # "VOICE_STATE_UPDATE": self._handle_voice_state,
+            "VOICE_STATE_UPDATE": self._handle_voice_state,
             # "Voice server update": None,
             # "Webhooks update": None,
         }
