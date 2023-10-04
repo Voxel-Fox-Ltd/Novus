@@ -66,7 +66,6 @@ class VoiceState(Hashable):
     """
 
     guild: BaseGuild | None
-    channel: Channel
     user: GuildMember | User
     suppress: bool
     session_id: str
@@ -96,7 +95,7 @@ class VoiceState(Hashable):
         from .guild import Guild
         if isinstance(self.guild, Guild):
             self.guild._add_voice_state(self)
-        self.channel = self.state.cache.get_channel(data["channel_id"])  # pyright: ignore
+        self._channel_id = data.get("channel_id")
         self.suppress = data.get("suppress", False)
         self.session_id = data["session_id"]
         self.self_video = data.get("self_video", False)
@@ -106,10 +105,14 @@ class VoiceState(Hashable):
         self.mute = data.get("mute", False)
         self.deaf = data.get("deaf", False)
 
+    @property
+    def channel(self) -> Channel:
+        return self.state.cache.get_channel(self._channel_id)
+
     def _update(self, data: payloads.VoiceState) -> Self:
         if "member" in data:
             self.user = self.user._update(data["member"])
-        self.channel = self.state.cache.get_channel(data["channel_id"])  # pyright: ignore
+        self._channel_id = data["channel_id"]
         self.suppress = data.get("suppress", False)
         self.self_video = data.get("self_video", False)
         self.self_mute = data.get("self_mute", False)
