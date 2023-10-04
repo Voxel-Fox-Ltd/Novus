@@ -704,7 +704,7 @@ class GatewayShard:
             await self.dispatch.handle_dispatch(event_name, message)
         except Exception as e:
             log.error(
-                "Error in dispatch (%s) (%s)" % (event_name, dump(message)),
+                "Error in dispatch (%s) (%s)", event_name, dump(message),
                 exc_info=e,
             )
 

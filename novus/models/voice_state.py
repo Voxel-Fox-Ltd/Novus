@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
-from ..utils import parse_timestamp, DiscordDatetime
+from ..utils import DiscordDatetime, parse_timestamp
 from .abc import Hashable
 from .channel import Channel
 from .guild_member import GuildMember
@@ -29,8 +29,7 @@ from .guild_member import GuildMember
 if TYPE_CHECKING:
     from .. import payloads
     from ..api import HTTPConnection
-    from .guild import BaseGuild
-    from .user import User
+    from .guild import Guild
 
 __all__ = (
     'VoiceState',
@@ -65,8 +64,6 @@ class VoiceState(Hashable):
         Whether the user is deafened.
     """
 
-    guild: BaseGuild | None
-    user: GuildMember | User
     suppress: bool
     session_id: str
     self_video: bool
@@ -80,38 +77,31 @@ class VoiceState(Hashable):
             self,
             *,
             state: HTTPConnection,
-            data: payloads.VoiceState) -> None:
+            data: payloads.VoiceState,
+            guild_id: int | None = None) -> None:
         self.state = state
-        if "member" in data:
-            guild_id = data["guild_id"]  # pyright: ignore
-            self.user = GuildMember(
-                state=self.state,
-                data=data["member"],
-                guild_id=guild_id,
-            )
+        self._user_id = data["user_id"]
+        if guild_id:
+            self._guild_id = guild_id
         else:
-            self.user = self.state.cache.get_user(data["user_id"])  # pyright: ignore
-        self.guild = self.state.cache.get_guild(data.get("guild_id"))
-        from .guild import Guild
-        if isinstance(self.guild, Guild):
-            self.guild._add_voice_state(self)
-        self._channel_id = data.get("channel_id")
-        self.suppress = data.get("suppress", False)
-        self.session_id = data["session_id"]
-        self.self_video = data.get("self_video", False)
-        self.self_mute = data.get("self_mute", False)
-        self.self_deaf = data.get("self_deaf", False)
-        self.request_to_speak_timestamp = parse_timestamp(data.get("request_to_speak_timestamp"))
-        self.mute = data.get("mute", False)
-        self.deaf = data.get("deaf", False)
+            self._guild_id = data["guild_id"]
+        self._update(data)
 
     @property
     def channel(self) -> Channel:
         return self.state.cache.get_channel(self._channel_id)
 
+    @property
+    def guild(self) -> Guild:
+        return self.state.cache.get_guild(self._guild_id)
+
+    @property
+    def user(self) -> GuildMember:
+        return self.guild.get_member(self._user_id)
+
     def _update(self, data: payloads.VoiceState) -> Self:
         if "member" in data:
-            self.user = self.user._update(data["member"])
+            self.user._update(data["member"])
         self._channel_id = data["channel_id"]
         self.suppress = data.get("suppress", False)
         self.self_video = data.get("self_video", False)
@@ -120,4 +110,5 @@ class VoiceState(Hashable):
         self.request_to_speak_timestamp = parse_timestamp(data.get("request_to_speak_timestamp"))
         self.mute = data.get("mute", False)
         self.deaf = data.get("deaf", False)
+        self.guild._add_voice_state(self)
         return self

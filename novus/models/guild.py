@@ -2059,7 +2059,7 @@ class Guild(Hashable, BaseGuild):
             if cached:
                 created = cached._update(voice_state)
             else:
-                created = VoiceState(state=self.state, data=voice_state)
+                created = VoiceState(state=self.state, data=voice_state, guild_id=self.id)
         try:
             (new_cache or self._voice_states)[created.user.id] = created
         except AttributeError:
