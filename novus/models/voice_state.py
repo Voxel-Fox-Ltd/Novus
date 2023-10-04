@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
-from ..utils import DiscordDatetime, parse_timestamp
+from ..utils import DiscordDatetime, generate_repr, parse_timestamp
 from .abc import Hashable
 from .channel import Channel
 from .guild_member import GuildMember
@@ -86,6 +86,12 @@ class VoiceState(Hashable):
         else:
             self._guild_id = data["guild_id"]
         self._update(data)
+
+    __repr__ = generate_repr((
+        ("user_id", "_user_id"),
+        ("guild_id", "_guild_id"),
+        ("channel_id", "_channel_id"),
+    ))
 
     @property
     def channel(self) -> Channel:
