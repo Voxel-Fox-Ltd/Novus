@@ -846,7 +846,7 @@ class GatewayDispatch:
         current = guild._voice_states.get(user_id)
         if current:
             created = current
-            current = copy.copy(current)
+            current = copy(current)
             created._update(data)
         else:
             created = VoiceState(state=self.parent, data=data)
