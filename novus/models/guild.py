@@ -1793,6 +1793,42 @@ class Guild(Hashable, BaseGuild):
         '_cs_banner',
     )
 
+    state: HTTPConnection
+    id: int
+    name: str
+    icon_hash: str | None
+    splash_hash: str | None
+    discovery_splash_hash: str | None
+    owner_id: int
+    afk_channel_id: int | None
+    afk_timeout: int | None
+    verification_level: VerificationLevel
+    default_message_notifications: NotificationLevel
+    explicit_content_filter: ContentFilterLevel
+    features: list[str]
+    mfa_level: MFALevel
+    application_id: int | None
+    system_channel_id: int | None
+    system_channel_flags: SystemChannelFlags
+    rules_channel_id: int | None
+    vanity_url_code: str | None
+    description: str | None
+    banner_hash: str | None
+    premium_tier: PremiumTier
+    preferred_locale: Locale
+    public_updates_channel_id: int | None
+    nsfw_level: NSFWLevel
+    premium_progress_bar_enabled: bool
+
+    widget_enabled: bool
+    widget_channel_id: int | None
+    max_presences: int | None
+    max_members: int | None
+    premium_subscription_count: int
+    max_video_channel_users: int | None
+    approximate_member_count: int | None
+    welcome_screen: WelcomeScreen | None
+
     def __init__(self, *, state: HTTPConnection, data: payloads.Guild):
         self.state = state
         self.id = try_snowflake(data['id'])
