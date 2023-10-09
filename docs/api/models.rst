@@ -9,6 +9,10 @@ Discord Models
 Models that are received from Discord. None of these should be created
 yourself, but should all be given to you by library or API methods.
 
+.. autoclass:: Activity
+    :members:
+    :inherited-members:
+    :no-special-members:
 .. autoclass:: Application
     :members:
     :inherited-members:

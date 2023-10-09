@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Optional, TypedDict
 
 from typing_extensions import NotRequired
 
@@ -34,6 +34,8 @@ __all__ = (
     'RoleDelete',
     'GuildEmojisUpdate',
     'ThreadMemberListUpdate',
+    'GatewayActivity',
+    'GatewayPresence',
 )
 
 
@@ -114,3 +116,17 @@ class GuildMemberChunk(TypedDict):
     not_found: NotRequired[list]
     presences: NotRequired[list[Presence]]
     nonce: NotRequired[str]
+
+
+class GatewayActivity(TypedDict):
+    name: str
+    type: int
+    state: NotRequired[Optional[str]]
+    url: NotRequired[Optional[str]]
+
+
+class GatewayPresence(TypedDict):
+    since: Timestamp | None
+    activities: list[GatewayActivity]
+    status: str
+    afk: bool

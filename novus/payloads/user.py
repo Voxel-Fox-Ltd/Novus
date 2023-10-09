@@ -19,10 +19,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, Optional, TypedDict
 
+from typing_extensions import NotRequired
+
 from ._util import HasLocalizations
 
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
+    from .components import Button
+    from .emoji import PartialEmoji
     from .guild import Integration
     from .locale import Locale
 
@@ -120,13 +124,48 @@ class ApplicationRoleConnection(TypedDict):
     metadata: dict
 
 
+class ActivityTimestamps(TypedDict):
+    start: NotRequired[Timestamp]
+    end: NotRequired[Timestamp]
+
+
+class Party(TypedDict):
+    id: NotRequired[str]
+    size: NotRequired[tuple[int, int]]
+
+
+class Assets(TypedDict):
+    large_image: NotRequired[str]
+    large_text: NotRequired[str]
+    small_image: NotRequired[str]
+    small_text: NotRequired[str]
+
+
+class Secrets(TypedDict):
+    join: NotRequired[str]
+    spectate: NotRequired[str]
+    match: NotRequired[str]
+
+
 class _ActivityOptional(TypedDict, total=False):
     url: Optional[str]
+    timestamps: ActivityTimestamps
+    application_id: Snowflake
+    details: Optional[str]
+    state: Optional[str]
+    emoji: Optional[PartialEmoji]
+    party: Party
+    assets: Assets
+    secrets: Secrets
+    instance: bool
+    flags: int
+    buttons: list[Button]
 
 
 class Activity(_ActivityOptional):
     name: str
-    type: int
+    type: Literal[0, 1, 2, 3, 4, 5]
+    created_at: Timestamp
 
 
 class _PresenceUser(TypedDict):

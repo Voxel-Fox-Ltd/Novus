@@ -15,30 +15,30 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from enum import Enum
-from typing import Type, TypeVar, overload
+from __future__ import annotations
+
+from .utils import Enum
 
 __all__ = (
-    'try_enum',
+    'ActivityType',
+    'Status',
 )
 
 
-E = TypeVar('E', bound=Enum)
+class ActivityType(Enum):
+    game = 0
+    streaming = 1
+    listening = 2
+    watching = 3
+    custom = 4
+    competing= 5
 
 
-@overload
-def try_enum(enum: Type[E], value: E | int | str) -> E:
-    ...
-
-
-@overload
-def try_enum(enum: Type[E], value: None) -> None:
-    ...
-
-
-def try_enum(enum: Type[E], value: E | int | str | None = None) -> E | None:
-    if value is None:
-        return None
-    if isinstance(value, (int, str)):
-        return enum(value)
-    return value
+class Status(Enum):
+    online = "online"
+    dnd = "dnd"
+    do_not_disturb = "dnd"
+    idle = "idle"
+    afk = "idle"
+    invisible = "invisible"
+    offline = "offline"

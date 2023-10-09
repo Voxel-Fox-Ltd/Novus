@@ -25,12 +25,14 @@ from .guild import *
 from .interaction import *
 from .locale import *
 from .message import *
+from .presence import *
 from .scheduled_event import *
 from .sticker import *
 from .time import *
 from .user import *
 
 __all__: tuple[str, ...] = (
+    'ActivityType',
     'ApplicationCommandType',
     'ApplicationOptionType',
     'AuditLogEventType',
@@ -57,6 +59,7 @@ __all__: tuple[str, ...] = (
     'NotificationLevel',
     'PermissionOverwriteType',
     'PremiumTier',
+    'Status',
     'StickerFormat',
     'StickerType',
     'TextInputStyle',

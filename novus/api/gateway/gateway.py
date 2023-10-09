@@ -39,7 +39,7 @@ from .._route import Route
 from .dispatch import GatewayDispatch
 
 if TYPE_CHECKING:
-    from ... import GuildMember, payloads
+    from ... import Activity, GuildMember, Status, payloads
     from .._http import APICache, HTTPConnection
 
 __all__ = (
@@ -696,6 +696,32 @@ class GatewayShard:
                 "token": token,
                 "session_id": self.session_id,
                 "seq": self.sequence,
+            },
+        )
+
+    async def change_presence(
+            self,
+            activities: list[Activity],
+            status: Status) -> None:
+        """
+        Change the presence of the client.
+
+        Parameters
+        ----------
+        activities : list[novus.Activity]
+            The activities that you want to set the client as displaying.
+        status : novus.Status
+            The status of the client.
+        """
+
+        log.info("[%s] Sending change presence", self.shard_id)
+        await self.send(
+            GatewayOpcode.presence,
+            {
+                "activities": [i._to_data() for i in activities],
+                "status": status.value,
+                "since": None,
+                "afk": False,
             },
         )
 

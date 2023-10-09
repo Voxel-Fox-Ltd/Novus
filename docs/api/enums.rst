@@ -35,3 +35,5 @@ Enums
 .. autoclass:: TimestampFormat
 .. autoclass:: UserPremiumType
 .. autoclass:: VerificationLevel
+.. autoclass:: Status
+.. autoclass:: ActivityType

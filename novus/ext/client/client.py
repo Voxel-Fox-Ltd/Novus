@@ -190,6 +190,24 @@ class Client:
             return n.Channel.partial(self.state, n.utils.try_id(id))
         return None
 
+    async def change_presence(
+            self,
+            activities: list[n.Activity] | None = None,
+            status: n.Status = n.Status.online) -> None:
+        """
+        Change the presence of the client.
+
+        Parameters
+        ----------
+        activities : list[novus.Activity]
+            The activities that you want to set the client as displaying.
+        status : novus.Status
+            The status of the client.
+        """
+
+        for shard in self.state.gateway.shards:
+            await shard.change_presence(activities=activities or [], status=status)
+
     async def wait_until_ready(self) -> None:
         """
         Wait until all of the shards for the bot have received the "ready"

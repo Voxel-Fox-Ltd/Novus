@@ -31,6 +31,7 @@ from .invite import *
 from .message import *
 from .oauth2 import *
 from .object import *
+from .presence import *
 from .reaction import *
 from .role import *
 from .scheduled_event import *
@@ -44,6 +45,7 @@ from .welcome_screen import *
 
 __all__: tuple[str, ...] = (
     'ActionRow',
+    'Activity',
     'AllowedMentions',
     'Application',
     'ApplicationCommand',
@@ -92,6 +94,7 @@ __all__: tuple[str, ...] = (
     'PartialEmoji',
     'PartialGuild',
     'PermissionOverwrite',
+    'Presence',
     'Reaction',
     'Role',
     'RoleSelectMenu',
