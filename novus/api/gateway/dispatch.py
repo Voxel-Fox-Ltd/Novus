@@ -105,6 +105,7 @@ class GatewayDispatch:
             "GUILD_EMOJIS_UPDATE": self._handle_guild_emojis_update,
             "GUILD_STICKERS_UPDATE": self._handle_guild_stickers_update,
             "GUILD_INTEGRATIONS_UPDATE": self.ignore("GUILD_INTEGRATIONS_UPDATE"),
+            "GUILD_JOIN_REQUEST_UPDATE": self.ignore("GUILD_JOIN_REQUEST_UPDATE"),
             "GUILD_MEMBER_ADD": self._handle_guild_member_add,
             "GUILD_MEMBER_REMOVE": self._handle_guild_member_remove,
             "GUILD_MEMBER_UPDATE": self._handle_guild_member_update,
