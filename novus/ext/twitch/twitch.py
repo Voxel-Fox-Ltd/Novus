@@ -158,8 +158,6 @@ class Twitch(client.Plugin):
         """
 
         live_channels = await self.get_live_channels()
-        if live_channels == self._previous_live_channels:
-            return
 
         self._previous_live_channels = live_channels
         if not live_channels:

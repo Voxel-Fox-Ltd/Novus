@@ -116,18 +116,9 @@ class GatewayConnection:
             )
             self.shards.add(gs)
 
-            async def connect_wrapper(
-                    sem: asyncio.Semaphore,
-                    shard: GatewayShard) -> None:
-                async with sem:
-                    await shard.connect()
-
-            coro = connect_wrapper(identify_semaphore, gs)
-            tasks.append(asyncio.create_task(coro))
-
         # Wait for shards to connect
         log.info("Opening gateway connection with %s shards (IDs %s)", len(self.shards), shard_ids)
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*(i.connect() for i in self.shards))
 
     async def wait(self) -> None:
         """
@@ -431,6 +422,17 @@ class GatewayShard:
     async def connect(
             self,
             ws_url: str | None = None,
+            reconnect: bool = False):
+        """
+        Connect to the gateway, using the connection semaphore.
+        """
+
+        async with self.connect_semaphore:
+            await self._connect(ws_url, reconnect)
+
+    async def _connect(
+            self,
+            ws_url: str | None = None,
             reconnect: bool = False,
             attempt: int = 1) -> None:
         """
@@ -480,8 +482,7 @@ class GatewayShard:
         ws_url = ws_url or self.ws_url
         log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
         try:
-            async with self.connect_semaphore:
-                ws = await session.ws_connect(ws_url)
+            ws = await session.ws_connect(ws_url)
         except Exception:
             if attempt >= 5:
                 log.info(
@@ -493,7 +494,7 @@ class GatewayShard:
                 "[%s] Failed to connect to open ws connection, reattempting (%s)",
                 self.shard_id, attempt,
             )
-            return await self.connect(
+            return await self._connect(
                 ws_url=ws_url,
                 reconnect=reconnect,
                 attempt=attempt + 1,
@@ -516,7 +517,7 @@ class GatewayShard:
                 "[%s] Failed to connect to gateway, reattempting (%s)",
                 self.shard_id, attempt,
             )
-            return await self.connect(
+            return await self._connect(
                 ws_url=ws_url,
                 reconnect=reconnect,
                 attempt=attempt + 1,
@@ -545,7 +546,7 @@ class GatewayShard:
                 "[%s] Failed to get a response from resume/idenfity after %s seconds, reattempting connect (%s)",
                 self.shard_id, timeout, attempt,
             )
-            return await self.connect(
+            return await self._connect(
                 ws_url=ws_url,
                 reconnect=reconnect,
                 attempt=attempt + 1,
@@ -714,7 +715,7 @@ class GatewayShard:
             The status of the client.
         """
 
-        log.info("[%s] Sending change presence", self.shard_id)
+        log.debug("[%s] Sending change presence", self.shard_id)
         await self.send(
             GatewayOpcode.presence,
             {

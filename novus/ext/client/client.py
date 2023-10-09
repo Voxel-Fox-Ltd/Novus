@@ -206,7 +206,10 @@ class Client:
         """
 
         for shard in self.state.gateway.shards:
-            await shard.change_presence(activities=activities or [], status=status)
+            try:
+                await shard.change_presence(activities=activities or [], status=status)
+            except Exception:
+                pass
 
     async def wait_until_ready(self) -> None:
         """
