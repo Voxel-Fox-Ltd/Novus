@@ -55,6 +55,7 @@ class LoopBehavior(Enum):
 
 def loop(
         loop_time: float,
+        start_behavior: LoopBehavior = LoopBehavior.immediate,
         end_behavior: LoopBehavior = LoopBehavior.end,
         autostart: bool = True,
         wait_until_ready: bool = True) -> Callable[..., Loop]:
@@ -67,11 +68,13 @@ def loop(
         The number of seconds between each loop.
         This is not guarenteed to be accurate, but is used internally for the
         wait function.
-    end_behavior: LoopBehavior
+    start_behavior : LoopBehavior
+        How the loop should behave on its start.
+    end_behavior : LoopBehavior
         How the loop should behave on its end.
-    autostart: bool
+    autostart : bool
         Whether the loop should start immediately when the plugin is loaded.
-    wait_until_ready: bool
+    wait_until_ready : bool
         If the plugin should wait until the bot has received the ready payload
         before beginning its task.
 
@@ -90,6 +93,7 @@ def loop(
         return Loop(
             func,
             loop_time,
+            start_behavior,
             end_behavior,
             autostart,
             wait_until_ready,
@@ -107,6 +111,8 @@ class Loop:
         The function that is part of the loop.
     loop_time : float
         The number of seconds between each loop iteration.
+    start_behavior : novus.ext.client.LoopBehaviour
+        The behaviour for how each loop will end.
     end_behavior : novus.ext.client.LoopBehaviour
         The behaviour for how each loop will end.
     autostart : bool
@@ -122,6 +128,7 @@ class Loop:
     __slots__ = (
         'func',
         'loop_time',
+        'start_behavior',
         'end_behavior',
         'autostart',
         'wait_until_ready',
@@ -137,11 +144,13 @@ class Loop:
             self,
             func: Callable[[], Coroutine[None, None, Any]],
             loop_time: float,
+            start_behavior: LoopBehavior = LoopBehavior.immediate,
             end_behavior: LoopBehavior = LoopBehavior.end,
             autostart: bool = True,
             wait_until_ready: bool = True):
         self.func = func
         self.loop_time = loop_time
+        self.start_behavior = start_behavior
         self.end_behavior = end_behavior
         self.autostart = autostart
         self.wait_until_ready = wait_until_ready
@@ -175,11 +184,20 @@ class Loop:
             await self.owner.bot.wait_until_ready()
         if self._before:
             await self._before()
+        first = True
         while True:
-            try:
-                await asyncio.sleep(self.loop_time)
-            except asyncio.CancelledError:
-                return
+            if first:
+                if self.start_behavior == LoopBehavior.end:
+                    try:
+                        await asyncio.sleep(self.loop_time)
+                    except asyncio.CancelledError:
+                        return
+            else:
+                try:
+                    await asyncio.sleep(self.loop_time)
+                except asyncio.CancelledError:
+                    return
+            first = False
             log.info("Running Loop[%s.%s()]", self.owner.__name__, self.func.__name__)
             task = asyncio.create_task(self.func(self.owner, *self._args, **self._kwargs))  # pyright: ignore
             if self.end_behavior == LoopBehavior.end:
