@@ -96,7 +96,11 @@ class Config:
         if check("shard_ids") and check("shard_id"):
             raise Exception("Cannot have both shard_ids and shard_id in args")
         elif check("shard_ids"):
-            self.shard_ids = [int(i.strip()) for i in args.shard_ids.split(",") if i.strip()]
+            if ".." in args.shard_ids:
+                a, b = args.shard_ids.split("..")
+                self.shard_ids = list(range(int(a.strip()), int(b.strip())))
+            else:
+                self.shard_ids = [int(i.strip()) for i in args.shard_ids.split(",") if i.strip()]
         elif check("shard_id"):
             self.shard_ids = [int(i.strip()) for i in args.shard_id if i.strip()]
 
