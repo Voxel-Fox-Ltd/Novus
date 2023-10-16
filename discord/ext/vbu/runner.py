@@ -668,7 +668,10 @@ async def run_website(args: argparse.Namespace) -> None:
 
     # Start the HTTP server
     logger.info("Creating webserver...")
-    application = AppRunner(app)
+    application = AppRunner(
+        app,
+        access_log_format='%{X-Real-IP}i %t "%r" %s %b "%{Referer}i" "%{User-Agent}i"',
+    )
     await application.setup()
     webserver = TCPSite(application, host=args.host, port=args.port)
 
