@@ -483,7 +483,7 @@ class GatewayShard:
         log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
         try:
             ws = await session.ws_connect(ws_url)
-        except Exception:
+        except Exception as e:
             if attempt >= 5:
                 log.info(
                     "[%s] Failed to connect to open ws connection, closing (%s)",
@@ -491,8 +491,8 @@ class GatewayShard:
                 )
                 return await self.close()
             log.info(
-                "[%s] Failed to connect to open ws connection, reattempting (%s)",
-                self.shard_id, attempt,
+                "[%s] Failed to connect to open ws connection (%s), reattempting (%s)",
+                self.shard_id, e, attempt,
             )
             return await self._connect(
                 ws_url=ws_url,
@@ -503,19 +503,19 @@ class GatewayShard:
 
         # Send hello
         try:
-            got = await self.receive()
-        except GatewayException:
-            return await self.close()
-        except Exception:
+            got = await asyncio.wait_for(self.receive(), timeout=10.0)
+        # except GatewayException:
+        #     return await self.close()
+        except Exception as e:
             if attempt >= 5:
                 log.info(
-                    "[%s] Failed to connect to gateway, closing (%s)",
-                    self.shard_id, attempt,
+                    "[%s] Failed to connect to gateway (%s), closing (%s)",
+                    self.shard_id, e, attempt,
                 )
                 return await self.close()
             log.info(
-                "[%s] Failed to connect to gateway, reattempting (%s)",
-                self.shard_id, attempt,
+                "[%s] Failed to connect to gateway (%s), reattempting (%s)",
+                self.shard_id, e, attempt,
             )
             return await self._connect(
                 ws_url=ws_url,
