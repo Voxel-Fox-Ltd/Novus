@@ -71,7 +71,7 @@ class PartialEmoji(Hashable):
         '_cs_asset',
     )
 
-    EMOJI_REGEX = re.compile(r"<(?P<a>a)?:(?P<name>[a-zA-Z0-9\-_]):(?P<id>\d{16,23})>")
+    EMOJI_REGEX = re.compile(r"<(?P<a>a)?:(?P<name>[a-zA-Z0-9\-_]{1,32}):(?P<id>\d{16,23})>")
 
     id: int | None
     name: str | None
