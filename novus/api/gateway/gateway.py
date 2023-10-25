@@ -501,7 +501,7 @@ class GatewayShard:
             )
         self.socket = ws
 
-        # Send hello
+        # Get hello
         try:
             got = await asyncio.wait_for(self.receive(), timeout=10.0)
         # except GatewayException:
@@ -760,11 +760,21 @@ class GatewayShard:
 
                 # Deal with reconnects
                 case GatewayOpcode.reconnect:
+
+                    # Since we disconnect and reconnect here,
+                    # we need the ready flag to be set so the event is triggered
+                    self.ready.set()
+
                     asyncio.create_task(self.reconnect())
                     return
 
                 # Deal with invalid sesions
                 case GatewayOpcode.invalidate_session:
+
+                    # Since we disconnect and reconnect here,
+                    # we need the ready flag to be set so the event is triggered
+                    self.ready.set()
+
                     if message is True:
                         asyncio.create_task(self.reconnect())
                         return
