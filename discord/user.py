@@ -108,7 +108,7 @@ class BaseUser(_UserTag):
 
     def _update(self, data: UserPayload) -> None:
         self.name = data['username']
-        self.global_name = data["global_name"] or self.name
+        self.global_name = data.get("global_name") or self.name
         self.id = int(data['id'])
         self.discriminator = data['discriminator']
         self._avatar = data['avatar']
