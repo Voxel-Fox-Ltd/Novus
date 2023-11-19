@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
-from ..utils import parse_timestamp
+from ..utils import MISSING, parse_timestamp
 
 if TYPE_CHECKING:
     from ..payloads.embed import Embed as EmbedPayload
@@ -282,6 +282,48 @@ class Embed:
     def footer(self) -> EmbedFooter | None:
         return self._footer
 
+    def update(
+            self,
+            *,
+            title: str | None = MISSING,
+            description: str | None = MISSING,
+            url: str | None = MISSING,
+            timestamp: dt | None = MISSING,
+            color: int | None = MISSING) -> Self:
+        """
+        Set an attribute of the embed via a single ``.update`` method.
+
+        Parameters
+        ----------
+        title : str | None
+            The title of the embed.
+        description : str | None
+            The description of the embed.
+        url : str | None
+            The URL of the embed.
+        timestamp : datetime.datetime | None
+            The timestamp in the embed footer.
+        color : int | None
+            The colour integer of the embed.
+
+        Returns
+        -------
+        novus.Embed
+            The embed instance.
+        """
+
+        if title is not MISSING:
+            self.title = title
+        if description is not MISSING:
+            self.description = description
+        if url is not MISSING:
+            self.url = url
+        if timestamp is not MISSING:
+            self.timestamp = timestamp
+        if color is not MISSING:
+            self.color = color
+        return self
+
     def set_footer(
             self,
             text: str,
@@ -402,7 +444,7 @@ class Embed:
         )
         return self
 
-    def set_author_from_user(self, user: User | GuildMember):
+    def set_author_from_user(self, user: User | GuildMember) -> Self:
         """
         Set the author of the embed with the attributes present on a user.
 
