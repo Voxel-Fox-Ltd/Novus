@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import asyncio
 import io
 import json
 import logging
@@ -26,7 +27,13 @@ import aiohttp
 
 from ..utils import bytes_to_base64_data
 from ._cache import APICache
-from ._errors import Forbidden, HTTPException, NotFound, Unauthorized
+from ._errors import (
+    DiscordException,
+    Forbidden,
+    NotFound,
+    RateLimitExceeded,
+    Unauthorized,
+)
 from .application_role_connection_metadata import ApplicationRoleHTTPConnection
 from .audit_log import AuditLogHTTPConnection
 from .auto_moderation import AutoModerationHTTPConnection
@@ -133,6 +140,7 @@ class HTTPConnection:
         )
         self.cache = APICache(self)
         self.dispatch = lambda event_name, *data: None
+        self.route_locks: dict[str, asyncio.Lock] = {}
 
         # Add API routes
         self.application_role_connection_metadata = ApplicationRoleHTTPConnection(self)
@@ -245,6 +253,21 @@ class HTTPConnection:
             "headers": headers,
         }
 
+    def get_rate_limit_lock(self, route: Route) -> asyncio.Lock:
+        """
+        Get a lock for a request so as to perform a rate limited action.
+
+        Returns
+        -------
+        asyncio.Lock
+            The lock for the request.
+        """
+
+        return self.route_locks.setdefault(
+            route.method + " " + route.url,
+            asyncio.Lock(),
+        )
+
     async def request(
             self,
             route: Route,
@@ -269,38 +292,57 @@ class HTTPConnection:
             .format(route, args["data"])
         )
         session = await self.get_session()
-        resp: aiohttp.ClientResponse = await session.request(
-            route.method,
-            route.url,
-            params=params,
-            **args,
-            timeout=5,
-        )
+        for tries in range(6):
+            async with self.get_rate_limit_lock(route):
+                resp: aiohttp.ClientResponse = await session.request(
+                    route.method,
+                    route.url,
+                    params=params,
+                    **args,
+                    timeout=5,
+                )
 
-        # Parse response
-        given: dict[Any, Any] | None
-        try:
-            given = await resp.json()
-        except Exception:
-            if resp.ok:
-                given = None
-            else:
-                raise AssertionError("Cannot parse JSON from response.")
-        log.debug(
-            "Response {0.method} {0.path} returned {1.status} {2}"
-            .format(route, resp, given)
-        )
-        if not resp.ok:
-            assert isinstance(given, dict)
-            if resp.status == 401:
-                raise Unauthorized(given)
-            elif resp.status == 403:
-                raise Forbidden(given)
-            elif resp.status == 404:
-                raise NotFound(given)
-            else:
-                raise HTTPException(given)
-        return given
+                # Parse response
+                given: dict[Any, Any] | None
+                try:
+                    given = await resp.json()
+                except Exception:
+                    if resp.ok:
+                        given = None
+                    else:
+                        raise AssertionError("Cannot parse JSON from response.")
+                log.debug(
+                    "Response {0.method} {0.path} returned {1.status} {2}"
+                    .format(route, resp, given)
+                )
+
+                # See what response we got
+                assert isinstance(given, dict)
+                if resp.status == 401:
+                    raise Unauthorized(given)
+                elif resp.status == 403:
+                    raise Forbidden(given)
+                elif resp.status == 404:
+                    raise NotFound(given)
+                elif resp.status == 429:
+                    remaining = resp.headers.get('X-Ratelimit-Remaining')
+                    if remaining == "0" and tries < 5:
+                        sleep_time = float(resp.headers.get('X-Ratelimit-Reset-After') or 0)
+                        log.warning(
+                            "Rate limit exceeded for %s %s - retrying in %ss",
+                            route.method, route.path, sleep_time
+                        )
+                        await asyncio.sleep(sleep_time)
+                        continue
+                    raise RateLimitExceeded(given)
+                elif resp.status >= 500:
+                    if tries < 5:
+                        await asyncio.sleep(1 + (tries * 2))
+                        continue
+                    raise DiscordException(given)
+                elif 300 > resp.status >= 200:
+                    return given
+        raise Exception("Failed to get any response within 5 requests.")
 
     @classmethod
     def _get_kwargs(

@@ -67,6 +67,14 @@ class Forbidden(HTTPException):
     """When you are missing relevant permissions to access a resource."""
 
 
+class RateLimitExceeded(HTTPException):
+    """A rate limit has been exceeded."""
+
+
+class DiscordException(HTTPException):
+    """A 5xx error from Discord was returned."""
+
+
 class GatewayException(Exception):
     """When you get a generic gateway exception."""
     code: ClassVar[int] = 0
