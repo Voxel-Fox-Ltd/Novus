@@ -319,7 +319,7 @@ class HTTPConnection:
                 # See what response we got
                 if 300 > resp.status >= 200:
                     return given
-                assert isisnstance(given, dict)
+                assert isinstance(given, dict)
                 if resp.status == 401:
                     raise Unauthorized(given)
                 elif resp.status == 403:
