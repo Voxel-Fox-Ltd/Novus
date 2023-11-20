@@ -317,7 +317,9 @@ class HTTPConnection:
                 )
 
                 # See what response we got
-                assert isinstance(given, dict)
+                if 300 > resp.status >= 200:
+                    return given
+                assert isisnstance(given, dict)
                 if resp.status == 401:
                     raise Unauthorized(given)
                 elif resp.status == 403:
@@ -340,8 +342,6 @@ class HTTPConnection:
                         await asyncio.sleep(1 + (tries * 2))
                         continue
                     raise DiscordException(given)
-                elif 300 > resp.status >= 200:
-                    return given
         raise Exception("Failed to get any response within 5 requests.")
 
     @classmethod
