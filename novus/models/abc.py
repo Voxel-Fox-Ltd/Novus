@@ -25,7 +25,17 @@ from ..utils import MISSING
 
 if TYPE_CHECKING:
     from ..api import HTTPConnection, OauthHTTPConnection
-    from . import ActionRow, AllowedMentions, Embed, File, Message, Sticker, Webhook
+    from . import (
+        ActionRow,
+        AllowedMentions,
+        BaseGuild,
+        Channel,
+        Embed,
+        File,
+        Message,
+        Sticker,
+        Webhook,
+    )
 
 __all__ = (
     'Snowflake',
@@ -40,7 +50,6 @@ __all__ = (
 )
 
 
-@runtime_checkable
 class Snowflake(Protocol):
     """
     An ABC that almost all Discord models implement.
@@ -88,7 +97,7 @@ class StateSnowflakeWithGuild(Protocol):
 
     id: int
     state: HTTPConnection
-    guild: Snowflake
+    guild: Snowflake | BaseGuild
 
 
 @runtime_checkable
@@ -108,7 +117,9 @@ class StateSnowflakeWithChannel(Protocol):
 
     id: int
     state: HTTPConnection
-    channel: Snowflake
+    channel: Channel
+    # channel: Snowflake
+    # channel: Channel | Snowflake
 
 
 @runtime_checkable
@@ -150,8 +161,10 @@ class StateSnowflakeWithGuildChannel(Protocol):
 
     id: int
     state: HTTPConnection
-    guild: Snowflake | None
-    channel: Snowflake
+    guild: BaseGuild | None
+    # guild: Snowflake | BaseGuild | None
+    channel: Channel
+    # channel: Snowflake | Channel
 
 
 @runtime_checkable
