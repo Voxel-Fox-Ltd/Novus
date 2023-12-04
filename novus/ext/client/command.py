@@ -41,6 +41,14 @@ if TYPE_CHECKING:
             [Any, n.types.CommandI],
             Coroutine[Any, Any, None],
         ],
+        Callable[
+            [Any, n.types.CommandGI, *Ts],
+            Coroutine[Any, Any, None],
+        ],
+        Callable[
+            [Any, n.types.CommandGI],
+            Coroutine[Any, Any, None],
+        ],
     ]
     AutocompleteCallback = Union[
         Callable[
