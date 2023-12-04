@@ -106,6 +106,7 @@ class Plugin(metaclass=PluginMeta):
     _event_listeners: ClassVar[dict[str, set[EventListener]]]
     _commands: ClassVar[set[Command]]
     _command_ids: ClassVar[dict[int, Command]]
+    __name__: str
 
     CONFIG: ClassVar[JsonValue] = {}
 

@@ -270,6 +270,26 @@ class Client:
 
         return self._commands.get((guild_id, name,))
 
+    def get_plugin(self, name: str) -> Plugin | None:
+        """
+        Get a loaded plugin from the bot's internal cache.
+
+        Parameters
+        ----------
+        name : str
+            The name of the plugin, case sensitive.
+
+        Returns
+        -------
+        novus.ext.client.Plugin | None
+            The loaded plugin, if one could be found.
+        """
+
+        try:
+            return [i for i in self.plugins if i.__name__ == name][0]
+        except IndexError:
+            return None
+
     def add_plugin(self, plugin: Type[Plugin], *, load: bool = False) -> None:
         """
         Load a plugin into the bot.
@@ -282,6 +302,8 @@ class Client:
 
         try:
             created: Plugin = plugin(self)
+            if created.__name__ in [i.__name__ for i in self.plugins]:
+                raise Exception("Cannot use duplicate plugin name %s" % created.__name__)
         except Exception as e:
             log.error(f"Failed to load plugin {plugin} via __init__", exc_info=e)
             return
