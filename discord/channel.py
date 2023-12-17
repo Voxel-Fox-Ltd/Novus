@@ -2051,6 +2051,8 @@ def _guild_channel_factory(channel_type: int):
     #     return DirectoryChannel, value
     elif value is ChannelType.forum:
         return ForumChannel, value
+    elif value is ChannelType.media:
+        return ForumChannel, value
     else:
         return None, value
 
