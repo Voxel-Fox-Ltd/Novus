@@ -19,11 +19,9 @@ from __future__ import annotations
 
 import pathlib
 from typing import TYPE_CHECKING, Any
+import io
 
 from ..utils import cached_slot_property, get_mime_type_for_image
-
-if TYPE_CHECKING:
-    import io
 
 __all__ = (
     'File',
