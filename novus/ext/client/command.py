@@ -22,7 +22,7 @@ import functools
 import inspect
 import logging
 from collections.abc import Callable, Coroutine, Iterable
-from typing import TYPE_CHECKING, Any, Optional, Type, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Type, TypeAlias, Union, cast
 
 from typing_extensions import Self, TypeVarTuple
 
@@ -32,7 +32,7 @@ from .errors import CommandError
 
 if TYPE_CHECKING:
     Ts = TypeVarTuple('Ts')
-    CommandCallback = Union[
+    CommandCallback: TypeAlias = Union[
         Callable[
             [Any, n.types.CommandI, *Ts],
             Coroutine[Any, Any, None],
@@ -50,7 +50,7 @@ if TYPE_CHECKING:
             Coroutine[Any, Any, None],
         ],
     ]
-    AutocompleteCallback = Union[
+    AutocompleteCallback: TypeAlias = Union[
         Callable[
             [
                 Any,
@@ -68,7 +68,7 @@ if TYPE_CHECKING:
         ],
     ]
 
-    LocType = dict[str, str] | dict[n.Locale, str] | n.utils.Localization | None
+    LocType: TypeAlias = dict[str, str] | dict[n.Locale, str] | n.utils.Localization | None
 
 
 __all__ = (

@@ -373,8 +373,8 @@ class PartialApplicationCommand:
         self.description = description
         self.description_localizations = flatten_localization(description_localizations)
         self.options = options or []
-        if default_member_permissions is MISSING:
-            self.default_member_permissions = None
+        if default_member_permissions is MISSING or default_member_permissions is None:
+            self.default_member_permissions = Permissions(0)
         else:
             self.default_member_permissions = default_member_permissions
         self.dm_permission = dm_permission
@@ -382,10 +382,12 @@ class PartialApplicationCommand:
 
     __repr__ = generate_repr(('name', 'description', 'options', 'type',))
 
-    def __eq__(self, other: PartialApplicationCommand) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, PartialApplicationCommand):
+            return False
         return self._to_data() == other._to_data()
 
-    def __ne__(self, other: PartialApplicationCommand) -> bool:
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
     def add_option(self, option: ApplicationCommandOption) -> Self:
@@ -488,7 +490,7 @@ class ApplicationCommand(PartialApplicationCommand):
         permissions = Permissions(p)
         self.state = state
         super().__init__(
-            name=data.get("name"),
+            name=data["name"],
             description=data.get("description"),
             type=ApplicationCommandType(data.get("type", 1)),
             name_localizations=data.get("name_localizations"),

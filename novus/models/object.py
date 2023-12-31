@@ -40,7 +40,7 @@ class Object:
             self,
             id: int | str,
             *,
-            state: HTTPConnection = None,  # pyright: ignore  # Making compatible with statesnowflake
+            state: HTTPConnection,  # Making compatible with statesnowflake
             guild: abc.Snowflake | None = None,
             guild_id: int | None = None):
         self.id = int(id)
@@ -50,7 +50,7 @@ class Object:
             self.guild = guild
         elif guild_id:
             from .guild import BaseGuild
-            self.guild = BaseGuild(state=self.state, data={"id": guild_id})  # pyright: ignore
+            self.guild = BaseGuild(state=self.state, data={"id": guild_id})  # type: ignore
         else:
             del self.guild
 

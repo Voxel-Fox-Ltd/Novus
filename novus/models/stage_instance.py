@@ -97,14 +97,15 @@ class StageInstance:
             The stage instance.
         """
 
+        kwargs: dict[str, Any] = {
+            "channel": try_object(channel),
+            "topic": topic,
+            "privacy_level": privacy_level,
+            "send_start_notification": send_start_notification,
+        }
         return await state.stage_instance.create_stage_instance(
             reason=reason,
-            **{
-                "channel": try_object(channel),
-                "topic": topic,
-                "privacy_level": privacy_level,
-                "send_start_notification": send_start_notification,
-            }
+            **kwargs
         )
 
     @classmethod

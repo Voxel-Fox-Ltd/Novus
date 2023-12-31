@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
-from ..utils import MISSING, parse_timestamp
+from ..utils import MISSING, parse_timestamp, DiscordDatetime
 
 if TYPE_CHECKING:
     from ..payloads.embed import Embed as EmbedPayload
@@ -249,14 +249,15 @@ class Embed:
     @classmethod
     def _from_data(cls, data: EmbedPayload) -> Self:
         timestamp = data.get("timestamp")
+        timestamp_o: DiscordDatetime | None = None
         if timestamp is not None:
-            timestamp = parse_timestamp(timestamp)
+            timestamp_o = parse_timestamp(timestamp)
         embed = cls(
             title=data.get("title"),
             type=data.get("type") or "rich",
             description=data.get("description"),
             url=data.get("url"),
-            timestamp=timestamp,
+            timestamp=timestamp_o,
             color=data.get("color"),
         )
         if "footer" in data:
@@ -454,9 +455,10 @@ class Embed:
             The user that you want to set into the embed.
         """
 
+        avatar = user.avatar or user.default_avatar
         return self.set_author(
             name=str(user),
-            icon_url=str(user.avatar)
+            icon_url=avatar.get_url()
         )
 
     def remove_author(self) -> Self:

@@ -141,7 +141,7 @@ class Webhook:
         }
         return cls(
             state=state or HTTPConnection(),
-            data=data,  # pyright: ignore
+            data=data,  # type: ignore
         )
 
     @classmethod

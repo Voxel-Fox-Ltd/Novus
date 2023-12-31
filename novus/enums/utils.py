@@ -15,6 +15,10 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
+from typing import Any
+
 from enum import Enum as E
 from enum import EnumMeta as EM
 
@@ -25,7 +29,7 @@ __all__ = (
 
 class EnumMeta(EM):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if self.__doc__:
             self.__doc__ += "\n\n"

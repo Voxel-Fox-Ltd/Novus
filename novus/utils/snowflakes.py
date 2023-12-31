@@ -149,5 +149,5 @@ def try_object(given: int | str | Snowflake | None) -> Snowflake | None:
         return None
     if isinstance(given, (int, str)):
         from ..models import Object  # Circular import :(
-        return Object(given, state=None)  # pyright: ignore
+        return Object(given, state=None)  # type: ignore
     return given

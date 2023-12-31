@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
+from typing_extensions import Self
 
 from ..enums import StickerFormat
 from ..utils import MISSING, cached_slot_property, try_id, try_snowflake
@@ -93,13 +94,14 @@ class Sticker(Hashable):
         self.id: int = try_snowflake(data['id'])
         self.pack_id: int | None = try_snowflake(data.get('pack_id'))
         self.name: str = data['name']
-        self.description: str | None = data.get('description')
+        self.description: str | None = data.get('description', None)
         # self.type: StickerType = StickerType(data['type'])
         self.format_type: StickerFormat = StickerFormat(data['format_type'])
         self.available: bool = data.get('available', True)
         self.guild = None
-        if "guild_id" in data:
-            self.guild = self.state.cache.get_guild(data["guild_id"])  # pyright: ignore
+        guild_id = data.get("guild_id")
+        if guild_id:
+            self.guild = self.state.cache.get_guild(guild_id)
 
     @cached_slot_property('_cs_asset')
     def asset(self) -> Asset:

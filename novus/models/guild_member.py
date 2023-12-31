@@ -179,6 +179,8 @@ class GuildMember(Hashable, Messageable):
     email: str | None
     flags: UserFlags
     premium_type: enums.UserPremiumType
+    avatar: Asset | None
+    banner: Asset | None
 
     # Member
     nick: str | None
@@ -196,16 +198,21 @@ class GuildMember(Hashable, Messageable):
     def __new__(cls, **kwargs: Any) -> GuildMember:
         obj = super().__new__(cls)
         for attr in User.__slots__:
-            if attr.startswith("_") or attr == "state":
+            if (attr.startswith("_") and not attr.startswith("_cs_")) or attr == "state":
                 continue
-            getter = operator.attrgetter('_user.' + attr)
+            nice_attr_name = attr
+            if attr.startswith("_cs_"):
+                nice_attr_name = attr[4:]
+                getter = operator.attrgetter('_user.' + nice_attr_name)
+            else:
+                getter = operator.attrgetter('_user.' + attr)
             setattr(
                 cls,
-                attr,
+                nice_attr_name,
                 property(
                     getter,
                     lambda a, b: None,  # so that copy works properly
-                    doc=f'Equivalent to :attr:`novus.User.{attr}`',
+                    doc=f'Equivalent to :attr:`novus.User.{nice_attr_name}`',
                 ),
             )
         return obj
@@ -276,18 +283,6 @@ class GuildMember(Hashable, Messageable):
         if not isinstance(self.guild, Guild):
             return None
         return self.guild._voice_states.get(self.id)
-
-    @cached_slot_property('_cs_avatar')
-    def avatar(self) -> Asset | None:
-        if self.avatar_hash is None:
-            return None
-        return Asset.from_user_avatar(self)
-
-    @cached_slot_property('_cs_banner')
-    def banner(self) -> Asset | None:
-        if self.banner_hash is None:
-            return None
-        return Asset.from_user_banner(self)
 
     @cached_slot_property('_cs_guild_avatar')
     def guild_avatar(self) -> Asset | None:

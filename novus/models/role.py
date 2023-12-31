@@ -127,7 +127,7 @@ class Role(Hashable):
         self.permissions = Permissions(int(data['permissions']))
         self.managed = data['managed']
         self.mentionable = data['mentionable']
-        self.tags = data.get('role_tags', list())
+        self.tags = data.get('role_tags', [])
         if guild:
             self.guild = guild
         elif guild_id:
