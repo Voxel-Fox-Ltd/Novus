@@ -428,6 +428,7 @@ class ChannelHTTPConnection:
                     "embeds",
                     "allowed_mentions",
                     "components",
+                    "attachments",
                 ),
                 "flags": (
                     "flags",

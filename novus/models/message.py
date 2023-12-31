@@ -24,12 +24,12 @@ from typing_extensions import Self, override
 from .. import enums, flags
 from ..utils import (
     MISSING,
+    DiscordDatetime,
     add_not_missing,
     generate_repr,
     parse_timestamp,
     try_id,
     try_snowflake,
-    DiscordDatetime,
 )
 from .abc import Hashable
 from .channel import Channel
@@ -583,6 +583,7 @@ class Message(Hashable):
             message_reference: Message | None = MISSING,
             stickers: list[Sticker] | None = MISSING,
             files: list[File] | None = MISSING,
+            attachments: list[Attachment] | None = MISSING,
             flags: flags.MessageFlags = MISSING) -> Message:
         """
         Edit an existing message.
@@ -604,7 +605,9 @@ class Message(Hashable):
         stickers : list[novus.Sticker] | None
             A list of stickers to add to the message.
         files : list[novus.File] | None
-            A list of files to be added to the message.
+            A list of files to be appended to the message.
+        attachments : list[novus.Attachment] | None
+            A list of attachments currently on the message to keep.
         flags : novus.MessageFlags
             Message send flags.
 
@@ -624,6 +627,7 @@ class Message(Hashable):
         add_not_missing(update, "stickers", stickers)
         add_not_missing(update, "files", files)
         add_not_missing(update, "flags", flags)
+        add_not_missing(update, "attachments", attachments)
         return await self.state.channel.edit_message(
             self.channel.id,
             self.id,
@@ -933,6 +937,11 @@ class Attachment:
         self.size = data["size"]
         self.url = data["url"]
         self.proxy_url = data["proxy_url"]
+
+    def _to_data(self) -> dict[str, str]:
+        return {
+            "id": self.id,  # pyright: ignore
+        }
 
     def __str__(self) -> str:
         return self.url
