@@ -854,9 +854,9 @@ class AllowedMentions:
     def __init__(
             self,
             *,
-            users: AMI = True,
-            roles: AMI = True,
-            everyone: bool = True) -> None:
+            users: AMI = False,
+            roles: AMI = False,
+            everyone: bool = False) -> None:
         self.users: list[int] | bool
         if isinstance(users, bool):
             self.users = users
@@ -876,6 +876,14 @@ class AllowedMentions:
         """
 
         return cls(users=False, roles=False, everyone=False)
+
+    @classmethod
+    def all(cls) -> Self:
+        """
+        An allowed mentions object with all pings allowed.
+        """
+
+        return cls(users=True, roles=True, everyone=True)
 
     @classmethod
     def only(cls, target: Role | User | GuildMember) -> Self:
