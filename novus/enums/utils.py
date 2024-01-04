@@ -17,10 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import Any
-
 from enum import Enum as E
 from enum import EnumMeta as EM
+from typing import Any
 
 __all__ = (
     'Enum',

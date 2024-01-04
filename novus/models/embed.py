@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 
 from typing_extensions import Self
 
-from ..utils import MISSING, parse_timestamp, DiscordDatetime
+from ..utils import MISSING, DiscordDatetime, parse_timestamp
 
 if TYPE_CHECKING:
     from ..payloads.embed import Embed as EmbedPayload

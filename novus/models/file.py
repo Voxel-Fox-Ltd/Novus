@@ -17,9 +17,9 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-import pathlib
-from typing import TYPE_CHECKING, Any
 import io
+import pathlib
+from typing import Any
 
 from ..utils import cached_slot_property, get_mime_type_for_image
 

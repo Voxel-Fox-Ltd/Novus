@@ -20,7 +20,7 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Protocol
 
-from ..utils import generate_repr, parse_timestamp, DiscordDatetime
+from ..utils import DiscordDatetime, generate_repr, parse_timestamp
 from .channel import Channel
 from .guild import Guild, PartialGuild
 
@@ -97,7 +97,7 @@ class Invite:
                 guild_id = None
                 if self.guild:
                     guild_id = self.guild.id
-                self.channel = Channel(state=self.state, data=channel)
+                self.channel = Channel(state=self.state, data=channel, guild_id=guild_id)
 
     __repr__ = generate_repr(('code', 'channel', 'guild',))
 

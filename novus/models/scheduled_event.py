@@ -25,12 +25,12 @@ from typing_extensions import Self
 from ..enums import EventEntityType, EventPrivacyLevel, EventStatus
 from ..utils import (
     MISSING,
+    DiscordDatetime,
     cached_slot_property,
     generate_repr,
     parse_timestamp,
     try_id,
     try_snowflake,
-    DiscordDatetime,
 )
 from .abc import Hashable
 from .asset import Asset

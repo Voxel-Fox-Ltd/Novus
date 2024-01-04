@@ -28,25 +28,23 @@ from novus.models.reaction import Reaction
 
 if TYPE_CHECKING:
     from novus.models import (
+        ApplicationCommandData,
         AuditLog,
         BaseGuild,
         Channel,
+        ContextComandData,
         Emoji,
         Guild,
         GuildMember,
         Interaction,
         Message,
         MessageComponentData,
-        ApplicationCommandData,
-        ContextComandData,
-        MessageComponentData,
         ModalSubmitData,
         Role,
         Sticker,
-        Channel,
         User,
     )
-    from novus.types import GuildMessage, DMMessage
+    from novus.types import DMMessage, GuildMessage
 
 __all__ = (
     'event',

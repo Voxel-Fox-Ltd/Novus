@@ -18,7 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any, Generic, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from ..enums import (
     ApplicationCommandType,
@@ -38,13 +38,13 @@ from ..utils import (
 )
 from .application_command import ApplicationCommandOption
 from .channel import Channel
+from .guild import BaseGuild
 from .guild_member import GuildMember
 from .message import Attachment, Message
 from .role import Role
 from .ui.action_row import ActionRow
 from .ui.select_menu import SelectOption
 from .user import User
-from .guild import BaseGuild
 
 if TYPE_CHECKING:
     from aiohttp import web
