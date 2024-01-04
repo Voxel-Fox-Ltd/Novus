@@ -158,7 +158,8 @@ class Loop:
         self.bg_task: asyncio.Task | None = None
         self.task: asyncio.Task | None = None
         self._before: Callable[[], Coroutine[None, None, Any]] | None = None
-        self._args, self._kwargs = (), {}
+        self._args: tuple[Any, ...] = ()
+        self._kwargs: dict[str, Any] = {}
 
     def before(self, func: Callable[[], Coroutine[None, None, Any]]) -> None:
         """
@@ -167,7 +168,7 @@ class Loop:
 
         self._before = func
 
-    def start(self, *args, **kwargs) -> None:
+    def start(self, *args: Any, **kwargs: Any) -> None:
         """
         Start the loop.
         """
@@ -199,12 +200,12 @@ class Loop:
                     return
             first = False
             log.info("Running Loop[%s.%s()]", self.owner.__name__, self.func.__name__)
-            task = asyncio.create_task(self.func(self.owner, *self._args, **self._kwargs))  # pyright: ignore
+            task = asyncio.create_task(self.func(self.owner, *self._args, **self._kwargs))  # type: ignore
             if self.end_behavior == LoopBehavior.end:
                 await asyncio.wait([task])
 
-    def __call__(self, *args, **kwargs):
-        return self.func(self.owner, *args, **kwargs)  # pyright: ignore
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self.func(self.owner, *args, **kwargs)  # type: ignore
 
     def stop(self) -> None:
         """
@@ -229,4 +230,3 @@ class Loop:
         if self.task is None:
             return
         self.task.cancel()
-

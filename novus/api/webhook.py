@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, Literal, overload
 
 from ..models import Webhook, WebhookMessage
 from ._route import Route
@@ -206,8 +206,8 @@ class WebhookHTTPConnection:
             webhook_id: int,
             token: str,
             *,
-            wait=True,
-            thread_id: int | None,
+            wait: Literal[True] = ...,
+            thread_id: int | None = ...,
             **kwargs: dict[str, Any]) -> WebhookMessage:
         ...
 
@@ -217,8 +217,8 @@ class WebhookHTTPConnection:
             webhook_id: int,
             token: str,
             *,
-            wait=False,
-            thread_id: int | None,
+            wait: Literal[False] = ...,
+            thread_id: int | None = ...,
             **kwargs: dict[str, Any]) -> None:
         ...
 

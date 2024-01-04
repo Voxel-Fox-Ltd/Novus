@@ -149,7 +149,7 @@ class SelectOption(ComponentEmojiMixin):
             default: bool = False):
         self.label = label
         self.value = value
-        self.emoji = emoji  # pyright: ignore
+        self.emoji = emoji  # type: ignore
         self.description = description
         self.default = default
 
@@ -159,7 +159,7 @@ class SelectOption(ComponentEmojiMixin):
     def _from_data(cls, data: payloads.SelectOption) -> Self:
         if isinstance(data, str):
             return cls(
-                None,  # pyright: ignore
+                None,  # type: ignore
                 data,
             )
         emoji_data = data.get("emoji")

@@ -103,7 +103,6 @@ class GatewayConnection:
 
         # Create shard objects
         shard_ids = shard_ids or list(range(shard_count))
-        tasks: list[asyncio.Task] = []
         for i in shard_ids:
             gs = GatewayShard(
                 parent=self.parent,
@@ -352,7 +351,8 @@ class GatewayShard:
                 try:
                     self._buffer.extend(data_bytes)
                 except Exception as e:
-                    log.critical("[%s] Failed to extend buffer %s",
+                    log.critical(
+                        "[%s] Failed to extend buffer %s",
                         self.shard_id, str(data), exc_info=e,
                     )
                     raise
@@ -363,7 +363,7 @@ class GatewayShard:
                 or type(data_bytes) is not bytes
             )
             if not complete_message_received:
-                return
+                return None
 
             # Deal with our complete data
             if type(data_bytes) is not bytes:
@@ -422,7 +422,7 @@ class GatewayShard:
     async def connect(
             self,
             ws_url: str | None = None,
-            reconnect: bool = False):
+            reconnect: bool = False) -> None:
         """
         Connect to the gateway, using the connection semaphore.
         """

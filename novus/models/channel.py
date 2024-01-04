@@ -287,8 +287,8 @@ class Channel(Hashable, Messageable):
             try_snowflake(data.get("guild_id"))
             or try_snowflake(guild_id)
         )
-        self._members = {}
-        self._channels = {}
+        self._members: dict[int, GuildMember] = {}
+        self._channels: dict[int, Channel] = {}
         self._update(data)
 
     __repr__ = generate_repr(('id',))
@@ -868,7 +868,7 @@ class Channel(Hashable, Messageable):
             **params,
         )
 
-    async def create_thread(
+    async def create_thread_in_forum(
             self: abc.StateSnowflake,
             name: str,
             *,
@@ -883,7 +883,7 @@ class Channel(Hashable, Messageable):
             files: list[File] = MISSING,
             flags: MessageFlags = MISSING) -> Channel:
         """
-        Create a thread that is not connected to an existing message.
+        Create a thread in a forum or media channel.
 
         Parameters
         ----------
@@ -916,7 +916,7 @@ class Channel(Hashable, Messageable):
         add_not_missing(message, "flags", flags)
         params["message"] = message
 
-        return await self.state.channel.start_thread_without_message(
+        return await self.state.channel.start_thread_in_forum_channel(
             self.id,
             reason=reason,
             **params,

@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeAlias
 
 from typing_extensions import Self
 
@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from .. import enums, flags, payloads
     from ..api import HTTPConnection
 
-    LocType = dict[str, str] | dict[enums.Locale, str] | Localization | None
+    LocType: TypeAlias = dict[str, str] | dict[enums.Locale, str] | Localization | None
 
 __all__ = (
     'ApplicationCommandOption',

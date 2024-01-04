@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Awaitable
-from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, TypeAlias, TypeVar, Union
 
 import novus
 from novus.models.audit_log import AuditLogEntry
@@ -27,13 +27,12 @@ from novus.models.invite import Invite
 from novus.models.reaction import Reaction
 
 if TYPE_CHECKING:
-    from novus.models import (
+    from novus import types as t
+    from novus.models import (  # AuditLog,; Emoji,; Sticker,
         ApplicationCommandData,
-        AuditLog,
         BaseGuild,
         Channel,
         ContextComandData,
-        Emoji,
         Guild,
         GuildMember,
         Interaction,
@@ -41,10 +40,10 @@ if TYPE_CHECKING:
         MessageComponentData,
         ModalSubmitData,
         Role,
-        Sticker,
         User,
     )
-    from novus.types import DMMessage, GuildMessage
+    DMMessage: TypeAlias = t.DMMessage
+    GuildMessage: TypeAlias = t.GuildMessage
 
 __all__ = (
     'event',
@@ -76,7 +75,7 @@ class EventListener:
             self.predicate = predicate
         self.owner: Any = None
 
-    async def run(self, *args, **kwargs) -> None:
+    async def run(self, *args: Any, **kwargs: Any) -> None:
         await self.func(self.owner, *args, **kwargs)
 
 
@@ -154,7 +153,12 @@ class EventBuilder:
         )
 
     @classmethod
-    def command(cls, func: W[Interaction[ContextComandData]] | W[Interaction[ApplicationCommandData]] | W[Interaction[ContextComandData] | Interaction[ApplicationCommandData]] | W[Interaction[ContextComandData | ApplicationCommandData]]) -> EL:
+    def command(
+            cls,
+            func: Union[W[Interaction[ContextComandData]],
+                        W[Interaction[ApplicationCommandData]],
+                        W[Interaction[ContextComandData] | Interaction[ApplicationCommandData]],
+                        W[Interaction[ContextComandData | ApplicationCommandData]]]) -> EL:
         return EventListener(
             "INTERACTION_CREATE",
             func,

@@ -162,7 +162,7 @@ def create_console(bot: client.Client) -> AsynchronousCli:
     plugin_parser.add_argument("plugin")
     run_parser = ArgumentParser()
     run_parser.add_argument("command", nargs=REMAINDER)
-    command_locals = {}
+    command_locals: dict[str, Any] = {}
 
     async def add(reader: Any, writer: Any, plugin: str) -> None:
         bot.add_plugin_file(plugin, load=True)

@@ -22,9 +22,8 @@ from typing import TYPE_CHECKING
 from .emoji import PartialEmoji
 
 if TYPE_CHECKING:
-    from .. import Message, payloads
+    from .. import payloads
     from ..api import HTTPConnection
-    from ..utils.types import AnySnowflake
 
 __all__ = (
     'Reaction',

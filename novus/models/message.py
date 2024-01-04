@@ -45,8 +45,6 @@ from .ui.action_row import ActionRow
 from .user import User
 
 if TYPE_CHECKING:
-    from datetime import datetime as dt
-
     from .. import payloads
     from ..api import HTTPConnection
     from . import abc
@@ -297,7 +295,7 @@ class Message(Hashable):
         for user_data in mention_data:
             user_object = User(state=self.state, data=user_data)
             if "member" in user_data:
-                user_data["member"]["guild_id"] = self.guild.id  # pyright: ignore
+                user_data["member"]["guild_id"] = self.guild.id  # type: ignore
                 user_object._upgrade(user_data["member"])  # pyright: ignore
             self.mentions.append(user_object)
         self.mention_roles = [
@@ -721,7 +719,7 @@ class WebhookMessage(Message):
 
     @override
     @classmethod
-    async def fetch(
+    async def fetch(  # type: ignore
             cls,
             state: HTTPConnection,
             webhook: int | abc.Snowflake,
@@ -754,7 +752,7 @@ class WebhookMessage(Message):
         )
 
     @override
-    async def delete(
+    async def delete(  # type: ignore
             self: abc.StateSnowflakeWithWebhook) -> None:
         """
         Delete a webhook message.

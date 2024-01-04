@@ -24,7 +24,7 @@ import logging
 from collections.abc import Callable, Coroutine, Iterable
 from typing import TYPE_CHECKING, Any, Type, TypeAlias, Union, cast
 
-from typing_extensions import Self, TypeVarTuple
+from typing_extensions import Self, TypeVarTuple, Unpack, override
 
 import novus as n
 
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     Ts = TypeVarTuple('Ts')
     CommandCallback: TypeAlias = Union[
         Callable[
-            [Any, n.types.CommandI, *Ts],
+            [Any, n.types.CommandI, Unpack[Ts]],
             Coroutine[Any, Any, None],
         ],
         Callable[
@@ -42,7 +42,7 @@ if TYPE_CHECKING:
             Coroutine[Any, Any, None],
         ],
         Callable[
-            [Any, n.types.CommandGI, *Ts],
+            [Any, n.types.CommandGI, Unpack[Ts]],
             Coroutine[Any, Any, None],
         ],
         Callable[
@@ -143,7 +143,7 @@ class Command:
             and " " in self.name
         )
         self.owner: Any = None
-        self._autocomplete = None
+        self._autocomplete: AutocompleteCallback | None = None
 
         # Make sure our callback and app command have similar options
         if self.type == n.ApplicationCommandType.chat_input:
@@ -203,7 +203,7 @@ class Command:
         self.command_ids[guild_id or 0] = id
 
     @property
-    def mention(self):
+    def mention(self) -> str:
         return self.get_mention()
 
     def get_mention(self, guild_id: int | None = None) -> str:
@@ -284,7 +284,7 @@ class Command:
             case _:
                 await partial(**kwargs)
 
-    async def __call__(self, *args, **kwargs) -> Any:
+    async def __call__(self, *args: Any, **kwargs: Any) -> Any:
         return await self.callback(self.owner, *args, **kwargs)
 
     def autocomplete(self, func: AutocompleteCallback) -> AutocompleteCallback:
@@ -332,15 +332,16 @@ class Command:
         if hasattr(self._autocomplete, "_param_count"):
             param_count = self._autocomplete._param_count
         else:
-            param_count = self._autocomplete._param_count = len(inspect.signature(self._autocomplete).parameters)
+            param_count = len(inspect.signature(self._autocomplete).parameters)
+            self._autocomplete._param_count = param_count  # type: ignore
         if param_count == 3:
-            data = await self._autocomplete(
+            data = await self._autocomplete(  # type: ignore
                 self.owner,
                 interaction,
                 {i.name: i for i in options},  # pyright: ignore
             )
         else:
-            data = await self._autocomplete(
+            data = await self._autocomplete(  # type: ignore
                 self.owner,
                 interaction,
             )  # pyright: ignore
@@ -397,9 +398,10 @@ class CommandGroup(Command):
         d : novus.ext.client.CommandDescription
             The description that you want to add to the command group.
         """
+
         self._add_description(self, d)
         if d.guild_ids is not n.utils.MISSING:
-            self.guild_ids = d.guild_ids
+            self.guild_ids = d.guild_ids  # type: ignore
 
     @classmethod
     def _add_description(
@@ -512,10 +514,10 @@ class CommandGroup(Command):
                 raise CommandError("Cannot have different guild IDs for group")
         else:
             for i in commands:
-                permission_set = [i.application_command.default_member_permissions]
-                dm_permission_set = [i.application_command.dm_permission]
-                nsfw_set = [i.application_command.nsfw]
-                guild_ids_set = [i.guild_ids]
+                permission_set = [i.application_command.default_member_permissions]  # type: ignore
+                dm_permission_set = [i.application_command.dm_permission]  # type: ignore
+                nsfw_set = [i.application_command.nsfw]  # type: ignore
+                guild_ids_set = [i.guild_ids]  # type: ignore
                 break
         assert permission_set is not None
         assert dm_permission_set is not None
@@ -538,7 +540,7 @@ class CommandGroup(Command):
         for (_, *group, _), command in command_map.items():
             group_tuple = ()
             for group_index, group_name in enumerate(group, start=1):
-                group_tuple = tuple(group[:group_index])
+                group_tuple = tuple(group[:group_index])  # type: ignore
                 if group_tuple not in built_options:
                     built_options[group_tuple] = new = n.ApplicationCommandOption(
                         name=group_name,
@@ -555,7 +557,8 @@ class CommandGroup(Command):
             list(list(guild_ids_set)[0])
         )
 
-    async def run(
+    @override
+    async def run(  # type: ignore
             self,
             interaction: n.Interaction[n.ApplicationCommandData]) -> None:
         """
@@ -575,7 +578,10 @@ class CommandGroup(Command):
         command = self.commands[" ".join([*command_name_parts, option.name])]
         return await command.run(interaction, option.options)
 
-    async def run_autocomplete(self, interaction: n.Interaction[n.ApplicationCommandData]) -> None:
+    @override
+    async def run_autocomplete(  # type: ignore
+            self,
+            interaction: n.Interaction[n.ApplicationCommandData]) -> None:
         """
         Run the autocomplete for the given command with the given options.
 
@@ -633,7 +639,7 @@ def command(
         nsfw: bool = False,
         guild_ids: list[int] | None = None,
         cls: Type[Command] = Command,
-        **kwargs: Any):
+        **kwargs: Any) -> Callable[[CommandCallback], Command]:
     """
     Wrap a function in a command.
 
@@ -704,7 +710,7 @@ def command(
         cname = name or func.__name__
         dname = description or func.__doc__ or ""
         if type != n.ApplicationCommandType.chat_input:
-            dname = None
+            dname = None  # type: ignore
         else:
             dname = dname.strip()
         return cls(

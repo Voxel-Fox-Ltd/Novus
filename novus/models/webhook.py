@@ -24,7 +24,6 @@ from typing_extensions import override
 
 from ..utils import (
     MISSING,
-    UNUSED,
     cached_slot_property,
     generate_repr,
     try_id,
@@ -141,7 +140,7 @@ class Webhook:
         }
         return cls(
             state=state or HTTPConnection(),
-            data=data,  # type: ignore
+            data=data,
         )
 
     @classmethod
@@ -406,7 +405,7 @@ class Webhook:
 class InteractionWebhook(Webhook):
 
     @override
-    async def send(
+    async def send(  # type: ignore
             self: StateSnowflakeWithToken,
             content: str = MISSING,
             *,

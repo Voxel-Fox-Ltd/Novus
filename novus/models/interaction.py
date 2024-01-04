@@ -18,7 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import functools
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, Generic, TypeVar
 
 from ..enums import (
     ApplicationCommandType,
@@ -302,7 +302,7 @@ class ContextComandData(ApplicationCommandData):
     name: str
     type: ApplicationCommandType
     resolved: InteractionResolved
-    options: list[ApplicationCommandOption]
+    options: list[ApplicationCommandOption]  # type: ignore  # Incompatible with supertype
     guild: BaseGuild | None
     target: Message | User | GuildMember
 
@@ -554,7 +554,7 @@ class Interaction(Generic[IData]):
                         data=data_dict,  # pyright: ignore
                     )
             if self.type == InteractionType.message_component:
-                data_object = MessageComponentData(
+                data_object = MessageComponentData(  # type: ignore
                     parent=self,
                     data=data_dict,  # pyright: ignore
                 )
@@ -564,11 +564,11 @@ class Interaction(Generic[IData]):
                     data=data_dict,  # pyright: ignore
                 )
             if self.type == InteractionType.modal_submit:
-                data_object = ModalSubmitData(
+                data_object = ModalSubmitData(  # type: ignore
                     parent=self,
                     data=data_dict,  # pyright: ignore
                 )
-        self.data = data_object  # pyright: ignore  # Apparently this isn't valid with generics
+        self.data = data_object  # type: ignore  # Apparently this isn't valid with generics
         self._responded = False
 
     __repr__ = generate_repr((
@@ -596,7 +596,7 @@ class Interaction(Generic[IData]):
 
     # API methods
 
-    def _get_response_partial(self: Interaction):
+    def _get_response_partial(self: Interaction) -> Callable[..., Awaitable[None]]:
         if self._stream is None:
             return functools.partial(
                 self.state.interaction.create_interaction_response,

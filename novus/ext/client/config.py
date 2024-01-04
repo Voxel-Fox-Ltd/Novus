@@ -221,7 +221,7 @@ class Config:
     @classmethod
     def from_toml(cls, filename: str | pathlib.Path) -> Self:
         try:
-            import toml
+            import toml  # pyright: ignore
         except ImportError:
             raise Exception("Missing TOML module.")
         with open(filename) as a:
@@ -229,7 +229,7 @@ class Config:
 
     def to_toml(self) -> str:
         try:
-            import toml
+            import toml  # pyright: ignore
         except ImportError:
             raise Exception("Missing TOML module.")
         return toml.dumps(self.to_dict())

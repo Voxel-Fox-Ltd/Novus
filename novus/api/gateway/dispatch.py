@@ -23,21 +23,17 @@ import logging
 from copy import copy
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
-from ...models import (
+from ...models import (  # Emoji,; Object,; Sticker,; ThreadMember,
     AuditLogEntry,
     BaseGuild,
     Channel,
-    Emoji,
     Guild,
     GuildMember,
     Interaction,
     Invite,
     Message,
-    Object,
     Reaction,
     Role,
-    Sticker,
-    ThreadMember,
     User,
     VoiceState,
 )
@@ -46,9 +42,8 @@ from ...utils import try_id, try_snowflake
 if TYPE_CHECKING:
     from ... import payloads
     from ...flags import Intents
-    from ...models import abc
     from ...payloads import gateway as gw
-    from .._http import HTTPConnection
+    from .._http import APICache, HTTPConnection
     from .gateway import GatewayShard
 
 
@@ -144,7 +139,7 @@ class GatewayDispatch:
         }
 
     @property
-    def cache(self):
+    def cache(self) -> APICache:
         return self.parent.cache
 
     @property
@@ -174,6 +169,7 @@ class GatewayDispatch:
             log.info("Received resumed (shard %s)", self.shard.shard_id)
             return None
 
+        coro: Callable[..., Awaitable[None]] | None
         if self.parent.gateway.guild_ids_only:
             if event_name == "GUILD_CREATE":
                 coro = self._handle_guild_create_id_only
@@ -189,8 +185,8 @@ class GatewayDispatch:
             await coro(data)
 
     @staticmethod
-    def ignore(event_name: str):
-        async def wrapper(data: Any):
+    def ignore(event_name: str) -> Callable[..., Any]:
+        async def wrapper(data: Any) -> None:
             return
         return wrapper
 
@@ -242,7 +238,7 @@ class GatewayDispatch:
         # this one anew but not dispatch the usual update method
         else:
             before = None
-            after =  Guild(state=self.parent, data=data)
+            after = Guild(state=self.parent, data=data)
             await after._sync(data=data)
             self.cache.add_guilds(after)
             self.dispatch("RAW_GUILD_UPDATE", after)
@@ -255,7 +251,7 @@ class GatewayDispatch:
             return
         self.dispatch("GUILD_UPDATE", before, after)
 
-    async def _handle_guild_delete(self, data: dict[str, str]):
+    async def _handle_guild_delete(self, data: dict[str, str]) -> None:
         # Get from cache if we can
         self.dispatch("RAW_GUILD_DELETE", int(data["id"]))
         try:
@@ -533,7 +529,7 @@ class GatewayDispatch:
         else:
             user = user._update(data["user"])
         guild = self.cache.get_guild(data["guild_id"])
-        self.dispatch("GUILD_BAN_REMOVE")
+        self.dispatch("GUILD_BAN_REMOVE", guild, user)
 
     async def _handle_invite_create(
             self,
@@ -728,7 +724,6 @@ class GatewayDispatch:
         # I don't know what the difference is.
 
         # Get message from cache
-        message = self.cache.get_message(data["message_id"])
         created = Reaction(state=self.parent, data=data)
 
         # Get the guild from cache if one exists

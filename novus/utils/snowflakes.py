@@ -17,17 +17,17 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import TYPE_CHECKING, Literal, overload
-
-if TYPE_CHECKING:
-    from ..models.abc import Snowflake
+from typing import Literal, Protocol, overload
 
 __all__ = (
     'try_snowflake',
     'try_id',
     'try_object',
 )
+
+
+class Snowflake(Protocol):
+    id: int
 
 
 @overload
@@ -149,5 +149,5 @@ def try_object(given: int | str | Snowflake | None) -> Snowflake | None:
         return None
     if isinstance(given, (int, str)):
         from ..models import Object  # Circular import :(
-        return Object(given, state=None)  # type: ignore
+        return Object(given, state=None)
     return given

@@ -110,7 +110,7 @@ class Plugin(metaclass=PluginMeta):
 
     CONFIG: ClassVar[JsonValue] = {}
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> Any:
         created = super().__new__(cls)
         created.__name__ = cls.__name__
         for i in cls._commands:

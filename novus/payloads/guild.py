@@ -205,7 +205,7 @@ class GuildSyncable(TypedDict):
     guild_scheduled_events: NotRequired[list[GuildScheduledEvent]]
 
 
-class GatewayGuild(Guild, GuildSyncable, _GatewayGuildOptional):
+class GatewayGuild(Guild, GuildSyncable, _GatewayGuildOptional):  # type: ignore
     joined_at: Timestamp
     large: bool
     member_count: int

@@ -263,7 +263,6 @@ class GuildMember(Hashable, Messageable):
             guild = BaseGuild(state=state, data={"id": guild_id})  # pyright: ignore
         self.guild = guild
 
-
     __repr__ = generate_repr(("id", "username", "bot", "guild",))
 
     def __str__(self) -> str:

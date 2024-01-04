@@ -22,7 +22,7 @@ import logging
 import random
 import string
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, NoReturn, overload
+from typing import TYPE_CHECKING, Any, Literal, NoReturn, overload
 
 from typing_extensions import Self
 
@@ -372,19 +372,19 @@ class BaseGuild:
     @overload
     async def chunk_members(
             self: abc.StateSnowflake,
-            query: str = ...,
-            limit: int = ...,
-            user_ids: list[int] = ...,
-            wait: bool = True) -> list[GuildMember]:
+            query: str,
+            limit: int,
+            user_ids: list[int],
+            wait: Literal[False]) -> None:
         ...
 
     @overload
     async def chunk_members(
             self: abc.StateSnowflake,
-            query: str = ...,
-            limit: int = ...,
-            user_ids: list[int] = ...,
-            wait: bool = False) -> None:
+            query: str,
+            limit: int,
+            user_ids: list[int],
+            wait: Literal[True]) -> list[GuildMember]:
         ...
 
     async def chunk_members(
@@ -2112,7 +2112,8 @@ class Guild(Hashable, BaseGuild):
             new_cache = {}
             for d in data["emojis"]:
                 new = self._add_emoji(d, new_cache)
-                new_cache[new.id] = new
+                if new is not None:
+                    new_cache[new.id] = new
                 await asyncio.sleep(0)
             self._emojis = new_cache
 

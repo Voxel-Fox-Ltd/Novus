@@ -19,11 +19,15 @@ from __future__ import annotations
 
 from datetime import datetime as dt
 from datetime import timezone
-from typing import TYPE_CHECKING, overload
+from typing import TYPE_CHECKING, Protocol, overload
 
 if TYPE_CHECKING:
     from ..enums.time import TimestampFormat
-    from ..models.abc import Snowflake
+
+    # from ..models.abc import Snowflake
+    # mypy doesn't like this ^ so we will make a new in-class protocol used for
+    # just here
+
 
 __all__ = (
     'DiscordDatetime',
@@ -32,6 +36,10 @@ __all__ = (
     'utcnow',
     'now',
 )
+
+
+class Snowflake(Protocol):
+    id: int
 
 
 class DiscordDatetime(dt):

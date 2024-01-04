@@ -103,7 +103,7 @@ class Button(InteractableComponent, ComponentEmojiMixin):
         self.label = label
         self.style = style
         self.custom_id = custom_id
-        self.emoji = emoji  # pyright: ignore
+        self.emoji = emoji  # type: ignore
         self.url = url
         self.disabled = disabled
 

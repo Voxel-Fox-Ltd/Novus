@@ -467,6 +467,7 @@ class InteractionHTTPConnection:
             },
             interaction_data or {},
         )
+        assert interaction_data is not None
         files = interaction_data.pop("files", [])
 
         post_data = {"type": type.value}
@@ -509,6 +510,7 @@ class InteractionHTTPConnection:
             },
             interaction_data or {},
         )
+        assert interaction_data is not None
         files = interaction_data.pop("files", [])
 
         post_data = {"type": type.value}

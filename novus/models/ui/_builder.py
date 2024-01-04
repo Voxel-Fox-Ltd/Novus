@@ -57,4 +57,4 @@ def component_builder(data: payloads.Component) -> Component:
             factory = ChannelSelectMenu
         case _:
             raise ValueError()
-    return factory._from_data(data)  # pyright: ignore
+    return factory._from_data(data)  # type: ignore
