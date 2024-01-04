@@ -26,12 +26,14 @@ __all__ = (
     'FileT',
     'ComponentGI',
     'CommandGI',
+    'GuildMessage',
+    'DMMessage',
 )
 
 if TYPE_CHECKING:
     import io
 
-    from ..models import BaseGuild
+    from ..models import BaseGuild, Message
     from ..models.abc import Snowflake
     from ..models.interaction import (
         ApplicationCommandData,
@@ -56,6 +58,12 @@ if TYPE_CHECKING:
 
     CommandGI: TypeAlias = AppGI | ContextGI
 
+    class GuildMessage(Message):
+        guild: BaseGuild
+
+    class DMMessage(Message):
+        guild: None
+
 else:
     CommandI: TypeAlias = None
     ComponentI: TypeAlias = None
@@ -63,3 +71,5 @@ else:
     FileT: TypeAlias = None
     CommandGI: TypeAlias = None
     ComponentGI: TypeAlias = None
+    GuildMessage: TypeAlias = None
+    DMMessage: TypeAlias = None

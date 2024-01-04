@@ -46,6 +46,7 @@ if TYPE_CHECKING:
         Channel,
         User,
     )
+    from novus.types import GuildMessage, DMMessage
 
 __all__ = (
     'event',
@@ -205,6 +206,14 @@ class EventBuilder:
     @classmethod
     def message(cls, func: W[Message]) -> EL:
         return EventListener("MESSAGE_CREATE", func)
+
+    @classmethod
+    def guild_message(cls, func: W[GuildMessage]) -> EL:
+        return EventListener("MESSAGE_CREATE", func, lambda m: m.guild is not None)
+
+    @classmethod
+    def dm_message(cls, func: W[DMMessage]) -> EL:
+        return EventListener("MESSAGE_CREATE", func, lambda m: m.guild is None)
 
     @classmethod
     def raw_message_edit(cls, func: W[Message]) -> EL:
