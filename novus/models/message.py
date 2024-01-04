@@ -787,6 +787,7 @@ class WebhookMessage(Message):
             message_reference: Message | None = MISSING,
             stickers: list[Sticker] | None = MISSING,
             files: list[File] | None = MISSING,
+            attachments: list[Attachment] | None = MISSING,
             flags: flags.MessageFlags = MISSING) -> Message:
         """
         Edit an existing message sent by the webhook.
@@ -808,7 +809,9 @@ class WebhookMessage(Message):
         stickers : list[novus.Sticker] | None
             A list of stickers to add to the message.
         files : list[novus.File] | None
-            A list of files to be added to the message.
+            A list of files to be appended to the message.
+        attachments : list[novus.Attachment] | None
+            A list of attachments currently on the message to keep.
         flags : novus.MessageFlags
             Message send flags.
 
@@ -827,6 +830,7 @@ class WebhookMessage(Message):
         add_not_missing(update, "message_reference", message_reference)
         add_not_missing(update, "stickers", stickers)
         add_not_missing(update, "files", files)
+        add_not_missing(update, "attachments", attachments)
         add_not_missing(update, "flags", flags)
         return await self.state.webhook.edit_webhook_message(
             self.webhook.id,
