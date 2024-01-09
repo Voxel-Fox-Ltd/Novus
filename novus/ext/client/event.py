@@ -117,7 +117,7 @@ class EventBuilder:
             ID.
         """
 
-        def wrapper(func: W[Interaction]) -> EL:
+        def wrapper(func: W[Interaction] | W[t.ComponentGI]) -> EL:
             return EventListener(
                 "INTERACTION_CREATE",
                 func,
