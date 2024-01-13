@@ -24,6 +24,7 @@ __all__ = (
     'HTTPException',
     'NotFound',
     'Unauthorized',
+    'BadRequest',
     'Forbidden',
     'GatewayException',
     'GatewayUnknownError',
@@ -53,6 +54,10 @@ class HTTPException(Exception):
         self.payload: dict = payload
         self.message: str = payload['message']
         self.code: int = payload.get('code', -1)
+
+
+class BadRequest(HTTPException):
+    """When we're sending invalid data over to Discord."""
 
 
 class NotFound(HTTPException):

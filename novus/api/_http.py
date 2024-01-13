@@ -28,6 +28,7 @@ import aiohttp
 from ..utils import bytes_to_base64_data
 from ._cache import APICache
 from ._errors import (
+    BadRequest,
     DiscordException,
     Forbidden,
     NotFound,
@@ -320,6 +321,8 @@ class HTTPConnection:
                 if 300 > resp.status >= 200:
                     return given
                 assert isinstance(given, dict)
+                if resp.status == 400:
+                    raise BadRequest(given)
                 if resp.status == 401:
                     raise Unauthorized(given)
                 elif resp.status == 403:
