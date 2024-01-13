@@ -223,9 +223,11 @@ async def main(args: Namespace, unknown: list[str]) -> None:
         case "run":
             config = client.Config.from_file(args.config)
             if "loglevel" in args:
-                root = logging.Logger.root
                 level = getattr(logging, args.loglevel.upper())
-                root.setLevel(level)
+            else:
+                level = logging.INFO
+            root = logging.Logger.root
+            root.setLevel(level)
             config.merge_namespace(args, unknown)
             bot = client.Client(config)
             await asyncio.gather(
@@ -240,9 +242,11 @@ async def main(args: Namespace, unknown: list[str]) -> None:
         case "run-webserver":
             config = client.Config.from_file(args.config)
             if "loglevel" in args:
-                root = logging.Logger.root
                 level = getattr(logging, args.loglevel.upper())
-                root.setLevel(level)
+            else:
+                level = logging.INFO
+            root = logging.Logger.root
+            root.setLevel(level)
             config.merge_namespace(args, unknown)
             bot = client.Client(config)
             await asyncio.gather(
