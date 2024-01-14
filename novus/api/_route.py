@@ -24,7 +24,7 @@ __all__ = (
 )
 
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
 
 
 class Route:
