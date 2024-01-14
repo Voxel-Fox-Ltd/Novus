@@ -311,7 +311,7 @@ class Client:
         self.plugins.append(created)
         for c in created._commands:
             self.add_command(c)
-        self.config.extended[created] = created.CONFIG
+        self.config.extended[created.__name__] = created.CONFIG
 
         # Run ``.on_load()`` if we've started the event loop.
         if load:
