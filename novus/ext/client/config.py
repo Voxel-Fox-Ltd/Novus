@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import glob
 import logging
-from typing import TYPE_CHECKING, Any, NoReturn
+from typing import TYPE_CHECKING, Any, NoReturn, TypeAlias
 
 from typing_extensions import Self
 
@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     import argparse
     import pathlib
 
-    from .plugin import Plugin
+    Extended: TypeAlias = dict[str, dict[str, Any]]
 
 __all__ = (
     'Config',
@@ -47,6 +47,7 @@ class Config:
     shard_count: int
     intents: novus.Intents
     plugins: list[str]
+    extended: Extended
 
     def __init__(
             self,
@@ -64,9 +65,14 @@ class Config:
         self.shard_count: int = shard_count
         self.intents: novus.Intents = intents or novus.Intents()
         self.plugins: list[str] = plugins or []
+        if self.plugins:
+            from .client import Client
+            bot = Client(self)
+            for p in bot.plugins:
+                self.extended[p.__name__] = p.CONFIG.copy()
         for k, v in kwargs.items():
             setattr(self, k.replace("-", "_"), v)
-        self._extended: dict[Plugin, dict] = {}
+        self.extended = {}
 
     if TYPE_CHECKING:
 
@@ -150,6 +156,11 @@ class Config:
             self.plugins.extend([i.strip() for i in args.plugins.split(",") if i.strip()])
         elif check("plugin"):
             self.plugins.extend([i.strip() for i in args.plugin if i.strip()])
+        if self.plugins:
+            from .client import Client
+            bot = Client(self)
+            for p in bot.plugins:
+                self.extended[p.__name__] = p.CONFIG.copy()
 
         if unknown:
             for name, value in zip(unknown[::2], unknown[1::2]):
@@ -198,7 +209,7 @@ class Config:
             "intents": dict(self.intents.walk()),
             "plugins": self.plugins,
         }
-        for ext in self._extended.values():
+        for ext in self.extended.values():
             v.update(ext)
         return v
 
