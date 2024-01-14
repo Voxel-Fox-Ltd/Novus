@@ -227,7 +227,7 @@ class Config:
             import yaml
         except ImportError:
             raise Exception("Missing YAML module.")
-        return yaml.dump(self.to_dict(), default_flow_style=False)
+        return yaml.dump(self.to_dict(), default_flow_style=False, sort_keys=False)
 
     @classmethod
     def from_toml(cls, filename: str | pathlib.Path) -> Self:
