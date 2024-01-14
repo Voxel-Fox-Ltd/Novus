@@ -443,7 +443,14 @@ class Client:
             spec.loader.exec_module(lib)
             IMPORTED_PLUGIN_MODULES[module] = lib
         for p in plugin:
-            _, class_name = p.split(":", 1)
+            try:
+                _, class_name = p.split(":", 1)
+            except ValueError:
+                log.error(
+                    "Failed to load plugin \"%s\" - invalid string format",
+                    p,
+                )
+                continue
             p_class: Type[Plugin] = getattr(lib, class_name)
             self.add_plugin(p_class, load=load)
 
@@ -474,7 +481,14 @@ class Client:
             spec.loader.exec_module(lib)
             IMPORTED_PLUGIN_MODULES[module] = lib
         for p in plugin:
-            _, class_name = p.split(":", 1)
+            try:
+                _, class_name = p.split(":", 1)
+            except ValueError:
+                log.error(
+                    "Failed to load plugin \"%s\" - invalid string format",
+                    p,
+                )
+                continue
             p_class: Type[Plugin] = getattr(lib, class_name)
             self.remove_plugin(p_class)
 
