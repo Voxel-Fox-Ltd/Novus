@@ -49,7 +49,7 @@ __all__ = (
 )
 
 
-log = logging.getLogger("novus.ext.bot.client")
+log = logging.getLogger("novus.ext.client")
 IMPORTED_PLUGIN_MODULES: dict[str, ModuleType] = {}
 
 
