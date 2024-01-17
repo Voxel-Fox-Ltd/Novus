@@ -325,6 +325,7 @@ def main_sync() -> None:
     logging.basicConfig(
         level=logging.INFO,
         handlers=[stdout, stderr,],
+        format="%(created)s:%(levelname)s:%(name)s:%(message)s",
     )
     args, unknown = get_parser().parse_known_args()
     try:

@@ -167,7 +167,8 @@ class HTTPConnection:
     async def get_session(self) -> aiohttp.ClientSession:
         if self._session:
             return self._session
-        self._session = aiohttp.ClientSession()
+        connector = aiohttp.TCPConnector(limit=None)  # type: ignore
+        self._session = aiohttp.ClientSession(connector=connector)
         return self._session
 
     async def close(self) -> None:

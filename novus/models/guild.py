@@ -418,12 +418,9 @@ class BaseGuild:
 
         # Get shard
         shard_id = (self.id >> 22) % self.state.gateway.shard_count
-        shard = None
-        for i in self.state.gateway.shards:
-            if i.shard_id == shard_id:
-                shard = i
-                break
-        else:
+        try:
+            shard = self.state.gateway.shards[shard_id]
+        except KeyError:
             raise ValueError("Could not find shard associated with this guild.")
 
         # Get stuff

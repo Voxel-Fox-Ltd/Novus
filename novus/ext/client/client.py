@@ -102,8 +102,8 @@ class Client:
 
     @property
     def is_ready(self) -> bool:
-        for i in self.state.gateway.shards:
-            if not i.ready.is_set():
+        for i in self.state.gateway.shards.values():
+            if not i.ready_received.is_set():
                 return False
         return True
 
@@ -205,7 +205,7 @@ class Client:
             The status of the client.
         """
 
-        for shard in self.state.gateway.shards:
+        for shard in self.state.gateway.shards.values():
             try:
                 await shard.change_presence(activities=activities or [], status=status)
             except Exception:
@@ -217,8 +217,8 @@ class Client:
         message from the gateway.
         """
 
-        for i in self.state.gateway.shards:
-            await i.ready.wait()
+        for i in self.state.gateway.shards.values():
+            await i.ready_received.wait()
 
     def add_command(self, command: Command) -> None:
         """
@@ -643,7 +643,7 @@ class Client:
         for guild_id, commands in commands_by_guild.items():
             await self._handle_command_sync(aid, guild_id, commands)
 
-    async def connect(self, check_concurrency: bool = False) -> None:
+    async def connect(self, check_concurrency: bool = False, sleep: bool = False) -> None:
         """
         Connect the bot to the gateway, running the connection in the
         background.
@@ -668,6 +668,7 @@ class Client:
             shard_count=self.config.shard_count,
             intents=self.config.intents,
             max_concurrency=concurrency,
+            sleep=sleep,
         )
 
     async def connect_webserver(self, *, port: int = 8000) -> web.BaseSite:
@@ -752,7 +753,7 @@ class Client:
         try:
             if sync:
                 await self.sync_commands()
-            await self.connect(check_concurrency=True)
+            await self.connect(check_concurrency=True, sleep=True)
             try:
                 await self.state.gateway.wait()
             except asyncio.CancelledError:
