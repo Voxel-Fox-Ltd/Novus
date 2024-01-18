@@ -145,7 +145,7 @@ class GatewayConnection:
         # Make some semaphores so we can control which shards connect
         # simultaneously
         identify_semaphore = LoggingSemaphore(max_concurrency)
-        connect_semaphore = LoggingSemaphore(10_000)
+        connect_semaphore = LoggingSemaphore(max_concurrency)
 
         # Create shard objects
         shard_ids = shard_ids or list(range(shard_count))
@@ -532,14 +532,16 @@ class GatewayShard:
         log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
         try:
             if reconnect:
-                self.state = "Reconnecting"
-                ws = await session.ws_connect(ws_url)
+                self.state = "Pending reconnect"
             else:
                 self.state = "Pending connect"
-                fmt = "[{shard}] Waiting at connect semaphore for {time}s"
-                async with self.connect_semaphore.log(self.shard_id, fmt):
+            fmt = "[{shard}] Waiting at connect semaphore for {time}s"
+            async with self.connect_semaphore.log(self.shard_id, fmt):
+                if reconnect:
+                    self.state = "Reconnecting"
+                else:
                     self.state = "Connecting"
-                    ws = await session.ws_connect(ws_url, timeout=10.0)
+                ws = await session.ws_connect(ws_url, timeout=10.0)
         except Exception as e:
             log.info(
                 "[%s] Failed to connect to websocket (%s - %s), reattempting (%s)",
