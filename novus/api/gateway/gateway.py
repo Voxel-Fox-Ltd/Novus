@@ -145,7 +145,7 @@ class GatewayConnection:
         # Make some semaphores so we can control which shards connect
         # simultaneously
         identify_semaphore = LoggingSemaphore(max_concurrency)
-        connect_semaphore = LoggingSemaphore(max_concurrency)
+        connect_semaphore = LoggingSemaphore(100)
 
         # Create shard objects
         shard_ids = shard_ids or list(range(shard_count))
