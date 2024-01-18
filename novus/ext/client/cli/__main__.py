@@ -37,28 +37,12 @@ if TYPE_CHECKING:
 
 class GuildLogger(client.Plugin):
 
+    @client.loop(60)
     async def print_loop(self, sleep_time: float = 60.0) -> None:
         self.log.info(
-            "Starting guild logger loop; printing guild count every %s seconds",
-            sleep_time,
+            "There are currently %s guild IDs in cache",
+            len(self.bot.state.cache.guild_ids),
         )
-        while True:
-            self.log.info(
-                "There are currently %s guild IDs in cache",
-                len(self.bot.state.cache.guild_ids),
-            )
-            try:
-                await asyncio.sleep(sleep_time)
-            except asyncio.CancelledError:
-                break
-
-    async def on_load(self) -> None:
-        await self.bot.wait_until_ready()
-        self.print_loop_task = asyncio.create_task(self.print_loop())
-
-    async def on_unload(self) -> None:
-        if not self.print_loop_task.done():
-            self.print_loop_task.cancel()
 
     @client.event("GUILD_CREATE")
     async def guild_added(self, guild: novus.Guild) -> None:
@@ -100,6 +84,7 @@ def get_parser() -> ArgumentParser:
     rap.add_argument("--no-intent", nargs="*", type=str, default=None)
     rap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
     rap.add_argument("--plugin", nargs="*", type=str, default=None)
+    rap.add_argument("--guild-id-cache-only", default=False, action="store_true")
 
     rwsap = ap.add_parser("run-webserver")
     rwsap.add_argument("--config", nargs="?", const=None, default=None)
@@ -110,14 +95,6 @@ def get_parser() -> ArgumentParser:
     rwsap.add_argument("--pubkey", nargs="?", type=str, default=None)
     rwsap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
     rwsap.add_argument("--plugin", nargs="*", type=str, default=None)
-
-    rsap = ap.add_parser("run-status")
-    rsap.add_argument("--config", nargs="?", const=None, default=None)
-    rsap.add_argument("--loglevel", default='info', choices=logger_choices)
-    rsap.add_argument("--token", nargs="?", type=str, default=None)
-    rsap.add_argument("--shard-id", nargs="*", type=str, default=None)
-    rsap.add_argument("--shard-ids", nargs="?", type=str, const="", default=None)
-    rsap.add_argument("--shard-count", nargs="?", type=str, default=None)
 
     cap = ap.add_parser("config-dump")
     cap.add_argument("type", choices=["json", "yaml", "toml"])
@@ -230,6 +207,13 @@ async def main(args: Namespace, unknown: list[str]) -> None:
             root.setLevel(level)
             config.merge_namespace(args, unknown)
             bot = client.Client(config)
+            if args.guild_id_cache_only:
+                bot.state.cache = GuildIDCache(bot.state)
+                bot.state.gateway.guild_ids_only = True
+                try:
+                    bot.add_plugin(GuildLogger)
+                except Exception:
+                    pass
             await asyncio.gather(
                 bot.run(sync=not args.no_sync),
                 create_console(bot).interact(
@@ -253,21 +237,6 @@ async def main(args: Namespace, unknown: list[str]) -> None:
                 bot.run_webserver(sync=not args.no_sync, port=args.port),
                 create_console(bot).interact(banner="Created console :)", stop=False),
             )
-
-        case "run-status":
-            config = client.Config.from_file(args.config)
-            if "loglevel" in args:
-                root = logging.Logger.root
-                level = getattr(logging, args.loglevel.upper())
-                root.setLevel(level)
-            config.merge_namespace(args, unknown)
-            config.plugins = []
-            config.intents = novus.Intents(guilds=True)
-            bot = client.Client(config)
-            bot.state.cache = GuildIDCache(bot.state)
-            bot.state.gateway.guild_ids_only = True
-            bot.add_plugin(GuildLogger)
-            await bot.run(sync=False)
 
         case "config-dump":
             config = client.Config()

@@ -160,6 +160,8 @@ class GatewayDispatch:
             self.cache.application_id = try_snowflake(data['application']['id'])
             self.shard.resume_url = data['resume_gateway_url']
             self.shard.session_id = data['session_id']
+            for g in data["guilds"]:
+                asyncio.create_task(self.handle_dispatch("GUILD_CREATE", g))
             self.dispatch("READY")
             return None
         elif event_name == "RESUMED":
@@ -197,6 +199,8 @@ class GatewayDispatch:
     async def _handle_guild_create(
             self,
             data: payloads.GatewayGuild) -> None:
+        if data.get("unavailable"):
+            return  # Don't do anything for unavailable guilds
         guild = Guild(state=self.parent, data=data)
         self.cache.add_guilds(guild)
         await guild._sync(data=data)
