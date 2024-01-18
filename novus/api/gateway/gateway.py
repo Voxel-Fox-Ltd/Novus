@@ -654,9 +654,11 @@ class GatewayShard:
             wait = heartbeat_interval * random.random()
             log.info(
                 (
-                    f"Starting heartbeat - initial {wait / 100:.2f}s, "
-                    f"normally {heartbeat_interval / 100:.2f}s"
-                )
+                    "[%s] Starting heartbeat - initial %ss, "
+                    "normally %ss"
+                ),
+                self.shard_id, format(wait / 100, ".2f"),
+                format(heartbeat_interval / 100, ".2f"),
             )
         else:
             log.info(
@@ -871,14 +873,18 @@ class GatewayShard:
                         return
                     else:
                         log.warning(
-                            "[%s] Session invalidated - creating a new session",
-                            self.shard_id,
+                            (
+                                "[%s] Session invalidated (resumable: %s) - "
+                                "creating a new session in 5s"
+                            ),
+                            self.shard_id, str(message).lower()
                         )
                         try:
                             await asyncio.wait_for(self.close(), timeout=5)
                         except asyncio.CancelledError:
                             pass
-                        t = asyncio.create_task(self.connect())
+                        await asyncio.sleep(5)
+                        t = asyncio.create_task(self.connect(reconnect=message))
                         self.running_tasks.add(t)
                         t.add_done_callback(self.running_tasks.discard)
                         return  # Cancel this task so a new one will be created
