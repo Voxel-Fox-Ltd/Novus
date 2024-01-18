@@ -489,7 +489,7 @@ class GatewayShard:
         await self._connect(
             ws_url,
             reconnect,
-            sleep_time=self.shard_id / 5 if sleep else 0.0,
+            sleep_time=self.shard_id if sleep else 0.0,
         )
 
     async def _connect(
