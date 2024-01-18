@@ -398,14 +398,12 @@ class Channel(Hashable, Messageable):
             data={"id": id, "type": type.value}  # pyright: ignore
         )
 
-    # @cached_slot_property("_cs_guild")
     @property
     def guild(self) -> BaseGuild | None:
         if self.guild_id is None:
             return None
         return self.state.cache.get_guild(self.guild_id)
 
-    # @cached_slot_property("_cs_parent")
     @property
     def parent(self) -> Channel | None:
         if self.parent_id is None:
