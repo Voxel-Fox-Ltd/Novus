@@ -670,27 +670,39 @@ class GatewayShard:
                 log.info("[%s] Heartbeat has been cancelled", self.shard_id)
                 return
             for beat_attempt in range(1_000):
-                await self.send(GatewayOpcode.heartbeat, self.sequence)
                 try:
+                    await self.send(GatewayOpcode.heartbeat, self.sequence)
                     await asyncio.wait_for(self.heartbeat_received.wait(), timeout=10)
                 except asyncio.CancelledError:
                     if beat_attempt <= 5:
                         log.info(
                             (
-                                "Failed to get a response to heartbeat (attempt "
-                                "%s) - trying again"
+                                "[%s] Failed to get a response to heartbeat "
+                                "(attempt %s) - trying again"
                             ),
-                            beat_attempt,
+                            self.shard_id, beat_attempt,
                         )
                         continue
                     log.info(
                         (
-                            "Failed to get a response to heartbeat (attempt "
-                            "%s) - starting new connection"
+                            "[%s] Failed to get a response to heartbeat "
+                            "(attempt %s) - reconnecting"
+                        ),
+                        self.shard_id, beat_attempt,
+                    )
+                    t = asyncio.create_task(self.connect(reconnect=True))
+                    self.running_tasks.add(t)
+                    t.add_done_callback(self.running_tasks.discard)
+                    return
+                except ValueError:
+                    log.info(
+                        (
+                            "[%s] Socket closed so could not send heartbeat - "
+                            "reconnecting"
                         ),
                         beat_attempt,
                     )
-                    t = asyncio.create_task(self.connect())
+                    t = asyncio.create_task(self.connect(reconnect=True))
                     self.running_tasks.add(t)
                     t.add_done_callback(self.running_tasks.discard)
                     return
