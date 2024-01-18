@@ -209,6 +209,7 @@ class GatewayDispatch:
         The non-cache version of guild create that we just have
         so as to keep a guild count internally.
         """
+
         self.cache.guild_ids.add(int(data["id"]))
 
     async def _handle_guild_update(

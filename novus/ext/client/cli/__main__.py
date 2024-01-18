@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING, Any, NoReturn
 from aioconsole import AsynchronousCli
 
 import novus
-from novus.api._cache import NothingAPICache
+from novus.api._cache import GuildIDCache
 from novus.ext import client
 
 if TYPE_CHECKING:
@@ -264,7 +264,7 @@ async def main(args: Namespace, unknown: list[str]) -> None:
             config.plugins = []
             config.intents = novus.Intents(guilds=True)
             bot = client.Client(config)
-            bot.state.cache = NothingAPICache(bot.state)
+            bot.state.cache = GuildIDCache(bot.state)
             bot.state.gateway.guild_ids_only = True
             bot.add_plugin(GuildLogger)
             await bot.run(sync=False)

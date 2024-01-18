@@ -520,24 +520,6 @@ class GatewayShard:
             await self.close(0)
             reconnect = True
 
-        # Cache the connect data
-        if reconnect is False:
-
-            # This is our first connection; let's update the cache based on the
-            # intents
-            if not self.intents.guilds:
-                self.cache.add_guilds = self.cache.do_nothing
-                self.cache.add_channels = self.cache.do_nothing
-            if not self.intents.guild_members:
-                self.cache.add_users = self.cache.do_nothing
-            if not self.intents.guild_scheduled_events:
-                self.cache.add_events = self.cache.do_nothing
-            if not self.intents.guild_emojis_and_stickers:
-                self.cache.add_emojis = self.cache.do_nothing
-                self.cache.add_stickers = self.cache.do_nothing
-            if not self.intents.message_content:
-                self.cache.add_messages = self.cache.do_nothing
-
         # Open socket
         if reconnect is False:
             self.sequence = None
