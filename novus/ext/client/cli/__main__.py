@@ -35,33 +35,6 @@ if TYPE_CHECKING:
     from asyncio import StreamReader, StreamWriter
 
 
-class GuildLogger(client.Plugin):
-
-    @client.loop(60)
-    async def print_loop(self, sleep_time: float = 60.0) -> None:
-        self.log.info(
-            "There are currently %s guild IDs in cache",
-            len(self.bot.state.cache.guild_ids),
-        )
-
-    @client.event("GUILD_CREATE")
-    async def guild_added(self, guild: novus.Guild) -> None:
-        if self.bot.is_ready:
-            if isinstance(guild, novus.Guild):
-                self.log.info("Guild create (%s) %s", guild.id, guild.name)
-            elif isinstance(guild, novus.Object):
-                self.log.info("Guild create (%s)", guild.id)
-            else:
-                self.log.info("Guild create (%s)", guild)
-
-    @client.event("GUILD_DELETE")
-    async def guild_removed(self, guild: novus.Guild | int) -> None:
-        if isinstance(guild, int):
-            self.log.info("Guild delete (%s)", guild)
-        else:
-            self.log.info("Guild delete (%s) %s", guild.id, guild.name)
-
-
 def get_parser() -> ArgumentParser:
     p = ArgumentParser("novus")
 
@@ -84,7 +57,7 @@ def get_parser() -> ArgumentParser:
     rap.add_argument("--no-intent", nargs="*", type=str, default=None)
     rap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
     rap.add_argument("--plugin", nargs="*", type=str, default=None)
-    rap.add_argument("--guild-id-cache-only", default=False, action="store_true")
+    rap.add_argument("--disable-cache", default=False, action="store_true")
 
     rwsap = ap.add_parser("run-webserver")
     rwsap.add_argument("--config", nargs="?", const=None, default=None)
@@ -207,13 +180,8 @@ async def main(args: Namespace, unknown: list[str]) -> None:
             root.setLevel(level)
             config.merge_namespace(args, unknown)
             bot = client.Client(config)
-            if args.guild_id_cache_only:
+            if args.disable_cache:
                 bot.state.cache = GuildIDCache(bot.state)
-                bot.state.gateway.guild_ids_only = True
-                try:
-                    bot.add_plugin(GuildLogger)
-                except Exception:
-                    pass
             await asyncio.gather(
                 bot.run(sync=not args.no_sync),
                 create_console(bot).interact(
