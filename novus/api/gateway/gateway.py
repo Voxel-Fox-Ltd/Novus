@@ -384,7 +384,7 @@ class GatewayShard:
 
             # Catch any errors
             if data.type == aiohttp.WSMsgType.ERROR:
-                log.info("[%s] Got error from socket %s", self.shard_id, data)
+                log.error("[%s] Got error from socket %s", self.shard_id, data)
                 return None
             elif data.type == aiohttp.WSMsgType.CLOSING:
                 log.info(
@@ -399,7 +399,7 @@ class GatewayShard:
                 )
                 raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
-                log.info("[%s] Socket closed", self.shard_id)
+                log.info("[%s] Socket closed by Discord (%s)", self.shard_id, data.data)
                 raise GatewayException()
 
             # Load data into the buffer if we need to
@@ -469,7 +469,7 @@ class GatewayShard:
         Reconnect to the gateway.
         """
 
-        log.info(f"[{self.shard_id}] Starting reconnect...")
+        log.debug(f"[{self.shard_id}] Starting reconnect...")
         self.connecting.set()
         await self.close(code=0)
         await self.connect(
@@ -526,7 +526,7 @@ class GatewayShard:
         session = await self.parent.get_session()
         ws_url = ws_url or self.ws_url
         if sleep_time:
-            log.info("[%s] Sleeping %ss before attempting connection", self.shard_id, sleep_time)
+            log.debug("[%s] Sleeping %ss before attempting connection", self.shard_id, sleep_time)
             self.state = "Sleeping before connecting"
             await asyncio.sleep(sleep_time)
         log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
@@ -556,12 +556,12 @@ class GatewayShard:
 
         # Get hello
         self.state = "Waiting for HELLO"
-        log.info("[%s] Waiting for a HELLO", self.shard_id)
+        log.debug("[%s] Waiting for a HELLO", self.shard_id)
         timeout = 60.0
         try:
             got = await asyncio.wait_for(self.receive(), timeout=timeout)
         except Exception as e:
-            log.info(
+            log.debug(
                 "[%s] Failed to get a HELLO after %ss (%s), reattempting (%s)",
                 self.shard_id, timeout, e, attempt,
             )
@@ -573,7 +573,7 @@ class GatewayShard:
         if got is None:
             return
         _, _, _, data = got
-        log.info("[%s] Connected to gateway - %s", self.shard_id, dump(data))
+        log.debug("[%s] Connected to gateway - %s", self.shard_id, dump(data))
 
         # Start heartbeat
         heartbeat_interval = data["heartbeat_interval"]
@@ -596,12 +596,12 @@ class GatewayShard:
                 await self.identify()
 
         # Wait for a ready or resume
-        log.info("[%s] Waiting for a READY/RESUMED", self.shard_id)
+        log.debug("[%s] Waiting for a READY/RESUMED", self.shard_id)
         self.state = "Waiting for READY/RESUMED"
         try:
             await asyncio.wait_for(self.ready_received.wait(), timeout=60.0)
         except asyncio.TimeoutError:
-            log.info(
+            log.debug(
                 "[%s] Failed to get a READY from the gateway after 60s; reattempting connect (%s)",
                 self.shard_id, attempt,
             )
@@ -654,7 +654,7 @@ class GatewayShard:
         wait = heartbeat_interval
         if jitter:
             wait = heartbeat_interval * random.random()
-            log.info(
+            log.debug(
                 (
                     "[%s] Starting heartbeat - initial %ss, "
                     "normally %ss"
@@ -663,7 +663,7 @@ class GatewayShard:
                 format(heartbeat_interval / 100, ".2f"),
             )
         else:
-            log.info(
+            log.debug(
                 "[%s] Starting heartbeat at %ss",
                 self.shard_id, format(heartbeat_interval / 100, ".2f"),
             )
@@ -671,7 +671,7 @@ class GatewayShard:
             try:
                 await asyncio.sleep(wait / 1_000)
             except asyncio.CancelledError:
-                log.info("[%s] Heartbeat has been cancelled", self.shard_id)
+                log.debug("[%s] Heartbeat has been cancelled", self.shard_id)
                 return
             for beat_attempt in range(1_000):
                 try:
@@ -679,7 +679,7 @@ class GatewayShard:
                     await asyncio.wait_for(self.heartbeat_received.wait(), timeout=10)
                 except asyncio.CancelledError:
                     if beat_attempt <= 5:
-                        log.info(
+                        log.debug(
                             (
                                 "[%s] Failed to get a response to heartbeat "
                                 "(attempt %s) - trying again"
@@ -687,7 +687,7 @@ class GatewayShard:
                             self.shard_id, beat_attempt,
                         )
                         continue
-                    log.info(
+                    log.debug(
                         (
                             "[%s] Failed to get a response to heartbeat "
                             "(attempt %s) - reconnecting"
@@ -699,7 +699,7 @@ class GatewayShard:
                     t.add_done_callback(self.running_tasks.discard)
                     return
                 except ValueError:
-                    log.info(
+                    log.debug(
                         (
                             "[%s] Socket closed so could not send heartbeat - "
                             "reconnecting"
@@ -719,7 +719,7 @@ class GatewayShard:
         Send an identify to Discord.
         """
 
-        log.info("[%s] Sending identify", self.shard_id)
+        log.debug("[%s] Sending identify", self.shard_id)
         token = cast(str, self.parent._token)
         await self.send(
             GatewayOpcode.identify,
@@ -746,7 +746,7 @@ class GatewayShard:
         Send a request to chunk a guild.
         """
 
-        log.info("[%s] Chunking guild %s", self.shard_id, guild_id)
+        log.debug("[%s] Chunking guild %s", self.shard_id, guild_id)
         data = {
             "guild_id": str(guild_id),
             "limit": limit,
@@ -772,7 +772,7 @@ class GatewayShard:
         Send a resume to Discord.
         """
 
-        log.info("[%s] Sending resume", self.shard_id)
+        log.debug("[%s] Sending resume", self.shard_id)
         token = cast(str, self.parent._token)
         await self.send(
             GatewayOpcode.resume,
@@ -894,5 +894,3 @@ class GatewayShard:
                 # Everything else
                 case _:
                     print("Failed to deal with gateway message %s" % dump(message))
-
-        log.info("[%s] Done reading messages", self.shard_id)
