@@ -171,9 +171,12 @@ class GatewayDispatch:
         if self.parent.gateway.guild_ids_only:
             if event_name == "GUILD_CREATE":
                 coro = self._handle_guild_create_id_only
+            elif event_name == "GUILD_DELETE":
+                coro = self.EVENT_HANDLER["GUILD_DELETE"]
             else:
                 return
-        coro = self.EVENT_HANDLER.get(event_name)
+        else:
+            coro = self.EVENT_HANDLER.get(event_name)
         if coro is None:
             log.warning(
                 "Failed to parse event %s %s"
