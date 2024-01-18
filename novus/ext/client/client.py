@@ -531,7 +531,11 @@ class Client:
             self,
             application_id: int,
             guild_id: int | None,
-            commands: dict[str, Command]) -> None:
+            commands: dict[str, Command],
+            *,
+            create: bool = True,
+            edit: bool = True,
+            delete: bool = True) -> None:
         """
         Handle a guild's list of commands being changed.
         """
@@ -539,20 +543,20 @@ class Client:
         # Set up our requests
         state = self.state.interaction
         if guild_id is None:
-            get = partial(state.get_global_application_commands, application_id, with_localizations=True)
-            create = partial(state.create_global_application_command, application_id)
-            edit = partial(state.edit_global_application_command, application_id)
-            delete = partial(state.delete_global_application_command, application_id)
-            bulk = partial(state.bulk_overwrite_global_application_commands, application_id)
+            get_ = partial(state.get_global_application_commands, application_id, with_localizations=True)
+            create_ = partial(state.create_global_application_command, application_id)
+            edit_ = partial(state.edit_global_application_command, application_id)
+            delete_ = partial(state.delete_global_application_command, application_id)
+            bulk_ = partial(state.bulk_overwrite_global_application_commands, application_id)
         else:
-            get = partial(state.get_guild_application_commands, application_id, guild_id, with_localizations=True)
-            create = partial(state.create_guild_application_command, application_id, guild_id)
-            edit = partial(state.edit_guild_application_command, application_id, guild_id)
-            delete = partial(state.delete_guild_application_command, application_id, guild_id)
-            bulk = partial(state.bulk_overwrite_guild_application_commands, application_id, guild_id)
+            get_ = partial(state.get_guild_application_commands, application_id, guild_id, with_localizations=True)
+            create_ = partial(state.create_guild_application_command, application_id, guild_id)
+            edit_ = partial(state.edit_guild_application_command, application_id, guild_id)
+            delete_ = partial(state.delete_guild_application_command, application_id, guild_id)
+            bulk_ = partial(state.bulk_overwrite_guild_application_commands, application_id, guild_id)
 
         # See what we need to do
-        on_server = await get()
+        on_server = await get_()
         unchecked_local = commands.copy()
         to_add: list[Command] = []
         to_delete: list[int] = []
@@ -575,7 +579,10 @@ class Client:
         to_add = list(unchecked_local.values())
 
         # Bulk change
-        if len(to_add) + len(to_delete) + len(to_edit) > int(os.getenv("NOVUS_BULK_COMMAND_LIMIT", 10)):
+        command_limit = int(os.getenv("NOVUS_BULK_COMMAND_LIMIT", 5))
+        can_bulk = edit and delete and create
+        command_change_count = len(to_add) + len(to_delete) + len(to_edit)
+        if command_change_count > command_limit and can_bulk:
             local_commands = [
                 i.application_command._to_data()
                 for i in commands.values()
@@ -583,34 +590,40 @@ class Client:
             log.info("Bulk updating %s app commands in guild %s", len(local_commands), guild_id)
             for dis_com in on_server:
                 self._commands_by_id.pop(dis_com.id, None)
-            on_server = await bulk(local_commands)
+            on_server = await bulk_(local_commands)
             for dis_com in on_server:
                 commands[dis_com.name].add_id(guild_id, dis_com.id)
                 self._commands_by_id[dis_com.id] = (
                     self._commands[(guild_id, dis_com.name)]
                 )
+            return
 
         # Add new command
-        if to_add:
+        if to_add and create:
             for comm in to_add:
                 log.info("Adding app command %s in guild %s", comm, guild_id)
-                on_server = await create(**comm.application_command._to_data())
+                on_server = await create_(**comm.application_command._to_data())
                 comm.add_id(guild_id, on_server.id)
                 self._commands_by_id[on_server.id] = comm
 
         # Delete command
-        if to_delete:
+        if to_delete and delete:
             for comm in to_delete:
                 log.info("Deleting app command %s in guild %s", comm, guild_id)
-                await delete(comm)
+                await delete_(comm)
 
         # Edit single command
-        if to_edit:
+        if to_edit and edit:
             for id, comm in to_edit.items():
                 log.info("Editing app command %s %s in guild %s", id, comm, guild_id)
-                await edit(id, **comm.application_command._to_data())
+                await edit_(id, **comm.application_command._to_data())
 
-    async def sync_commands(self) -> None:
+    async def sync_commands(
+            self,
+            *,
+            create: bool = True,
+            edit: bool = True,
+            delete: bool = True) -> None:
         """
         Get all commands from Discord. Determine if they all already exist. If
         not, PUT them there. If so, save command IDs.
@@ -641,7 +654,14 @@ class Client:
 
         # See which commands we have that exist already
         for guild_id, commands in commands_by_guild.items():
-            await self._handle_command_sync(aid, guild_id, commands)
+            await self._handle_command_sync(
+                aid,
+                guild_id,
+                commands,
+                create=create,
+                edit=edit,
+                delete=delete,
+            )
 
     async def connect(self, check_concurrency: bool = False, sleep: bool = False) -> None:
         """

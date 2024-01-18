@@ -110,19 +110,32 @@ def create_console(bot: client.Client) -> AsynchronousCli:
 
     plugin_parser = ArgumentParser()
     plugin_parser.add_argument("plugin")
+    sync_parser = ArgumentParser()
+    sync_parser.add_argument("to_sync", nargs=REMAINDER)
     run_parser = ArgumentParser()
     run_parser.add_argument("command", nargs=REMAINDER)
     command_locals: dict[str, Any] = {}
 
     async def add(reader: Any, writer: Any, plugin: str) -> None:
         bot.add_plugin_file(plugin, load=True)
+        await bot.sync_commands(create=False, edit=False, delete=False)
 
     async def remove(reader: Any, writer: Any, plugin: str) -> None:
         bot.remove_plugin_file(plugin)
+        await bot.sync_commands(create=False, edit=False, delete=False)
 
     async def reload(reader: Any, writer: Any, plugin: str) -> None:
         bot.remove_plugin_file(plugin)
         bot.add_plugin_file(plugin, load=True, reload_import=True)
+        await bot.sync_commands(create=False, edit=False, delete=False)
+
+    async def sync(reader: Any, writer: Any, to_sync: list[str]) -> None:
+        args = {}
+        if to_sync:
+            args = {"create": False, "edit": False, "delete": False}
+            for i in to_sync:
+                args[i] = True
+        await bot.sync_commands(**args)
 
     async def run_state(reader: Any, writer: asyncio.StreamWriter, command: list[str]) -> None:
         command_full = " ".join(command)
@@ -153,6 +166,8 @@ def create_console(bot: client.Client) -> AsynchronousCli:
             "add-plugin": (add, plugin_parser,),
             "remove-plugin": (remove, plugin_parser,),
             "reload-plugin": (reload, plugin_parser,),
+
+            "sync-commands": (sync, plugin_parser,),
 
             "add": (add, plugin_parser,),
             "remove": (remove, plugin_parser,),
