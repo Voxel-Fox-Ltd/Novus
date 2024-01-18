@@ -116,6 +116,5 @@ class VoiceState(Hashable):
         self.request_to_speak_timestamp = parse_timestamp(data.get("request_to_speak_timestamp"))
         self.mute = data.get("mute", False)
         self.deaf = data.get("deaf", False)
-        if self.guild is not None:
-            self.guild._add_voice_state(self)
+        self.guild._add_voice_state(self)
         return self
