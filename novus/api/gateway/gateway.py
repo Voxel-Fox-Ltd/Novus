@@ -315,7 +315,7 @@ class GatewayShard:
             except GatewayException as e:
                 if not e.reconnect:
                     log.info("[%s] Cannot reconnect.", self.shard_id)
-                    raise
+                    raise SystemExit()
                 t = asyncio.create_task(self.reconnect())
                 self.running_tasks.add(t)
                 t.add_done_callback(self.running_tasks.discard)
