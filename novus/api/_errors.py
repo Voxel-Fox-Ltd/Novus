@@ -83,7 +83,7 @@ class DiscordException(HTTPException):
 class GatewayException(Exception):
     """When you get a generic gateway exception."""
     code: ClassVar[int] = 0
-    reconnect: ClassVar[bool] = True
+    reconnect: ClassVar[bool] = False
     all_exceptions: ClassVar[dict[int, Type[Exception]]] = {}
 
 

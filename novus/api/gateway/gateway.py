@@ -464,7 +464,7 @@ class GatewayShard:
                 parsed.get("d"),
             )
 
-    async def reconnect(self) -> None:
+    async def reconnect(self, resume: bool = True) -> None:
         """
         Reconnect to the gateway.
         """
@@ -474,13 +474,13 @@ class GatewayShard:
         await self.close(code=0)
         await self.connect(
             self.resume_url,
-            reconnect=True,
+            resume=resume,
         )
 
     async def connect(
             self,
             ws_url: str | None = None,
-            reconnect: bool = False,
+            resume: bool = False,
             sleep: bool = False) -> None:
         """
         Connect to the gateway, using the connection semaphore.
@@ -488,18 +488,19 @@ class GatewayShard:
 
         await self._connect(
             ws_url,
-            reconnect,
+            resume,
             sleep_time=self.shard_id if sleep else 0.0,
         )
 
     async def _connect(
             self,
             ws_url: str | None = None,
-            reconnect: bool = False,
+            resume: bool = False,
             attempt: int = 1,
             sleep_time: float = 0.0) -> None:
         """
-        Create a connection to the gateway.
+        Opens a new connection to the gateway, sending all relevant payloads
+        and starting all relevant background tasks.
         """
 
         # Clear caches
@@ -518,10 +519,10 @@ class GatewayShard:
                 self.shard_id,
             )
             await self.close(0)
-            reconnect = True
+            resume = True
 
         # Open socket
-        if reconnect is False:
+        if resume is False:
             self.sequence = None
         session = await self.parent.get_session()
         ws_url = ws_url or self.ws_url
@@ -531,13 +532,13 @@ class GatewayShard:
             await asyncio.sleep(sleep_time)
         log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
         try:
-            if reconnect:
+            if resume:
                 self.state = "Pending reconnect"
             else:
                 self.state = "Pending connect"
             fmt = "[{shard}] Waiting at connect semaphore for {time}s"
             async with self.connect_semaphore.log(self.shard_id, fmt):
-                if reconnect:
+                if resume:
                     self.state = "Reconnecting"
                 else:
                     self.state = "Connecting"
@@ -549,7 +550,7 @@ class GatewayShard:
             )
             return await self._connect(
                 ws_url=ws_url,
-                reconnect=reconnect,
+                resume=resume,
                 attempt=attempt + 1,
             )
         self.socket = ws
@@ -567,7 +568,7 @@ class GatewayShard:
             )
             return await self._connect(
                 ws_url=ws_url,
-                reconnect=reconnect,
+                resume=resume,
                 attempt=attempt + 1,
             )
         if got is None:
@@ -578,19 +579,41 @@ class GatewayShard:
         # Start heartbeat
         heartbeat_interval = data["heartbeat_interval"]
         self.heartbeat_task = asyncio.create_task(
-            self.heartbeat(heartbeat_interval, jitter=not reconnect)
+            self.heartbeat(heartbeat_interval, jitter=not resume)
         )
 
         # Send identify or resume
         self.ready_received.clear()
         self.message_task = asyncio.create_task(self.message_handler())
-        if reconnect:
+        try:
+            await self.send_resume_identify(resume=resume)
+        except asyncio.TimeoutError:
+            log.debug(
+                "[%s] Failed to get a READY from the gateway after 60s; reattempting connect (%s)",
+                self.shard_id, attempt,
+            )
+            self.message_task.cancel()
+            return await self._connect(
+                ws_url=ws_url,
+                resume=resume,
+                attempt=attempt + 1,
+            )
+
+    async def send_resume_identify(self, resume: bool = False) -> None:
+        """
+        Send the RESUME/IDENTIFY payload to Discord and wait for a response.
+        """
+
+        self.connecting.set()
+        self.ready_received.clear()
+        if resume:
             fmt = "[{shard}] Waited {time}s at semapohre to RESUME"
         else:
             fmt = "[{shard}] Waited {time}s at semapohre to IDENTIFY"
         self.state = "Pending send IDENTIFY/RESUME"
         async with self.identify_semaphore.log(self.shard_id, fmt):
-            if reconnect:
+            self.state = "Sending IDENTIFY/RESUME"
+            if resume:
                 await self.resume()
             else:
                 await self.identify()
@@ -601,16 +624,7 @@ class GatewayShard:
         try:
             await asyncio.wait_for(self.ready_received.wait(), timeout=60.0)
         except asyncio.TimeoutError:
-            log.debug(
-                "[%s] Failed to get a READY from the gateway after 60s; reattempting connect (%s)",
-                self.shard_id, attempt,
-            )
-            self.message_task.cancel()
-            return await self._connect(
-                ws_url=ws_url,
-                reconnect=reconnect,
-                attempt=attempt + 1,
-            )
+            raise
 
         # We are no longer connecting
         self.state = "Ready"
@@ -694,7 +708,7 @@ class GatewayShard:
                         ),
                         self.shard_id, beat_attempt,
                     )
-                    t = asyncio.create_task(self.connect(reconnect=True))
+                    t = asyncio.create_task(self.connect(resume=True))
                     self.running_tasks.add(t)
                     t.add_done_callback(self.running_tasks.discard)
                     return
@@ -706,7 +720,7 @@ class GatewayShard:
                         ),
                         beat_attempt,
                     )
-                    t = asyncio.create_task(self.connect(reconnect=True))
+                    t = asyncio.create_task(self.connect(resume=True))
                     self.running_tasks.add(t)
                     t.add_done_callback(self.running_tasks.discard)
                     return
@@ -851,11 +865,6 @@ class GatewayShard:
 
                 # Deal with reconnects
                 case GatewayOpcode.reconnect:
-
-                    # Since we disconnect and reconnect here,
-                    # we need the ready flag to be set so the event is triggered
-                    self.ready_received.set()
-
                     t = asyncio.create_task(self.reconnect())
                     self.running_tasks.add(t)
                     t.add_done_callback(self.running_tasks.discard)
@@ -863,33 +872,17 @@ class GatewayShard:
 
                 # Deal with invalid sesions
                 case GatewayOpcode.invalidate_session:
-
-                    # Since we disconnect and reconnect here,
-                    # we need the ready flag to be set so the event is triggered
-                    self.ready_received.set()
-
-                    if message is True:
-                        t = asyncio.create_task(self.reconnect())
-                        self.running_tasks.add(t)
-                        t.add_done_callback(self.running_tasks.discard)
-                        return
-                    else:
-                        log.warning(
-                            (
-                                "[%s] Session invalidated (resumable: %s) - "
-                                "creating a new session in 5s"
-                            ),
-                            self.shard_id, str(message).lower()
-                        )
-                        try:
-                            await asyncio.wait_for(self.close(), timeout=5)
-                        except asyncio.CancelledError:
-                            pass
-                        await asyncio.sleep(5)
-                        t = asyncio.create_task(self.connect(reconnect=message))
-                        self.running_tasks.add(t)
-                        t.add_done_callback(self.running_tasks.discard)
-                        return  # Cancel this task so a new one will be created
+                    log.warning(
+                        (
+                            "[%s] Session invalidated (resumable: %s) - "
+                            "creating a new session in 5s"
+                        ),
+                        self.shard_id, str(message).lower()
+                    )
+                    await asyncio.sleep(5)
+                    t = asyncio.create_task(self.send_resume_identify(resume=message))
+                    self.running_tasks.add(t)
+                    t.add_done_callback(self.running_tasks.discard)
 
                 # Everything else
                 case _:
