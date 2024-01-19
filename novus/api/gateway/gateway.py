@@ -399,7 +399,7 @@ class GatewayShard:
                 )
                 raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
-                log.info("[%s] Socket closed by Discord (%s)", self.shard_id, data.data)
+                log.info("[%s] Socket closed by Discord (%s)", self.shard_id, data)
                 raise GatewayException()
 
             # Load data into the buffer if we need to
