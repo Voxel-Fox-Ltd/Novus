@@ -22,7 +22,7 @@ import functools
 import inspect
 import logging
 from collections.abc import Callable, Coroutine, Iterable
-from typing import TYPE_CHECKING, Any, Type, TypeAlias, Union, cast
+from typing import TYPE_CHECKING, Any, Awaitable, Type, TypeAlias, Union, cast
 
 from typing_extensions import Self, TypeVarTuple, Unpack, override
 
@@ -32,24 +32,42 @@ from .errors import CommandError
 
 if TYPE_CHECKING:
     Ts = TypeVarTuple('Ts')
-    CommandCallback: TypeAlias = Union[
-        Callable[
-            [Any, n.types.CommandI, Unpack[Ts]],
-            Coroutine[Any, Any, None],
-        ],
-        Callable[
-            [Any, n.types.CommandI],
-            Coroutine[Any, Any, None],
-        ],
-        Callable[
-            [Any, n.types.CommandGI, Unpack[Ts]],
-            Coroutine[Any, Any, None],
-        ],
-        Callable[
-            [Any, n.types.CommandGI],
-            Coroutine[Any, Any, None],
-        ],
-    ]
+    AnyCoro: TypeAlias = Union[Coroutine[Any, Any, Any], Awaitable[Any]]
+    # CommandCallback: TypeAlias = Union[
+    #     Callable[
+    #         [Any, n.types.CommandI, Unpack[Ts]],
+    #         AnyCoro
+    #     ],
+    #     Callable[
+    #         [Any, n.types.CommandI],
+    #         AnyCoro
+    #     ],
+    #     Callable[
+    #         [Any, n.types.CommandGI, Unpack[Ts]],
+    #         AnyCoro
+    #     ],
+    #     Callable[
+    #         [Any, n.types.CommandGI],
+    #         AnyCoro
+    #     ],
+    #     Callable[
+    #         [n.types.CommandI, Unpack[Ts]],
+    #         AnyCoro
+    #     ],
+    #     Callable[
+    #         [n.types.CommandI],
+    #         AnyCoro
+    #     ],
+    #     Callable[
+    #         [n.types.CommandGI, Unpack[Ts]],
+    #         AnyCoro
+    #     ],
+    #     Callable[
+    #         [n.types.CommandGI],
+    #         AnyCoro
+    #     ],
+    # ]
+    CommandCallback: TypeAlias = Callable[..., AnyCoro]
     AutocompleteCallback: TypeAlias = Union[
         Callable[
             [
