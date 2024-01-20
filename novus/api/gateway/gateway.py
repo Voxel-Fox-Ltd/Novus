@@ -315,13 +315,13 @@ class GatewayShard:
                 t.add_done_callback(self.running_tasks.discard)
                 return
             except GatewayException as e:
-                log.info("[%s] Generic gateway exception %s", self.shard_id, e, exc_info=e)
+                log.debug("[%s] Generic gateway exception %s", self.shard_id, e, exc_info=e)
                 t = asyncio.create_task(self.reconnect(resume=e.reconnect))
                 self.running_tasks.add(t)
                 t.add_done_callback(self.running_tasks.discard)
                 return
             except Exception as e:
-                log.error("[%s] Hit error receiving", self.shard_id, exc_info=e)
+                log.debug("[%s] Hit error receiving", self.shard_id, exc_info=e)
                 return
 
             # Yield data
@@ -387,13 +387,13 @@ class GatewayShard:
                 log.error("[%s] Got error from socket %s", self.shard_id, data)
                 return None
             elif data.type == aiohttp.WSMsgType.CLOSING:
-                log.info(
+                log.debug(
                     "[%s] Websocket currently closing (%s %s)",
                     self.shard_id, data, data.extra,
                 )
                 raise GatewayClose()
             elif data.type == aiohttp.WSMsgType.CLOSE:
-                log.info(
+                log.debug(
                     "[%s] Socket told to close (%s %s)",
                     self.shard_id, data, data.extra,
                 )
@@ -401,7 +401,7 @@ class GatewayShard:
                     raise GatewayClose()
                 raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
-                log.info("[%s] Socket closed by Discord (%s)", self.shard_id, data)
+                log.debug("[%s] Socket closed by Discord (%s)", self.shard_id, data)
                 raise GatewayException()
 
             # Load data into the buffer if we need to
@@ -512,7 +512,7 @@ class GatewayShard:
 
         # Close socket if it's open at the moment
         if self.socket and not self.socket.closed:
-            log.info(
+            log.debug(
                 (
                     "[%s] Trying to open new connection while connection is "
                     "already open - closing current connection before opening "
@@ -546,7 +546,7 @@ class GatewayShard:
                     self.state = "Connecting"
                 ws = await session.ws_connect(ws_url, timeout=10.0)
         except Exception as e:
-            log.info(
+            log.debug(
                 "[%s] Failed to connect to websocket (%s - %s), reattempting (%s)",
                 self.shard_id, type(e), e, attempt,
             )
@@ -855,7 +855,7 @@ class GatewayShard:
                     event_name = cast(str, event_name)
                     sequence = cast(int, sequence)
                     if event_name == "READY" or event_name == "RESUMED":
-                        log.info("[%s] Received %s", self.shard_id, event_name)
+                        log.info("[%s] Shard %s", self.shard_id, event_name)
                         self.ready_received.set()
                     self.sequence = sequence
                     t = asyncio.create_task(
@@ -874,7 +874,7 @@ class GatewayShard:
 
                 # Deal with invalid sesions
                 case GatewayOpcode.invalidate_session:
-                    log.warning(
+                    log.info(
                         (
                             "[%s] Session invalidated (resumable: %s) - "
                             "creating a new session in 5s"
