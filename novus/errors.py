@@ -38,4 +38,5 @@ __all__ = (
     'GatewayInvalidIntents',
     'GatewayDisallowedIntents',
     'GatewayClose',
+    'GatewayClosed',
 )

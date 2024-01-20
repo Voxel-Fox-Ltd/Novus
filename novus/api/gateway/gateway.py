@@ -34,7 +34,7 @@ import aiohttp
 from ...enums import GatewayOpcode
 from ...flags import Intents
 from ...utils import MISSING
-from .._errors import GatewayClose, GatewayException
+from .._errors import GatewayClose, GatewayClosed, GatewayException
 from .._route import Route
 from .dispatch import GatewayDispatch
 
@@ -308,8 +308,11 @@ class GatewayShard:
             # Get data
             try:
                 d = await self.receive()
-            except GatewayClose:
-                log.info("[%s] Gateway closing.", self.shard_id)
+            except (GatewayClose, GatewayClosed) as e:
+                if isinstance(e, GatewayClosed):
+                    log.info("[%s] Gateway closed by Discord", self.shard_id)
+                elif isinstance(e, GatewayClose):
+                    log.info("[%s] Gateway told to close by Discord", self.shard_id)
                 t = asyncio.create_task(self.reconnect(resume=True))
                 self.running_tasks.add(t)
                 t.add_done_callback(self.running_tasks.discard)
@@ -322,6 +325,9 @@ class GatewayShard:
                 return
             except Exception as e:
                 log.debug("[%s] Hit error receiving", self.shard_id, exc_info=e)
+                t = asyncio.create_task(self.reconnect(resume=False))
+                self.running_tasks.add(t)
+                t.add_done_callback(self.running_tasks.discard)
                 return
 
             # Yield data
@@ -398,7 +404,7 @@ class GatewayShard:
                     self.shard_id, data, data.extra,
                 )
                 if data.data is None:
-                    raise GatewayClose()
+                    raise GatewayClosed()
                 raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
                 log.debug("[%s] Socket closed by Discord (%s)", self.shard_id, data)

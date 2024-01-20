@@ -42,6 +42,7 @@ __all__ = (
     'GatewayInvalidIntents',
     'GatewayDisallowedIntents',
     'GatewayClose',
+    'GatewayClosed',
 )
 
 
@@ -173,6 +174,10 @@ class GatewayDisallowedIntents(GatewayException):
 
 class GatewayClose(GatewayException):
     """Gateway is closing."""
+
+
+class GatewayClosed(GatewayClose):
+    """Gateway has been closed. A subclass of GatewayClose."""
 
 
 GatewayException.all_exceptions = defaultdict(lambda: GatewayException)

@@ -73,6 +73,7 @@ __all__: tuple[str, ...] = (
     'GatewayAlreadyAuthenticated',
     'GatewayAuthenticationFailed',
     'GatewayClose',
+    'GatewayClosed',
     'GatewayDecodeError',
     'GatewayDisallowedIntents',
     'GatewayException',
