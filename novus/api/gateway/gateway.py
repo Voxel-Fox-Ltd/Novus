@@ -310,13 +310,13 @@ class GatewayShard:
                 d = await self.receive()
             except GatewayClose:
                 log.info("[%s] Gateway closing.", self.shard_id)
-                await self.reconnect()
-                continue
+                t = asyncio.create_task(self.reconnect(resume=True))
+                self.running_tasks.add(t)
+                t.add_done_callback(self.running_tasks.discard)
+                return
             except GatewayException as e:
-                if not e.reconnect:
-                    log.info("[%s] Cannot reconnect.", self.shard_id, exc_info=e)
-                    raise SystemExit()
-                t = asyncio.create_task(self.reconnect())
+                log.info("[%s] Generic gateway exception %s", self.shard_id, e, exc_info=e)
+                t = asyncio.create_task(self.reconnect(resume=e.reconnect))
                 self.running_tasks.add(t)
                 t.add_done_callback(self.running_tasks.discard)
                 return
@@ -397,6 +397,8 @@ class GatewayShard:
                     "[%s] Socket told to close (%s %s)",
                     self.shard_id, data, data.extra,
                 )
+                if data.data is None:
+                    raise GatewayClose()
                 raise GatewayException.all_exceptions[data.data]()
             elif data.type == aiohttp.WSMsgType.CLOSED:
                 log.info("[%s] Socket closed by Discord (%s)", self.shard_id, data)
