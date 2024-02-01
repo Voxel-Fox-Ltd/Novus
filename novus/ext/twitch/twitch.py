@@ -64,7 +64,7 @@ class Twitch(client.Plugin):
     USER_AGENT = "Novus Discord bot client live checker."
 
     async def on_load(self) -> None:
-        self._access_token: str = None  # pyright: ignore
+        self._access_token: str = None  # type: ignore
         self._previous_live_channels: list[LiveChannel] = []
         return await super().on_load()
 
@@ -115,7 +115,7 @@ class Twitch(client.Plugin):
         asyncio.create_task(get_new_token())
         return self._access_token
 
-    async def get_live_channels(self) -> list[LiveChannel]:
+    async def get_live_channels(self) -> list[LiveChannel] | None:
         """
         Get a list of live channels from our expected list of channels.
         """
@@ -139,8 +139,11 @@ class Twitch(client.Plugin):
                     "Client-Id": self.bot.config.twitch_client_id,
                 }
             )
-            data = await site.json()
-        self.log.debug("Data back from Twitch for online streams: %s", data)
+            try:
+                data = await site.json()
+            except Exception:
+                return None
+        self.log.info("Data back from Twitch for online streams: %s", data)
 
         # And return
         if not site.ok:
@@ -151,13 +154,15 @@ class Twitch(client.Plugin):
         ]
 
     @client.loop(60)
-    async def change_presence_to_live_loop(self):
+    async def change_presence_to_live_loop(self) -> None:
         """
         Change the bot's presence to whichever channel may be live at that
         point in time.
         """
 
         live_channels = await self.get_live_channels()
+        if live_channels is None:
+            return  # Skip this loop
 
         self._previous_live_channels = live_channels
         if not live_channels:
