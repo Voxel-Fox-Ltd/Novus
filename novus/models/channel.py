@@ -23,7 +23,6 @@ from typing import TYPE_CHECKING, Any, Literal, Type
 
 from typing_extensions import Self
 
-from ..api import APIIterator
 from ..enums import ChannelType, ForumLayout, ForumSortOrder, PermissionOverwriteType
 from ..flags import ChannelFlags, Permissions
 from ..utils import (
@@ -41,7 +40,7 @@ from .user import User
 
 if TYPE_CHECKING:
     from .. import payloads
-    from ..api import HTTPConnection
+    from ..api import APIIterator, HTTPConnection
     from ..flags import MessageFlags
     from ..utils.types import AnySnowflake
     from . import abc
@@ -799,6 +798,7 @@ class Channel(Hashable, Messageable):
             The messages that were retrieved, as a generator.
         """
 
+        from ..api import APIIterator  # circular import
         return APIIterator(
             method=self.fetch_messages,
             before=before,
