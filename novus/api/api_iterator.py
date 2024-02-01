@@ -92,9 +92,6 @@ class APIIterator(Generic[T]):
             if len(items) != limit:
                 break
 
-        # And done
-        raise StopAsyncIteration
-
     async def flatten(self) -> list[T]:
         """
         Flatten the entire item from its original API generator into a list.
