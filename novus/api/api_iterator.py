@@ -66,10 +66,11 @@ class APIIterator(Generic[T]):
         while self._remaining:
 
             # Work out what our request limit is
-            if isinstance(self._remaining, int):
-                limit = min(self.method_limit, self._remaining)
-            else:
+            if self._remaining is True:
                 limit = self.method_limit
+            else:
+                # is an int
+                limit = min(self.method_limit, self._remaining)
 
             # Get items from the api
             items: list[T] = await self.method(
@@ -84,7 +85,7 @@ class APIIterator(Generic[T]):
             # Yield our just-given items
             for i in items:
                 yield i
-                if isinstance(self._remaining, int):
+                if self._remaining is not True:
                     self._remaining -= 1
 
             # Break out of this if we didn't get the right number of messages
