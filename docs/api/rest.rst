@@ -8,6 +8,10 @@ API
 .. autoclass:: novus.api.HTTPConnection
     :no-members:
 
+.. autoclass:: novus.api.APIIterator
+    :members:
+    :no-special-members:
+
 .. autoclass:: novus.api.application_role_connection_metadata.ApplicationRoleHTTPConnection
     :members:
     :no-special-members:

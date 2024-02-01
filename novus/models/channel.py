@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING, Any, Literal, Type
 
 from typing_extensions import Self
 
+from ..api import APIIterator
 from ..enums import ChannelType, ForumLayout, ForumSortOrder, PermissionOverwriteType
 from ..flags import ChannelFlags, Permissions
 from ..utils import (
@@ -758,6 +759,52 @@ class Channel(Hashable, Messageable):
         return await self.state.channel.get_channel_messages(
             self.id,
             **params,
+        )
+
+    def messages(
+            self,
+            *,
+            limit: int | None = 100,
+            before: int | abc.Snowflake | Message = MISSING,
+            after: int | abc.Snowflake | Message = MISSING) -> APIIterator[Message]:
+        """
+        Get an iterator of messages from a channel.
+
+        Examples
+        --------
+
+        .. code-block::
+
+            async for message in channel.messages(limit=1_000):
+                print(message.content)
+
+        .. code-block::
+
+            messages = await channel.messages(limit=200).flatten()
+
+        Parameters
+        ----------
+        limit : int
+            The number of messages that you want to get.
+        before : int | novus.abc.Snowflake
+            Get messages before this ID.
+            Only one of ``around``, ``before``, and ``after`` can be set.
+        after : int | novus.abc.Snowflake
+            Get messages after this ID.
+            Only one of ``around``, ``before``, and ``after`` can be set.
+
+        Returns
+        -------
+        APIIterator[novus.Message]
+            The messages that were retrieved, as a generator.
+        """
+
+        return APIIterator(
+            method=self.fetch_messages,
+            before=before,
+            after=after,
+            limit=limit,
+            method_limit=100,
         )
 
     async def fetch_message(self, id: int | abc.Snowflake) -> Message:
