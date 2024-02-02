@@ -53,7 +53,7 @@ class HTTPException(Exception):
 
     def __init__(self, payload: dict):
         self.payload: dict = payload
-        self.message: str = payload['message']
+        self.message: str = payload.get("message") or payload.get("error_description") or ""
         self.code: int = payload.get('code', -1)
 
 
