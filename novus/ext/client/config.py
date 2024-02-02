@@ -20,6 +20,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, NoReturn, TypeAlias, Union, overload
 
 import dotenv
@@ -45,6 +46,12 @@ log = logging.getLogger("novus.ext.client.config")
 dotenv.load_dotenv(dotenv.find_dotenv(usecwd=True))
 
 
+@dataclass
+class OauthConfig:
+    client_id: str | None
+    client_secret: str | None
+
+
 class Config:
 
     token: str
@@ -53,6 +60,7 @@ class Config:
     shard_count: int
     intents: novus.Intents
     plugins: list[str]
+    oauth: OauthConfig
     extended: Extended
 
     def __init__(
@@ -64,6 +72,7 @@ class Config:
             shard_count: int = 1,
             intents: novus.Intents | None = None,
             plugins: list[str] | None = None,
+            oauth: dict[str, str | None] | None = None,
             **kwargs: Any):
         self.token: str = token
         self.pubkey: str = pubkey
@@ -71,6 +80,10 @@ class Config:
         self.shard_count: int = shard_count
         self.intents: novus.Intents = intents or novus.Intents()
         self.plugins: list[str] = plugins or []
+        if oauth is None:
+            self.oauth = OauthConfig(None, None)
+        else:
+            self.oauth = OauthConfig(**oauth)
         self.extended = {}
         for k, v in kwargs.items():
             setattr(self, k.replace("-", "_"), v)
@@ -273,6 +286,10 @@ class Config:
             "shard_count": self.shard_count,
             "intents": dict(self.intents.walk()),
             "plugins": self.plugins,
+            "oauth": {
+                "client_id": self.oauth.client_id or "",
+                "client_secret": self.oauth.client_secret or "",
+            }
         }
         for ext in self.extended.values():
             v.update(ext)
