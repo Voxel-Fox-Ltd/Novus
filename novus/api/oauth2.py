@@ -36,6 +36,81 @@ class Oauth2HTTPConnection:
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
 
+    async def get_bearer_from_code(self, code: str, redirect_uri: str) -> payloads.OauthToken:
+        """Get the bearer token from a code."""
+
+        route = Route(
+            "POST",
+            "/oauth2/token",
+        )
+        post_data = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "redirect_uri": redirect_uri,
+        }
+        data: payloads.OauthToken = await self.parent.request(
+            route,
+            data=post_data,
+            auth=True,
+            form=True,
+        )
+        return data
+
+    async def get_bearer_from_refresh_token(self, token: str) -> payloads.OauthToken:
+        """Get the bearer token from a refresh token."""
+
+        route = Route(
+            "POST",
+            "/oauth2/token",
+        )
+        post_data = {
+            "grant_type": "refresh_token",
+            "refresh_token": token,
+        }
+        data: payloads.OauthToken = await self.parent.request(
+            route,
+            data=post_data,
+            auth=True,
+            form=True,
+        )
+        return data
+
+    async def revoke_access_token(self, token: str) -> None:
+        """Revoke an access token."""
+
+        route = Route(
+            "POST",
+            "/oauth2/token/revoke",
+        )
+        post_data = {
+            "token": token,
+        }
+        data: payloads.OauthToken = await self.parent.request(
+            route,
+            data=post_data,
+            auth=True,
+            form=True,
+        )
+
+    async def get_client_credentials(self, scopes: str = "identify") -> payloads.OauthToken:
+        """Revoke an access token."""
+
+        route = Route(
+            "POST",
+            "/oauth2/token",
+        )
+        post_data = {
+            "grant_type": "client_credentials",
+            "scope": scopes,
+        }
+        data: payloads.OauthToken = await self.parent.request(
+            route,
+            data=post_data,
+            auth=True,
+            form=True,
+        )
+        return data
+
     async def get_current_bot_information(self) -> Application:
         """Get the current bot information via token."""
 

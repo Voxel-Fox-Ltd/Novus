@@ -32,6 +32,7 @@ from .interaction import *
 from .invite import *
 from .locale import *
 from .message import *
+from .oauth2 import *
 from .stage_instance import *
 from .sticker import *
 from .user import *
@@ -114,6 +115,7 @@ __all__: tuple[str, ...] = (
     'MessageInteraction',
     'MessageReference',
     'ModalSubmitData',
+    'OauthToken',
     'PartialApplicationCommand',
     'PartialEmoji',
     'PartialSticker',

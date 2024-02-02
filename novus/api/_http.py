@@ -24,6 +24,7 @@ import logging
 from typing import TYPE_CHECKING, Any, Iterable, TypedDict
 
 import aiohttp
+from typing_extensions import NotRequired
 
 from ..utils import bytes_to_base64_data
 from ._cache import APICache
@@ -74,6 +75,12 @@ class FixableKwargs(TypedDict, total=False):
     object: Iterable[tuple[str, str] | str]
     timestamp: Iterable[tuple[str, str] | str]
     flags: Iterable[tuple[str, str] | str]
+
+
+class RequestData(TypedDict):
+    headers: dict[str, str]
+    data: bytes | aiohttp.FormData | dict[Any, Any] | list[Any] | None
+    auth: NotRequired[aiohttp.BasicAuth]
 
 
 class NovusJSONEncoder(json.JSONEncoder):
@@ -130,12 +137,18 @@ class HTTPConnection:
 
     AUTH_PREFIX: str = "Bot"
 
-    def __init__(self, token: str | None = None):
+    def __init__(
+            self,
+            token: str | None = None,
+            client_id: str | None = None,
+            client_secret: str | None = None):
         self._session: aiohttp.ClientSession | None = None
         self._token: str | None = token
         self._prefixed_token: str | None = None
         if token:
             self._prefixed_token = f"{self.AUTH_PREFIX} {token}"
+        self.client_id = client_id
+        self.client_secret = client_secret
         self._user_agent: str = (
             "DiscordBot (Python, Novus, https://github.com/Voxel-Fox-Ltd/Novus)"
         )
@@ -188,7 +201,8 @@ class HTTPConnection:
             reason: str | None = None,
             data: dict | list | None = None,
             files: list[File] | None = None,
-            multipart: bool = False) -> dict:
+            multipart: bool = False,
+            form: bool = False) -> RequestData:
         """
         Take parameters and return the corresponding web request response.
         """
@@ -205,14 +219,14 @@ class HTTPConnection:
 
         # Create multipart for files
         writer: aiohttp.FormData | None = None
-        form: list[dict] = []
+        writer_form: list[dict] = []
         if files:
             writer = aiohttp.FormData()
             attachments: list[dict] = []
 
             # Add files
             for index, f in enumerate(files):
-                form.append({
+                writer_form.append({
                     "name": f"files[{index}]",
                     "value": f.data,
                     "filename": f.filename,
@@ -229,7 +243,7 @@ class HTTPConnection:
             # Add json
             if isinstance(data, dict):
                 data["attachments"] = attachments
-            form.append({
+            writer_form.append({
                 "name": "payload_json",
                 "value": json.dumps(data, cls=NovusJSONEncoder),
             })
@@ -242,12 +256,15 @@ class HTTPConnection:
         # Build multipart now
         if files or multipart:
             writer = aiohttp.FormData()
-            for v in form:
+            for v in writer_form:
                 writer.add_field(**v)
 
         # And done
-        data_str: bytes | None = None
-        if data:
+        data_str = None
+        if data and form:
+            headers["Content-Type"] = "application/x-www-form-urlencoded"
+            data_str = data
+        elif data:
             headers["Content-Type"] = "application/json"
             data_str = json.dumps(data, cls=NovusJSONEncoder).encode()
         return {
@@ -278,7 +295,9 @@ class HTTPConnection:
             params: dict | None = None,
             data: dict | list | None = None,
             files: list[File] | None = None,
-            multipart: bool = False) -> Any:
+            multipart: bool = False,
+            form: bool = False,
+            auth: bool = False) -> Any:
         """
         Perform a web request.
         """
@@ -288,12 +307,17 @@ class HTTPConnection:
             data=data,
             files=files,
             multipart=multipart,
+            form=form,
         )
         log.debug(
             "Sending {0.method} {0.path} with {1}"
             .format(route, args["data"])
         )
         session = await self.get_session()
+        if auth:
+            basicauth = aiohttp.BasicAuth(self.client_id or "", self.client_secret or "")
+            args["auth"] = basicauth
+            args["headers"].pop("Authorization", None)
         for tries in range(6):
             async with self.get_rate_limit_lock(route):
                 resp: aiohttp.ClientResponse = await session.request(

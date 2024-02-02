@@ -76,7 +76,11 @@ class Client:
 
     def __init__(self, config: Config, *, load_plugins: bool = False) -> None:
         self.config: Config = config
-        self.state: n.api.HTTPConnection = n.api.HTTPConnection(self.config.token)
+        self.state: n.api.HTTPConnection = n.api.HTTPConnection(
+            self.config.token,
+            self.config.oauth.client_id,
+            self.config.oauth.client_secret,
+        )
         self.state.dispatch = self.dispatch
 
         self.plugins: list[Plugin] = []
