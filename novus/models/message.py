@@ -36,7 +36,7 @@ from .channel import Channel
 from .embed import Embed
 from .emoji import PartialEmoji
 from .file import File
-from .guild import Guild
+from .guild import BaseGuild, Guild
 from .guild_member import GuildMember
 from .reaction import Reaction
 from .role import Role
@@ -48,7 +48,6 @@ if TYPE_CHECKING:
     from .. import payloads
     from ..api import HTTPConnection
     from . import abc
-    from .guild import BaseGuild
     from .webhook import Webhook
 
     AMI = bool | list[int] | list[abc.Snowflake]  # AllowedMentions init
@@ -94,7 +93,7 @@ class MessageInteraction:
                 if cached_member:
                     user = cached_member._update(data["member"])
                 else:
-                    user = GuildMember(state=state, data=data["member"], user=user)
+                    user = GuildMember(state=state, data=data["member"], user=user, guild=cached_guild)
             else:
                 user = GuildMember(state=state, data=data["member"], user=user)
         self.user = user
@@ -240,7 +239,11 @@ class Message(Hashable):
     sticker_items: list[Sticker]
     position: int | None
 
-    def __init__(self, *, state: HTTPConnection, data: payloads.Message) -> None:
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            data: payloads.Message) -> None:
         self.state = state
         self.id = try_snowflake(data["id"])
         channel = self.state.cache.get_channel(data["channel_id"])
@@ -250,7 +253,8 @@ class Message(Hashable):
         self.guild = None
         if "guild_id" in data:
             self.guild = self.state.cache.get_guild(data["guild_id"])
-            assert isinstance(self.guild, Guild)
+            if self.guild is None:
+                self.guild = BaseGuild(state=self.state, data={"id": data["guild_id"]})
 
         # Get author user
         author = self.state.cache.get_user(data["author"]["id"])
