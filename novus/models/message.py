@@ -88,14 +88,14 @@ class MessageInteraction:
             user = User(state=state, data=data["user"])
         if "member" in data:
             cached_guild = guild
-            if cached_guild:
+            if isinstance(cached_guild, Guild):
                 cached_member = cached_guild.get_member(user.id)
                 if cached_member:
                     user = cached_member._update(data["member"])
                 else:
                     user = GuildMember(state=state, data=data["member"], user=user, guild_id=cached_guild.id)
-            else:
-                user = GuildMember(state=state, data=data["member"], user=user)
+            elif guild:
+                user = GuildMember(state=state, data=data["member"], user=user, guild_id=guild.id)
         self.user = user
 
 
