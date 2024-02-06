@@ -35,7 +35,7 @@ __all__ = (
 
 class ChannelOverwrite(TypedDict):
     id: Snowflake
-    type: Literal[0, 1]
+    type: Literal["role", "channel"]
     allow: str
     deny: str
 
