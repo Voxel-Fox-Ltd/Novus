@@ -301,7 +301,10 @@ class Channel(Hashable, Messageable):
         self.overwrites = [
             PermissionOverwrite(
                 id=int(d['id']),
-                type=PermissionOverwriteType[d['type']],
+                type=(
+                    PermissionOverwriteType(d['type']) if isinstance(d["type"], int)
+                    else PermissionOverwriteType[d["type"]]
+                ),
                 allow=Permissions(int(d['allow'])),
                 deny=Permissions(int(d['deny'])),
             )
