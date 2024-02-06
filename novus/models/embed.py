@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime as dt
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from typing_extensions import Self
 
@@ -60,6 +60,15 @@ class EmbedMedia:
     proxy_url: str | None = None
     height: int | None = None
     width: int | None = None
+
+    @classmethod
+    def _from_data(cls, data: dict[Any, Any]) -> Self:
+        return cls(
+            url=data["url"],
+            proxy_url=data.get("proxy_url"),
+            width=data.get("width"),
+            height=data.get("height"),
+        )
 
     def _to_data(self) -> MediaPayload:
         return {
@@ -263,9 +272,9 @@ class Embed:
         if "footer" in data:
             embed._footer = EmbedFooter(**data["footer"])
         if "image" in data:
-            embed._image = EmbedMedia(**data["image"])
+            embed._image = EmbedMedia._from_data(data["image"])
         if "thumbnail" in data:
-            embed._thumbnail = EmbedMedia(**data["thumbnail"])
+            embed._thumbnail = EmbedMedia._from_data(data["thumbnail"])
         if "video" in data:
             embed._video = EmbedVideo(**data["video"])
         if "provider" in data:
