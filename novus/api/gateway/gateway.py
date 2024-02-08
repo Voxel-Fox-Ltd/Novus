@@ -34,7 +34,12 @@ import aiohttp
 from ...enums import GatewayOpcode
 from ...flags import Intents
 from ...utils import MISSING
-from .._errors import GatewayClose, GatewayClosed, GatewayException
+from .._errors import (
+    GatewayAuthenticationFailed,
+    GatewayClose,
+    GatewayClosed,
+    GatewayException,
+)
 from .._route import Route
 from .dispatch import GatewayDispatch
 
@@ -317,6 +322,9 @@ class GatewayShard:
                 self.running_tasks.add(t)
                 t.add_done_callback(self.running_tasks.discard)
                 return
+            except GatewayAuthenticationFailed:
+                log.info("[%s] Gateway authentication failed, closing with error code", self.shard_id)
+                exit(1)
             except GatewayException as e:
                 log.debug("[%s] Generic gateway exception %s", self.shard_id, e, exc_info=e)
                 t = asyncio.create_task(self.reconnect(resume=e.reconnect))
