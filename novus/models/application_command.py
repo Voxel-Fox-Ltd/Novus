@@ -283,7 +283,7 @@ class ApplicationCommandChoice:
             *,
             name_localizations: LocType = None):
         self.name = name
-        self.value = value or name
+        self.value = value if value is not None else name
         self.name_localizations = flatten_localization(name_localizations)
 
     def _to_data(self) -> payloads.ApplicationCommandChoice:
