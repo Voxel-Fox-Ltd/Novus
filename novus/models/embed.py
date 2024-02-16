@@ -226,7 +226,7 @@ class Embed:
         self._footer: EmbedFooter | None = None
         self._image: EmbedMedia | None = None
         self._thumbnail: EmbedMedia | None = None
-        self._video: EmbedVideo | None = None
+        self._video: EmbedMedia | None = None
         self._provider: EmbedProvider | None = None
         self._author: EmbedAuthor | None = None
         self._fields: list[EmbedField] = []
@@ -276,7 +276,7 @@ class Embed:
         if "thumbnail" in data:
             embed._thumbnail = EmbedMedia._from_data(data["thumbnail"])
         if "video" in data:
-            embed._video = EmbedVideo(**data["video"])
+            embed._video = EmbedMedia._from_data(data["video"])
         if "provider" in data:
             embed._provider = EmbedProvider(**data["provider"])
         if "author" in data:
@@ -417,7 +417,7 @@ class Embed:
         return self
 
     @property
-    def video(self) -> EmbedVideo | None:
+    def video(self) -> EmbedMedia | None:
         return self._video
 
     @property
