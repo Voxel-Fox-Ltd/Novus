@@ -817,7 +817,7 @@ class Message(Hashable):
 
     def _handle_resolved(self, data) -> None:
         new_mentions = []
-        for user_id, payload in data['users'].items():
+        for user_id, payload in data.get('users', {}).items():
             copy = payload.copy()
             try:
                 copy.update({'member': data['members'][user_id]})
