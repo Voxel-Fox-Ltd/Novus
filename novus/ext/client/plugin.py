@@ -125,6 +125,7 @@ class Plugin(metaclass=PluginMeta):
     def __init__(self, bot: Client) -> None:
         self.bot: Client = bot
         self.log = log.getChild(self.__class__.__name__)
+        self.loaded = asyncio.Event()
 
     @property
     def state(self) -> n.HTTPConnection:

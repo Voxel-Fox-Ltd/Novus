@@ -336,6 +336,7 @@ class Client:
 
         try:
             await plugin.on_load()
+            plugin.loaded.set()
         except Exception as e:
             self.plugins.remove(plugin)
             log.error(f"Failed to load plugin {plugin} via on_load", exc_info=e)
