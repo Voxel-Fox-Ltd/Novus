@@ -78,7 +78,7 @@ class DiscordDatetime(dt):
 
 
 @overload
-def parse_timestamp(timestamp: dt | str | Snowflake) -> DiscordDatetime:
+def parse_timestamp(timestamp: dt | str | int | Snowflake) -> DiscordDatetime:
     ...
 
 
@@ -87,14 +87,15 @@ def parse_timestamp(timestamp: None) -> None:
     ...
 
 
-def parse_timestamp(timestamp: dt | str | Snowflake | None) -> DiscordDatetime | None:
+def parse_timestamp(timestamp: dt | str | int | Snowflake | None) -> DiscordDatetime | None:
     """
     Parse an isoformat timestamp from Discord.
 
     Parameters
     ----------
-    timestamp : datetime.datetime | str | None
-        The parsed timestamp.
+    timestamp : datetime.datetime | str | int | novus.types.Snowflake | None
+        The timstamp to parse. Either a datetime, an ID or an object that
+        follows the snowflake protocol (ie it implements an ID).
 
     Returns
     -------
@@ -105,9 +106,30 @@ def parse_timestamp(timestamp: dt | str | Snowflake | None) -> DiscordDatetime |
     if timestamp is None:
         return None
     elif isinstance(timestamp, str):
-        return DiscordDatetime.fromisoformat(timestamp)
+        if timestamp.isdigit():
+            return (
+                DiscordDatetime
+                .fromtimestamp(((int(timestamp) >> 22) + 1_420_070_400_000) / 1e3)
+                .replace(tzinfo=timezone.utc)
+            )
+        return DiscordDatetime.fromisoformat(timestamp).replace(tzinfo=timezone.utc)
+    elif isinstance(timestamp, int):
+        return (
+            DiscordDatetime
+            .fromtimestamp(((timestamp >> 22) + 1_420_070_400_000) / 1e3)
+            .replace(tzinfo=timezone.utc)
+        )
+    elif isinstance(timestamp, (str, int)):
+        return (
+            DiscordDatetime
+            .fromtimestamp(((int(timestamp) >> 22) + 1_420_070_400_000) / 1e3)
+            .replace(tzinfo=timezone.utc)
+        )
     elif isinstance(timestamp, dt):
-        return DiscordDatetime.fromisoformat(timestamp.isoformat())
+        return (
+            DiscordDatetime.fromisoformat(timestamp.isoformat())
+            .replace(tzinfo=timezone.utc)
+        )
     elif hasattr(timestamp, "id"):
         return (
             DiscordDatetime
