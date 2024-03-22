@@ -58,29 +58,22 @@ class Database(client.Plugin):
             )
         return cls.pool.acquire(*args, **kwargs)  # pyright: ignore
 
-    async def on_load(self) -> None:
+    async def create_pool(
+            self,
+            dsn: str,
+            max_connections: int = 10,
+            min_connections: int = 10) -> None:
         """
-        Open a database connection, store it in the class, continue.
+        Does the actual process of opening and storing a database pool.
         """
-
-        # Make sure we have a DSN
-        Database._log = self.log
-        if not hasattr(self.bot.config, "database_dsn"):
-            self.log.error("Missing database DSN from config")
-            return
-        if not self.bot.config.database_dsn:
-            self.log.error("Missing database DSN from config")
-            return
-        if self.bot.config.database_max_connections is None:
-            self.bot.config.database_max_connections = 10
 
         # Open a pool
         try:
             created = (
                 await asyncpg.create_pool(
-                    self.bot.config.database_dsn,
-                    max_size=self.bot.config.database_max_connections,
-                    min_size=min(self.bot.config.database_max_connections, 10),
+                    dsn,
+                    max_size=max_connections,
+                    min_size=min(max_connections, min_connections),
                 )
             )
             if created is None:
@@ -96,6 +89,28 @@ class Database(client.Plugin):
         # Create relevant tables
         else:
             await self.create_tables()
+
+    async def on_load(self) -> None:
+        """
+        Open a database connection, store it in the class, continue.
+        """
+
+        # Make sure we have a DSN
+        if not hasattr(self.bot.config, "database_dsn"):
+            self.log.error("Missing database DSN from config")
+            return
+        if not self.bot.config.database_dsn:
+            self.log.error("Missing database DSN from config")
+            return
+        if self.bot.config.database_max_connections is None:
+            self.bot.config.database_max_connections = 10
+
+        # Create pool
+        await self.create_pool(
+            self.bot.config.database_dsn,
+            self.bot.config.database_max_connections,
+            min(self.bot.config.database_max_connections, 10)
+        )
 
     async def create_tables(self) -> None:
         """
