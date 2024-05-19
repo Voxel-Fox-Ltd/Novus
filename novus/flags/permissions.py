@@ -124,5 +124,5 @@ class Permissions(Flags):
         "create_events": 1 << 44,
         "use_external_sounds": 1 << 45,
         "send_voice_messages": 1 << 46,
-        "send_polls": 1 << 49
+        "send_polls": 1 << 49,
     }

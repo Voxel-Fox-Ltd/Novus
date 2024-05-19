@@ -453,17 +453,33 @@ class Channel(Hashable, Messageable):
             The calculated permissions for that user in this channel.
         """
 
+        # Work out our all so we can work out how to filter
         all = Permissions.all().value
+
+        # Get current user permissions
         permissions: int = user.permissions.value
+        if self.guild.owner_id == user.id:  # type: ignore
+            return Permissions.all()
+        if user.permissions.administrator:
+            permissions = all
+
+        # Go through all overrides
         for overwrite in self.overwrites or []:
-            if overwrite.type == PermissionOverwriteType.ROLE:
-                if overwrite.id in user.role_ids or overwrite.id == self.guild_id:
-                    permissions |= overwrite.allow.value
-                    permissions &= (all ^ overwrite.deny.value)
+
+            # Role overrides don't matter if they're an administrator
+            if not user.permissions.administrator:
+                if overwrite.type == PermissionOverwriteType.ROLE:
+                    if overwrite.id in user.role_ids or overwrite.id == self.guild_id:
+                        permissions |= overwrite.allow.value
+                        permissions &= (all ^ overwrite.deny.value)
+
+            # User overrides always matter
             elif overwrite.type == PermissionOverwriteType.MEMBER:
                 if overwrite.id == user.id:
                     permissions |= overwrite.allow.value
                     permissions &= (all ^ overwrite.deny.value)
+
+        # And build a new permissions object to return
         return Permissions(permissions)
 
     # API methods
