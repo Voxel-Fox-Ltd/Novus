@@ -458,26 +458,38 @@ class Channel(Hashable, Messageable):
 
         # Get current user permissions
         permissions: int = user.permissions.value
-        if self.guild.owner_id == user.id:  # type: ignore
+        if self.guild_id is None or self.guild.owner_id == user.id:  # type: ignore
             return Permissions.all()
         if user.permissions.administrator:
             permissions = all
 
-        # Go through all overrides
-        for overwrite in self.overwrites or []:
+        if TYPE_CHECKING:
+            from . import Guild
+            assert isinstance(self.guild, Guild)
+            assert self.guild_id is not None
 
-            # Role overrides don't matter if they're an administrator
-            if not user.permissions.administrator:
-                if overwrite.type == PermissionOverwriteType.ROLE:
-                    if overwrite.id in user.role_ids or overwrite.id == self.guild_id:
-                        permissions |= overwrite.allow.value
-                        permissions &= (all ^ overwrite.deny.value)
-
-            # User overrides always matter
+        # Work out role and user overrides
+        role_overwrite: list[PermissionOverwrite] = []
+        user_overwrite: PermissionOverwrite | None = None
+        for overwrite in (self.overwrites or [])[::-1]:
+            if overwrite.type == PermissionOverwriteType.ROLE:
+                if overwrite.id in user.role_ids or overwrite.id == self.guild_id:
+                    if not user.permissions.administrator:
+                        role_overwrite.append(overwrite)
             elif overwrite.type == PermissionOverwriteType.MEMBER:
                 if overwrite.id == user.id:
-                    permissions |= overwrite.allow.value
-                    permissions &= (all ^ overwrite.deny.value)
+                    user_overwrite = overwrite
+        guild_role_ids: list[int] = [self.guild_id] + [r.id for r in self.guild.roles]
+        role_overwrite.sort(key=lambda ow: guild_role_ids.index(ow.id))
+
+        all_overwrites = role_overwrite.copy()
+        if user_overwrite:
+            all_overwrites.append(user_overwrite)
+
+        # Role overrides don't matter if they're an administrator
+        for overwrite in all_overwrites:
+            permissions |= overwrite.allow.value
+            permissions &= (all ^ overwrite.deny.value)
 
         # And build a new permissions object to return
         return Permissions(permissions)
