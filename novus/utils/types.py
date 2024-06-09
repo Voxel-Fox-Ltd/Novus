@@ -43,26 +43,29 @@ if TYPE_CHECKING:
     )
 
     CommandI: TypeAlias = Interaction[ApplicationCommandData] | Interaction[ContextComandData]
-    ComponentI: TypeAlias = Interaction[MessageComponentData]
     AnySnowflake: TypeAlias = str | int | Snowflake
     FileT: TypeAlias = str | bytes | io.IOBase
 
+    class ComponentI(Interaction[MessageComponentData]):
+        message: Message  # type: ignore
+
     class ComponentGI(Interaction[MessageComponentData]):
-        guild: BaseGuild
+        message: Message  # type: ignore
+        guild: BaseGuild  # type: ignore
 
     class AppGI(Interaction[ApplicationCommandData]):
-        guild: BaseGuild
+        guild: BaseGuild  # type: ignore
 
     class ContextGI(Interaction[ContextComandData]):
-        guild: BaseGuild
+        guild: BaseGuild  # type: ignore
 
     CommandGI: TypeAlias = AppGI | ContextGI
 
     class GuildMessage(Message):
-        guild: BaseGuild
+        guild: BaseGuild  # type: ignore
 
     class DMMessage(Message):
-        guild: None
+        guild: None  # type: ignore
 
 else:
     CommandI: TypeAlias = None

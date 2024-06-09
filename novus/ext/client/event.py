@@ -37,7 +37,6 @@ if TYPE_CHECKING:
         GuildMember,
         Interaction,
         Message,
-        MessageComponentData,
         ModalSubmitData,
         Role,
         User,
@@ -89,7 +88,7 @@ W0 = Callable[[Self], AA]  # Wrapper
 W = Callable[[Self, T], AA]  # Wrapper
 W2 = Callable[[Self, T, T2], AA]  # Wrapper
 W3 = Callable[[Self, T, T2, T3], AA]  # Wrapper
-WEL = Callable[[Callable[[Self, T], Any]], EL]  # Wrapped event listener
+WEL = Callable[[Callable[[Self, Any], AA]], EL]  # Wrapped event listener
 
 
 class EventBuilder:
@@ -105,7 +104,7 @@ class EventBuilder:
         return wrapper  # pyright: ignore
 
     @classmethod
-    def filtered_component(cls, match_string: str) -> WEL[Interaction]:
+    def filtered_component(cls, match_string: str) -> WEL:
         """
         Match an component or modal interaction based on a regex
         match with its custom ID.
@@ -117,7 +116,7 @@ class EventBuilder:
             ID.
         """
 
-        def wrapper(func: W[Interaction] | W[t.ComponentGI]) -> EL:
+        def wrapper(func: W[t.ComponentGI | t.ComponentI]) -> EL:
             return EventListener(
                 "INTERACTION_CREATE",
                 func,
@@ -137,7 +136,7 @@ class EventBuilder:
         return EventListener("READY", func)
 
     @classmethod
-    def component(cls, func: W[Interaction[MessageComponentData]]) -> EL:
+    def component(cls, func: W[t.ComponentI] | W[t.ComponentGI]) -> EL:
         return EventListener(
             "INTERACTION_CREATE",
             func,

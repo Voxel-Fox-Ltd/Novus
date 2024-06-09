@@ -97,7 +97,8 @@ class StateSnowflakeWithGuild(Protocol):
 
     id: int
     state: HTTPConnection
-    guild: Snowflake | BaseGuild
+    guild: BaseGuild
+    # guild: Snowflake | BaseGuild
 
 
 @runtime_checkable
