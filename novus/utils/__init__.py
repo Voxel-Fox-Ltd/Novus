@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from . import types
 from .cached_slots import *
+from .command_defaults import *
 from .components import *
 from .files import *
 from .localization import *
@@ -26,9 +27,9 @@ from .snowflakes import *
 from .times import *
 
 __all__: tuple[str, ...] = (
+    'CommandDefault',
     'DiscordDatetime',
     'Localization',
-    'ME',
     'MISSING',
     'TranslatedString',
     'UNUSED',

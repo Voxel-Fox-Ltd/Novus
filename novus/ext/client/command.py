@@ -267,12 +267,16 @@ class Command:
         """
 
         kwargs = {}
+
+        # See if we got options for the interaction
         if options is None:
             try:
                 options = interaction.data.options  # pyright: ignore
             except AttributeError:
                 options = []
         assert options is not None
+
+        # Go through each and make sure we have a real value for it
         for option in options:
             data: Any = option.value
             if option.type == n.ApplicationOptionType.CHANNEL:
@@ -297,6 +301,20 @@ class Command:
                 if data is None:
                     data = interaction.data.resolved.users.get(data_id)
             kwargs[option.name.replace("-", "_")] = data
+
+        # See if we have any "special" values
+        ignore: int = 2
+        sig = inspect.signature(self.callback)
+        for k, v in sig.parameters.items():
+            if ignore > 0:
+                ignore -= 1
+                continue
+            if k in kwargs:
+                continue
+            if v.default is n.utils.CommandDefault.AUTHOR:
+                kwargs[k] = interaction.user
+            elif v.default is n.utils.CommandDefault.CHANNEL:
+                kwargs[k] = interaction.channel
 
         log.info("Command invoked, %s %s", self, interaction)
         partial = functools.partial(self.callback, self.owner, interaction)

@@ -15,35 +15,19 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Any, Callable, Literal, Mapping
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .. import Channel, User
 
 __all__ = (
-    'MISSING',
-    'add_not_missing',
+    'CommandDefault',
 )
 
 
-class MissingObject:
+class CommandDefault:
 
-    __slots__ = ()
-
-    def __bool__(self) -> Literal[False]:
-        return False
-
-    def __repr__(self) -> Literal["MISSING"]:
-        return "MISSING"
-
-
-MISSING: Any = MissingObject()
-
-
-def add_not_missing(
-        kwargs: Mapping[Any, Any],
-        key: str,
-        item: Any,
-        to_call: Callable[..., Any] | None = None) -> None:
-    if item is not MISSING:
-        if to_call is None:
-            kwargs[key] = item  # type: ignore
-        else:
-            kwargs[key] = to_call(item)  # type: ignore
+    AUTHOR: User = object()  # type: ignore
+    CHANNEL: Channel = object()  # type: ignore
