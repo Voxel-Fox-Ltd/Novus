@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -46,6 +47,7 @@ class Database(client.Plugin):
     }
     pool: asyncpg.Pool = None  # pyright: ignore
     _log: logging.Logger = logging.getLogger("database")  # pyright: ignore
+    _pool_created: asyncio.Event | None = None
 
     @classmethod
     def acquire(cls, *args: Any, **kwargs: Any) -> PoolAcquireContext:
@@ -106,11 +108,17 @@ class Database(client.Plugin):
             self.bot.config.database_max_connections = 10
 
         # Create pool
-        await self.create_pool(
-            self.bot.config.database_dsn,
-            self.bot.config.database_max_connections,
-            min(self.bot.config.database_max_connections, 10)
-        )
+        try:
+            self._pool_created = asyncio.Event()
+            await self.create_pool(
+                self.bot.config.database_dsn,
+                self.bot.config.database_max_connections,
+                min(self.bot.config.database_max_connections, 10)
+            )
+        except Exception:
+            self._pool_created = None
+        else:
+            self._pool_created.set()
 
     async def create_tables(self) -> None:
         """
