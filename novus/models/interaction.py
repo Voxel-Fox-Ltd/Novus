@@ -24,6 +24,7 @@ from ..enums import ApplicationCommandType, InteractionResponseType, Interaction
 from ..flags import MessageFlags, Permissions
 from ..utils import (
     MISSING,
+    PluralTranslatedString,
     TranslatedString,
     cached_slot_property,
     generate_repr,
@@ -589,6 +590,16 @@ class Interaction(Generic[IData]):
             guild: int | bool = 1,
             user: int | bool = 0) -> str:
         ts = TranslatedString(string, context=self, guild=guild, user=user)
+        return str(ts)
+
+    def ngettext(
+            self,
+            string: str,
+            plural_string: str,
+            number: int,
+            guild: int | bool = 1,
+            user: int | bool = 0) -> str:
+        ts = PluralTranslatedString(string, plural_string, number, context=self, guild=guild, user=user)
         return str(ts)
 
     # API methods

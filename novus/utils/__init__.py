@@ -32,7 +32,7 @@ __all__: tuple[str, ...] = (
     'Localization',
     'MISSING',
     'TranslatedString',
-    'UNUSED',
+    'PluralTranslatedString',
     'add_not_missing',
     'bytes_to_base64_data',
     'cached_slot_property',

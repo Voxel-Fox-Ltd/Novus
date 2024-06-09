@@ -18,7 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import gettext
-from typing import TYPE_CHECKING, Any, Literal, overload
+from typing import TYPE_CHECKING, Any, Literal
 
 from typing_extensions import Self
 
@@ -31,6 +31,7 @@ __all__ = (
     'Localization',
     'flatten_localization',
     'TranslatedString',
+    'PluralTranslatedString',
 )
 
 
@@ -204,26 +205,10 @@ class TranslatedString:
         return self.translate(self.original, self.languages)
 
     @staticmethod
-    @overload
     def translate(
             text: str,
             languages: list[str] | None,
-            fallback: Literal[True] = ...) -> str:
-        ...
-
-    @staticmethod
-    @overload
-    def translate(
-            text: str,
-            languages: list[str] | None,
-            fallback: Literal[False] = ...) -> str | None:
-        ...
-
-    @staticmethod
-    def translate(
-            text: str,
-            languages: list[str] | None,
-            fallback: bool = True) -> str | None:
+            fallback: bool = True) -> str:
         try:
             return gettext.translation(
                 domain="main",
@@ -232,4 +217,40 @@ class TranslatedString:
                 fallback=fallback,
             ).gettext(text)
         except OSError:
-            return None
+            return ""
+
+
+class PluralTranslatedString(TranslatedString):
+
+    def __init__(
+            self,
+            original: str,
+            plural_string: str,
+            number: int,
+            *,
+            context: Interaction[Any] | None = None,
+            guild: int | bool = 1,
+            user: int | bool = 0):
+        super().__init__(original, context=context, guild=guild, user=user)
+        self.plural_string = plural_string
+        self.number = number
+
+    def __str__(self) -> str:
+        return self.plural_translate(self.original, self.plural_string, self.number, self.languages)
+
+    @staticmethod
+    def plural_translate(
+            text: str,
+            plural_text: str,
+            number: int,
+            languages: list[str] | None,
+            fallback: bool = True) -> str:
+        try:
+            return gettext.translation(
+                domain="main",
+                localedir="./locales",
+                languages=languages,
+                fallback=fallback,
+            ).ngettext(text, plural_text, number)
+        except OSError:
+            return ""
