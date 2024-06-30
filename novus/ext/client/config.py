@@ -21,7 +21,7 @@ import glob
 import logging
 import os
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, NoReturn, TypeAlias, Union, overload
+from typing import TYPE_CHECKING, Any, TypeAlias, Union, overload
 
 import dotenv
 from typing_extensions import Self
@@ -54,15 +54,18 @@ class OauthConfig:
 
 class Config:
 
-    token: str
-    pubkey: str
-    owner_ids: list[int]
-    shard_ids: list[int] | None
-    shard_count: int
-    intents: novus.Intents
-    plugins: list[str]
-    oauth: OauthConfig
-    extended: Extended
+    # ignores extended
+    _default: list[str] = [
+        "token",
+        "pubkey",
+        "owner_ids",
+        "shard_ids",
+        "shard_count",
+        "intents",
+        "plugins",
+        "oauth",
+        "extended",
+    ]
 
     def __init__(
             self,
@@ -78,16 +81,19 @@ class Config:
             **kwargs: Any):
         self.token: str = token
         self.pubkey: str = pubkey
-        self.owner_ids: list[int] = [0]
+        self.owner_ids: list[int] = []
         self.shard_ids: list[int] | None = shard_ids
         self.shard_count: int = shard_count
         self.intents: novus.Intents = intents or novus.Intents()
         self.plugins: list[str] = plugins or []
+        self.oauth: OauthConfig
         if oauth is None:
             self.oauth = OauthConfig(None, None)
         else:
             self.oauth = OauthConfig(**oauth)
-        self.extended = {}
+
+        # added from plugins and unknowns
+        self.extended: Extended = {"_": {}}
         for k, v in kwargs.items():
             setattr(self, k.replace("-", "_"), v)
         if self.plugins:
@@ -100,13 +106,26 @@ class Config:
                 self.extended[p.__name__] = p.CONFIG.copy()
             client_logger.setLevel(current_level)
 
-    if TYPE_CHECKING:
+    def __repr__(self) -> str:
+        return "Config(" + ", ".join([f"{i}={getattr(self, i)!r}" for i in self._default]) + ")"
 
-        def __getattr__(self, name: str) -> Any | NoReturn:
-            ...
+    def __getattr__(self, name: str) -> Any:
+        for plugin, dct in self.extended.items():
+            if name in dct:
+                return self.extended[plugin][name]
+        return None
 
-        def __setattr__(self, name: str, value: Any) -> Any:
-            ...
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name in self._default:
+            super().__setattr__(name, value)
+            return
+        if name not in self.__dict__:
+            for plugin, dct in self.extended.items():
+                if name in dct:
+                    self.extended[plugin][name] = value
+                    break
+            else:
+                self.extended["_"][name] = value
 
     def merge_namespace(
             self,
@@ -203,7 +222,9 @@ class Config:
             for name, value in zip(unknown[::2], unknown[1::2]):
                 if not name.startswith("--"):
                     raise ValueError("Failed to parse unknown args %s" % unknown)
-                setattr(self, name[2:].replace("-", "_"), value)
+                normalized_name = name[2:].replace("-", "_")
+                setattr(self, normalized_name, value)
+                self.extended["_"][normalized_name] = value
 
     @classmethod
     def from_file(cls, filename: str | None) -> Self:
