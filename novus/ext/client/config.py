@@ -56,6 +56,7 @@ class Config:
 
     token: str
     pubkey: str
+    owner_ids: list[int]
     shard_ids: list[int] | None
     shard_count: int
     intents: novus.Intents
@@ -68,6 +69,7 @@ class Config:
             *,
             token: str = "",
             pubkey: str = "",
+            owner_ids: list[int] | None = None,
             shard_ids: list[int] | None = None,
             shard_count: int = 1,
             intents: novus.Intents | None = None,
@@ -76,6 +78,7 @@ class Config:
             **kwargs: Any):
         self.token: str = token
         self.pubkey: str = pubkey
+        self.owner_ids: list[int] = [0]
         self.shard_ids: list[int] | None = shard_ids
         self.shard_count: int = shard_count
         self.intents: novus.Intents = intents or novus.Intents()
@@ -121,6 +124,17 @@ class Config:
 
         if check("pubkey"):
             self.pubkey = args.pubkey
+
+        if check("owner_ids") and check("owner_id"):
+            raise Exception("Cannot have both owner_ids and owner_id in args")
+        elif check("owner_ids"):
+            if ".." in args.owner_ids:
+                a, b = args.owner_ids.split("..")
+                self.owner_ids = list(range(int(a.strip()), int(b.strip())))
+            else:
+                self.owner_ids = [int(i.strip()) for i in args.owner_ids.split(",") if i.strip()]
+        elif check("owner_id"):
+            self.owner_ids = [int(i.strip()) for i in args.owner_id if i.strip()]
 
         if check("shard_ids") and check("shard_id"):
             raise Exception("Cannot have both shard_ids and shard_id in args")
@@ -282,6 +296,7 @@ class Config:
         v = {
             "token": self.token,
             "pubkey": self.pubkey,
+            "owner_ids": self.owner_ids,
             "shard_ids": self.shard_ids,
             "shard_count": self.shard_count,
             "intents": dict(self.intents.walk()),
