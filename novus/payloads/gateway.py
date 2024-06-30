@@ -72,6 +72,8 @@ class ReactionAddRemove(TypedDict):
     burst: bool
     member: NotRequired[GuildMember]
     guild_id: NotRequired[Snowflake]
+    burst_colors: list[str]
+    type: int
 
 
 class ChannelPinsUpdate(TypedDict):

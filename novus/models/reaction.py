@@ -36,14 +36,18 @@ class Reaction:
 
     Attributes
     ----------
-    message : novus.abc.StateSnowflakeWithGuildChannel
-        A representation of the message that was reacted on.
+    message_id : int
+        The ID of the message that was reacted to.
+    channel_id : int
+        The ID of the channel that was reacted in.
     emoji : novus.PartialEmoji
         The emoji that was added to the message. This will only ever be a
         partial emoji (ie it will only have ID, name, and animated attributes
         set).
     burst : bool
         Whether the reaction was a burst reaction or not.
+    burst_colors: tuple[int, ...]
+        The burst reaction colours as hex ints.
     """
 
     def __init__(
@@ -67,4 +71,5 @@ class Reaction:
             assert "channel_id" in data
             self.channel_id = int(data["channel_id"])
         self.emoji: PartialEmoji = PartialEmoji(data=data["emoji"])
-        self.burst: bool = data.get("burst", False)
+        self.burst: bool = data.get("type", 0) == 1
+        self.burst_colors: tuple[int, ...] = tuple(int(i, 16) for i in data.get("burst_colors", []))
