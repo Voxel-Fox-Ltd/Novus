@@ -75,6 +75,7 @@ class Permissions(Flags):
         use_external_sounds: bool
         send_voice_messages: bool
         send_polls: bool
+        use_external_apps: bool
 
     CREATE_FLAGS = {
         "create_instant_invite": 1 << 0,
@@ -125,4 +126,5 @@ class Permissions(Flags):
         "use_external_sounds": 1 << 45,
         "send_voice_messages": 1 << 46,
         "send_polls": 1 << 49,
+        "use_external_apps": 1 << 50,
     }

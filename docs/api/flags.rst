@@ -133,6 +133,14 @@ Flags
     .. py:attribute:: send_messages_in_threads
     .. py:attribute:: use_embedded_activites
     .. py:attribute:: moderate_members
+    .. py:attribute:: view_creator_monetization_analytics
+    .. py:attribute:: use_soundboard
+    .. py:attribute:: create_guild_expressions
+    .. py:attribute:: create_events
+    .. py:attribute:: use_external_sounds
+    .. py:attribute:: send_voice_messages
+    .. py:attribute:: send_polls
+    .. py:attribute:: use_external_apps
 
 .. class:: UserFlags
 
