@@ -33,7 +33,7 @@ from ..utils import (
 )
 from .application_command import ApplicationCommandOption
 from .channel import Channel
-from .guild import BaseGuild
+from .guild import BaseGuild, Guild
 from .guild_member import GuildMember
 from .message import Attachment, Message
 from .role import Role
@@ -503,8 +503,11 @@ class Interaction(Generic[IData]):
         self.application_id = try_snowflake(data["application_id"])
         self.type = data["type"]
         self.guild = self.state.cache.get_guild(data.get("guild_id"))
-        if self.guild is None and data.get("guild_id"):
-            self.guild = BaseGuild(state=state, data={"id": data["guild_id"]})  # pyright: ignore
+        if self.guild is None and "guild_id" in data:
+            if "guild" in data:
+                self.guild = Guild(state=state, data=data["guild"])
+            else:
+                self.guild = BaseGuild(state=state, data={"id": data["guild_id"]})  # pyright: ignore
         channel = self.state.cache.get_channel(data.get("channel_id"))
         if channel is None:
             self.channel = Channel.partial(self.state, data["channel_id"])

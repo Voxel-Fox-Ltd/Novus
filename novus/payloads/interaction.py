@@ -27,6 +27,7 @@ if TYPE_CHECKING:
         ApplicationCommandOptionType,
         Attachment,
         Channel,
+        Guild,
         GuildMember,
         Message,
         Role,
@@ -96,6 +97,7 @@ class Interaction(TypedDict):
     application_id: Snowflake
     type: int
     data: ApplicationComandData | MessageComponentData | ModalSubmitData
+    guild: NotRequired[Guild]
     guild_id: NotRequired[Snowflake]
     channel_id: Snowflake
     member: NotRequired[GuildMember]
