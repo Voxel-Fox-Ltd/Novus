@@ -625,6 +625,29 @@ class Client:
                 log.info("Editing app command %s %s in guild %s", id, comm, guild_id)
                 await edit_(id, **comm.application_command._to_data())
 
+    async def fetch_application_id(self) -> int:
+        """
+        Fetch and cache the application ID for the given token.
+
+        Returns
+        -------
+        int
+            The ID of the application
+        """
+
+        aid: int | None = self.state.application_id
+        if aid is None:
+            app = self.state.cache.application
+            if app is None:
+                app = await self.state.oauth2.get_current_bot_information()
+                self.state.cache.application = app
+                aid = app.id
+        return aid
+
+    @property
+    def application_id(self) -> int:
+        return self.state.application_id
+
     async def sync_commands(
             self,
             *,
@@ -642,14 +665,7 @@ class Client:
         log.info(f"Syncing {len(command_length)} commands")
 
         # Get application ID
-        aid: int | None = self.state.cache.application_id
-        if aid is None:
-            app = self.state.cache.application
-            if app is None:
-                app = await self.state.oauth2.get_current_bot_information()
-                self.state.cache.application = app
-                aid = app.id
-        assert aid
+        aid = await self.fetch_application_id()
 
         # Group our commands by guild ID
         commands_by_guild: dict[int | None, dict[str, Command]]

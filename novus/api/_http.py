@@ -47,6 +47,7 @@ from .guild_scheduled_event import GuildEventHTTPConnection
 from .guild_template import GuildTemplateHTTPConnection
 from .interaction import InteractionHTTPConnection
 from .invite import InviteHTTPConnection
+from .monetization import MonetizationHTTPConnection
 from .oauth2 import Oauth2HTTPConnection
 from .stage_instance import StageHTTPConnection
 from .sticker import StickerHTTPConnection
@@ -127,12 +128,15 @@ class HTTPConnection:
     guild_template : GuildTemplateHTTPConnection
     interaction : InteractionHTTPConnection
     invite : InviteHTTPConnection
+    monetization : MonetizationHTTPConnection
     oauth2 : Oauth2HTTPConnection
     stage_instance : StageHTTPConnection
     sticker : StickerHTTPConnection
     user : UserHTTPConnection
     voice : VoiceHTTPConnection
     webhook : WebhookHTTPConnection
+    application_id : int
+        The ID of the associated application.
     """
 
     AUTH_PREFIX: str = "Bot"
@@ -167,6 +171,7 @@ class HTTPConnection:
         self.guild_template = GuildTemplateHTTPConnection(self)
         self.interaction = InteractionHTTPConnection(self)
         self.invite = InviteHTTPConnection(self)
+        self.monetization = MonetizationHTTPConnection(self)
         self.oauth2 = Oauth2HTTPConnection(self)
         self.stage_instance = StageHTTPConnection(self)
         self.sticker = StickerHTTPConnection(self)
@@ -194,6 +199,10 @@ class HTTPConnection:
     async def __aexit__(self, *_args: Any) -> None:
         if self._session:
             await self._session.close()
+
+    @property
+    def application_id(self) -> int:
+        return self.cache.application_id
 
     def request_params(
             self,

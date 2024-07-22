@@ -15,22 +15,27 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .application import *
-from .channel import *
-from .gateway import *
-from .guild import *
-from .message import *
-from .monetization import *
-from .permissions import *
-from .user import *
+from __future__ import annotations
 
-__all__: tuple[str, ...] = (
-    'ApplicationFlags',
-    'ChannelFlags',
-    'Intents',
-    'MessageFlags',
-    'Permissions',
-    'SystemChannelFlags',
+from typing import TYPE_CHECKING
+
+from vfflags import Flags
+
+__all__ = (
     'SKUFlags',
-    'UserFlags',
 )
+
+
+class SKUFlags(Flags):
+    """Flags associated with SKUs."""
+
+    if TYPE_CHECKING:
+        available: bool
+        guild_subscription: bool
+        user_subscription: bool
+
+    CREATE_FLAGS = {
+        "available": 1 << 2,
+        "guild_subscription": 1 << 7,
+        "user_subscription": 1 << 8,
+    }

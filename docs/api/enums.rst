@@ -37,3 +37,5 @@ Enums
 .. autoclass:: VerificationLevel
 .. autoclass:: Status
 .. autoclass:: ActivityType
+.. autoclass:: SKUType
+.. autoclass:: EntitlementType

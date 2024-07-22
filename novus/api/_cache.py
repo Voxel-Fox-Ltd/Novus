@@ -83,6 +83,12 @@ class APICache:
     def do_nothing(instance: Any, *items: Any) -> None:
         pass
 
+    @property
+    def application_id(self) -> int | None:
+        if self.application:
+            return self.application.id
+        return None
+
     def add_guilds(self, *items: Guild) -> None:
         for i in items:
             self.guild_ids.add(i.id)

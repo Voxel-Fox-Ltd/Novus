@@ -24,6 +24,7 @@ from .gateway import *
 from .guild import *
 from .interaction import *
 from .message import *
+from .monetization import *
 from .presence import *
 from .scheduled_event import *
 from .sticker import *
@@ -43,6 +44,7 @@ __all__: tuple[str, ...] = (
     'ChannelType',
     'ComponentType',
     'ContentFilterLevel',
+    'EntitlementType',
     'EventEntityType',
     'EventPrivacyLevel',
     'EventStatus',
@@ -57,6 +59,7 @@ __all__: tuple[str, ...] = (
     'NotificationLevel',
     'PermissionOverwriteType',
     'PremiumTier',
+    'SKUType',
     'Status',
     'StickerFormat',
     'StickerType',

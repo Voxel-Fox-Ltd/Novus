@@ -31,6 +31,7 @@ from .guild_template import *
 from .interaction import *
 from .invite import *
 from .message import *
+from .monetization import *
 from .oauth2 import *
 from .stage_instance import *
 from .sticker import *
@@ -72,6 +73,7 @@ __all__: tuple[str, ...] = (
     'Embed',
     'EmbedType',
     'Emoji',
+    'Entitlement',
     'ForumDefaultReaction',
     'ForumTag',
     'GatewayGuild',
@@ -115,6 +117,7 @@ __all__: tuple[str, ...] = (
     'Reaction',
     'Role',
     'RoleTags',
+    'SKU',
     'SelectMenu',
     'SelectOption',
     'Snowflake',

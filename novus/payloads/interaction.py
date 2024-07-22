@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, TypedDict, List
 
 from typing_extensions import NotRequired
 
@@ -27,6 +27,7 @@ if TYPE_CHECKING:
         ApplicationCommandOptionType,
         Attachment,
         Channel,
+        Entitlement,
         Guild,
         GuildMember,
         Message,
@@ -108,3 +109,6 @@ class Interaction(TypedDict):
     app_permissions: NotRequired[str]
     locale: str
     guild_locale: NotRequired[str]
+    entitlements: List[Entitlement]
+    authorizing_integration_owners: dict[str, Any]
+    context: NotRequired[int]

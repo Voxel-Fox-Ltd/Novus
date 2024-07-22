@@ -36,6 +36,7 @@ from .channel import Channel
 from .guild import BaseGuild, Guild
 from .guild_member import GuildMember
 from .message import Attachment, Message
+from .monetization import Entitlement
 from .role import Role
 from .ui.action_row import ActionRow
 from .ui.select_menu import SelectOption
@@ -458,6 +459,9 @@ class Interaction(Generic[IData]):
         The user's locale.
     guild_locale: str | None
         The locale of the guild where the interaction was run.
+    entitlements: list[Entitlement]
+        A list of the entitlements that the user associated with the
+        interaction has.
     """
 
     __slots__ = (
@@ -475,6 +479,7 @@ class Interaction(Generic[IData]):
         'app_permissions',
         'locale',
         'guild_locale',
+        'entitlements',
         '_responded',
         '_stream',
         '_stream_request',
@@ -492,14 +497,20 @@ class Interaction(Generic[IData]):
     app_permissions: Permissions
     locale: str
     guild_locale: str | None
+    entitlements: list[Entitlement]
+
     _stream: web.StreamResponse | None
     _stream_request: web.Request | None
 
     def __init__(self, *, state: HTTPConnection, data: payloads.Interaction):
         self.state = state
         self.id = try_snowflake(data["id"])
+
+        # For our responses
         self._stream = None
         self._stream_request = None
+
+        # Parse relevant meta
         self.application_id = try_snowflake(data["application_id"])
         self.type = data["type"]
         self.guild = self.state.cache.get_guild(data.get("guild_id"))
@@ -508,8 +519,7 @@ class Interaction(Generic[IData]):
                 self.guild = Guild(state=state, data=data["guild"])
             else:
                 self.guild = BaseGuild(state=state, data={"id": data["guild_id"]})  # pyright: ignore
-        channel = self.state.cache.get_channel(data.get("channel_id"))
-        if channel is None:
+        if (self.channel := self.state.cache.get_channel(data.get("channel_id"))) is None:
             self.channel = Channel.partial(self.state, data["channel_id"])
         else:
             self.channel = channel
@@ -525,7 +535,7 @@ class Interaction(Generic[IData]):
                 guild_id=self.guild.id,  # pyright: ignore
             )
         else:
-            self.user = None  # pyright: ignore  # Ping interactions :(
+            self.user = None  # pyright: ignore  # Only ever happens for pings
         self.token = data["token"]
         self.version = data["version"]
         if "message" in data:
@@ -538,6 +548,12 @@ class Interaction(Generic[IData]):
             self.app_permissions = Permissions.all()
         self.locale = data["locale"]
         self.guild_locale = data.get("guild_locale")
+        self.entitlements = [
+            Entitlement(data=i, state=self.state)
+            for i in data.get("entitlements", [])
+        ]
+
+        # Parse data
         data_object = None
         if "data" in data:
             data_dict = data["data"]

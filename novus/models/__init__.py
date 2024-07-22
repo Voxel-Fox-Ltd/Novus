@@ -26,6 +26,7 @@ from .emoji import *
 from .file import *
 from .guild import *
 from .guild_member import *
+from .monetization import *
 from .interaction import *
 from .invite import *
 from .message import *
@@ -68,6 +69,7 @@ __all__: tuple[str, ...] = (
     'ContextComandData',
     'Embed',
     'Emoji',
+    'Entitlement',
     'File',
     'ForumTag',
     'Guild',
@@ -98,6 +100,7 @@ __all__: tuple[str, ...] = (
     'Reaction',
     'Role',
     'RoleSelectMenu',
+    'SKU',
     'ScheduledEvent',
     'SelectOption',
     'StageInstance',

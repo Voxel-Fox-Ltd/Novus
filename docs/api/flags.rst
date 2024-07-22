@@ -216,3 +216,9 @@ Flags
     .. py:attribute:: auto_moderation_block_message
     .. py:attribute:: auto_moderation_flag_to_channel
     .. py:attribute:: auto_moderation_user_communication_disabled
+
+.. class:: SKUFlags
+
+    .. py:attribute:: available
+    .. py:attribute:: guild_subscription
+    .. py:attribute:: user_subscription

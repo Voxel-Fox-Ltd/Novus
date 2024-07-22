@@ -15,22 +15,29 @@ You should have received a copy of the GNU Affero General Public License
 along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from .application import *
-from .channel import *
-from .gateway import *
-from .guild import *
-from .message import *
-from .monetization import *
-from .permissions import *
-from .user import *
+from __future__ import annotations
 
-__all__: tuple[str, ...] = (
-    'ApplicationFlags',
-    'ChannelFlags',
-    'Intents',
-    'MessageFlags',
-    'Permissions',
-    'SystemChannelFlags',
-    'SKUFlags',
-    'UserFlags',
+from .utils import Enum
+
+__all__ = (
+    'SKUType',
+    'EntitlementType',
 )
+
+
+class SKUType(Enum):
+    DURABLE = 2
+    CONSUMABLE = 3
+    SUBSCRIPTION = 5
+    SUBSCRIPTION_GROUP = 6
+
+
+class EntitlementType(Enum):
+    PURCHASE = 1
+    PREMIUM_SUBSCRIPTION = 2
+    DEVELOPER_GIFT = 3
+    TEST_MODE_PURCHASE = 4
+    FREE_PURCHASE = 5
+    USER_GIFT = 6
+    PREMIUM_PURCHASE = 7
+    APPLICATION_SUBSCRIPTION = 8
