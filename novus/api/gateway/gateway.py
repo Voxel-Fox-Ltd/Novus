@@ -559,7 +559,7 @@ class GatewayShard:
                     self.state = "Reconnecting"
                 else:
                     self.state = "Connecting"
-                ws = await session.ws_connect(ws_url, timeout=10.0)
+                ws = await session.ws_connect(ws_url, timeout=10.0, max_msg_size=0)
         except Exception as e:
             log.debug(
                 "[%s] Failed to connect to websocket (%s - %s), reattempting (%s)",
