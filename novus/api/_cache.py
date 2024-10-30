@@ -55,7 +55,7 @@ class APICache:
     def __init__(self, parent: HTTPConnection):
         self.parent = parent
         self.user: User | None = None
-        self.application_id: int | None = None
+        self._application_id: int | None = None
         self.application: Application | None = None
 
         self.guild_ids: set[int] = set()
@@ -87,6 +87,8 @@ class APICache:
     def application_id(self) -> int | None:
         if self.application:
             return self.application.id
+        elif self._application_id:
+            return self._application_id
         return None
 
     def add_guilds(self, *items: Guild) -> None:
