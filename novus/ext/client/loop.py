@@ -199,7 +199,7 @@ class Loop:
                 except asyncio.CancelledError:
                     return
             first = False
-            log.info("Running Loop[%s.%s()]", self.owner.__name__, self.func.__name__)
+            log.debug("Running Loop[%s.%s()]", self.owner.__name__, self.func.__name__)
             task = asyncio.create_task(self.func(self.owner, *self._args, **self._kwargs))  # type: ignore
             if self.end_behavior == LoopBehavior.end:
                 await asyncio.wait([task])
