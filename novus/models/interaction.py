@@ -519,7 +519,7 @@ class Interaction(Generic[IData]):
                 self.guild = Guild(state=state, data=data["guild"])
             else:
                 self.guild = BaseGuild(state=state, data={"id": data["guild_id"]})  # pyright: ignore
-        if (self.channel := self.state.cache.get_channel(data.get("channel_id"))) is None:
+        if (channel := self.state.cache.get_channel(data.get("channel_id"))) is None:
             self.channel = Channel.partial(self.state, data["channel_id"])
         else:
             self.channel = channel
