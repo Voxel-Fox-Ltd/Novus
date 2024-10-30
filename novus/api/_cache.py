@@ -91,6 +91,10 @@ class APICache:
             return self._application_id
         return None
 
+    @application_id.setter
+    def application_id(self, value: int) -> None:
+        self._application_id = value
+
     def add_guilds(self, *items: Guild) -> None:
         for i in items:
             self.guild_ids.add(i.id)
