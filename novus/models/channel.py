@@ -250,7 +250,7 @@ class Channel(Hashable, Messageable):
     # parent: Channel | None
     last_pin_timestamp: DiscordDatetime | None
     rtc_region: str | None
-    video_quality_mode: None
+    video_quality_mode: int | None
     message_count: int | None
     member_count: int | None
     # <thread_metadata>
@@ -305,7 +305,7 @@ class Channel(Hashable, Messageable):
                     else {
                         "role": PermissionOverwriteType.ROLE,
                         "member": PermissionOverwriteType.MEMBER,
-                    }[d["type"].casefold()]
+                    }[d["type"].casefold()]  # pyright: ignore
                 ),
                 allow=Permissions(int(d["allow"])),
                 deny=Permissions(int(d["deny"])),
