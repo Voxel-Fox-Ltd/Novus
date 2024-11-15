@@ -25,6 +25,7 @@ from typing_extensions import Self
 
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import ChannelFlags, Permissions
+from ..models import Object
 from ..utils import (
     MISSING,
     DiscordDatetime,
@@ -359,10 +360,16 @@ class Channel(Hashable, Messageable):
             ForumTag._from_data(data=i) for i in
             data.get("available_tags", [])
         ]
-        self.applied_tags = [
-            [tag for tag in self.available_tags if tag.id == try_id(i)][0] for i in
-            data.get("applied_tags", [])
-        ]
+        self.applied_tags = []
+        if data.get("applied_tags"):
+            applied_tags_int = [try_id(i) for i in data.get("applied_tags", [])]
+            if self.parent and self.parent.available_tags is not None:
+                for existing_tag in self.parent.available_tags:
+                    if existing_tag.id in applied_tags_int:
+                        self.applied_tags.append(existing_tag)
+                        applied_tags_int.remove(existing_tag.id)
+            for tag_int in applied_tags_int:
+                self.applied_tags.append(Object(tag_int, state=self.state))  # pyright: ignore
         emoji = data.get("default_reaction_emoji")
         self.default_reaction_emoji = PartialEmoji(data=emoji) if emoji else None
         self.default_thread_rate_limit_per_user = data.get("default_thread_rate_limit_per_user")
