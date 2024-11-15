@@ -25,7 +25,7 @@ from typing_extensions import Self
 
 from ..enums import ChannelType, PermissionOverwriteType
 from ..flags import ChannelFlags, Permissions
-from ..models import Object
+# from ..models import Object  # done later for circular import
 from ..utils import (
     MISSING,
     DiscordDatetime,
@@ -369,6 +369,7 @@ class Channel(Hashable, Messageable):
                         self.applied_tags.append(existing_tag)
                         applied_tags_int.remove(existing_tag.id)
             for tag_int in applied_tags_int:
+                from ..models import Object
                 self.applied_tags.append(Object(tag_int, state=self.state))  # pyright: ignore
         emoji = data.get("default_reaction_emoji")
         self.default_reaction_emoji = PartialEmoji(data=emoji) if emoji else None
