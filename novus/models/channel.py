@@ -360,7 +360,7 @@ class Channel(Hashable, Messageable):
             data.get("available_tags", [])
         ]
         self.applied_tags = [
-            [j for j in self.available_tags if j.id == i["id"]][0] for i in
+            [tag for tag in self.available_tags if tag.id == try_id(i)][0] for i in
             data.get("applied_tags", [])
         ]
         emoji = data.get("default_reaction_emoji")
@@ -1126,7 +1126,7 @@ class ForumTag:
     )
 
     def __init__(self, name: str, emoji: str | PartialEmoji, moderated: bool = False):
-        self.id = None
+        self.id: int | None = None
         self.name = name
         if isinstance(emoji, str):
             self.emoji = PartialEmoji.from_str(emoji)
@@ -1144,7 +1144,7 @@ class ForumTag:
                 "name": data.get("emoji_name"),
             })
         )
-        v.id = data["id"]
+        v.id = try_id(data["id"])
         return v
 
     def _to_data(self) -> dict:
