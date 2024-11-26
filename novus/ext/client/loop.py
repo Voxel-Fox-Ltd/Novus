@@ -89,7 +89,7 @@ def loop(
     """
 
     @functools.wraps(loop)
-    def wrapper(func: Callable[[], Coroutine[None, None, Any]]) -> Loop:
+    def wrapper(func: Callable[[Any], Coroutine[None, None, Any]]) -> Loop:
         return Loop(
             func,
             loop_time,
@@ -142,7 +142,7 @@ class Loop:
 
     def __init__(
             self,
-            func: Callable[[], Coroutine[None, None, Any]],
+            func: Callable[[Any], Coroutine[None, None, Any]],
             loop_time: float,
             start_behavior: LoopBehavior = LoopBehavior.immediate,
             end_behavior: LoopBehavior = LoopBehavior.end,
@@ -157,11 +157,11 @@ class Loop:
         self.owner: Plugin
         self.bg_task: asyncio.Task | None = None
         self.task: asyncio.Task | None = None
-        self._before: Callable[[], Coroutine[None, None, Any]] | None = None
+        self._before: Callable[[Any], Coroutine[None, None, Any]] | None = None
         self._args: tuple[Any, ...] = ()
         self._kwargs: dict[str, Any] = {}
 
-    def before(self, func: Callable[[], Coroutine[None, None, Any]]) -> None:
+    def before(self, func: Callable[[Any], Coroutine[None, None, Any]]) -> None:
         """
         Set a function that is to run before the loop starts.
         """
@@ -184,7 +184,7 @@ class Loop:
         if self.wait_until_ready:
             await self.owner.bot.wait_until_ready()
         if self._before:
-            await self._before()
+            await self._before(self.owner)
         first = True
         while True:
             if first:
@@ -200,12 +200,12 @@ class Loop:
                     return
             first = False
             log.debug("Running Loop[%s.%s()]", self.owner.__name__, self.func.__name__)
-            task = asyncio.create_task(self.func(self.owner, *self._args, **self._kwargs))  # type: ignore
+            task = asyncio.create_task(self.func(self.owner, *self._args, **self._kwargs))
             if self.end_behavior == LoopBehavior.end:
                 await asyncio.wait([task])
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        return self.func(self.owner, *args, **kwargs)  # type: ignore
+        return self.func(self.owner, *args, **kwargs)
 
     def stop(self) -> None:
         """
