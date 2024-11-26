@@ -50,14 +50,17 @@ class Database(client.Plugin):
     _pool_created: asyncio.Event | None = None
 
     @classmethod
-    def acquire(cls, *args: Any, **kwargs: Any) -> PoolAcquireContext:
+    def acquire(cls, *args: Any, _attempt: int = 0, **kwargs: Any) -> PoolAcquireContext:
         if cls.pool is None:
-            raise Exception(
-                (
-                    "Database pool is not created - was the plugin loaded? "
-                    "Was there a DSN provided?"
+            if _attempt >= 5:
+                raise Exception(
+                    (
+                        "Database pool is not created - was the plugin loaded? "
+                        "Was there a DSN provided?"
+                    )
                 )
-            )
+            else:
+                return cls.acquire(*args, _attempt=_attempt + 1, **kwargs)
         return cls.pool.acquire(*args, **kwargs)  # pyright: ignore
 
     async def create_pool(
