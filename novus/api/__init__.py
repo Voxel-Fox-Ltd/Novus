@@ -17,9 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from ._http import *
 from .api_iterator import APIIterator
+from .gateway import *
 
-__all__ = (
-    'HTTPConnection',
-    'OauthHTTPConnection',
-    'APIIterator',
+
+__all__: tuple[str, ...] = (
+    "APIIterator",
+    "GatewayConnection",
+    "GatewayShard",
+    "HTTPConnection",
+    "OauthHTTPConnection",
 )

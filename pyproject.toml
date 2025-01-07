@@ -1,9 +1,6 @@
 [build-system]
-requires = [ "setuptools", ]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-packages.find.where = [ ".", "./novus/ext", ]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "novus"
@@ -38,3 +35,9 @@ scripts.novus = "novus.ext.client.cli.__main__:main_sync"
 docs = [ "sphinx", "furo", ]
 testing = [ "pytest", "pytest-asyncio", "pyyaml", ]
 database = [ "asyncpg", ]
+
+[tool.poetry]
+package-mode = true
+packages = [
+    { include = "novus" },
+]

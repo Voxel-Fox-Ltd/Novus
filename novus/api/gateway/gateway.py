@@ -41,6 +41,7 @@ from .._errors import (
     GatewayException,
 )
 from .._route import Route
+from .dispatch import GatewayDispatch
 
 if TYPE_CHECKING:
     from ... import Activity, GuildMember, payloads
@@ -222,7 +223,6 @@ class GatewayShard:
             "encoding": "json",
             "compress": "zlib-stream",
         })
-        from .dispatch import GatewayDispatch
         self.dispatch = GatewayDispatch(self)
         self.connect_semaphore = connect_semaphore
         self.identify_semaphore = identify_semaphore
