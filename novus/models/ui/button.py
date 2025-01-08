@@ -65,7 +65,7 @@ class Button(InteractableComponent, ComponentEmojiMixin):
 
         .. seealso:: `novus.ButtonStyle`
     custom_id : str
-        The custom ID of the component.
+        The custom ID of the component. Will be ignored if a ``url`` is provided.
     emoji : novus.PartialEmoji | novus.Emoji | None
         The emoji attached to the button. Either this or ``label`` needs to be
         set.
@@ -99,7 +99,7 @@ class Button(InteractableComponent, ComponentEmojiMixin):
             label: str | None = None,
             *,
             style: int = ButtonStyle.SECONDARY,
-            custom_id: str,
+            custom_id: str = "",
             emoji: str | PartialEmoji | None = None,
             url: str | None = None,
             disabled: bool = False):
@@ -113,8 +113,8 @@ class Button(InteractableComponent, ComponentEmojiMixin):
     def _to_data(self) -> payloads.Button:
         d: payloads.Button = {
             "type": self.type,
-            "style": self.style,
             "custom_id": self.custom_id,
+            "style": self.style,
             "disabled": self.disabled,
         }
         if self.label:
@@ -123,6 +123,7 @@ class Button(InteractableComponent, ComponentEmojiMixin):
             d["emoji"] = self.emoji._to_data()
         if self.url:
             d["url"] = self.url
+            d.pop("custom_id")  # type: ignore
         return d
 
     @classmethod
