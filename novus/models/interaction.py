@@ -515,7 +515,7 @@ class Interaction(Generic[IData]):
         self.type = data["type"]
         self.guild = self.state.cache.get_guild(data.get("guild_id"))
         if self.guild is None and "guild_id" in data:
-            if "guild" in data:
+            if "guild" in data and "name" in data["guild"]:
                 self.guild = Guild(state=state, data=data["guild"])
             else:
                 self.guild = BaseGuild(state=state, data={"id": data["guild_id"]})  # pyright: ignore
