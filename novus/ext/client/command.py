@@ -484,7 +484,7 @@ class CommandGroup(Command):
     @classmethod
     def from_commands(
             cls,
-            commands: Iterable[Command],
+            commands: set[Command] | list[Command] | tuple[Command],
             run_checks: bool = True) -> Self:
         """
         Generate a group from a list of commands.
@@ -521,6 +521,18 @@ class CommandGroup(Command):
         # Make sure we only have one base name
         if len(names[0]) > 1:
             raise CommandError("Cannot have multiple base names for group")
+
+        # Do the same again for the translations
+        t_names: dict[str, dict[int, set[str]]]
+        t_names = collections.defaultdict(lambda: collections.defaultdict(set))  # depth: name
+        for comm in commands:
+            for language, comm_name in comm.application_command.name_localizations.items():
+                name_split = comm_name.split(" ")
+                for depth, name_segment in enumerate(name_split):
+                    t_names[language][depth].add(name_segment)
+        for lang in t_names:
+            if len(t_names[lang][0]) > 1:
+                raise CommandError("Cannot have multiple base names for group (language %s)" % lang)
 
         # Do some other validity checks
         permission_set = None
@@ -566,6 +578,7 @@ class CommandGroup(Command):
 
         # Make up a place for our options to go after we've built them
         built_options: dict[tuple[str, ...], n.ApplicationCommandOption] = {}
+        first_command = list(commands)[0]
         app = n.PartialApplicationCommand(
             name=list(names[0])[0],
             description="...",
@@ -573,6 +586,10 @@ class CommandGroup(Command):
             default_member_permissions=list(permission_set)[0],
             dm_permission=list(dm_permission_set)[0],
             nsfw=list(nsfw_set)[0],
+            name_localizations={
+                lang: name.split(" ")[0]
+                for lang, name in first_command.application_command.name_localizations.items()
+            }
         )
         built_options[()] = app  # pyright: ignore
 
@@ -589,6 +606,11 @@ class CommandGroup(Command):
                     )
                     parent_group = tuple(group[:group_index - 1])
                     built_options[parent_group].add_option(new)
+            original_localizations = command.application_command.name_localizations
+            command.application_command.name_localizations = n.utils.Localization({
+                lang: name.split(" ", 1)[1]
+                for lang, name in original_localizations.items()
+            })
             built_options[group_tuple].add_option(command.to_application_command_option())
 
         return cls(

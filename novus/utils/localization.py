@@ -18,7 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import gettext
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Generator, Literal
 
 from typing_extensions import Self
 
@@ -111,6 +111,9 @@ class Localization:
             self.localizations.pop(key, None)
         else:
             self.localizations[key] = value
+
+    def items(self) -> Generator[tuple[str, str]]:
+        yield from self.localizations.items()
 
     def _to_data(self) -> dict[str, str]:
         return self.localizations
