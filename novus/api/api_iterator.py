@@ -48,8 +48,8 @@ class APIIterator(Generic[T]):
     def __init__(
             self,
             method: Any,
-            before: AnySnowflake,
-            after: AnySnowflake,
+            before: AnySnowflake | None,
+            after: AnySnowflake | None,
             limit: int | None,
             method_limit: int,):
         self.method = method
@@ -60,7 +60,7 @@ class APIIterator(Generic[T]):
         self._remaining: int | bool = limit if limit is not None else True
 
     async def __aiter__(self) -> AsyncGenerator[T, Any]:
-        after = self.after
+        before = self.before
 
         # Loop either forever or until we hit our limit
         while self._remaining:
@@ -74,13 +74,13 @@ class APIIterator(Generic[T]):
 
             # Get items from the api
             items: list[T] = await self.method(
-                before=self.before,
-                after=after,
+                after=self.after,
+                before=before,
                 limit=limit,
             )
 
             # Work out our new startpoint
-            after = items[-1].id  # type: ignore
+            before = items[-1].id  # type: ignore
 
             # Yield our just-given items
             for i in items:
