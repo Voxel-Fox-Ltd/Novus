@@ -40,7 +40,7 @@ def flatten_localization(d: LocType) -> Localization:
         return Localization()
     elif isinstance(d, Localization):
         return d
-    elif isinstance(d, dict):
+    elif isinstance(d, dict):  # pyright: ignore[reportUnnecessaryIsInstance]
         return Localization(d)
     else:
         raise TypeError()

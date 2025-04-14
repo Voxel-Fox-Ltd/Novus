@@ -21,7 +21,7 @@ import asyncio
 import json
 import logging
 from copy import copy
-from typing import TYPE_CHECKING, Any, Awaitable, Callable
+from typing import TYPE_CHECKING, Any, Awaitable, Callable, cast
 
 from ...models import (  # Emoji,; Object,; Sticker,; ThreadMember,
     AuditLogEntry,
@@ -168,10 +168,13 @@ class GatewayDispatch:
         elif event_name == "RESUMED":
             return None
 
-        coro: Callable[..., Awaitable[None]] | None
+        coro: Callable[[Any], Awaitable[None]] | None
         if self.parent.gateway.guild_ids_only:
             if event_name == "GUILD_CREATE":
-                coro = self._handle_guild_create_id_only
+                # Cast to avoid coro from being typed too specifically
+                # This is a compromise to avoid 50 different @overload's for every single
+                # dispatch handler's individual data type
+                coro = cast(Callable[[Any], Awaitable[None]], self._handle_guild_create_id_only)
             elif event_name == "GUILD_DELETE":
                 coro = self.EVENT_HANDLER["GUILD_DELETE"]
             else:

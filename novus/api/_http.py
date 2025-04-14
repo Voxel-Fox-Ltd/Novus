@@ -218,11 +218,10 @@ class HTTPConnection:
 
         # Set headers
         headers = {
-            "Authorization": self._prefixed_token,
             "User-Agent": self._user_agent,
         }
-        if self._token is None:
-            del headers["Authorization"]
+        if self._prefixed_token is not None:
+            headers["Authorization"] = self._prefixed_token
         if reason:
             headers['X-Audit-Log-Reason'] = reason
 

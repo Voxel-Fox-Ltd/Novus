@@ -2,6 +2,20 @@
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.pyright]
+reportPrivateUsage = false
+reportImportCycles = false
+reportUnknownMemberType = false
+reportUnknownParameterType = false
+reportUnknownArgumentType = false
+reportUnknownVariableType = false
+reportMissingParameterType = false
+reportMissingTypeArgument = false
+reportMissingTypeStubs = false
+reportUnknownLambdaType = false
+reportIncompatibleVariableOverride = false
+reportConstantRedefinition = false
+
 [project]
 name = "novus"
 version = "1.0.0"

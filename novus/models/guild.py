@@ -1842,7 +1842,7 @@ class Guild(Hashable, BaseGuild):
     approximate_member_count: int | None
     welcome_screen: WelcomeScreen | None
 
-    def __init__(self, *, state: HTTPConnection, data: payloads.Guild):
+    def __init__(self, *, state: HTTPConnection, data: payloads.Guild | payloads.GatewayGuild):
         self.state = state
         self.id = try_snowflake(data['id'])
         self._emojis: dict[int, Emoji] = {}

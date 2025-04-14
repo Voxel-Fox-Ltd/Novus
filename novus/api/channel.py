@@ -268,7 +268,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, PartialEmoji):
+        elif isinstance(emoji, PartialEmoji):  # pyright: ignore[reportUnnecessaryIsInstance]
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -293,7 +293,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, PartialEmoji):
+        elif isinstance(emoji, PartialEmoji):  # pyright: ignore[reportUnnecessaryIsInstance]
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -319,7 +319,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, PartialEmoji):
+        elif isinstance(emoji, PartialEmoji):  # pyright: ignore[reportUnnecessaryIsInstance]
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -345,7 +345,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, PartialEmoji):
+        elif isinstance(emoji, PartialEmoji):  # pyright: ignore[reportUnnecessaryIsInstance]
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError
@@ -389,7 +389,7 @@ class ChannelHTTPConnection:
         emoji_str: str
         if isinstance(emoji, str):
             emoji_str = quote_plus(emoji)
-        elif isinstance(emoji, PartialEmoji):
+        elif isinstance(emoji, PartialEmoji):  # pyright: ignore[reportUnnecessaryIsInstance]
             emoji_str = f"{emoji.name}:{emoji.id}"
         else:
             raise ValueError

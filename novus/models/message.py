@@ -909,7 +909,7 @@ class AllowedMentions:
 
         if isinstance(target, (User, GuildMember,)):
             return cls(users=[target])
-        elif isinstance(target, Role):
+        elif isinstance(target, Role):  # pyright: ignore[reportUnnecessaryIsInstance]
             return cls(roles=[target])
         else:
             raise TypeError("Only role and user types are permitted.")

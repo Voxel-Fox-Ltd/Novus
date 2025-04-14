@@ -79,7 +79,7 @@ class File:
         elif isinstance(data, (str, pathlib.Path)):
             with open(data, 'rb') as a:
                 self.data = a.read()
-        elif isinstance(data, io.IOBase):
+        elif isinstance(data, io.IOBase):  # pyright: ignore[reportUnnecessaryIsInstance]
             pointer = data.tell()
             self.data = data.read()
             data.seek(pointer)

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Any, overload
+from typing import TYPE_CHECKING, Any, TypeVar, overload
 
 from ..models.channel import Channel
 from ..models.guild import Guild
@@ -38,13 +38,17 @@ __all__ = (
 log = logging.getLogger("novus.api.cache")
 
 
-class MaxLenDict(OrderedDict):
+K = TypeVar("K")
+V = TypeVar("V")
+
+
+class MaxLenDict(OrderedDict[K, V]):
 
     def __init__(self, *, max_size: int):
         self.max_size = max_size
         super().__init__()
 
-    def __setitem__(self, __key: Any, __value: Any) -> None:
+    def __setitem__(self, __key: K, __value: V) -> None:
         super().__setitem__(__key, __value)
         while len(self) > self.max_size:
             self.popitem(last=False)
@@ -65,7 +69,7 @@ class APICache:
         self.emojis: dict[int, Emoji] = {}
         self.stickers: dict[int, Sticker] = {}
         self.events: dict[int, ScheduledEvent] = {}
-        self.messages: dict[int, Message] = MaxLenDict(max_size=1_000)
+        self.messages: MaxLenDict[int, Message] = MaxLenDict(max_size=1_000)
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} " + (

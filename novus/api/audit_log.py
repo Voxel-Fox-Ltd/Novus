@@ -50,6 +50,8 @@ class AuditLogHTTPConnection:
         """
 
         params: dict[str, Any] = {}
+        params['limit'] = limit
+
         if user_id is not None:
             params['user_id'] = user_id
         if action_type is not None:
@@ -58,8 +60,7 @@ class AuditLogHTTPConnection:
             params['before'] = before
         if after is not None:
             params['after'] = after
-        if limit is not None:
-            params['limit'] = limit
+        
         route = Route(
             "GET",
             "/guilds/{guild_id}/audit-logs",
