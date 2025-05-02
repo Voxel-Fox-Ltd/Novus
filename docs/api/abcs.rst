@@ -16,7 +16,7 @@ ABCs
     :members:
     :inherited-members:
     :no-special-members:
-.. autoclass:: LayoutComponent
+.. autoclass:: LayoutComponentHolder
     :members:
     :inherited-members:
     :no-special-members:

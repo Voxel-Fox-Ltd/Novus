@@ -224,6 +224,40 @@ Models that relate to message components.
     :members:
     :inherited-members:
     :no-special-members:
+.. autoclass:: Section
+    :members:
+    :special-members: __setitem__, __getitem__, __iter__
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: TextDisplay
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: Thumbnail
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: MediaGallery
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: MediaGalleryItem
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: File
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: Separator
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: Container
+    :members:
+    :special-members: __setitem__, __getitem__, __iter__
+    :inherited-members:
+    :no-special-members:
 
 Application Commands
 ~~~~~~~~~~~~~~~~~~~~

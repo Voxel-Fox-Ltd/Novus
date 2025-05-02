@@ -30,48 +30,46 @@ __all__ = (
     'SelectMenu',
     'TextInput',
     'ActionRow',
-    'IteractableComponent',
-    'LayoutComponent',
+    'Section',
+    'TextDisplay',
+    'Thumbnail',
+    'MediaGallery',
+    'MediaGalleryItem',
+    'File',
+    'Separator',
+    'Container',
+    'UnfurledMediaItem',
     'Component',
 )
 
 
-class _ButtonOptional(TypedDict, total=False):
-    emoji: PartialEmoji
-    url: str
-    disabled: bool
-    label: str
-
-
-class Button(_ButtonOptional):
+class Button(TypedDict):
     custom_id: str
     type: Literal[2]
     style: int
+    emoji: NotRequired[PartialEmoji]
+    url: NotRequired[str]
+    disabled: NotRequired[bool]
+    label: NotRequired[str]
 
 
-class _SelectOptionOptional(TypedDict, total=False):
-    description: str
-    emoji: PartialEmoji
-    default: bool
-
-
-class SelectOption(_SelectOptionOptional):
+class SelectOption(TypedDict):
     label: str
     value: str
+    description: NotRequired[str]
+    emoji: NotRequired[PartialEmoji]
+    default: NotRequired[bool]
 
 
-class _SelectMenuOptional(TypedDict, total=False):
-    options: list[SelectOption]
-    channel_types: list[int]
-    placeholder: str
-    min_values: int
-    max_values: int
-    disabled: bool
-
-
-class SelectMenu(_SelectMenuOptional):
+class SelectMenu(TypedDict):
     type: int
     custom_id: str
+    options: NotRequired[list[SelectOption]]
+    channel_types: NotRequired[list[int]]
+    placeholder: NotRequired[str]
+    min_values: NotRequired[int]
+    max_values: NotRequired[int]
+    disabled: NotRequired[bool]
 
 
 class TextInput(TypedDict):
@@ -86,19 +84,80 @@ class TextInput(TypedDict):
     placeholder: NotRequired[str]
 
 
-IteractableComponent = Union[
+class ActionRow(TypedDict):
+    type: Literal[1]
+    components: list[Component]
+
+
+class Section(TypedDict):
+    type: Literal[9]
+    id: NotRequired[int]
+    components: list[Component]
+    accessory: Component
+
+
+class TextDisplay(TypedDict):
+    type: Literal[10]
+    id: NotRequired[int]
+    content: str
+
+
+class Thumbnail(TypedDict):
+    type: Literal[11]
+    id: NotRequired[int]
+    media: UnfurledMediaItem
+    description: NotRequired[str]
+    spoiler: NotRequired[bool]
+
+
+class MediaGallery(TypedDict):
+    type: Literal[12]
+    id: NotRequired[int]
+    items: list[MediaGalleryItem]
+
+
+class MediaGalleryItem(TypedDict):
+    media: UnfurledMediaItem
+    description: NotRequired[str]
+    spoiler: NotRequired[bool]
+
+
+class File(TypedDict):
+    type: Literal[13]
+    id: NotRequired[int]
+    file: UnfurledMediaItem
+    spoiler: NotRequired[bool]
+
+
+class Separator(TypedDict):
+    type: Literal[14]
+    id: NotRequired[int]
+    divider: NotRequired[bool]
+    spacing: NotRequired[Literal[1] | Literal[2]]
+
+
+class Container(TypedDict):
+    type: Literal[17]
+    id: NotRequired[int]
+    components: list[Component]
+    accent_color: NotRequired[int | None]
+    spoiler: NotRequired[bool]
+
+
+class UnfurledMediaItem(TypedDict):
+    url: str
+
+
+Component = Union[
     Button,
     SelectMenu,
     TextInput,
+    ActionRow,
+    Section,
+    TextDisplay,
+    Thumbnail,
+    MediaGallery,
+    File,
+    Separator,
+    Container,
 ]
-
-
-class ActionRow(TypedDict):
-    type: Literal[1]
-    components: list[IteractableComponent]
-
-
-LayoutComponent = ActionRow
-
-
-Component = Union[IteractableComponent, LayoutComponent]

@@ -23,55 +23,84 @@ from typing_extensions import Self
 
 from ...enums import ComponentType
 from ...utils import MISSING
-from .component import Component, InteractableComponent, LayoutComponentHolder
+from .component import Component, LayoutComponentHolder
 
 if TYPE_CHECKING:
     from ... import payloads
 
 __all__ = (
-    'ActionRow',
+    "Section",
 )
 
 
-class ActionRow(LayoutComponentHolder):
+class Section(LayoutComponentHolder):
     """
     A generic layout component that holds other components.
 
     This class implements a ``__getitem__`` and an ``__iter__`` method to allow
     for eady indexing and iterating.
 
+    .. note:: This component can only be sent as part of components v2.
+
     Parameters
     ----------
     components : Iterable[novus.Component]
-        A list of components to be initially added to the action row.
+        A list of components to be initially added to the section.
+        Only supports one to three text display components.
+    accessory : novus.Component
+        An accessory for the section.
+        Only supports thumbnail or button components.
+    id : int | None
+        An ID for the component.
 
     Attributes
     ----------
     components : list[novus.Component | None]
-        The components inside of the action row.
+        The components inside of the section.
+    accessory : novus.Component | None
+        An accessory for the section.
+    id : int | None
+        An ID for the component.
     """
 
-    type = ComponentType.ACTION_ROW
+    type = ComponentType.SECTION
 
     components: list[Component | None]
+    id: int | None
 
-    def __init__(self, components: Iterable[InteractableComponent] = MISSING):
+    def __init__(
+            self,
+            *,
+            components: Iterable[Component] = MISSING,
+            accessory: Component | None = MISSING,
+            id: int | None = None):
         super().__init__(components)
+        self.accessory = accessory
+        self.id = id
 
-    def _to_data(self) -> payloads.ActionRow:
-        return {
+    def _to_data(self) -> payloads.Section:
+        v: payloads.Section = {
             "type": self.type,
             "components": [
                 i._to_data()
                 for i in self.components
                 if i is not None
-            ]
+            ],
         }
+        if self.accessory:
+            v["accessory"] = self.accessory._to_data()
+        if self.id is not None:
+            v["id"] = self.id
+        return v
 
     @classmethod
-    def _from_data(cls, data: payloads.ActionRow) -> Self:
+    def _from_data(cls, data: payloads.Section) -> Self:
         v = cls()
         from ._builder import component_builder
         for d in data["components"]:
             v.add(component_builder(d))  # pyright: ignore
+        if data.get("accessory"):
+            v.accessory = component_builder(data["accessory"])
+        if "id" in data:
+            v.id = data["id"]
         return v

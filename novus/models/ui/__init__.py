@@ -18,20 +18,37 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from .action_row import *
 from .button import *
 from .component import *
+from .container import *
+from .file import *
+from .media_gallery import *
+from .section import *
 from .select_menu import *
+from .separator import *
+from .text_display import *
 from .text_input import *
+from .thumbnail import *
 
 __all__: tuple[str, ...] = (
-    'ActionRow',
-    'Button',
-    'ChannelSelectMenu',
-    'Component',
-    'InteractableComponent',
-    'LayoutComponent',
-    'MentionableSelectMenu',
-    'RoleSelectMenu',
-    'SelectOption',
-    'StringSelectMenu',
-    'TextInput',
-    'UserSelectMenu',
+    "ActionRow",
+    "Button",
+    "ChannelSelectMenu",
+    "Component",
+    "Container",
+    "File",
+    "InteractableComponent",
+    "LayoutComponentHolder",
+    "MediaGallery",
+    "MediaGalleryItem",
+    "MentionableSelectMenu",
+    "RoleSelectMenu",
+    "Section",
+    "Section",
+    "SelectOption",
+    "Separator",
+    "StringSelectMenu",
+    "TextDisplay",
+    "TextDisplay",
+    "TextInput",
+    "Thumbnail",
+    "UserSelectMenu",
 )
