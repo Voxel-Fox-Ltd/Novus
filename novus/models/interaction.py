@@ -51,7 +51,7 @@ if TYPE_CHECKING:
     from .file import File
     from .message import AllowedMentions, Embed, WebhookMessage
     from .sticker import Sticker
-    from .ui.component import InteractableComponent
+    from .ui.component import Component, InteractableComponent
 
 __all__ = (
     'InteractionResolved',
@@ -652,6 +652,7 @@ class Interaction(Generic[IData]):
             embeds: list[Embed] = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
             components: list[ActionRow] = MISSING,
+            componentsv2: list[Component] = MISSING,
             message_reference: Message = MISSING,
             stickers: list[Sticker] = MISSING,
             files: list[File] = MISSING,
@@ -672,6 +673,12 @@ class Interaction(Generic[IData]):
             The mentions you want parsed in the message.
         components : list[novus.ActionRow]
             A list of action rows to be added to the message.
+        componentsv2 : list[novus.Component]
+            A list of components to be added to the message.
+
+            .. note:: When using components v2, you cannot use the ``content``, ``embeds``, and
+            ``components`` fields. The `MessageFlags.is_components_v2` flag will be automatically
+            added to your flags.
         message_reference : novus.Message
             A reference to a message you want replied to.
         stickers : list[novus.Sticker]
@@ -699,6 +706,11 @@ class Interaction(Generic[IData]):
             data["allowed_mentions"] = allowed_mentions
         if components is not MISSING:
             data["components"] = components
+        if componentsv2 is not MISSING:
+            data["components"] = components
+            if flags is MISSING:
+                flags = MessageFlags()
+            flags.is_components_v2 = True
         if message_reference is not MISSING:
             data["message_reference"] = message_reference
         if stickers is not MISSING:

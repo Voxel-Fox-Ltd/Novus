@@ -208,6 +208,7 @@ class WebhookHTTPConnection:
             *,
             wait: Literal[True] = ...,
             thread_id: int | None = ...,
+            with_components: bool = ...,
             **kwargs: dict[str, Any]) -> WebhookMessage:
         ...
 
@@ -219,6 +220,7 @@ class WebhookHTTPConnection:
             *,
             wait: Literal[False] = ...,
             thread_id: int | None = ...,
+            with_components: bool = ...,
             **kwargs: dict[str, Any]) -> None:
         ...
 
@@ -229,6 +231,7 @@ class WebhookHTTPConnection:
             *,
             wait: bool = False,
             thread_id: int | None = None,
+            with_components: bool = False,
             **kwargs: dict[str, Any]) -> WebhookMessage | None:
         """
         Create a webhook message.
@@ -268,6 +271,8 @@ class WebhookHTTPConnection:
             params["wait"] = "true" if wait else "false"
         if thread_id is not None:
             params["thread_id"] = str(thread_id)
+        if with_components:
+            params["with_components"] = "true"
 
         data: payloads.Message | None = await self.parent.request(
             route,

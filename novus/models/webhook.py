@@ -36,7 +36,16 @@ if TYPE_CHECKING:
     from ..api import HTTPConnection
     from ..flags import MessageFlags
     from ..payloads import Webhook as WebhookPayload
-    from . import ActionRow, AllowedMentions, Embed, File, Message, Sticker, abc
+    from . import (
+        ActionRow,
+        AllowedMentions,
+        Component,
+        Embed,
+        File,
+        Message,
+        Sticker,
+        abc,
+    )
 
 __all__ = (
     'Webhook',
@@ -304,6 +313,7 @@ class Webhook:
             tts: bool,
             embeds: list[Embed],
             components: list[ActionRow] = MISSING,
+            componentsv2: list[Component] = MISSING,
             allowed_mentions: AllowedMentions,
             message_reference: Message,
             stickers: list[Sticker],
@@ -321,6 +331,7 @@ class Webhook:
             tts: bool,
             embeds: list[Embed],
             components: list[ActionRow] = MISSING,
+            componentsv2: list[Component] = MISSING,
             allowed_mentions: AllowedMentions,
             message_reference: Message,
             stickers: list[Sticker],
@@ -337,6 +348,7 @@ class Webhook:
             tts: bool = MISSING,
             embeds: list[Embed] = MISSING,
             components: list[ActionRow] = MISSING,
+            componentsv2: list[Component] = MISSING,
             allowed_mentions: AllowedMentions = MISSING,
             message_reference: Message = MISSING,
             stickers: list[Sticker] = MISSING,
@@ -360,6 +372,12 @@ class Webhook:
             The embeds you want added to the message.
         components : list[novus.ActionRow]
             The components that you want added to the message.
+        componentsv2 : list[novus.Component]
+            A list of components to be added to the message.
+
+            .. note:: When using components v2, you cannot use the ``content``, ``embeds``, and
+            ``components`` fields. The `MessageFlags.is_components_v2` flag will be automatically
+            added to your flags.
         allowed_mentions : novus.AllowedMentions
             The mentions you want parsed in the message.
         message_reference : novus.MessageReference
@@ -382,6 +400,11 @@ class Webhook:
             data["embeds"] = embeds
         if components is not MISSING:
             data["components"] = components
+        if componentsv2 is not MISSING:
+            data["components"] = componentsv2
+            if flags is MISSING:
+                flags = MessageFlags()
+            flags.is_components_v2 = True
         if allowed_mentions is not MISSING:
             data["allowed_mentions"] = allowed_mentions
         if message_reference is not MISSING:
@@ -398,6 +421,7 @@ class Webhook:
             self.token,
             wait=wait,
             thread_id=try_id(thread),
+            with_components=componentsv2 is not MISSING,
             **data,
         )
 

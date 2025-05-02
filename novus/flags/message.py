@@ -36,6 +36,10 @@ class MessageFlags(Flags):
         ephemeral: bool
         loading: bool
         failed_to_mention_some_roled_in_thread: bool
+        suppress_notifications: bool
+        is_voice_message: bool
+        has_snapshot: bool
+        is_components_v2: bool
 
     CREATE_FLAGS = {
         "crossposted": 1 << 0,
@@ -47,4 +51,8 @@ class MessageFlags(Flags):
         "ephemeral": 1 << 6,
         "loading": 1 << 7,
         "failed_to_mention_some_roled_in_thread": 1 << 8,
+        "suppress_notifications": 1 << 12,
+        "is_voice_message": 1 << 13,
+        "has_snapshot": 1 << 14,
+        "is_components_v2": 1 << 15,
     }
