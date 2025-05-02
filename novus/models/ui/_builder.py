@@ -22,6 +22,10 @@ from typing import TYPE_CHECKING
 from ...enums import ComponentType
 from .action_row import ActionRow
 from .button import Button
+from .container import Container
+from .file import FileComponent
+from .media_gallery import MediaGallery
+from .section import Section
 from .select_menu import (
     ChannelSelectMenu,
     MentionableSelectMenu,
@@ -29,7 +33,10 @@ from .select_menu import (
     StringSelectMenu,
     UserSelectMenu,
 )
+from .separator import Separator
+from .text_display import TextDisplay
 from .text_input import TextInput
+from .thumbnail import Thumbnail
 
 if TYPE_CHECKING:
     from ... import payloads
@@ -55,6 +62,20 @@ def component_builder(data: payloads.Component) -> Component:
             factory = MentionableSelectMenu
         case ComponentType.CHANNEL_SELECT:
             factory = ChannelSelectMenu
+        case ComponentType.TEXT_DISPLAY:
+            factory = TextDisplay
+        case ComponentType.THUMBNAIL:
+            factory = Thumbnail
+        case ComponentType.SEPARATOR:
+            factory = Separator
+        case ComponentType.FILE:
+            factory = FileComponent
+        case ComponentType.MEDIA_GALLERY:
+            factory = MediaGallery
+        case ComponentType.CONTAINER:
+            factory = Container
+        case ComponentType.SECTION:
+            factory = Section
         case _:
             raise ValueError()
     return factory._from_data(data)  # type: ignore

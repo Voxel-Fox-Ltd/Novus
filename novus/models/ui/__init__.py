@@ -34,7 +34,7 @@ __all__: tuple[str, ...] = (
     "ChannelSelectMenu",
     "Component",
     "Container",
-    "File",
+    "FileComponent",
     "InteractableComponent",
     "LayoutComponentHolder",
     "MediaGallery",

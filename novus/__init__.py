@@ -70,7 +70,7 @@ __all__: tuple[str, ...] = (
     "EventPrivacyLevel",
     "EventStatus",
     "File",
-    "File",
+    "FileComponent",
     "Forbidden",
     "ForumLayout",
     "ForumSortOrder",

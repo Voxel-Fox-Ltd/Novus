@@ -547,7 +547,6 @@ class HTTPConnection:
                         updated[updated_key] = item
                     else:
                         updated[updated_key] = item._to_data()
-
         return updated
 
     @classmethod

@@ -72,7 +72,7 @@ class Section(LayoutComponentHolder):
             self,
             *,
             components: Iterable[Component] = MISSING,
-            accessory: Component | None = MISSING,
+            accessory: Component,
             id: int | None = None):
         super().__init__(components)
         self.accessory = accessory
@@ -86,9 +86,8 @@ class Section(LayoutComponentHolder):
                 for i in self.components
                 if i is not None
             ],
+            "accessory": self.accessory._to_data()
         }
-        if self.accessory:
-            v["accessory"] = self.accessory._to_data()
         if self.id is not None:
             v["id"] = self.id
         return v

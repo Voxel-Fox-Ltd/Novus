@@ -72,7 +72,7 @@ __all__: tuple[str, ...] = (
     "Emoji",
     "Entitlement",
     "File",
-    "File",
+    "FileComponent",
     "ForumTag",
     "Guild",
     "GuildBan",

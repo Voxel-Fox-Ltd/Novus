@@ -707,7 +707,7 @@ class Interaction(Generic[IData]):
         if components is not MISSING:
             data["components"] = components
         if componentsv2 is not MISSING:
-            data["components"] = components
+            data["components"] = componentsv2
             if flags is MISSING:
                 flags = MessageFlags()
             flags.is_components_v2 = True

@@ -28,11 +28,11 @@ if TYPE_CHECKING:
     from ... import payloads
 
 __all__ = (
-    "File",
+    "FileComponent",
 )
 
 
-class File(Component):
+class FileComponent(Component):
     """
     An item for display inside of a media gallery component.
 

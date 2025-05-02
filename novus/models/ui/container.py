@@ -71,8 +71,8 @@ class Container(LayoutComponentHolder):
 
     def __init__(
             self,
-            *,
             components: Iterable[Component] = MISSING,
+            *,
             accent_color: int | None = None,
             spoiler: bool = False,
             id: int | None = None) -> None:
