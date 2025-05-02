@@ -76,7 +76,7 @@ class Separator(Component):
 
     def _to_data(self) -> payloads.Separator:
         data: payloads.Separator = {
-            "type": self.type.value,
+            "type": self.type,
             "divider": self.divider,
             "spacing": self.spacing,
         }
