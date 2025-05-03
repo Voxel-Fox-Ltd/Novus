@@ -370,14 +370,18 @@ class MessageComponentData(InteractionData):
             SelectOption._from_data(d)
             for d in data.get("values", [])
         ]
-        self.component = None  # pyright: ignore  # About to be sete again
+        self.component = None  # pyright: ignore  # About to be set again
         assert self.parent.message
         for i in walk_components(self.parent.message.components):
-            if i.custom_id == self.custom_id:
-                self.component = i
-                break
+            try:
+                if i.custom_id == self.custom_id:
+                    self.component = i
+                    break
+            except AttributeError:
+                pass  # no custom ID for the component
         if self.component is None:
-            raise ValueError("Missing component from interactable component")
+            # raise ValueError("Missing component from interactable component")
+            pass
 
     __repr__ = generate_repr(('component',))
 

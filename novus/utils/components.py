@@ -21,16 +21,19 @@ from collections.abc import Generator
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..models import ActionRow, InteractableComponent
+    from ..models import InteractableComponent, LayoutComponentHolder
 
 __all__ = (
     'walk_components',
 )
 
 
-def walk_components(rows: list[ActionRow] | None) -> Generator[InteractableComponent, None, None]:
-    if rows is None:
+def walk_components(holders: list[LayoutComponentHolder] | None) -> Generator[InteractableComponent, None, None]:
+    if holders is None:
         return
-    for row in rows:
-        for c in row:
-            yield c
+    for actionrow in holders:
+        for component in actionrow:
+            if hasattr(component, "custom_id"):
+                yield component  # pyright: ignore
+            if hasattr(component, "components"):
+                yield from walk_components([component])  # pyright: ignore
