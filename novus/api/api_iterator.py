@@ -80,6 +80,8 @@ class APIIterator(Generic[T]):
             )
 
             # Work out our new startpoint
+            if not items:
+                return  # We got nothing back
             before = items[-1].id  # type: ignore
 
             # Yield our just-given items
