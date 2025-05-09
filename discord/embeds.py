@@ -378,21 +378,6 @@ class Embed:
 
         return self
 
-    @property
-    def image(self) -> _EmbedMediaProxy:
-        """Returns an ``EmbedProxy`` denoting the image contents.
-
-        Possible attributes you can access are:
-
-        - ``url``
-        - ``proxy_url``
-        - ``width``
-        - ``height``
-
-        If the attribute has no value then :attr:`Empty` is returned.
-        """
-        return EmbedProxy(getattr(self, '_image', {}))  # type: ignore
-
     def set_image(self: E, *, url: MaybeEmpty[Any]) -> E:
         """Sets the image for the embed content.
 
@@ -416,6 +401,25 @@ class Embed:
             }
 
         return self
+    
+    @property
+    def image(self) -> _EmbedMediaProxy:
+        """Returns an ``EmbedProxy`` denoting the image contents.
+
+        Possible attributes you can access are:
+
+        - ``url``
+        - ``proxy_url``
+        - ``width``
+        - ``height``
+
+        If the attribute has no value then :attr:`Empty` is returned.
+        """
+        return EmbedProxy(getattr(self, '_image', {}))  # type: ignore
+
+    @image.setter
+    def image(self, value):
+        self.set_image(url = value)
 
     def remove_image(self: E) -> E:
         """Remove the image from the embed.
