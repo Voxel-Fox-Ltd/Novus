@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import logging
+import os
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Any, overload
 
@@ -65,7 +66,7 @@ class APICache:
         self.emojis: dict[int, Emoji] = {}
         self.stickers: dict[int, Sticker] = {}
         self.events: dict[int, ScheduledEvent] = {}
-        self.messages: dict[int, Message] = MaxLenDict(max_size=1_000)
+        self.messages: dict[int, Message] = MaxLenDict(max_size=int(os.getenv("NOVUS_MESSAGE_CACHE_SIZE", 2_000)))
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} " + (
