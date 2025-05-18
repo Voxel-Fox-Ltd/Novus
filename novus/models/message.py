@@ -354,7 +354,7 @@ class Message(Hashable):
             ActionRow._from_data(d)
             for d in data.get("components", [])
         ]
-        self.sticker_items = [
+        self.stickers = [
             Sticker(state=self.state, data=d)
             for d in data.get("sticker_items", [])
         ]
