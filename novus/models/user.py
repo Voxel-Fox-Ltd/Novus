@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from . import Channel, GuildMember, OauthGuild
 
 __all__ = (
-    'User',
+    "User",
 )
 
 
@@ -95,29 +95,30 @@ class User(Hashable, Messageable):
     """
 
     __slots__ = (
-        'state',
-        'id',
-        'username',
-        'global_name',
-        'discriminator',
-        'avatar_hash',
-        'bot',
-        'system',
-        'mfa_enabled',
-        'banner_hash',
-        'accent_color',
-        'locale',
-        'verified',
-        'email',
-        'flags',
-        'premium_type',
-        'status',
-        'activites',
-        '_cs_avatar',
-        '_cs_default_avatar',
-        '_cs_banner',
-        '_guilds',
-        '_dm_channel',
+        "state",
+        "id",
+        "username",
+        "global_name",
+        "discriminator",
+        "avatar_hash",
+        "bot",
+        "system",
+        "mfa_enabled",
+        "banner_hash",
+        "accent_color",
+        "locale",
+        "verified",
+        "voice",
+        "email",
+        "flags",
+        "premium_type",
+        "status",
+        "activites",
+        "_cs_avatar",
+        "_cs_default_avatar",
+        "_cs_banner",
+        "_guilds",
+        "_dm_channel",
     )
 
     def __init__(
@@ -208,6 +209,7 @@ class User(Hashable, Messageable):
         self.premium_type = data.get('premium_type', 0)
         self.status = Status.ONLINE
         self.activites: list[Activity] = []
+
         return self
 
     def _update_presence(self, data: payloads.Presence) -> Self:

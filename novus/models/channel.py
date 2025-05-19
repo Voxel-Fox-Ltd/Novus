@@ -186,44 +186,44 @@ class Channel(Hashable, Messageable):
     """
 
     __slots__ = (
-        'state',
-        'id',
-        'type',
-        'guild_id',
-        'position',
-        'overwrites',
-        'name',
-        'topic',
-        'nsfw',
-        'last_message_id',
-        'bitrate',
-        'user_limit',
-        'rate_limit_per_user',
-        'parent_id',
-        'last_pin_timestamp',
-        'rtc_region',
-        'video_quality_mode',
-        'message_count',
-        'member_count',
-        'archived',
-        'auto_archive_duration',
-        'archive_timestsamp',
-        'locked',
-        'invitable',
-        'create_timestamp',
-        'default_auto_archive_duration',
-        'flags',
-        'total_messages_sent',
-        'available_tags',
-        'applied_tags',
-        'default_reaction_emoji',
-        'default_thread_rate_limit_per_user',
-        'default_sort_order',
-        'default_forum_layout',
-        '_cs_parent',
-        '_cs_guild',
-        '_members',
-        '_channels',
+        "state",
+        "id",
+        "type",
+        "guild_id",
+        "position",
+        "overwrites",
+        "name",
+        "topic",
+        "nsfw",
+        "last_message_id",
+        "bitrate",
+        "user_limit",
+        "rate_limit_per_user",
+        "parent_id",
+        "last_pin_timestamp",
+        "rtc_region",
+        "video_quality_mode",
+        "message_count",
+        "member_count",
+        "archived",
+        "auto_archive_duration",
+        "archive_timestsamp",
+        "locked",
+        "invitable",
+        "create_timestamp",
+        "default_auto_archive_duration",
+        "flags",
+        "total_messages_sent",
+        "available_tags",
+        "applied_tags",
+        "default_reaction_emoji",
+        "default_thread_rate_limit_per_user",
+        "default_sort_order",
+        "default_forum_layout",
+        "_cs_parent",
+        "_cs_guild",
+        "_members",
+        "_channels",
     )
 
     id: int
@@ -272,6 +272,7 @@ class Channel(Hashable, Messageable):
     default_thread_rate_limit_per_user: int | None
     default_sort_order: int | None
     default_forum_layout: int | None
+    status: str | None
 
     def __init__(
             self,
@@ -288,6 +289,7 @@ class Channel(Hashable, Messageable):
         )
         self._members: dict[int, ThreadMember] = {}
         self._channels: dict[int, Channel] = {}
+        self.status = None
         self._update(data)
 
     __repr__ = generate_repr(('id',))
@@ -378,6 +380,10 @@ class Channel(Hashable, Messageable):
         self.default_sort_order = int(dso) if dso is not None else None
         dfl = data.get("default_forum_layout")
         self.default_forum_layout = int(dfl) if dfl is not None else None
+        return self
+
+    def _update_voice_channel_status(self, data: payloads.VoiceChannelStatusUpdate) -> Self:
+        self.status = data["status"]
         return self
 
     @property

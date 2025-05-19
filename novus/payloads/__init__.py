@@ -138,6 +138,7 @@ __all__: tuple[str, ...] = (
     "UnfurledMediaItem",
     "User",
     "UserConnection",
+    "VoiceChannelStatusUpdate",
     "VoiceRegion",
     "VoiceState",
     "Webhook",

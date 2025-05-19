@@ -84,10 +84,10 @@ class UserHTTPConnection:
         post_data = self.parent._get_kwargs(
             {
                 "type": (
-                    'username',
+                    "username",
                 ),
                 "image": (
-                    'avatar',
+                    "avatar",
                 ),
             },
             kwargs,
@@ -117,11 +117,11 @@ class UserHTTPConnection:
 
         params: dict[str, Any] = {}
         if before is not None:
-            params['before'] = before
+            params["before"] = before
         if after is not None:
-            params['after'] = after
+            params["after"] = after
         if limit is not None:
-            params['limit'] = limit
+            params["limit"] = limit
 
         route = Route(
             "GET",

@@ -135,6 +135,7 @@ class GatewayDispatch:
             "TYPING_START": self._handle_typing,
             # "User update": None,
             "VOICE_STATE_UPDATE": self._handle_voice_state,
+            "VOICE_CHANNEL_STATUS_UPDATE": self._handle_voice_channel_status_update,
             # "Voice server update": None,
             # "Webhooks update": None,
         }
@@ -184,7 +185,7 @@ class GatewayDispatch:
                 % (event_name, dump(data))
             )
         else:
-            await coro(data)
+            await coro(data)  # type: ignore
 
     @staticmethod
     def ignore(event_name: str) -> Callable[..., Any]:
@@ -868,3 +869,13 @@ class GatewayDispatch:
         """Handle audit log entry events."""
 
         self.dispatch("AUDIT_LOG_ENTRY", AuditLogEntry(data=data, log=None))
+
+    async def _handle_voice_channel_status_update(
+            self,
+            data: payloads.VoiceChannelStatusUpdate) -> None:
+        """Handle voice channel status update. Generally pretty useless."""
+
+        channel = self.cache.get_channel(data["id"])
+        if channel is None:
+            return  # There's nothing to cache a new channel from
+        channel._update_voice_channel_status(data)

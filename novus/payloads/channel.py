@@ -24,12 +24,13 @@ if TYPE_CHECKING:
     from .user import GuildMember, User
 
 __all__ = (
-    'Channel',
-    'ChannelOverwrite',
-    'ThreadMetadata',
-    'ThreadMember',
-    'ForumDefaultReaction',
-    'ForumTag',
+    "Channel",
+    "ChannelOverwrite",
+    "ThreadMetadata",
+    "ThreadMember",
+    "ForumDefaultReaction",
+    "ForumTag",
+    "VoiceChannelStatusUpdate",
 )
 
 
@@ -114,3 +115,9 @@ class _ChannelOptional(TypedDict, total=False):
 class Channel(_ChannelOptional):
     id: Snowflake
     type: int
+
+
+class VoiceChannelStatusUpdate(TypedDict):
+    status: str | None
+    id: Snowflake
+    guild_id: Snowflake

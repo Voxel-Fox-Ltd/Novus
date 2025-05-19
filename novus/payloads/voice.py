@@ -44,7 +44,7 @@ class _VoiceStateOptional(TypedDict, total=False):
 
 
 class VoiceState(_VoiceStateOptional):
-    channel_id: Optional[Snowflake]
+    channel_id: Snowflake | None
     user_id: Snowflake
     session_id: str
     deaf: bool
@@ -53,4 +53,4 @@ class VoiceState(_VoiceStateOptional):
     self_mute: bool
     self_video: bool
     suppress: bool
-    request_to_speak_timestamp: Optional[Timestamp]
+    request_to_speak_timestamp: Timestamp | None

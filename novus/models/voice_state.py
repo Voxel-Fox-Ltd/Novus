@@ -84,7 +84,7 @@ class VoiceState(Hashable):
         if guild_id:
             self._guild_id = guild_id
         else:
-            self._guild_id = data["guild_id"]
+            self._guild_id = data.get("guild_id")
         self._update(data)
 
     __repr__ = generate_repr((
@@ -94,20 +94,27 @@ class VoiceState(Hashable):
     ))
 
     @property
-    def channel(self) -> Channel:
+    def channel(self) -> Channel | None:
         return self.state.cache.get_channel(self._channel_id)
 
     @property
-    def guild(self) -> Guild:
+    def guild(self) -> Guild | None:
         return self.state.cache.get_guild(self._guild_id)
 
     @property
-    def user(self) -> GuildMember:
-        return self.guild.get_member(self._user_id)
+    def user(self) -> GuildMember | None:
+        guild = self.guild
+        if guild is None:
+            return None
+        v = guild.get_member(self._user_id)
+        if v is not None:
+            return v
+        return None
 
     def _update(self, data: payloads.VoiceState) -> Self:
         if "member" in data:
-            self.user._update(data["member"])
+            if self.user is not None:
+                self.user._update(data["member"])
         self._channel_id = data["channel_id"]
         self.suppress = data.get("suppress", False)
         self.self_video = data.get("self_video", False)
@@ -116,5 +123,6 @@ class VoiceState(Hashable):
         self.request_to_speak_timestamp = parse_timestamp(data.get("request_to_speak_timestamp"))
         self.mute = data.get("mute", False)
         self.deaf = data.get("deaf", False)
-        self.guild._add_voice_state(self)
+        if self.guild:
+            self.guild._add_voice_state(self)
         return self

@@ -43,8 +43,8 @@ if TYPE_CHECKING:
     from .voice_state import VoiceState
 
 __all__ = (
-    'GuildMember',
-    'ThreadMember',
+    "GuildMember",
+    "ThreadMember",
 )
 
 
@@ -245,9 +245,9 @@ class GuildMember(Hashable, Messageable):
         self.role_ids = try_snowflake(data["roles"])
         self.joined_at = parse_timestamp(data["joined_at"])
         self.premium_since = parse_timestamp(data.get("premium_since"))
-        self.deaf = data.get('deaf', False)
-        self.mute = data.get('mute', False)
-        self.pending = data.get('pending', False)
+        self.deaf = data.get("deaf", False)
+        self.mute = data.get("mute", False)
+        self.pending = data.get("pending", False)
         self._permissions = None
         if "permissions" in data:
             self._permissions = Permissions(int(data["permissions"]))
