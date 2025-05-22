@@ -35,6 +35,10 @@ if TYPE_CHECKING:
 
 __all__ = (
     "User",
+    "Activity",
+    "Collectibles",
+    "Nameplate",
+    "PrimaryGuild",
 )
 
 
@@ -92,6 +96,10 @@ class User(Hashable, Messageable):
         .. seealso:: `novus.Status`
     activities : list[novus.Activity]
         The activites of the user.
+    collectibles : novus.Collectibles
+        The collectibles that the user has.
+    primary_guild : novus.PrimaryGuild | None
+        The primary guild of the user. Shown as a guild tag on the user's profile.
     """
 
     __slots__ = (
@@ -114,6 +122,8 @@ class User(Hashable, Messageable):
         "premium_type",
         "status",
         "activites",
+        "collectibles",
+        "primary_guild",
         "_cs_avatar",
         "_cs_default_avatar",
         "_cs_banner",
@@ -209,6 +219,8 @@ class User(Hashable, Messageable):
         self.premium_type = data.get('premium_type', 0)
         self.status = Status.ONLINE
         self.activites: list[Activity] = []
+        self.collectibles = Collectibles(data.get("collectibles") or {})
+        self.primary_guild = data.get("primary_guild")
 
         return self
 
@@ -340,3 +352,100 @@ class Activity:
         self.name = data["name"]
         self.type = data["type"]
         self.created_at = DiscordDatetime.fromtimestamp(data["created_at"] / 1_000)
+
+
+class Collectibles:
+    """
+    A collection of the collectibles that a user has.
+
+    Attributes
+    ----------
+    nameplate : novus.Nameplate | None
+        The user's nameplate.
+    """
+
+    __slots__ = (
+        "nameplate",
+    )
+
+    def __init__(self, data: payloads.Collectibles):
+        self.nameplate = None
+        if "nameplate" in data:
+            self.nameplate = Nameplate(data["nameplate"])
+
+
+class Nameplate:
+    """
+    A nameplate decoration for a user.
+
+    Attributes
+    ----------
+    sku_id: int
+        The SKU ID associated with the nameplate.
+    asset_hash: str
+        The asset hash associated with the nameplate.
+    asset : novus.Asset
+        The asset associated with the nameplate.
+    label: str
+        The label associated with the nameplate.
+    palette: str
+        The palette associated with the nameplate.
+    """
+
+    __slots__ = (
+        "sku_id",
+        "asset_hash",
+        "label",
+        "palette",
+        "_cs_asset",
+    )
+
+    def __init__(self, data: payloads.Nameplate):
+        self.sku_id = try_snowflake(data["sku_id"])
+        self.asset_hash = data["asset"]
+        self.label = data["label"]
+        self.palette = data["palette"]
+        self._cs_asset: Asset | None = None
+
+    @cached_slot_property("_cs_asset")
+    def asset(self) -> Asset | None:
+        if self.asset_hash is None:
+            return None
+        return Asset.from_nameplate(self)
+
+
+class PrimaryGuild:
+    """
+    The primary guild for a user.
+
+    Attributes
+    ----------
+    identity_guild_id: int
+        The ID of the primary guild.
+    identity_enabled: bool
+        Whether or not the user's primary guild is enabled.
+    tag: str
+        The tag associated with the primary guild.
+    badge_hash: str
+        The hash associated with the primary guild badge.
+    badge: novus.Asset
+        The asset associated with the primary guild badge.
+    """
+
+    __slots__ = (
+        "identity_guild_id",
+        "identity_enabled",
+        "tag",
+        "badge_hash",
+        "_cs_badge",
+    )
+
+    def __init__(self, data: payloads.PrimaryGuild):
+        self.identity_guild_id = try_snowflake(data["identity_guild_id"])
+        self.identity_enabled = data["identity_enabled"]
+        self.tag = data["tag"]
+        self.badge_hash = data["badge"]
+
+    @cached_slot_property("_cs_badge")
+    def badge(self) -> Asset | None:
+        return Asset.from_primary_guild(self)

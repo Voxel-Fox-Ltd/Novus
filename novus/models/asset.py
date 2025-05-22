@@ -40,6 +40,8 @@ if TYPE_CHECKING:
         Sticker,
         Team,
         User,
+        Nameplate,
+        PrimaryGuild,
         Webhook,
     )
 
@@ -177,3 +179,11 @@ class Asset:
     @classmethod
     def from_team(cls, team: Team) -> Self:
         return cls(f"/team-icons/{team.id}/{team.icon_hash}.png")
+
+    @classmethod
+    def from_nameplate(cls, team: Nameplate) -> Self:
+        return cls(f"/assets/collectibles/{team.asset_hash}/asset.webm")
+
+    @classmethod
+    def from_primary_guild(cls, primary: PrimaryGuild) -> Self:
+        return cls(f"/clan-badges/{primary.identity_guild_id}/{primary.badge_hash}.png")

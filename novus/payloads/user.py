@@ -30,15 +30,18 @@ if TYPE_CHECKING:
     from .guild import Integration
 
 __all__ = (
-    'PartialUser',
-    'User',
-    'GuildMember',
-    'GuildMemberRemove',
-    'UserConnection',
-    'ApplicationRoleConnectionMetadata',
-    'ApplicationRoleConnection',
-    'Activity',
-    'Presence',
+    "PartialUser",
+    "User",
+    "GuildMember",
+    "GuildMemberRemove",
+    "UserConnection",
+    "ApplicationRoleConnectionMetadata",
+    "ApplicationRoleConnection",
+    "Activity",
+    "Presence",
+    "Collectibles",
+    "Nameplate",
+    "PrimaryGuild",
 )
 
 
@@ -62,6 +65,8 @@ class _UserOptional(TypedDict, total=False):
     flags: int
     premium_type: Literal[0, 1, 2, 3]
     public_flags: int
+    collectibles: Optional[Collectibles]
+    primary_guild: Optional[PrimaryGuild]
 
 
 class User(_UserOptional):
@@ -177,3 +182,21 @@ class Presence(TypedDict):
     guild_id: Snowflake
     status: Literal["idle", "dnd", "online", "offline"]
     activities: list[Activity]
+
+
+class Collectibles(TypedDict):
+    nameplate: NotRequired[Nameplate]
+
+
+class Nameplate(TypedDict):
+    sku_id: Snowflake
+    asset: str
+    label: str
+    palette: str
+
+
+class PrimaryGuild(TypedDict):
+    identity_guild_id: Snowflake
+    identity_enabled: bool
+    tag: str
+    badge: str

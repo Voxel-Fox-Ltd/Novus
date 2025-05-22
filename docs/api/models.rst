@@ -133,6 +133,15 @@ yourself, but should all be given to you by library or API methods.
     :members:
     :inherited-members:
     :no-special-members:
+.. autoclass:: Collectibles
+    :members:
+    :no-special-members:
+.. autoclass:: Nameplate
+    :members:
+    :no-special-members:
+.. autoclass:: PrimaryGuild
+    :members:
+    :no-special-members:
 .. autoclass:: VoiceState
     :members:
     :inherited-members:
