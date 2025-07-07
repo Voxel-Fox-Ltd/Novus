@@ -702,7 +702,7 @@ class Client:
             from novus.api._route import Route
             if Route.WS_BASE == "":
                 Route.WS_BASE = ws_url
-                log.info("Set websocket connect URL to %s", concurrency)
+                log.info("Set websocket connect URL to %s", ws_url)
             else:
                 log.info("Ignored websocket connect URL in /gateway/bot due to ENV change")
         log.info("Connecting to gateway")
@@ -796,7 +796,7 @@ class Client:
         try:
             if sync:
                 await self.sync_commands()
-            await self.connect(check_concurrency=True, sleep=True)
+            await self.connect(check_concurrency=True, sleep=False)
             try:
                 await self.state.gateway.wait()
             except asyncio.CancelledError:

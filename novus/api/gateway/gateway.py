@@ -167,7 +167,9 @@ class GatewayConnection:
             self.shards[i] = gs
 
         # Wait for shards to connect
-        log.info("Opening gateway connection with %s shards (IDs %s)", len(self.shards), shard_ids)
+        log.info(
+            "Opening gateway connection with %s shards (IDs %s) and count %s",
+            len(self.shards), shard_ids, shard_count)
         await asyncio.gather(*(i.connect(sleep=sleep) for i in self.shards.values()))
 
     async def wait(self) -> None:
