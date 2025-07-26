@@ -19,6 +19,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, NoReturn
 
+from aiohttp import FormData, MultipartWriter
+
 from ..models import ApplicationCommand
 from ._route import Route
 from .webhook import WebhookHTTPConnection
@@ -522,8 +524,20 @@ class InteractionHTTPConnection:
         )
         to_write = data["data"]
         writer.headers.update(data["headers"])
-        await writer.prepare(request)
-        await writer.write(to_write)
+        if isinstance(to_write, FormData):
+            mpwriter = MultipartWriter("form-data")
+            for f in to_write._fields:
+                payload = f[1]
+                name = f[0]
+                part = mpwriter.append(payload)
+                if payload.filename:
+                    part.set_content_disposition("form-data", name=name, filename=payload.filename)
+                else:
+                    part.set_content_disposition("form-data", name=name)
+            await mpwriter.write(request)
+        else:
+            await writer.prepare(request)
+            await writer.write(to_write)
         await writer.write_eof()
 
     async def get_original_interaction_response(
