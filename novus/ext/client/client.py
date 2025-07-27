@@ -53,6 +53,22 @@ log = logging.getLogger("novus.ext.client")
 IMPORTED_PLUGIN_MODULES: dict[str, ModuleType] = {}
 
 
+class LoggingResponse(web.StreamResponse):
+    """
+    A StreamResponse that logs anything written to it.
+    """
+
+    log = logging.getLogger("novus.ext.client.response")
+
+    async def write(self, data: bytes) -> None:
+        self.log.debug("Writing chunk %s", data)
+        await super().write(data)
+
+    async def write_eof(self, data: bytes = b"") -> None:
+        self.log.debug("Writing EOF")
+        await super().write_eof(data)
+
+
 class Client:
     """
     A gateway and API connection into Discord.
@@ -747,7 +763,7 @@ class Client:
             if data["type"] == n.InteractionType.PING:
                 return web.json_response({"type": 1})
             interaction = n.Interaction(state=self.state, data=data)
-            stream = web.StreamResponse()
+            stream = LoggingResponse()
             interaction._stream = stream
             interaction._stream_request = request
             self.dispatch("INTERACTION_CREATE", interaction)
