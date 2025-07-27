@@ -20,6 +20,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, NoReturn
 
 from aiohttp import FormData, MultipartWriter
+from aiohttp.payload import get_payload
 
 from ..models import ApplicationCommand
 from ._route import Route
@@ -526,15 +527,23 @@ class InteractionHTTPConnection:
         writer.headers.update(data["headers"])
         if isinstance(to_write, FormData):
             mpwriter = MultipartWriter("form-data")
-            for f in to_write._fields:
-                payload = f[1]
-                name = f[0]
+            for field in to_write._fields:
+                name, value, meta = field
+                if not isinstance(meta, dict):
+                    value = meta
+                    meta = {}
+                name = str(name)
+                payload = get_payload(value, **meta)
                 part = mpwriter.append(payload)
-                if payload.filename:
-                    part.set_content_disposition("form-data", name=name, filename=payload.filename)
+                if "filename" in meta:
+                    part.set_content_disposition(
+                        "form-data", name=name, filename=str(meta["filename"])
+                    )
                 else:
                     part.set_content_disposition("form-data", name=name)
-            await mpwriter.write(request)
+            writer.headers.update(mpwriter.headers)
+            await writer.prepare(request)
+            await mpwriter.write(writer)
         else:
             await writer.prepare(request)
             await writer.write(to_write)
