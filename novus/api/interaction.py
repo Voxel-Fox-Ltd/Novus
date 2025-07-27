@@ -31,7 +31,7 @@ from .webhook import WebhookHTTPConnection
 if TYPE_CHECKING:
     from aiohttp import web
 
-    from .. import WebhookMessage, payloads
+    from .. import WebhookMessage, payloads, File
     from ._http import HTTPConnection
 
 __all__ = (
@@ -527,36 +527,44 @@ class InteractionHTTPConnection:
         data = self.parent.request_params(
             data=post_data,
             files=files,
+            nested_attachments=True,
         )
         to_write = data["data"]
         writer.headers.update(data["headers"])
+
+        # We need to convert FormData (a "send" type) to a MultipartWriter (a "write" type)
         if isinstance(to_write, FormData):
             mpwriter = MultipartWriter("form-data")
+
+            # Read the fields in the formdata
             for field in to_write._fields:
-                if len(field) == 3:
-                    name, value, meta = field
-                elif len(field) == 2:
-                    name, value = field
-                    meta = {}
-                else:
-                    raise TypeError("Invalid field length: %s" % len(field))
-                log.info("Adding field %s with value %s and meta %s", name, value, meta)
+
+                # Unpack and validate
+                name, value, meta = field
                 if not isinstance(meta, (dict, MultiDict)):
                     value = meta
                     meta = {}
+
+                # Make up the payload
                 payload = get_payload(value, **meta)
                 part = mpwriter.append(payload)
-                disposition_args = {"name": str(meta.get("name", name))}
-                if "filename" in meta:
-                    disposition_args["filename"] = str(meta["filename"])
+
+                # Make up the content disposition
+                disposition_args = {"name": name.get("name")}
+                if "filename" in name:
+                    disposition_args["filename"] = str(name["filename"])
+                log.info("Adding field %s with value %s and meta %s", name, value, meta)
+                log.info("Disposition args: %s", disposition_args)
                 part.set_content_disposition("form-data", **disposition_args)
-                log.info("Added part: %s", part)
+
             writer.headers.update(mpwriter.headers)
             await writer.prepare(request)
             await mpwriter.write(writer)
+
         else:
             await writer.prepare(request)
             await writer.write(to_write)
+
         await writer.write_eof()
 
     async def get_original_interaction_response(

@@ -211,9 +211,26 @@ class HTTPConnection:
             data: dict | list | None = None,
             files: list[File] | None = None,
             multipart: bool = False,
-            form: bool = False) -> RequestData:
+            form: bool = False,
+            nested_attachments: bool = False) -> RequestData:
         """
         Take parameters and return the corresponding web request response.
+
+        Parameters
+        ----------
+        reason : str | None
+            The reason to be added to the audit log.
+        data : dict | list | None
+            The JSON payload to be sent to Discord.
+        files : list[novus.File] | None
+            The files to be sent to Discord.
+        multipart : bool
+            Whether to send the request as multipart/form-data.
+        form : bool
+            Whether to send the request as application/x-www-form-urlencoded.
+        nested_attachments : bool
+            Whether or not attachments should be nested into the ``data`` (ie if ``data`` is
+            a container for an interaction response).
         """
 
         # Set headers
@@ -251,7 +268,10 @@ class HTTPConnection:
 
             # Add json
             if isinstance(data, dict):
-                data["attachments"] = attachments
+                if nested_attachments:
+                    data["data"]["attachments"] = attachments
+                else:
+                    data["attachments"] = attachments
             writer_form.append({
                 "name": "payload_json",
                 "value": json.dumps(data, cls=NovusJSONEncoder),
