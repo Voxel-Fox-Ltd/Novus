@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING, Any, NoReturn
 
 from aiohttp import FormData, MultipartWriter
@@ -36,6 +37,9 @@ if TYPE_CHECKING:
 __all__ = (
     "InteractionHTTPConnection",
 )
+
+
+log = logging.getLogger("novus.api.interaction")
 
 
 class InteractionHTTPConnection:
@@ -536,6 +540,7 @@ class InteractionHTTPConnection:
                     meta = {}
                 else:
                     raise TypeError("Invalid field length: %s" % len(field))
+                log.info("Adding field %s with value %s and meta %s", name, value, meta)
                 if not isinstance(meta, (dict, MultiDict)):
                     value = meta
                     meta = {}
@@ -545,6 +550,7 @@ class InteractionHTTPConnection:
                 if "filename" in meta:
                     disposition_args["filename"] = str(meta["filename"])
                 part.set_content_disposition("form-data", **disposition_args)
+                log.info("Added part: %s", part)
             writer.headers.update(mpwriter.headers)
             await writer.prepare(request)
             await mpwriter.write(writer)
