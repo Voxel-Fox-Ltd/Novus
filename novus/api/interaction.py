@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any, NoReturn
 
 from aiohttp import FormData, MultipartWriter
 from aiohttp.payload import get_payload
+from multidict import MultiDict
 
 from ..models import ApplicationCommand
 from ._route import Route
@@ -33,7 +34,7 @@ if TYPE_CHECKING:
     from ._http import HTTPConnection
 
 __all__ = (
-    'InteractionHTTPConnection',
+    "InteractionHTTPConnection",
 )
 
 
@@ -528,19 +529,22 @@ class InteractionHTTPConnection:
         if isinstance(to_write, FormData):
             mpwriter = MultipartWriter("form-data")
             for field in to_write._fields:
-                name, value, meta = field
-                if not isinstance(meta, dict):
+                if len(field) == 3:
+                    name, value, meta = field
+                elif len(field) == 2:
+                    name, value = field
+                    meta = {}
+                else:
+                    raise TypeError("Invalid field length: %s" % len(field))
+                if not isinstance(meta, (dict, MultiDict)):
                     value = meta
                     meta = {}
-                name = str(name)
                 payload = get_payload(value, **meta)
                 part = mpwriter.append(payload)
+                disposition_args = {"name": str(meta.get("name", name))}
                 if "filename" in meta:
-                    part.set_content_disposition(
-                        "form-data", name=name, filename=str(meta["filename"])
-                    )
-                else:
-                    part.set_content_disposition("form-data", name=name)
+                    disposition_args["filename"] = str(meta["filename"])
+                part.set_content_disposition("form-data", **disposition_args)
             writer.headers.update(mpwriter.headers)
             await writer.prepare(request)
             await mpwriter.write(writer)
