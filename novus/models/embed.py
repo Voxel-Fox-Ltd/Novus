@@ -231,6 +231,18 @@ class Embed:
         self._author: EmbedAuthor | None = None
         self._fields: list[EmbedField] = []
 
+    def copy(self) -> Self:
+        """
+        Create a copy of the embed.
+
+        Returns
+        -------
+        novus.Embed
+            The copied embed.
+        """
+
+        return self.__class__._from_data(self._to_data())
+
     def _to_data(self) -> EmbedPayload:
         v: EmbedPayload = {}
         if self.title is not None:
