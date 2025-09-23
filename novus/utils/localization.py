@@ -18,7 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import gettext
-from typing import TYPE_CHECKING, Any, Generator, Literal
+from typing import TYPE_CHECKING, Any, Generator, Literal, overload
 
 from typing_extensions import Self
 
@@ -112,7 +112,7 @@ class Localization:
         else:
             self.localizations[key] = value
 
-    def items(self) -> Generator[tuple[str, str]]:
+    def items(self) -> Generator[tuple[str, str], None, None]:
         yield from self.localizations.items()
 
     def _to_data(self) -> dict[str, str]:
@@ -207,20 +207,39 @@ class TranslatedString:
     def __str__(self) -> str:
         return self.translate(self.original, self.languages)
 
+    @overload
     @staticmethod
     def translate(
             text: str,
             languages: list[str] | None,
-            fallback: bool = True) -> str:
+            fallback: Literal[True] = ...) -> str:
+        ...
+
+    @overload
+    @staticmethod
+    def translate(
+            text: str,
+            languages: list[str] | None,
+            fallback: Literal[False] = ...) -> str | None:
+        ...
+
+    @staticmethod
+    def translate(
+            text: str,
+            languages: list[str] | None,
+            fallback: bool = True) -> str | None:
         try:
-            return gettext.translation(
+            v = gettext.translation(
                 domain="main",
                 localedir="./locales",
                 languages=languages,
                 fallback=fallback,
             ).gettext(text)
+            if v == text and not fallback:
+                return None
+            return v
         except OSError:
-            return ""
+            return None
 
 
 class PluralTranslatedString(TranslatedString):
