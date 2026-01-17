@@ -751,6 +751,20 @@ class BaseGuild:
         roles = await self.state.guild.get_guild_roles(self.id)
         return roles
 
+    async def fetch_role_counts(
+            self: abc.StateSnowflake) -> dict[int, int]:
+        """
+        Get a mapping of role IDs to the number of members that have that role.
+
+        Returns
+        -------
+        dict[int, int]
+            A mapping of role IDs to member counts.
+        """
+
+        role_counts = await self.state.guild.get_guild_role_member_counts(self.id)
+        return role_counts
+
     async def create_role(
             self: abc.StateSnowflake,
             *,

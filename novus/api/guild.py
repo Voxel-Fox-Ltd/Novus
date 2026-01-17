@@ -631,6 +631,21 @@ class GuildHTTPConnection:
             for d in data
         ]
 
+    async def get_guild_role_member_counts(self, guild_id: int) -> dict[int, int]:
+        """
+        Get a dict of role_id: member_count for every role in the guild (minus the everyone role).
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/roles/member-counts",
+            guild_id=guild_id,
+        )
+        data: dict[str, int] = await self.parent.request(
+            route,
+        )
+        return {int(role_id): count for role_id, count in data.items()}
+
     async def create_guild_role(
             self,
             guild_id: int,
