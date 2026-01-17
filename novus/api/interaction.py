@@ -31,7 +31,7 @@ from .webhook import WebhookHTTPConnection
 if TYPE_CHECKING:
     from aiohttp import web
 
-    from .. import WebhookMessage, payloads, File
+    from .. import File, WebhookMessage, payloads
     from ._http import HTTPConnection
 
 __all__ = (
@@ -553,8 +553,8 @@ class InteractionHTTPConnection:
                 disposition_args = {"name": name.get("name")}
                 if "filename" in name:
                     disposition_args["filename"] = str(name["filename"])
-                log.info("Adding field %s with value %s and meta %s", name, value, meta)
-                log.info("Disposition args: %s", disposition_args)
+                log.debug("Adding field %s with value %s and meta %s", name, value, meta)
+                log.debug("Disposition args: %s", disposition_args)
                 part.set_content_disposition("form-data", **disposition_args)
 
             writer.headers.update(mpwriter.headers)

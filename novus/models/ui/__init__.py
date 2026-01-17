@@ -42,7 +42,6 @@ __all__: tuple[str, ...] = (
     "MentionableSelectMenu",
     "RoleSelectMenu",
     "Section",
-    "Section",
     "SelectOption",
     "Separator",
     "StringSelectMenu",

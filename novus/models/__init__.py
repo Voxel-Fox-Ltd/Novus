@@ -111,7 +111,6 @@ __all__: tuple[str, ...] = (
     "SKU",
     "ScheduledEvent",
     "Section",
-    "Section",
     "SelectOption",
     "Separator",
     "StageInstance",
