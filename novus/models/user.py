@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import functools
+import logging
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from typing_extensions import Self
@@ -371,7 +372,14 @@ class Collectibles:
     def __init__(self, data: payloads.Collectibles):
         self.nameplate = None
         if "nameplate" in data:
-            self.nameplate = Nameplate(data["nameplate"])
+            try:
+                self.nameplate = Nameplate(data["nameplate"])
+            except Exception:
+                # Somehow Discord has given us an invalid nameplate object
+                logging.getLogger("novus.models.user").warning(
+                    "Failed to parse user nameplate data: %s",
+                    data["nameplate"],
+                )
 
 
 class Nameplate:
