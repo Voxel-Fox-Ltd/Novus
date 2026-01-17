@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 __all__ = (
     "User",
-    "Activity",
+    "UserActivity",
     "Collectibles",
     "Nameplate",
     "PrimaryGuild",
@@ -219,7 +219,7 @@ class User(Hashable, Messageable):
             )
         self.premium_type = data.get('premium_type', 0)
         self.status = Status.ONLINE
-        self.activites: list[Activity] = []
+        self.activites: list[UserActivity] = []
         self.collectibles = Collectibles(data.get("collectibles") or {})
         self.primary_guild = data.get("primary_guild")
 
@@ -232,7 +232,7 @@ class User(Hashable, Messageable):
 
         self.status = data.get("status") or Status.ONLINE
         self.activites = [
-            Activity(data=d)
+            UserActivity(data=d)
             for d in data.get("activities", [])
         ]
         return self
@@ -344,7 +344,7 @@ class User(Hashable, Messageable):
         return functools.partial(self.state.channel.create_message, self._dm_channel.id)
 
 
-class Activity:
+class UserActivity:
     """
     A user activity for their presence.
     """

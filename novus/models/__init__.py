@@ -47,7 +47,6 @@ from .welcome_screen import *
 __all__: tuple[str, ...] = (
     "ActionRow",
     "Activity",
-    "Activity",
     "AllowedMentions",
     "Application",
     "ApplicationCommand",
@@ -124,6 +123,7 @@ __all__: tuple[str, ...] = (
     "ThreadMember",
     "Thumbnail",
     "User",
+    "UserActivity",
     "UserSelectMenu",
     "VoiceState",
     "Webhook",
