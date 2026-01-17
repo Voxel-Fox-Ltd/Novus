@@ -58,6 +58,7 @@ class Permissions(Flags):
         manage_roles: bool
         manage_webhooks: bool
         manage_emojis_and_stickers: bool
+        manage_guild_expressions: bool  # alias for the above
         use_application_commands: bool
         request_to_speak: bool
         manage_events: bool
@@ -76,6 +77,8 @@ class Permissions(Flags):
         send_voice_messages: bool
         send_polls: bool
         use_external_apps: bool
+        pin_messages: bool
+        bypass_slowmode: bool
 
     CREATE_FLAGS = {
         "create_instant_invite": 1 << 0,
@@ -109,6 +112,7 @@ class Permissions(Flags):
         "manage_roles": 1 << 28,
         "manage_webhooks": 1 << 29,
         "manage_emojis_and_stickers": 1 << 30,
+        "manage_guild_expressions": 1 << 30,  # alias for the above
         "use_application_commands": 1 << 31,
         "request_to_speak": 1 << 32,
         "manage_events": 1 << 33,
@@ -127,4 +131,6 @@ class Permissions(Flags):
         "send_voice_messages": 1 << 46,
         "send_polls": 1 << 49,
         "use_external_apps": 1 << 50,
+        "pin_messages": 1 << 51,
+        "bypass_slowmode": 1 << 52,
     }
