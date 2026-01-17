@@ -419,8 +419,41 @@ class GuildHTTPConnection:
         )
         return GuildMember(state=self.parent, data=data, guild_id=guild_id)
 
-    async def modify_current_guild_member(self, guild_id: int) -> NoReturn:
-        raise NotImplementedError()
+    async def modify_current_guild_member(
+            self,
+            guild_id: int,
+            /,
+            *,
+            reason: str | None = None,
+            **kwargs: Any) -> None:
+        """
+        Update the current guild member.
+        """
+
+        route = Route(
+            "PATCH",
+            "/guilds/{guild_id}/members/@me",
+            guild_id=guild_id,
+        )
+        post_data = self.parent._get_kwargs(
+            {
+                "type": (
+                    "nick",
+                    "bio",
+                ),
+                "image": (
+                    "avatar",
+                    "banner",
+                ),
+            },
+            kwargs,
+        )
+        await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data,
+        )
+        return
 
     async def add_guild_member_role(
             self,
