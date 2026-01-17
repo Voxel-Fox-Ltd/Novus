@@ -65,6 +65,7 @@ class SelectMenu(TypedDict):
     type: int
     custom_id: str
     options: NotRequired[list[SelectOption]]
+    default_values: NotRequired[list]
     channel_types: NotRequired[list[int]]
     placeholder: NotRequired[str]
     min_values: NotRequired[int]

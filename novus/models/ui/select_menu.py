@@ -414,7 +414,61 @@ class StringSelectMenu(SelectMenu):
         return v
 
 
-class UserSelectMenu(SelectMenu):
+class SnowflakeSelectMenu(SelectMenu):
+    """
+    Any select menu for snowflake-based objects.
+    """
+
+    default_values: list[int]
+    _default_value_type: str
+
+    def __init__(
+            self,
+            *,
+            custom_id: str,
+            placeholder: str | None = None,
+            min_values: int = 1,
+            max_values: int = 1,
+            disabled: bool = False,
+            default_values: Iterable[int] = MISSING):
+        super().__init__(
+            custom_id=custom_id,
+            placeholder=placeholder,
+            min_values=min_values,
+            max_values=max_values,
+            disabled=disabled,
+        )
+        self.default_values = []
+        if default_values:
+            self.default_values.extend(default_values)
+
+    __repr__ = generate_repr(("custom_id", "default_values",))
+
+    def _to_data(self) -> payloads.SelectMenu:
+        v = super()._to_data()
+        default_values: list[str] = []
+        for i in self.default_values:
+            default_values.append({
+                "id": str(i),
+                "type": self._default_value_type,
+            })
+        if default_values:
+            v["default_values"] = default_values
+        return v
+
+    @classmethod
+    def _from_data(cls, data: payloads.SelectMenu) -> Self:
+        default_data = data.get("default_values")
+        if default_data:
+            default_object = [int(d["id"]) for d in default_data]
+        else:
+            default_object = []
+        v = super()._from_data(data)
+        v.default_values.extend(default_object)
+        return v
+
+
+class UserSelectMenu(SnowflakeSelectMenu):
     """
     A select menu for users within a guild.
 
@@ -430,6 +484,8 @@ class UserSelectMenu(SelectMenu):
         The maximum number of values to be selected before the menu will submit.
     disabled : bool
         If the component is disabled.
+    default_values : list[int]
+        A list of default values (as snowflakes) that should be selected in the menu.
 
     Attributes
     ----------
@@ -443,12 +499,15 @@ class UserSelectMenu(SelectMenu):
         The maximum number of values to be selected before the menu will submit.
     disabled : bool
         If the component is disabled.
+    default_values : list[int]
+        A list of default values (as snowflakes) that should be selected in the menu.
     """
 
     type = ComponentType.USER_SELECT
+    _default_value_type = "user"
 
 
-class RoleSelectMenu(SelectMenu):
+class RoleSelectMenu(SnowflakeSelectMenu):
     """
     A select menu for roles within a guild.
 
@@ -464,6 +523,8 @@ class RoleSelectMenu(SelectMenu):
         The maximum number of values to be selected before the menu will submit.
     disabled : bool
         If the component is disabled.
+    default_values : list[int]
+        A list of default values (as snowflakes) that should be selected in the menu.
 
     Attributes
     ----------
@@ -477,12 +538,15 @@ class RoleSelectMenu(SelectMenu):
         The maximum number of values to be selected before the menu will submit.
     disabled : bool
         If the component is disabled.
+    default_values : list[int]
+        A list of default values (as snowflakes) that should be selected in the menu.
     """
 
     type = ComponentType.ROLE_SELECT
+    _default_value_type = "role"
 
 
-class MentionableSelectMenu(SelectMenu):
+class MentionableSelectMenu(SnowflakeSelectMenu):
     """
     A select menu for both roles and users within a guild.
 
@@ -498,6 +562,8 @@ class MentionableSelectMenu(SelectMenu):
         The maximum number of values to be selected before the menu will submit.
     disabled : bool
         If the component is disabled.
+    default_values : list[int]
+        A list of default values (as snowflakes) that should be selected in the menu.
 
     Attributes
     ----------
@@ -511,12 +577,14 @@ class MentionableSelectMenu(SelectMenu):
         The maximum number of values to be selected before the menu will submit.
     disabled : bool
         If the component is disabled.
+    default_values : list[int]
+        A list of default values (as snowflakes) that should be selected in the menu.
     """
 
     type = ComponentType.MENTIONABLE_SELECT
 
 
-class ChannelSelectMenu(SelectMenu):
+class ChannelSelectMenu(SnowflakeSelectMenu):
     """
     A select menu for channels within a guild.
 
@@ -532,6 +600,8 @@ class ChannelSelectMenu(SelectMenu):
         The maximum number of values to be selected before the menu will submit.
     disabled : bool
         If the component is disabled.
+    default_values : list[int]
+        A list of default values (as snowflakes) that should be selected in the menu.
 
     Attributes
     ----------
@@ -545,32 +615,37 @@ class ChannelSelectMenu(SelectMenu):
         The maximum number of values to be selected before the menu will submit.
     disabled : bool
         If the component is disabled.
+    default_values : list[int]
+        A list of default values (as snowflakes) that should be selected in the menu.
     """
 
     type = ComponentType.CHANNEL_SELECT
     channel_types: list[int]
+    _default_value_type = "channel"
 
     def __init__(
             self,
             *,
-            channel_types: Iterable[int] = MISSING,
             custom_id: str,
             placeholder: str | None = None,
             min_values: int = 1,
             max_values: int = 1,
-            disabled: bool = False):
+            disabled: bool = False,
+            default_values: Iterable[int] = MISSING,
+            channel_types: Iterable[int] = MISSING):
         super().__init__(
             custom_id=custom_id,
             placeholder=placeholder,
             min_values=min_values,
             max_values=max_values,
             disabled=disabled,
+            default_values=default_values,
         )
         self.channel_types = []
         if channel_types:
             self.channel_types.extend(channel_types)
 
-    __repr__ = generate_repr(('custom_id', 'channel_types',))
+    __repr__ = generate_repr(("custom_id", "default_values", "channel_types",))
 
     def _to_data(self) -> payloads.SelectMenu:
         v = super()._to_data()
