@@ -709,7 +709,7 @@ class Client:
         """
 
         concurrency = self.config.max_concurrency or 1
-        if self.config.max_concurrency is not None and check_concurrency:
+        if self.config.max_concurrency is None and check_concurrency:
             log.info("Checking max concurrency for bot")
             d = await self.state.gateway.get_gateway_bot()
             concurrency = d["session_start_limit"]["max_concurrency"]
