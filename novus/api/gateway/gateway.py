@@ -910,7 +910,7 @@ class GatewayShard:
                             "[%s] Session invalidated (resumable: %s) - "
                             "creating a new session in 5s"
                         ),
-                        self.shard_id, str(message).lower()
+                        self.shard_id, str(message).lower(),
                     )
                     await asyncio.sleep(5)
                     t = asyncio.create_task(self.send_resume_identify(resume=message))

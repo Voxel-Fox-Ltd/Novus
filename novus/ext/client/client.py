@@ -708,7 +708,7 @@ class Client:
         background.
         """
 
-        concurrency = 1
+        concurrency = self.config.max_concurrency or 1
         if check_concurrency:
             log.info("Checking max concurrency for bot")
             d = await self.state.gateway.get_gateway_bot()
@@ -721,6 +721,8 @@ class Client:
                 log.info("Set websocket connect URL to %s", ws_url)
             else:
                 log.info("Ignored websocket connect URL in /gateway/bot due to ENV change")
+        else:
+            log.info("Skipping max concurrency check for bot, set to %s", concurrency)
         log.info("Connecting to gateway")
         await self.state.gateway.connect(
             shard_ids=self.config.shard_ids,
@@ -796,7 +798,7 @@ class Client:
         await self.state.gateway.close()
         await self.state.close()
 
-    async def run(self, *, sync: bool = True) -> None:
+    async def run(self, *, check_concurrency: bool = True, sync: bool = True) -> None:
         """
         Connect the bot to the gateway, keeping the bot's connection to the
         websocket alive.
@@ -812,7 +814,7 @@ class Client:
         try:
             if sync:
                 await self.sync_commands()
-            await self.connect(check_concurrency=True, sleep=False)
+            await self.connect(check_concurrency=check_concurrency, sleep=False)
             try:
                 await self.state.gateway.wait()
             except asyncio.CancelledError:

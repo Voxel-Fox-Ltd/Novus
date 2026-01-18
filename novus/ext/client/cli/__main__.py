@@ -58,6 +58,7 @@ def get_parser() -> ArgumentParser:
     rap.add_argument("--plugins", nargs="?", type=str, const="", default=None)
     rap.add_argument("--plugin", nargs="*", type=str, default=None)
     rap.add_argument("--disable-cache", default=False, action="store_true")
+    rap.add_argument("--no-check-concurrency", default=False, action="store_true")
 
     rwsap = ap.add_parser("run-webserver")
     rwsap.add_argument("--config", nargs="?", const=None, default=None)
@@ -198,7 +199,7 @@ async def main(args: Namespace, unknown: list[str]) -> None:
             if args.disable_cache:
                 bot.state.cache = GuildIDCache(bot.state)
             await asyncio.gather(
-                bot.run(sync=not args.no_sync),
+                bot.run(check_concurrency=not args.no_check_concurrency, sync=not args.no_sync),
                 create_console(bot).interact(
                     banner="Interactive bot console created; try \"help\".",
                     stop=False,
