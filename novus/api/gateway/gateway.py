@@ -549,7 +549,7 @@ class GatewayShard:
             log.debug("[%s] Sleeping %ss before attempting connection", self.shard_id, sleep_time)
             self.state = "Sleeping before connecting"
             await asyncio.sleep(sleep_time)
-        log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
+        # log.info("[%s] Starting connection", self.shard_id, ws_url)
         try:
             if resume:
                 self.state = "Pending reconnect"
@@ -557,6 +557,7 @@ class GatewayShard:
                 self.state = "Pending connect"
             fmt = "[{shard}] Waiting at connect semaphore for {time}s"
             async with self.connect_semaphore.log(self.shard_id, fmt):
+                log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
                 if resume:
                     self.state = "Reconnecting"
                 else:
