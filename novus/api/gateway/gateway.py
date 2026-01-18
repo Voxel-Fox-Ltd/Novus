@@ -57,48 +57,6 @@ log = logging.getLogger("novus.gateway.socket")
 dump = json.dumps
 
 
-class _LoggingSemapohreContext:
-
-    def __init__(
-            self,
-            semaphore: asyncio.Semaphore,
-            shard_id: int,
-            fmt: str,
-            sleep_time: float = 10.0) -> None:
-        self.semapohre: asyncio.Semaphore = semaphore
-        self.shard_id: int = shard_id
-        self.fmt: str = fmt
-        self.sleep_time: float = sleep_time
-        self.logging_task: asyncio.Task | None = None
-
-    async def _loop(self, offset: int = 0) -> None:
-        try:
-            await asyncio.sleep(self.sleep_time)
-        except asyncio.CancelledError:
-            return
-        log.debug(self.fmt.format(shard=self.shard_id, time=self.sleep_time * (offset + 1)))
-        await self._loop(offset + 1)
-
-    async def __aenter__(self) -> None:
-        self.logging_task = asyncio.create_task(self._loop())
-        await self.semapohre.__aenter__()
-
-    async def __aexit__(self, *args: Any) -> None:
-        if self.logging_task is not None:
-            self.logging_task.cancel()
-        await self.semapohre.__aexit__(*args)
-
-
-class LoggingSemaphore(asyncio.Semaphore):
-
-    def log(
-            self,
-            shard_id: int,
-            fmt: str = "[{shard}] Waiting at semapohre for {time} seconds",
-            **kwargs: Any) -> _LoggingSemapohreContext:
-        return _LoggingSemapohreContext(self, shard_id, fmt=fmt, **kwargs)
-
-
 class GatewayConnection:
 
     def __init__(self, parent: HTTPConnection) -> None:
@@ -149,8 +107,8 @@ class GatewayConnection:
 
         # Make some semaphores so we can control which shards connect
         # simultaneously
-        identify_semaphore = LoggingSemaphore(max_concurrency)
-        connect_semaphore = LoggingSemaphore(max_concurrency)
+        identify_semaphore = asyncio.Semaphore(max_concurrency)
+        connect_semaphore = asyncio.Semaphore(max_concurrency)
 
         # Create shard objects
         shard_ids = shard_ids or list(range(shard_count))
@@ -217,8 +175,8 @@ class GatewayShard:
             shard_count: int,
             presence: None = None,
             intents: Intents = Intents.none(),
-            connect_semaphore: LoggingSemaphore,
-            identify_semaphore: LoggingSemaphore) -> None:
+            connect_semaphore: asyncio.Semaphore,
+            identify_semaphore: asyncio.Semaphore) -> None:
         self.parent = parent
         self.ws_url = Route.WS_BASE + "?" + urlencode({
             "v": 10,
@@ -557,10 +515,9 @@ class GatewayShard:
                 self.state = "Pending reconnect"
             else:
                 self.state = "Pending connect"
-            fmt = "[{shard}] Waiting at connect semaphore for {time}s"
 
-            # Open semaphore to connect
-            async with self.connect_semaphore.log(self.shard_id, fmt):
+            # Open semaphore
+            async with self.connect_semaphore:
 
                 # Open websocket
                 log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
@@ -586,6 +543,24 @@ class GatewayShard:
                 _, _, _, hello_data = got
                 log.debug("[%s] Connected to gateway - %s", self.shard_id, dump(hello_data))
 
+                # Send identify or resume
+                self.ready_received.clear()
+                self.message_task = asyncio.create_task(self.message_handler())
+                try:
+                    await self.send_resume_identify(resume=resume)
+                except asyncio.TimeoutError as e:
+                    raise AssertionError("Failed to receive READY/RESUMED in time") from e
+
+                # Start heartbeat
+                self.heartbeat_interval = hello_data["heartbeat_interval"]
+                self.heartbeat_task = asyncio.create_task(
+                    self.heartbeat(self.heartbeat_interval, jitter=not resume),
+                    name="Heartbeat for shard %s" % self.shard_id,
+                )
+
+                # And we should be connected!
+                return
+
         # Failed to connect to socket
         except ValueError as e:
             log.debug(
@@ -610,24 +585,32 @@ class GatewayShard:
                 attempt=attempt + 1,
             )
 
-        # Start heartbeat
-        self.heartbeat_interval = hello_data["heartbeat_interval"]
-        self.heartbeat_task = asyncio.create_task(
-            self.heartbeat(self.heartbeat_interval, jitter=not resume),
-            name="Heartbeat for shard %s" % self.shard_id,
-        )
-
-        # Send identify or resume
-        self.ready_received.clear()
-        self.message_task = asyncio.create_task(self.message_handler())
-        try:
-            await self.send_resume_identify(resume=resume)
-        except asyncio.TimeoutError:
+        # Failed to get READY/RESUMED in time
+        except AssertionError as e:
             log.debug(
                 "[%s] Failed to get a READY from the gateway after 60s; reattempting connect (%s)",
                 self.shard_id, attempt,
             )
-            self.message_task.cancel()
+            if self.message_task:
+                self.message_task.cancel()
+            if self.heartbeat_task:
+                self.heartbeat_task.cancel()
+            return await self._connect(
+                ws_url=ws_url,
+                resume=resume,
+                attempt=attempt + 1,
+            )
+
+        # All other unhandled errors
+        except Exception as e:
+            log.debug(
+                "[%s] Hit generic exception during connect (%s), reattempting (%s)",
+                self.shard_id, e, attempt,
+            )
+            if self.message_task:
+                self.message_task.cancel()
+            if self.heartbeat_task:
+                self.heartbeat_task.cancel()
             return await self._connect(
                 ws_url=ws_url,
                 resume=resume,
@@ -646,7 +629,8 @@ class GatewayShard:
         else:
             fmt = "[{shard}] Waited {time}s at semapohre to IDENTIFY"
         self.state = "Pending send IDENTIFY/RESUME"
-        async with self.identify_semaphore.log(self.shard_id, fmt):
+        # async with self.identify_semaphore.log(self.shard_id, fmt):
+        async with self.identify_semaphore:
             self.state = "Sending IDENTIFY/RESUME"
             if resume:
                 await self.resume()
