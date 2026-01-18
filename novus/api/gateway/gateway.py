@@ -540,7 +540,7 @@ class GatewayShard:
             await self.close(0)
             resume = True
 
-        # Open socket
+        # Do our generic setup
         if resume is False:
             self.sequence = None
         session = await self.parent.get_session()
@@ -549,21 +549,45 @@ class GatewayShard:
             log.debug("[%s] Sleeping %ss before attempting connection", self.shard_id, sleep_time)
             self.state = "Sleeping before connecting"
             await asyncio.sleep(sleep_time)
-        # log.info("[%s] Starting connection", self.shard_id, ws_url)
+
+        # One big try/except so we can put everything inside of the semaphore
+        HELLO_TIMEOUT = 60.0
         try:
             if resume:
                 self.state = "Pending reconnect"
             else:
                 self.state = "Pending connect"
             fmt = "[{shard}] Waiting at connect semaphore for {time}s"
+
+            # Open semaphore to connect
             async with self.connect_semaphore.log(self.shard_id, fmt):
+
+                # Open websocket
                 log.info("[%s] Creating websocket connection to %s", self.shard_id, ws_url)
                 if resume:
                     self.state = "Reconnecting"
                 else:
                     self.state = "Connecting"
-                ws = await session.ws_connect(ws_url, timeout=10.0, max_msg_size=0)
-        except Exception as e:
+                try:
+                    ws = await session.ws_connect(ws_url, timeout=10.0, max_msg_size=0)
+                    self.socket = ws
+                except Exception as e:
+                    raise ValueError("Failed to connect to websocket") from e
+
+                # Get hello
+                self.state = "Waiting for HELLO"
+                log.debug("[%s] Waiting for a HELLO", self.shard_id)
+                try:
+                    got = await asyncio.wait_for(self.receive(), timeout=HELLO_TIMEOUT)
+                except Exception as e:
+                    raise IndexError("Failed to get HELLO from gateway") from e
+                if got is None:
+                    return
+                _, _, _, hello_data = got
+                log.debug("[%s] Connected to gateway - %s", self.shard_id, dump(hello_data))
+
+        # Failed to connect to socket
+        except ValueError as e:
             log.debug(
                 "[%s] Failed to connect to websocket (%s - %s), reattempting (%s)",
                 self.shard_id, type(e), e, attempt,
@@ -573,31 +597,21 @@ class GatewayShard:
                 resume=resume,
                 attempt=attempt + 1,
             )
-        self.socket = ws
 
-        # Get hello
-        self.state = "Waiting for HELLO"
-        log.debug("[%s] Waiting for a HELLO", self.shard_id)
-        timeout = 60.0
-        try:
-            got = await asyncio.wait_for(self.receive(), timeout=timeout)
-        except Exception as e:
+        # Failed to get HELLO from gateway
+        except IndexError as e:
             log.debug(
                 "[%s] Failed to get a HELLO after %ss (%s), reattempting (%s)",
-                self.shard_id, timeout, e, attempt,
+                self.shard_id, HELLO_TIMEOUT, e, attempt,
             )
             return await self._connect(
                 ws_url=ws_url,
                 resume=resume,
                 attempt=attempt + 1,
             )
-        if got is None:
-            return
-        _, _, _, data = got
-        log.debug("[%s] Connected to gateway - %s", self.shard_id, dump(data))
 
         # Start heartbeat
-        self.heartbeat_interval = data["heartbeat_interval"]
+        self.heartbeat_interval = hello_data["heartbeat_interval"]
         self.heartbeat_task = asyncio.create_task(
             self.heartbeat(self.heartbeat_interval, jitter=not resume),
             name="Heartbeat for shard %s" % self.shard_id,
@@ -639,13 +653,13 @@ class GatewayShard:
             else:
                 await self.identify()
 
-        # Wait for a ready or resume
-        log.debug("[%s] Waiting for a READY/RESUMED", self.shard_id)
-        self.state = "Waiting for READY/RESUMED"
-        try:
-            await asyncio.wait_for(self.ready_received.wait(), timeout=60.0)
-        except asyncio.TimeoutError:
-            raise
+            # Wait for a ready or resume
+            log.debug("[%s] Waiting for a READY/RESUMED", self.shard_id)
+            self.state = "Waiting for READY/RESUMED"
+            try:
+                await asyncio.wait_for(self.ready_received.wait(), timeout=60.0)
+            except asyncio.TimeoutError:
+                raise
 
         # We are no longer connecting
         self.state = "Ready"
