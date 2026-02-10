@@ -22,7 +22,7 @@ import logging
 import random
 import string
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Literal, NoReturn, overload
+from typing import TYPE_CHECKING, Any, Iterable, Literal, NoReturn, overload
 
 from typing_extensions import Self
 
@@ -825,8 +825,34 @@ class BaseGuild:
         )
         return role
 
-    async def move_roles(self) -> NoReturn:
-        raise NotImplementedError()
+    async def move_roles(
+            self: abc.StateSnowflake,
+            roles: Iterable[tuple[AnySnowflake, int]],
+            *,
+            reason: str | None = None) -> list[Role]:
+        """
+        Move multiple roles within the guild.
+
+        Parameters
+        ----------
+        roles : Iterable[tuple[int | novus.abc.Snowflake, int]]
+            A list of tuples of role IDs and their new positions.
+            Positions can be shared, in which case the roles will be sorted by their ID.
+        reason : str | None
+            The reason to be shown in the audit log.
+
+        Returns
+        -------
+        list[novus.Role]
+            A list of the guild's roles.
+        """
+
+        role = await self.state.guild.modify_guild_role_positions(
+            self.id,
+            reason=reason,
+            roles=roles,
+        )
+        return role
 
     async def edit_role(
             self: abc.StateSnowflake,

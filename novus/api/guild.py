@@ -719,8 +719,39 @@ class GuildHTTPConnection:
         )
         return Role(state=self.parent, data=data, guild_id=guild_id)
 
-    async def modify_guild_role_positions(self, _: int) -> NoReturn:
-        raise NotImplementedError()
+    async def modify_guild_role_positions(
+            self,
+            guild_id: int,
+            /,
+            *,
+            reason: str | None = None,
+            **kwargs: Any) -> list[Role]:
+        """
+        Edit guild role positions.
+        """
+
+        route = Route(
+            "PATCH",
+            "/guilds/{guild_id}/roles",
+            guild_id=guild_id,
+        )
+        post_data = self.parent._get_kwargs(
+            {
+                "snowflake": (
+                    "roles",
+                ),
+            },
+            kwargs,
+        )
+        data: list[payloads.Role] = await self.parent.request(
+            route,
+            reason=reason,
+            data=post_data["roles"],
+        )
+        return [
+            Role(state=self.parent, data=i, guild_id=guild_id)
+            for i in data
+        ]
 
     async def modify_guild_role(
             self,
