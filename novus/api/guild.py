@@ -735,14 +735,14 @@ class GuildHTTPConnection:
             "/guilds/{guild_id}/roles",
             guild_id=guild_id,
         )
-        post_data = self.parent._get_kwargs(
-            {
-                "snowflake": (
-                    "roles",
-                ),
-            },
-            kwargs,
-        )
+        post_data = {}
+        if "roles" in kwargs:
+            post_data["roles"] = []
+            for role_id, idx in kwargs["roles"]:
+                post_data["roles"].append({
+                    "id": str(role_id),
+                    "position": idx,
+                })
         data: list[payloads.Role] = await self.parent.request(
             route,
             reason=reason,

@@ -835,7 +835,7 @@ class BaseGuild:
 
         Parameters
         ----------
-        roles : Iterable[tuple[int | novus.abc.Snowflake, int]]
+        roles : Iterable[tuple[int, int]]
             A list of tuples of role IDs and their new positions.
             Positions can be shared, in which case the roles will be sorted by their ID.
         reason : str | None
