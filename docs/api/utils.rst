@@ -10,3 +10,9 @@ Utils
 .. autofunction:: novus.utils.try_object
 
 .. autofunction:: novus.utils.walk_components
+
+.. autofunction:: novus.utils.parse_timestamp
+
+.. autofunction:: novus.utils.format_timestamp
+
+.. autofunction:: novus.utils.now

@@ -45,6 +45,11 @@ class DiscordDatetime(dt):
     ----------
     naive : novus.utils.DiscordDatetime
         The associated naive datetime for the timestamp.
+
+    Properties
+    ----------
+    mention : str
+        A rendered timestamp string. Shorthand for ``.format()``.
     """
 
     @property
@@ -68,6 +73,22 @@ class DiscordDatetime(dt):
         return format_timestamp(self)
 
     def format(self, style: str | None = None) -> str:
+        """
+        Format the timestamp into a rendered timestamp string.
+
+        Parameters
+        ----------
+        style : str
+            The format that you want to style the timestamp as.
+
+            .. seealso:: `novus.TimestampFormat`
+
+        Returns
+        -------
+        str
+            The formatted timestamp.
+        """
+
         return format_timestamp(self, style)
 
 
@@ -169,13 +190,15 @@ def utcnow() -> DiscordDatetime:
     """
     Get the current timestamp with a timezone applied to it.
 
+    Shorthand for ``datetime.datetime.now(datetime.timezone.utc)``.
+
     Returns
     -------
     datetime.datetime
         The created datetime.
     """
 
-    ddt = DiscordDatetime.utcnow().replace(tzinfo=timezone.utc)
+    ddt = DiscordDatetime.now(timezone.utc)
     return ddt
 
 

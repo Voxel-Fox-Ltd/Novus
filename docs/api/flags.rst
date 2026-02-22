@@ -123,6 +123,7 @@ Flags
     .. py:attribute:: manage_roles
     .. py:attribute:: manage_webhooks
     .. py:attribute:: manage_emojis_and_stickers
+    .. py:attribute:: manage_guild_expressions
     .. py:attribute:: use_application_commands
     .. py:attribute:: request_to_speak
     .. py:attribute:: manage_events
@@ -141,6 +142,8 @@ Flags
     .. py:attribute:: send_voice_messages
     .. py:attribute:: send_polls
     .. py:attribute:: use_external_apps
+    .. py:attribute:: pin_messages
+    .. py:attribute:: bypass_slowmode
 
 .. class:: UserFlags
 

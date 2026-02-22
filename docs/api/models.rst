@@ -355,7 +355,10 @@ Models that relate to interactions.
     :members:
     :inherited-members:
     :no-special-members:
-.. .. autoclass:: InteractionWebhook
+.. autoclass:: InteractionWebhook
+    :members:
+    :inherited-members:
+    :no-special-members:
 .. autoclass:: Entitlement
     :members:
     :inherited-members:

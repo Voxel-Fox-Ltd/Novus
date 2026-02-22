@@ -37,11 +37,10 @@ Commands
 Events
 ------
 
-.. autofunction:: event
-.. autoclass:: EventListener
+Most events can be handled by using an :class:`~novus.ext.client.EventBuilder` decorator within a plugin.
+
+.. autoclass:: EventBuilder
     :members:
-    :inherited-members:
-    :no-special-members:
 
 Loops
 -----
