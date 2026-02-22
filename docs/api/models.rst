@@ -267,6 +267,26 @@ Models that relate to message components.
     :special-members: __setitem__, __getitem__, __iter__
     :inherited-members:
     :no-special-members:
+.. autoclass:: CheckboxGroup
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: CheckboxGroupOption
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: RadioGroup
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: RadioGroupOption
+    :members:
+    :inherited-members:
+    :no-special-members:
+.. autoclass:: Label
+    :members:
+    :inherited-members:
+    :no-special-members:
 
 Application Commands
 ~~~~~~~~~~~~~~~~~~~~

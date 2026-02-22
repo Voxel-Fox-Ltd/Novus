@@ -1,3 +1,4 @@
+
 """
 Copyright (c) Kae Bartlett
 
@@ -25,21 +26,30 @@ if TYPE_CHECKING:
     from .emoji import PartialEmoji
 
 __all__ = (
-    'Button',
-    'SelectOption',
-    'SelectMenu',
-    'TextInput',
-    'ActionRow',
-    'Section',
-    'TextDisplay',
-    'Thumbnail',
-    'MediaGallery',
-    'MediaGalleryItem',
-    'File',
-    'Separator',
-    'Container',
-    'UnfurledMediaItem',
-    'Component',
+    "ActionRow",
+    "Button",
+    "CheckboxGroup",
+    "CheckboxGroup",
+    "CheckboxGroupOption",
+    "CheckboxGroupOption",
+    "Component",
+    "Container",
+    "File",
+    "Label",
+    "MediaGallery",
+    "MediaGalleryItem",
+    "RadioGroup",
+    "RadioGroup",
+    "RadioGroupOption",
+    "RadioGroupOption",
+    "Section",
+    "SelectMenu",
+    "SelectOption",
+    "Separator",
+    "TextDisplay",
+    "TextInput",
+    "Thumbnail",
+    "UnfurledMediaItem",
 )
 
 
@@ -147,6 +157,46 @@ class Container(TypedDict):
 
 class UnfurledMediaItem(TypedDict):
     url: str
+
+
+class Label(TypedDict):
+    type: Literal[18]
+    id: NotRequired[int]
+    label: str
+    description: NotRequired[str]
+    component: Component
+
+
+class RadioGroupOption(TypedDict):
+    value: str
+    label: str
+    description: NotRequired[str]
+    default: NotRequired[bool]
+
+
+class RadioGroup(TypedDict):
+    type: Literal[21]
+    id: NotRequired[int]
+    custom_id: str
+    options: list[RadioGroupOption]
+    required: NotRequired[bool]
+
+
+class CheckboxGroupOption(TypedDict):
+    value: str
+    label: str
+    description: NotRequired[str]
+    default: NotRequired[bool]
+
+
+class CheckboxGroup(TypedDict):
+    type: Literal[22]
+    id: NotRequired[int]
+    custom_id: str
+    options: list[CheckboxGroupOption]
+    min_values: NotRequired[int]
+    max_values: NotRequired[int]
+    required: NotRequired[bool]
 
 
 Component = Union[

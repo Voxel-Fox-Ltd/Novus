@@ -44,6 +44,11 @@ class ComponentType(Enum):
     SEPARATOR = 14
     CONTAINER = 17
 
+    LABEL = 18
+    FILE_UPLOAD = 19
+    RADIO_GROUP = 21
+    CHECKBOX_GROUP = 22
+
 
 class ButtonStyle(Enum):
     """The different styles that can be applied to a button."""

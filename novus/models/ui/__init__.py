@@ -17,10 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from .action_row import *
 from .button import *
+from .checkbox import *
 from .component import *
 from .container import *
 from .file import *
+from .label import *
 from .media_gallery import *
+from .radio import *
 from .section import *
 from .select_menu import *
 from .separator import *
@@ -32,20 +35,24 @@ __all__: tuple[str, ...] = (
     "ActionRow",
     "Button",
     "ChannelSelectMenu",
+    "CheckboxGroup",
+    "CheckboxGroupOption",
     "Component",
     "Container",
     "FileComponent",
     "InteractableComponent",
+    "Label",
     "LayoutComponentHolder",
     "MediaGallery",
     "MediaGalleryItem",
     "MentionableSelectMenu",
+    "RadioGroup",
+    "RadioGroupOption",
     "RoleSelectMenu",
     "Section",
     "SelectOption",
     "Separator",
     "StringSelectMenu",
-    "TextDisplay",
     "TextDisplay",
     "TextInput",
     "Thumbnail",
