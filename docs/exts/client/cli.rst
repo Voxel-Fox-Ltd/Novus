@@ -20,7 +20,9 @@ or passed as a CLI arg).
 ---------------------
 
 Output a config (with arguments optionally supplied via CLI). This can be piped
-into a file (``novus config-dump --token test > config.yaml``).
+into a file (``novus config-dump --token [token] > config.yaml [type]``).
+
+Type is one of three: ``json``, ``yaml``, ``toml``. You'll need to install ``pyyaml`` if you plan to use yaml as type.
 
 ``novus new-plugin``
 --------------------
