@@ -164,6 +164,8 @@ __all__: tuple[str, ...] = (
     "SystemChannelFlags",
     "Team",
     "TeamMember",
+    "TeamMemberRole",
+    "TeamMemberState",
     "TextDisplay",
     "TextInput",
     "TextInputStyle",

@@ -36,7 +36,7 @@ __all__ = (
 class ApplicationTeamMember(TypedDict):
     team_id: Snowflake
     membership_state: int
-    permissions: list[str]
+    role: str
     user: PartialUser
 
 

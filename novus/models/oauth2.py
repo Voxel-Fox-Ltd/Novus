@@ -43,8 +43,14 @@ class TeamMember:
     ----------
     accepted : bool
         If the user has accepted the team invite.
-    permissions : list[str]
-        The permissions that the team member has within the team.
+    membership_state : int
+        The member's state within the team.
+
+        seealso: `novus.enums.oauth2.TeamMemberState`
+    role : str
+        The member's role within the team.
+
+        seealso: `novus.enums.oauth2.TeamMemberRole`
     team_id : int
         The ID of the team that the user is part of.
     user : novus.User
@@ -54,20 +60,23 @@ class TeamMember:
     __slots__ = (
         'state',
         'accepted',
-        'permissions',
+        'membership_state',
+        'role',
         'team_id',
         'user',
     )
 
     accepted: bool
-    permissions: list[str]
+    membership_state: int
+    role: str
     team_id: int
     user: User
 
     def __init__(self, *, state: HTTPConnection, data: payloads.ApplicationTeamMember):
         self.state = state
         self.accepted = data["membership_state"] == 2
-        self.permissions = data["permissions"]
+        self.membership_state = data["membership_state"]
+        self.role = data["role"]
         self.team_id = try_snowflake(data["team_id"])
         user = self.state.cache.get_user(data["user"]["id"])
         if user is None:
