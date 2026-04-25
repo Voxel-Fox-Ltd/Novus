@@ -550,6 +550,31 @@ class Client:
         for p in self.plugins:
             p.dispatch(event_name, *args, **kwargs)
 
+    @classmethod
+    def _normalise_command(cls, obj: Any) -> Any:
+        if isinstance(obj, dict):
+            obj = {k: cls._normalise_command(v) for k, v in obj.items()}
+
+            if "options" in obj and isinstance(obj["options"], list):
+                options = obj["options"]
+
+                # Only sort lists that are entirely subcommands/groups
+                if all(
+                    isinstance(o, dict) and o.get("type") in {n.ApplicationOptionType.SUB_COMMAND, n.ApplicationOptionType.SUB_COMMAND_GROUP}
+                    for o in options
+                ):
+                    obj["options"] = sorted(
+                        options,
+                        key=lambda o: (o.get("type", 0), o.get("name", ""))
+                    )
+
+            return obj
+
+        if isinstance(obj, list):
+            return [cls._normalise_command(x) for x in obj]
+
+        return obj
+
     async def _handle_command_sync(
             self,
             application_id: int,
@@ -590,7 +615,9 @@ class Client:
             except KeyError:
                 to_delete.append(dis_com.id)
             else:
-                if local.application_command._to_data() != dis_com._to_data():
+                norm_local = self._normalise_command(local.application_command._to_data())
+                norm_dis = self._normalise_command(dis_com._to_data())
+                if norm_local != norm_dis:
                     log.debug(
                         "Commands different: new %s; current %s",
                         json.dumps(local.application_command._to_data()),
