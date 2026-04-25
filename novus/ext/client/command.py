@@ -520,7 +520,7 @@ class CommandGroup(Command):
 
         # Make sure we only have one base name
         if len(names[0]) > 1:
-            raise CommandError("Cannot have multiple base names for group")
+            raise CommandError("Cannot have multiple base names for group (command %s)" % names[0])
 
         # Do the same again for the translations
         t_names: dict[str, dict[int, set[str]]]
@@ -532,7 +532,7 @@ class CommandGroup(Command):
                     t_names[language][depth].add(name_segment)
         for lang in t_names:
             if len(t_names[lang][0]) > 1:
-                raise CommandError("Cannot have multiple base names for group (language %s)" % lang)
+                raise CommandError("Cannot have multiple base names for group (command %s) (language %s)" % (t_names[lang][0], lang))
 
         # Do some other validity checks
         permission_set = None
