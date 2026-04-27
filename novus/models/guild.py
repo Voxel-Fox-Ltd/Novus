@@ -29,6 +29,7 @@ from typing_extensions import Self
 from ..flags import Permissions, SystemChannelFlags
 from ..utils import (
     MISSING,
+    DiscordDatetime,
     cached_slot_property,
     generate_repr,
     try_id,
@@ -52,7 +53,6 @@ if TYPE_CHECKING:
 
     from .. import payloads
     from ..api import HTTPConnection
-    from ..utils import DiscordDatetime
     from ..utils.types import AnySnowflake, FileT
     from . import abc
     from .audit_log import AuditLog
@@ -1067,13 +1067,13 @@ class BaseGuild:
             if not isinstance(before, DiscordDatetime):
                 before = DiscordDatetime.from_datetime(before)
             obj = before.snowflake
-            params["max_id"] = obj
+            params["min_id"] = obj
         if after is not MISSING:
             # Convert datetime into a fake ID.
             if not isinstance(after, DiscordDatetime):
                 after = DiscordDatetime.from_datetime(after)
             obj = after.snowflake
-            params["min_id"] = obj
+            params["max_id"] = obj
         if slop is not MISSING:
             params["slop"] = slop
         if content is not MISSING:

@@ -17,6 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime as dt
 from datetime import timezone
 from typing import Protocol, overload
@@ -78,7 +79,7 @@ class DiscordDatetime(dt):
         Make a fake snowflake that reflects the given timestamp.
         """
 
-        return str(int((self.timestamp() * 1e3 - 1_420_070_400_000) * 1e4) << 22)
+        return str(int((self.timestamp() * 1e3 - 1_420_070_400_000)) << 22)
 
     @property
     def mention(self) -> str:
@@ -116,7 +117,7 @@ def parse_timestamp(timestamp: None) -> None:
 
 def parse_timestamp(timestamp: dt | str | int | Snowflake | None) -> DiscordDatetime | None:
     """
-    Parse an isoformat timestamp from Discord.
+    Parse a timestamp from Discord.
 
     Parameters
     ----------
@@ -126,43 +127,60 @@ def parse_timestamp(timestamp: dt | str | int | Snowflake | None) -> DiscordDate
 
     Returns
     -------
-    datetime.datetime
+    novus.utils.DiscordDatetime
         A datetime object with an added UTC timezone.
     """
 
+    # error handle for no datetime passed
     if timestamp is None:
         return None
+
+    # timestamp string of some variety
     elif isinstance(timestamp, str):
-        if timestamp.isdigit():
+
+        # timestamp format
+        if (match := re.match(r"^<t:(\d+)(?::.)?>$", timestamp)) is not None:
+            return (
+                DiscordDatetime
+                .fromtimestamp(int(match.group(1)))
+                .replace(tzinfo=timezone.utc)
+            )
+
+        # str snowflake
+        elif timestamp.isdigit():
             return (
                 DiscordDatetime
                 .fromtimestamp(((int(timestamp) >> 22) + 1_420_070_400_000) / 1e3)
                 .replace(tzinfo=timezone.utc)
             )
-        return DiscordDatetime.fromisoformat(timestamp).replace(tzinfo=timezone.utc)
+
+        # isoformat
+        else:
+            return DiscordDatetime.fromisoformat(timestamp).replace(tzinfo=timezone.utc)
+
+    # int snowflake
     elif isinstance(timestamp, int):
         return (
             DiscordDatetime
             .fromtimestamp(((timestamp >> 22) + 1_420_070_400_000) / 1e3)
             .replace(tzinfo=timezone.utc)
         )
-    elif isinstance(timestamp, (str, int)):
-        return (
-            DiscordDatetime
-            .fromtimestamp(((int(timestamp) >> 22) + 1_420_070_400_000) / 1e3)
-            .replace(tzinfo=timezone.utc)
-        )
+
+    # datetime
     elif isinstance(timestamp, dt):
         return (
             DiscordDatetime.fromisoformat(timestamp.isoformat())
             .replace(tzinfo=timezone.utc)
         )
+
+    # snowflake object
     elif hasattr(timestamp, "id"):
         return (
             DiscordDatetime
             .fromtimestamp(((timestamp.id >> 22) + 1_420_070_400_000) / 1e3)
             .replace(tzinfo=timezone.utc)
         )
+
     raise ValueError
 
 

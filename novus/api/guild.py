@@ -787,13 +787,13 @@ class GuildHTTPConnection:
         if mentions_role_id is not None:
             params["mentions_role_id"] = mentions_role_id
         if mention_everyone is not None:
-            params["mention_everyone"] = mention_everyone
+            params["mention_everyone"] = "true" if mention_everyone else "false"
         if replied_to_user_id is not None:
             params["replied_to_user_id"] = replied_to_user_id
         if replied_to_message_id is not None:
             params["replied_to_message_id"] = replied_to_message_id
         if pinned is not None:
-            params["pinned"] = pinned
+            params["pinned"] = "true" if pinned else "false"
         if has is not None:
             params["has"] = has
         if embed_type is not None:
@@ -809,7 +809,7 @@ class GuildHTTPConnection:
         if sort_order is not None:
             params["sort_order"] = sort_order
         if include_nsfw is not None:
-            params["include_nsfw"] = include_nsfw
+            params["include_nsfw"] = "true" if include_nsfw else "false"
 
         data: payloads.MessageSearchResults | payloads.Error = await self.parent.request(
             route,
