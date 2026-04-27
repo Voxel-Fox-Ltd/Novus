@@ -162,6 +162,10 @@ yourself, but should all be given to you by library or API methods.
     :members:
     :inherited-members:
     :no-special-members:
+.. autoclass:: MessageSearchComponents
+    :members:
+    :inherited-members:
+    :no-special-members:
 
 User-Creatable Models
 ~~~~~~~~~~~~~~~~~~~~~

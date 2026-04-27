@@ -17,10 +17,13 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
+import asyncio
 from typing import TYPE_CHECKING, Any, NoReturn
 
-from ..models import Guild, GuildBan, GuildMember, GuildPreview, Invite, Role, User
+from ..models import Guild, GuildBan, GuildMember, GuildPreview, Role, User
 from ..models.channel import Channel
+from ..models.message import MessageSearchResults
+from ._errors import RateLimitExceeded
 from ._route import Route
 
 if TYPE_CHECKING:
@@ -718,6 +721,132 @@ class GuildHTTPConnection:
             data=post_data,
         )
         return Role(state=self.parent, data=data, guild_id=guild_id)
+
+    async def search_channel_messages(
+            self,
+            guild_id: int,
+            /,
+            *,
+            limit: int | None = None,
+            offset: int | None = None,
+            max_id: str | None = None,
+            min_id: str | None = None,
+            slop: int | None = None,
+            content: str | None = None,
+            channel_id: list[str] | None = None,
+            author_type: list[str] | None = None,
+            author_id: str | None = None,
+            mentions: list[str] | None = None,
+            mentions_role_id: list[str] | None = None,
+            mention_everyone: bool | None = None,
+            replied_to_user_id: list[str] | None = None,
+            pinned: bool | None = None,
+            has: list[str] | None = None,
+            embed_type: list[str] | None = None,
+            embed_provider: list[str] | None = None,
+            link_hostname: list[str] | None = None,
+            attachment_filename: list[str] | None = None,
+            sort_by: str | None = None,
+            sort_order: str | None = None,
+            include_nsfw: bool | None = None,
+            wait: bool = True) -> MessageSearchResults:
+        """
+        Get a list of messages (minus its reactions) that match a search query in the guild.
+        Requires the READ_MESSAGE_HISTORY permission.
+        """
+
+        route = Route(
+            "GET",
+            "/guilds/{guild_id}/messages/search",
+            guild_id=guild_id,
+        )
+
+        params: dict[str, Any] = {}
+        if limit is not None:
+            params["limit"] = limit
+        if offset is not None:
+            params["offset"] = offset
+        if max_id is not None:
+            params["max_id"] = max_id
+        if min_id is not None:
+            params["min_id"] = min_id
+        if slop is not None:
+            params["slop"] = slop
+        if content is not None:
+            params["content"] = content
+        if channel_id is not None:
+            params["channel_id"] = channel_id
+        if author_type is not None:
+            params["author_type"] = author_type
+        if author_id is not None:
+            params["author_id"] = author_id
+        if mentions is not None:
+            params["mentions"] = mentions
+        if mentions_role_id is not None:
+            params["mentions_role_id"] = mentions_role_id
+        if mention_everyone is not None:
+            params["mention_everyone"] = mention_everyone
+        if replied_to_user_id is not None:
+            params["replied_to_user_id"] = replied_to_user_id
+        if pinned is not None:
+            params["pinned"] = pinned
+        if has is not None:
+            params["has"] = has
+        if embed_type is not None:
+            params["embed_type"] = embed_type
+        if embed_provider is not None:
+            params["embed_provider"] = embed_provider
+        if link_hostname is not None:
+            params["link_hostname"] = link_hostname
+        if attachment_filename is not None:
+            params["attachment_filename"] = attachment_filename
+        if sort_by is not None:
+            params["sort_by"] = sort_by
+        if sort_order is not None:
+            params["sort_order"] = sort_order
+        if include_nsfw is not None:
+            params["include_nsfw"] = include_nsfw
+
+        data: payloads.MessageSearchResults | payloads.Error = await self.parent.request(
+            route,
+            params=params
+        )
+        if "retry_after" in data:
+            if wait:
+                await asyncio.sleep(data["retry_after"] + 0.1)
+                return await self.search_channel_messages(
+                    guild_id,
+                    limit=limit,
+                    offset=offset,
+                    max_id=max_id,
+                    min_id=min_id,
+                    slop=slop,
+                    content=content,
+                    channel_id=channel_id,
+                    author_type=author_type,
+                    author_id=author_id,
+                    mentions=mentions,
+                    mentions_role_id=mentions_role_id,
+                    mention_everyone=mention_everyone,
+                    replied_to_user_id=replied_to_user_id,
+                    pinned=pinned,
+                    has=has,
+                    embed_type=embed_type,
+                    embed_provider=embed_provider,
+                    link_hostname=link_hostname,
+                    attachment_filename=attachment_filename,
+                    sort_by=sort_by,
+                    sort_order=sort_order,
+                    include_nsfw=include_nsfw,
+                )
+            else:
+                raise RateLimitExceeded(data)  # pyright: ignore
+
+        return MessageSearchResults(
+            state=self.parent,
+            guild_id=guild_id,
+            data=data,
+        )
 
     async def modify_guild_role_positions(
             self,

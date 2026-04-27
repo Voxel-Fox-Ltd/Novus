@@ -97,6 +97,7 @@ __all__: tuple[str, ...] = (
     "Message",
     "MessageComponentData",
     "MessageInteraction",
+    "MessageSearchResults",
     "ModalSubmitData",
     "Nameplate",
     "OauthGuild",

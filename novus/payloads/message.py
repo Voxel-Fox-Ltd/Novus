@@ -24,7 +24,7 @@ from typing_extensions import NotRequired
 if TYPE_CHECKING:
     from ._util import Snowflake, Timestamp
     from .application import Application
-    from .channel import Channel
+    from .channel import Channel, ThreadMember
     from .components import ActionRow
     from .embed import Embed
     from .emoji import Emoji
@@ -40,6 +40,7 @@ __all__ = (
     'MessageActivity',
     'MessageReference',
     'Message',
+    'MessageSearchResults',
 )
 
 
@@ -137,3 +138,12 @@ class Message(_MessageOptional):
     embeds: list[Embed]
     pinned: bool
     type: int
+
+
+class MessageSearchResults(TypedDict):
+    doing_deep_historial_index: bool
+    documents_indexed: NotRequired[int]
+    total_results: int
+    messages: list[list[Message]]
+    threads: NotRequired[list[Channel]]
+    members: NotRequired[list[ThreadMember]]

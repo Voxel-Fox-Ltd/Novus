@@ -32,7 +32,7 @@ from ..utils import (
     try_snowflake,
 )
 from .abc import Hashable
-from .channel import Channel
+from .channel import Channel, ThreadMember
 from .embed import Embed
 from .emoji import PartialEmoji
 from .file import File
@@ -58,6 +58,7 @@ __all__ = (
     'WebhookMessage',
     'AllowedMentions',
     'Attachment',
+    'MessageSearchResults',
 )
 
 
@@ -963,3 +964,58 @@ class Attachment:
 
     def __str__(self) -> str:
         return self.url
+
+
+class MessageSearchResults:
+    """
+    A container class for search results from guild message searches.
+
+    Attributes
+    ----------
+    guild : novus.BaseGuild
+        The guild that the search was performed in.
+    doing_deep_historial_index : bool
+        Whether or not the guild is undergoing a deep historical indexing operation.
+    documents_indexed : int
+        The number of documents that have been indexed during the current search operation.
+    total_results : int
+        The total number of results that match the query.
+    messages : list[list[novus.Message]]
+        A nested array of messages that match the query.
+        The nested array was previously used to provide surrounding context to search results.
+    threads: list[novus.Channel]
+        A list of threads that contained the returned messages.
+    members : list[novus.ThreadMember]
+        A list of thread members that are associated with the threads in the results.
+    """
+
+    __slots__ = (
+        "state",
+        "guild",
+        "doing_deep_historial_index",
+        "documents_indexed",
+        "total_results",
+        "messages",
+        "threads",
+        "members",
+    )
+
+    def __init__(
+            self,
+            *,
+            state: HTTPConnection,
+            guild_id: int,
+            data: payloads.MessageSearchResults) -> None:
+        self.state = state
+        self.guild = self.state.cache.get_guild(guild_id)
+        if self.guild is None:
+            self.guild = BaseGuild(state=self.state, data={"id": str(guild_id)})  # pyright: ignore
+        self.doing_deep_historial_index = data["doing_deep_historial_index"]
+        self.documents_indexed = data.get("documents_indexed", 0)
+        self.total_results = data["total_results"]
+        self.messages = [
+            [Message(state=self.state, data=m) for m in group]
+            for group in data["messages"]
+        ]
+        self.threads = [Channel(state=self.state, data=t) for t in data.get("threads", list())]
+        self.members = [ThreadMember(state=self.state, data=m) for m in data.get("members", list())]

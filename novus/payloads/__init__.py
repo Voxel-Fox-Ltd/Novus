@@ -25,6 +25,7 @@ from .channel import *
 from .components import *
 from .embed import *
 from .emoji import *
+from .error import *
 from .guild import *
 from .guild_scheduled_event import *
 from .guild_template import *
@@ -80,6 +81,7 @@ __all__: tuple[str, ...] = (
     "EmbedType",
     "Emoji",
     "Entitlement",
+    "Error",
     "File",
     "ForumDefaultReaction",
     "ForumTag",
@@ -115,6 +117,7 @@ __all__: tuple[str, ...] = (
     "MessageComponentData",
     "MessageInteraction",
     "MessageReference",
+    "MessageSearchResults",
     "ModalSubmitData",
     "Nameplate",
     "OauthToken",
