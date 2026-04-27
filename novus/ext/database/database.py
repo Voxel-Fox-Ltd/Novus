@@ -39,29 +39,50 @@ __all__ = (
 )
 
 
+class DatabaseAcquireContext:
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        self.args = args
+        self.kwargs = kwargs
+        self._ctx: PoolAcquireContext | None = None
+
+    async def __aenter__(self) -> asyncpg.Connection:
+        try:
+            await asyncio.wait_for(Database._pool_created.wait(), timeout=30)
+        except asyncio.TimeoutError:
+            raise Exception("Database pool was not created within 30 seconds")
+
+        if Database.pool is None:
+            raise Exception(
+                (
+                    "Database pool is not created - was the plugin loaded? "
+                    "Was there a DSN provided?"
+                )
+            )
+
+        self._ctx = Database.pool.acquire(*self.args, **self.kwargs)  # pyright: ignore
+        assert self._ctx is not None, "Failed to acquire connection from pool"
+        return await self._ctx.__aenter__()
+
+    async def __aexit__(self, *args: Any) -> None:
+        if self._ctx is not None:
+            await self._ctx.__aexit__(*args)
+
+
 class Database(client.Plugin):
 
     CONFIG = {
         "database_dsn": "",
         "database_max_connections": 10,
     }
-    pool: asyncpg.Pool = None  # pyright: ignore
+
+    pool: asyncpg.Pool | None = None
     _log: logging.Logger = logging.getLogger("database")  # pyright: ignore
-    _pool_created: asyncio.Event | None = None
+    _pool_created: asyncio.Event = asyncio.Event()
 
     @classmethod
-    def acquire(cls, *args: Any, _attempt: int = 0, **kwargs: Any) -> PoolAcquireContext:
-        if cls.pool is None:
-            if _attempt >= 5:
-                raise Exception(
-                    (
-                        "Database pool is not created - was the plugin loaded? "
-                        "Was there a DSN provided?"
-                    )
-                )
-            else:
-                return cls.acquire(*args, _attempt=_attempt + 1, **kwargs)
-        return cls.pool.acquire(*args, **kwargs)  # pyright: ignore
+    def acquire(cls, *args: Any, **kwargs: Any) -> DatabaseAcquireContext:
+        return DatabaseAcquireContext(*args, **kwargs)
 
     async def create_pool(
             self,
@@ -111,17 +132,25 @@ class Database(client.Plugin):
             self.bot.config.database_max_connections = 10
 
         # Create pool
-        try:
-            self._pool_created = asyncio.Event()
-            await self.create_pool(
-                self.bot.config.database_dsn,
-                self.bot.config.database_max_connections,
-                min(self.bot.config.database_max_connections, 10)
-            )
-        except Exception:
-            self._pool_created = None
+        for _ in range(5):
+            try:
+                await self.create_pool(
+                    self.bot.config.database_dsn,
+                    self.bot.config.database_max_connections,
+                    min(self.bot.config.database_max_connections, 10)
+                )
+            except Exception:
+                self.log.error(
+                    "Failed to create database pool, retrying in 5 seconds",
+                    exc_info=True,
+                )
+                await asyncio.sleep(5)
+            else:
+                Database._pool_created.set()
+                break
         else:
-            self._pool_created.set()
+            Database._pool_created.set()
+            raise Exception("Failed to create database pool after 5 attempts")
 
     async def create_tables(self) -> None:
         """
