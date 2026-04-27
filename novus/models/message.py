@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Iterable, Literal
 
 from typing_extensions import Self, override
 
@@ -32,12 +32,12 @@ from ..utils import (
     try_snowflake,
 )
 from .abc import Hashable
-from .channel import Channel, ThreadMember
+from .channel import Channel
 from .embed import Embed
 from .emoji import PartialEmoji
 from .file import File
 from .guild import BaseGuild, Guild
-from .guild_member import GuildMember
+from .guild_member import GuildMember, ThreadMember
 from .reaction import Reaction
 from .role import Role
 from .sticker import Sticker
@@ -259,7 +259,7 @@ class Message(Hashable):
         if "guild_id" in data:
             self.guild = self.state.cache.get_guild(data["guild_id"])
             if self.guild is None:
-                self.guild = BaseGuild(state=self.state, data={"id": data["guild_id"]})
+                self.guild = BaseGuild.partial(self.state, data["guild_id"])
 
         # Get author user
         author = self.state.cache.get_user(data["author"]["id"])
@@ -974,7 +974,7 @@ class MessageSearchResults:
     ----------
     guild : novus.BaseGuild
         The guild that the search was performed in.
-    doing_deep_historial_index : bool
+    doing_deep_historical_index : bool
         Whether or not the guild is undergoing a deep historical indexing operation.
     documents_indexed : int
         The number of documents that have been indexed during the current search operation.
@@ -992,7 +992,7 @@ class MessageSearchResults:
     __slots__ = (
         "state",
         "guild",
-        "doing_deep_historial_index",
+        "doing_deep_historical_index",
         "documents_indexed",
         "total_results",
         "messages",
@@ -1009,8 +1009,8 @@ class MessageSearchResults:
         self.state = state
         self.guild = self.state.cache.get_guild(guild_id)
         if self.guild is None:
-            self.guild = BaseGuild(state=self.state, data={"id": str(guild_id)})  # pyright: ignore
-        self.doing_deep_historial_index = data["doing_deep_historial_index"]
+            self.guild = BaseGuild.partial(self.state, guild_id)
+        self.doing_deep_historical_index = data["doing_deep_historical_index"]
         self.documents_indexed = data.get("documents_indexed", 0)
         self.total_results = data["total_results"]
         self.messages = [
@@ -1019,3 +1019,11 @@ class MessageSearchResults:
         ]
         self.threads = [Channel(state=self.state, data=t) for t in data.get("threads", list())]
         self.members = [ThreadMember(state=self.state, data=m) for m in data.get("members", list())]
+
+    def __repr__(self) -> str:
+        return f"<MessageSearchResults guild={self.guild!r} total_results={self.total_results}>"
+
+    def __iter__(self) -> Iterable[Message]:
+        for group in self.messages:
+            for message in group:
+                yield message

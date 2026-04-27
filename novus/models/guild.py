@@ -48,6 +48,8 @@ from .voice_state import VoiceState
 from .welcome_screen import WelcomeScreen
 
 if TYPE_CHECKING:
+    import datetime
+
     from .. import payloads
     from ..api import HTTPConnection
     from ..utils import DiscordDatetime
@@ -62,6 +64,7 @@ if TYPE_CHECKING:
     from .channel import ForumTag, PermissionOverwrite
     from .file import File
     from .invite import Invite
+    from .message import MessageSearchResults
     from .reaction import Reaction
 
 __all__ = (
@@ -109,6 +112,15 @@ class BaseGuild:
 
     def __repr__(self) -> str:
         return f"<{self.__class__.__name__} id={self.id!r} name={self.name!r}>"
+
+    @classmethod
+    def partial(cls, state: HTTPConnection, id: AnySnowflake) -> BaseGuild:
+        """
+        Create the barest possible guild object so you can run API methods on it or pass it to
+        other functions.
+        """
+
+        return cls(state=state, data={"id": try_id(id), "name": None})  # pyright: ignore
 
     # API methods
 
@@ -940,6 +952,170 @@ class BaseGuild:
             reason=reason,
         )
         return None
+
+    async def search_messages(
+            self: abc.StateSnowflake,
+            *,
+            limit: int = MISSING,
+            offset: int = MISSING,
+            before: datetime.datetime = MISSING,
+            after: datetime.datetime = MISSING,
+            slop: int = MISSING,
+            content: str = MISSING,
+            channels: list[AnySnowflake] = MISSING,
+            author_types: list[str] = MISSING,  # TODO
+            authors: list[AnySnowflake] = MISSING,
+            mentions: list[AnySnowflake] = MISSING,
+            mentions_roles: list[AnySnowflake] = MISSING,
+            mentions_everyone: bool = MISSING,
+            replied_to_user: list[AnySnowflake] = MISSING,
+            replied_to_message: list[AnySnowflake] = MISSING,
+            pinned: bool = MISSING,
+            has: list[str] = MISSING,  # TODO
+            embed_type: list[str] = MISSING,  # TODO
+            embed_provider: list[str] = MISSING,
+            link_hostname: list[str] = MISSING,
+            attachment_filenames: list[str] = MISSING,
+            sort_by: str = MISSING,  # TODO
+            sort_order: str = MISSING,  # TODO
+            include_nsfw: bool = True,
+            wait: bool = True) -> MessageSearchResults:
+        """
+        Search the guild's messages.
+
+        Parameters
+        ----------
+        limit : int
+            The maximum number of results to return (max 25).
+        offset : int
+            Number to offset the returned messages by (max 9975).
+        before : datetime.datetime
+            Only return messages sent before this time.
+        after : datetime.datetime
+            Only return messages sent after this time.
+        slop : int
+            The maximum number of words to skip between matching tokens in the search ``content``
+            (max 100)
+        content : str
+            The content to search for (max 1024 characters).
+        channels : list[int | novus.abc.Snowflake]
+            A list of channels to limit the search to (max 500).
+        author_types : list[str]
+            A list of author types to limit the search to.
+
+            .. seealso:: `novus.MessageAuthorType`
+        authors : list[int | novus.abc.Snowflake]
+            A list of authors to limit the search to (max 100).
+        mentions : list[int | novus.abc.Snowflake]
+            A list of users mentioned in the message to limit the search to (max 100).
+        mentions_roles : list[int | novus.abc.Snowflake]
+            A list of roles mentioned in the message to limit the search to (max 100).
+        mentions_everyone : bool
+            Whether or not to limit the search to messages that mention everyone.
+        replied_to_user : list[int | novus.abc.Snowflake]
+            A list of users mentioned in the message to limit the search to (max 100).
+        replied_to_message : list[int | novus.abc.Snowflake]
+            A list of messages that the returned messages should reply to (max 100).
+        pinned : bool
+            Whether or not to limit the search to pinned messages.
+        has : list[str]
+            A list of elements that the message must have to be included in the search results.
+
+            .. seealso:: `novus.MessageElement`
+        embed_type : list[str]
+            A list of embed types that the message must have to be included in the search results.
+
+            .. seealso:: `novus.EmbedType`
+        embed_provider : list[str]
+            A list of embed providers that the message must have to be included in the search
+            results (max 256 characters, max 100).
+        link_hostname : list[str]
+            A list of link hostnames that the message must have to be included in the search
+            results (max 256 characters, max 100).
+        attachment_filenames : list[str]
+            Filter messages by attachment filename (max 1024 characters, max 100).
+        sort_by : str
+            The field to sort results by. Sort order is not respected when sorting by relevance.
+
+            .. seealso:: `novus.MessageSearchSortBy`
+        sort_order : str
+            The direction to sort results in. Sort order is not respected when sorting by relevance.
+
+            .. seealso:: `novus.MessageSearchSortOrder`
+        include_nsfw : bool
+            Whether or not to include NSFW channels in the search. Defaults to ``True``.
+        wait : bool
+            Whether or not to wait for the search results before returning. If ``True``, the bot
+            will wait for a valid response from the API before returning. If ``False``, it is likely
+            that a (fake) `novus.RateLimitExceeded` exception will be raised while Discord indexes
+            the search results, and you should retry after the ``.retry_after`` parameter in the
+            error.
+
+        Returns
+        -------
+        novus.MessageSearchResults
+            The results of the search.
+        """
+
+        params: dict[str, Any] = {}
+        if limit is not MISSING:
+            params["limit"] = limit
+        if offset is not MISSING:
+            params["offset"] = offset
+        if before is not MISSING:
+            # Convert datetime into a fake ID.
+            if not isinstance(before, DiscordDatetime):
+                before = DiscordDatetime.from_datetime(before)
+            obj = before.snowflake
+            params["max_id"] = obj
+        if after is not MISSING:
+            # Convert datetime into a fake ID.
+            if not isinstance(after, DiscordDatetime):
+                after = DiscordDatetime.from_datetime(after)
+            obj = after.snowflake
+            params["min_id"] = obj
+        if slop is not MISSING:
+            params["slop"] = slop
+        if content is not MISSING:
+            params["content"] = content
+        if channels is not MISSING:
+            params["channel_id"] = [try_id(i) for i in channels]
+        if author_types is not MISSING:
+            params["author_type"] = author_types
+        if authors is not MISSING:
+            params["author_id"] = [try_id(i) for i in authors]
+        if mentions is not MISSING:
+            params["mentions"] = [try_id(i) for i in mentions]
+        if mentions_roles is not MISSING:
+            params["mentions_role_id"] = [try_id(i) for i in mentions_roles]
+        if mentions_everyone is not MISSING:
+            params["mention_everyone"] = mentions_everyone
+        if replied_to_user is not MISSING:
+            params["replied_to_user_id"] = [try_id(i) for i in replied_to_user]
+        if replied_to_message is not MISSING:
+            params["replied_to_message_id"] = [try_id(i) for i in replied_to_message]
+        if pinned is not MISSING:
+            params["pinned"] = pinned
+        if has is not MISSING:
+            params["has"] = has
+        if embed_type is not MISSING:
+            params["embed_type"] = embed_type
+        if embed_provider is not MISSING:
+            params["embed_provider"] = embed_provider
+        if link_hostname is not MISSING:
+            params["link_hostname"] = link_hostname
+        if attachment_filenames is not MISSING:
+            params["attachment_filename"] = attachment_filenames
+        if sort_by is not MISSING:
+            params["sort_by"] = sort_by
+        if sort_order is not MISSING:
+            params["sort_order"] = sort_order
+        if include_nsfw is not MISSING:
+            params["include_nsfw"] = include_nsfw
+        if wait is not MISSING:
+            params["wait"] = wait
+
+        return await self.state.guild.search_channel_messages(self.id, **params)
 
     async def fetch_scheduled_events(
             self: abc.StateSnowflake,

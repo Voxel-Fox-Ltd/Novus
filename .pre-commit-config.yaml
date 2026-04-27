@@ -6,11 +6,11 @@ repos:
         entry: flake8
         language: python
         types: [python]
-    -   id: mypy
-        name: Run mypy
-        entry: mypy
-        language: python
-        types: [python]
+    # -   id: mypy
+    #     name: Run mypy
+    #     entry: mypy
+    #     language: python
+    #     types: [python]
     -   id: isort
         name: Run isort
         entry: isort

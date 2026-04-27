@@ -22,6 +22,7 @@ from typing import TYPE_CHECKING, Any, NoReturn
 
 from ..models import Guild, GuildBan, GuildMember, GuildPreview, Role, User
 from ..models.channel import Channel
+from ..models.invite import Invite
 from ..models.message import MessageSearchResults
 from ._errors import RateLimitExceeded
 from ._route import Route
@@ -740,6 +741,7 @@ class GuildHTTPConnection:
             mentions_role_id: list[str] | None = None,
             mention_everyone: bool | None = None,
             replied_to_user_id: list[str] | None = None,
+            replied_to_message_id: list[str] | None = None,
             pinned: bool | None = None,
             has: list[str] | None = None,
             embed_type: list[str] | None = None,
@@ -788,6 +790,8 @@ class GuildHTTPConnection:
             params["mention_everyone"] = mention_everyone
         if replied_to_user_id is not None:
             params["replied_to_user_id"] = replied_to_user_id
+        if replied_to_message_id is not None:
+            params["replied_to_message_id"] = replied_to_message_id
         if pinned is not None:
             params["pinned"] = pinned
         if has is not None:
@@ -829,6 +833,7 @@ class GuildHTTPConnection:
                     mentions_role_id=mentions_role_id,
                     mention_everyone=mention_everyone,
                     replied_to_user_id=replied_to_user_id,
+                    replied_to_message_id=replied_to_message_id,
                     pinned=pinned,
                     has=has,
                     embed_type=embed_type,

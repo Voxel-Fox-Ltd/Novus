@@ -52,6 +52,10 @@ class DiscordDatetime(dt):
         A rendered timestamp string. Shorthand for ``.format()``.
     """
 
+    @staticmethod
+    def from_datetime(datetime: dt) -> DiscordDatetime:
+        return parse_timestamp(datetime)
+
     @property
     def naive(self) -> DiscordDatetime:
         return DiscordDatetime.fromtimestamp(self.timestamp())
@@ -67,6 +71,14 @@ class DiscordDatetime(dt):
             self.microsecond,
             self.tzinfo,
         )
+
+    @property
+    def snowflake(self) -> str:
+        """
+        Make a fake snowflake that reflects the given timestamp.
+        """
+
+        return str(int((self.timestamp() * 1e3 - 1_420_070_400_000) * 1e4) << 22)
 
     @property
     def mention(self) -> str:

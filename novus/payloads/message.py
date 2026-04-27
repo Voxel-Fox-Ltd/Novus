@@ -141,7 +141,7 @@ class Message(_MessageOptional):
 
 
 class MessageSearchResults(TypedDict):
-    doing_deep_historial_index: bool
+    doing_deep_historical_index: bool
     documents_indexed: NotRequired[int]
     total_results: int
     messages: list[list[Message]]
