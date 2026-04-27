@@ -366,10 +366,16 @@ class HTTPConnection:
                         given = None
                     else:
                         raise AssertionError("Cannot parse JSON from response.")
-                log.debug(
-                    "Response {0.method} {0.path} returned {1.status} {2}"
-                    .format(route, resp, given)
-                )
+                if params:
+                    log.debug(
+                        "Response {0.method} {0.path}?{1} returned {2.status} {3}"
+                        .format(route, params, resp, given)
+                    )
+                else:
+                    log.debug(
+                        "Response {0.method} {0.path} returned {1.status} {2}"
+                        .format(route, resp, given)
+                    )
 
                 # See what response we got
                 if 300 > resp.status >= 200:
