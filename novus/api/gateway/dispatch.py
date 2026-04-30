@@ -18,6 +18,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from __future__ import annotations
 
 import asyncio
+import functools
 import json
 import logging
 from copy import copy
@@ -150,7 +151,7 @@ class GatewayDispatch:
 
     @property
     def dispatch(self) -> Any:
-        return self.parent.dispatch
+        return functools.partial(self.parent.dispatch, self.shard.shard_id)
 
     async def handle_dispatch(self, event_name: str, data: dict) -> None:
         """

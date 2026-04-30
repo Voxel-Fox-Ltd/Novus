@@ -515,7 +515,7 @@ class Client:
             p_class: Type[Plugin] = getattr(lib, class_name)
             self.remove_plugin(p_class)
 
-    def dispatch(self, event_name: str, *args: Any, **kwargs: Any) -> None:
+    def dispatch(self, shard_id: int, event_name: str, *args: Any, **kwargs: Any) -> None:
         """
         Dispatch an event to all loaded plugins.
         """
@@ -560,7 +560,10 @@ class Client:
 
                 # Only sort lists that are entirely subcommands/groups
                 if all(
-                    isinstance(o, dict) and o.get("type") in {n.ApplicationOptionType.SUB_COMMAND, n.ApplicationOptionType.SUB_COMMAND_GROUP}
+                    isinstance(o, dict) and o.get("type") in {
+                        n.ApplicationOptionType.SUB_COMMAND,
+                        n.ApplicationOptionType.SUB_COMMAND_GROUP
+                    }
                     for o in options
                 ):
                     obj["options"] = sorted(
@@ -795,7 +798,7 @@ class Client:
             stream = LoggingResponse()
             interaction._stream = stream
             interaction._stream_request = request
-            self.dispatch("INTERACTION_CREATE", interaction)
+            self.dispatch(-1, "INTERACTION_CREATE", interaction)
 
             t0 = time.time()
             while stream._eof_sent is False and time.time() - t0 < 5.0:
