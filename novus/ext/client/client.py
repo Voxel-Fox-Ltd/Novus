@@ -67,6 +67,12 @@ class FakeStats:
     def __init__(self, *args, **kwargs) -> None:
         ...
 
+    async def connect(self, *args, **kwargs) -> None:
+        ...
+
+    async def close(self, *args, **kwargs) -> None:
+        ...
+
     def gauge(self, *args, **kwargs) -> None:
         ...
 
@@ -908,6 +914,7 @@ class Client:
             await i.on_unload()
         await self.state.gateway.close()
         await self.state.close()
+        await self.stats.close()
 
     async def run(self, *, check_concurrency: bool = True, sync: bool = True) -> None:
         """
@@ -921,6 +928,7 @@ class Client:
         """
 
         log.info("Running client")
+        await self.stats.connect()
         await self.load_plugins()
         try:
             if sync:
@@ -946,6 +954,7 @@ class Client:
         """
 
         log.info("Running client webserver")
+        await self.stats.connect()
         await self.load_plugins()
         try:
             if sync:
