@@ -53,6 +53,45 @@ log = logging.getLogger("novus.ext.client")
 IMPORTED_PLUGIN_MODULES: dict[str, ModuleType] = {}
 
 
+class FakeStatsTimeit:
+
+    def __enter__(self) -> None:
+        ...
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        ...
+
+
+class FakeStats:
+
+    def __init__(self, *args, **kwargs) -> None:
+        ...
+
+    def gauge(self, *args, **kwargs) -> None:
+        ...
+
+    def increment(self, *args, **kwargs) -> None:
+        ...
+
+    def decrement(self, *args, **kwargs) -> None:
+        ...
+
+    def histogram(self, *args, **kwargs) -> None:
+        ...
+
+    def distribution(self, *args, **kwargs) -> None:
+        ...
+
+    def timing(self, *args, **kwargs) -> None:
+        ...
+
+    def timeit(self, *args, **kwargs) -> FakeStatsTimeit:
+        return FakeStatsTimeit()
+
+    async def timeit_task(self, coro: asyncio.Task, *args, **kwargs):
+        return await coro
+
+
 class LoggingResponse(web.StreamResponse):
     """
     A StreamResponse that logs anything written to it.
@@ -100,6 +139,17 @@ class Client:
         self.state.dispatch = self.dispatch
 
         self.plugins: list[Plugin] = []
+
+        self.stats = FakeStats()
+        try:
+            import aiodogstatsd
+            self.stats = aiodogstatsd.Client(
+                host=self.config.statsd.host,
+                port=self.config.statsd.port,
+                constant_tags={"bot": self.config.statsd.namespace},
+            )
+        except ImportError:
+            log.info("aiodogstatsd not installed, using fake stats client")
 
         self._commands: dict[tuple[int | None, str], Command] = {}
         self._commands_by_id: dict[int, Command] = {}
@@ -520,8 +570,11 @@ class Client:
         Dispatch an event to all loaded plugins.
         """
 
+        interaction: n.Interaction | None = None
+        command: Command | None = None
         if event_name == "INTERACTION_CREATE":
-            interaction: n.Interaction = args[0]
+            interaction = args[0]
+            assert interaction is not None
             if interaction.type in [
                     n.InteractionType.APPLICATION_COMMAND,
                     n.InteractionType.AUTOCOMPLETE]:
@@ -549,6 +602,28 @@ class Client:
 
         for p in self.plugins:
             p.dispatch(event_name, *args, **kwargs)
+
+        self.stats.increment(
+            "discord.gateway.event.received",
+            tags={
+                "event": event_name,
+                "shard_id": shard_id,
+            },
+        )
+        if command is not None:
+            assert interaction is not None
+            if interaction.type != n.InteractionType.AUTOCOMPLETE:
+                self.stats.increment(
+                    "novus.command.invoked",
+                    tags={
+                        "command": command.name,
+                        "guild_id": str(interaction.guild.id) if interaction.guild else "DM",
+                        # "user_id": str(interaction.user.id),
+                        # "channel_id": str(interaction.channel.id),
+                        "guild_locale": interaction.guild_locale or "N/A",
+                        "user_locale": interaction.locale,
+                    },
+                )
 
     @classmethod
     def _normalise_command(cls, obj: Any) -> Any:

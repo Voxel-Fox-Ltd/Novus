@@ -35,6 +35,7 @@ scripts.novus = "novus.ext.client.cli.__main__:main_sync"
 docs = [ "sphinx", "furo", ]
 testing = [ "pytest", "pytest-asyncio", "pyyaml", ]
 database = [ "asyncpg", ]
+stats = [ "aiodogstatsd", ]
 
 [tool.poetry]
 package-mode = true

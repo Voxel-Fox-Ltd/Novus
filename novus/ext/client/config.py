@@ -52,6 +52,13 @@ class OauthConfig:
     client_secret: str | None
 
 
+@dataclass
+class StatsDConfig:
+    host: str
+    port: int
+    namespace: str
+
+
 class Config:
 
     # ignores extended
@@ -64,6 +71,7 @@ class Config:
         "intents",
         "plugins",
         "oauth",
+        "statsd",
         "extended",
     ]
 
@@ -78,6 +86,7 @@ class Config:
             intents: novus.Intents | None = None,
             plugins: list[str] | None = None,
             oauth: dict[str, str | None] | None = None,
+            statsd: dict[str, Any] | None = None,
             **kwargs: Any):
         self.token: str = token
         self.pubkey: str = pubkey
@@ -91,6 +100,11 @@ class Config:
             self.oauth = OauthConfig(None, None)
         else:
             self.oauth = OauthConfig(**oauth)
+        self.statsd: StatsDConfig
+        if statsd is None:
+            self.statsd = StatsDConfig("127.0.0.1", 9125, "discord bot")
+        else:
+            self.statsd = StatsDConfig(**statsd)
 
         # added from plugins and unknowns
         self.extended: Extended = {"_": {}}
@@ -218,6 +232,9 @@ class Config:
             for p in bot.plugins:
                 self.extended[p.__name__] = p.CONFIG.copy()
 
+        # oauth
+        # statsd
+
         if unknown:
             for name, value in zip(unknown[::2], unknown[1::2]):
                 if not name.startswith("--"):
@@ -325,7 +342,12 @@ class Config:
             "oauth": {
                 "client_id": self.oauth.client_id or "",
                 "client_secret": self.oauth.client_secret or "",
-            }
+            },
+            "statsd": {
+                "host": self.statsd.host,
+                "port": self.statsd.port,
+                "namespace": self.statsd.namespace,
+            },
         }
         for ext in self.extended.values():
             v.update(ext)
