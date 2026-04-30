@@ -59,6 +59,12 @@ if TYPE_CHECKING:
     from ..models import File
     from ._route import Route
 
+    try:
+        from aiodogstatsd import Client as Stats
+    except ImportError:
+        from ..ext.client import FakeStats as Stats
+
+
 __all__ = (
     'HTTPConnection',
     'OauthHTTPConnection',
@@ -181,6 +187,9 @@ class HTTPConnection:
 
         # Add gateway
         self.gateway = GatewayConnection(self)
+
+        # Add stats
+        self.stats: Stats | None = None
 
     async def get_session(self) -> aiohttp.ClientSession:
         if self._session:
@@ -356,6 +365,13 @@ class HTTPConnection:
                     **args,
                     timeout=5,
                 )
+                if self.stats is not None:
+                    self.stats.increment("discord.http.request", tags={
+                        "method": route.method,
+                        "endpoint": route.resource,
+                        "status": str(resp.status),
+                        "status_class": f"{resp.status // 100}xx",
+                    })
 
                 # Parse response
                 given: dict[Any, Any] | None

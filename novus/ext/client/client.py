@@ -45,7 +45,7 @@ if TYPE_CHECKING:
 
 
 __all__ = (
-    'Client',
+    "Client",
 )
 
 
@@ -155,13 +155,16 @@ class Client:
             except ValueError:
                 host = self.config.statsd.host
                 port = 9125
+                ns = self.config.statsd.namespace
             self.stats = aiodogstatsd.Client(
                 host=host,
                 port=port,
-                constant_tags={"bot": self.config.statsd.namespace},
+                constant_tags={"bot": ns},
             )
+            self.state.stats = self.stats
+            log.info("Created stats client for %s:%s (namespace %s)", host, port, ns)
         except ImportError:
-            log.info("aiodogstatsd not installed, using fake stats client")
+            log.warning("aiodogstatsd not installed, using fake stats client")
 
         self._commands: dict[tuple[int | None, str], Command] = {}
         self._commands_by_id: dict[int, Command] = {}
