@@ -143,9 +143,15 @@ class Client:
         self.stats = FakeStats()
         try:
             import aiodogstatsd
+            try:
+                host, port = self.config.statsd.host.split(":")
+                port = int(port)
+            except ValueError:
+                host = self.config.statsd.host
+                port = 9125
             self.stats = aiodogstatsd.Client(
-                host=self.config.statsd.host,
-                port=self.config.statsd.port,
+                host=host,
+                port=port,
                 constant_tags={"bot": self.config.statsd.namespace},
             )
         except ImportError:

@@ -55,7 +55,6 @@ class OauthConfig:
 @dataclass
 class StatsDConfig:
     host: str
-    port: int
     namespace: str
 
 
@@ -102,7 +101,7 @@ class Config:
             self.oauth = OauthConfig(**oauth)
         self.statsd: StatsDConfig
         if statsd is None:
-            self.statsd = StatsDConfig("127.0.0.1", 9125, "discord bot")
+            self.statsd = StatsDConfig("127.0.0.1", "discord bot")
         else:
             self.statsd = StatsDConfig(**statsd)
 
@@ -345,7 +344,6 @@ class Config:
             },
             "statsd": {
                 "host": self.statsd.host,
-                "port": self.statsd.port,
                 "namespace": self.statsd.namespace,
             },
         }
