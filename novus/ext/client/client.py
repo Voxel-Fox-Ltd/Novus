@@ -155,7 +155,7 @@ class Client:
             except ValueError:
                 host = self.config.statsd.host
                 port = 9125
-                ns = self.config.statsd.namespace
+            ns = self.config.statsd.namespace
             self.stats = aiodogstatsd.Client(
                 host=host,
                 port=port,
