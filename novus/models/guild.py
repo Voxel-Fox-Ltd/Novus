@@ -1067,13 +1067,13 @@ class BaseGuild:
             if not isinstance(before, DiscordDatetime):
                 before = DiscordDatetime.from_datetime(before)
             obj = before.snowflake
-            params["min_id"] = obj
+            params["max_id"] = obj
         if after is not MISSING:
             # Convert datetime into a fake ID.
             if not isinstance(after, DiscordDatetime):
                 after = DiscordDatetime.from_datetime(after)
             obj = after.snowflake
-            params["max_id"] = obj
+            params["min_id"] = obj
         if slop is not MISSING:
             params["slop"] = slop
         if content is not MISSING:
