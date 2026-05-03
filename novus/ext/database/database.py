@@ -123,10 +123,10 @@ class Database(client.Plugin):
 
         # Make sure we have a DSN
         if not hasattr(self.bot.config, "database_dsn"):
-            self.log.error("Missing database DSN from config")
+            self.log.error("Missing database DSN from config; set `database_dsn` field")
             return
         if not self.bot.config.database_dsn:
-            self.log.error("Missing database DSN from config")
+            self.log.error("Missing database DSN from config; set `database_dsn` field")
             return
         if self.bot.config.database_max_connections is None:
             self.bot.config.database_max_connections = 10

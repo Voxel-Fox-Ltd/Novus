@@ -632,7 +632,7 @@ class Client:
                     "novus.command.invoked",
                     tags={
                         "command": command.name,
-                        "guild_id": str(interaction.guild.id) if interaction.guild else "DM",
+                        "guild": True if interaction.guild else False,
                         # "user_id": str(interaction.user.id),
                         # "channel_id": str(interaction.channel.id),
                         "guild_locale": interaction.guild_locale or "N/A",
