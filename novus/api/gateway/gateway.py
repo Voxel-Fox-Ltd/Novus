@@ -207,6 +207,7 @@ class GatewayShard:
         # Cached data
         self.heartbeat_task: asyncio.Task | None = None
         self.message_task: asyncio.Task | None = None
+        self.reconnect_task: asyncio.Task | None = None
         self.sequence: int | None = None
         self.resume_url = self.ws_url
         self.session_id = None
@@ -279,24 +280,18 @@ class GatewayShard:
                     log.info("[%s] Gateway closed by Discord", self.shard_id)
                 elif isinstance(e, GatewayClose):
                     log.info("[%s] Gateway told to close by Discord", self.shard_id)
-                t = asyncio.create_task(self.reconnect(resume=True))
-                self.running_tasks.add(t)
-                t.add_done_callback(self.running_tasks.discard)
+                self.reconnect(resume=True)
                 return
             except GatewayAuthenticationFailed:
                 log.info("[%s] Gateway authentication failed, closing with error code", self.shard_id)
                 exit(1)
             except GatewayException as e:
                 log.debug("[%s] Generic gateway exception %s", self.shard_id, e, exc_info=e)
-                t = asyncio.create_task(self.reconnect(resume=e.reconnect))
-                self.running_tasks.add(t)
-                t.add_done_callback(self.running_tasks.discard)
+                self.reconnect(resume=e.reconnect)
                 return
             except Exception as e:
                 log.debug("[%s] Hit error receiving", self.shard_id, exc_info=e)
-                t = asyncio.create_task(self.reconnect(resume=False))
-                self.running_tasks.add(t)
-                t.add_done_callback(self.running_tasks.discard)
+                self.reconnect(resume=False)
                 return
 
             # Yield data
@@ -441,18 +436,43 @@ class GatewayShard:
                 parsed.get("d"),
             )
 
-    async def reconnect(self, resume: bool = True) -> None:
+    async def _reconnect(self, resume: bool = True) -> None:
         """
         Reconnect to the gateway.
         """
 
-        log.debug(f"[{self.shard_id}] Starting reconnect...")
+        log.debug("[%s] Starting reconnect... resume=%s", self.shard_id, resume)
+
         self.connecting.set()
         await self.close(code=0)
+
+        if resume:
+            ws_url = self.resume_url
+        else:
+            ws_url = self.ws_url
+            self.session_id = None
+            self.sequence = None
+            self.resume_url = self.ws_url
+
         await self.connect(
-            self.resume_url,
+            ws_url,
             resume=resume,
         )
+
+    def reconnect(self, resume: bool = True) -> None:
+        if self.reconnect_task is not None and not self.reconnect_task.done():
+            log.debug(
+                "[%s] Reconnect already running; ignoring duplicate reconnect",
+                self.shard_id,
+            )
+            return
+
+        self.reconnect_task = asyncio.create_task(
+            self._reconnect(resume=resume),
+            name=f"Reconnect shard {self.shard_id}",
+        )
+        self.running_tasks.add(self.reconnect_task)
+        self.reconnect_task.add_done_callback(self.running_tasks.discard)
 
     async def connect(
             self,
@@ -496,7 +516,6 @@ class GatewayShard:
                 self.shard_id,
             )
             await self.close(0)
-            resume = True
 
         # Do our generic setup
         if resume is False:
@@ -586,7 +605,7 @@ class GatewayShard:
             )
 
         # Failed to get READY/RESUMED in time
-        except AssertionError as e:
+        except AssertionError:
             log.debug(
                 "[%s] Failed to get a READY from the gateway after 60s; reattempting connect (%s)",
                 self.shard_id, attempt,
@@ -624,10 +643,10 @@ class GatewayShard:
 
         self.connecting.set()
         self.ready_received.clear()
-        if resume:
-            fmt = "[{shard}] Waited {time}s at semapohre to RESUME"
-        else:
-            fmt = "[{shard}] Waited {time}s at semapohre to IDENTIFY"
+        # if resume:
+        #     fmt = "[{shard}] Waited {time}s at semapohre to RESUME"
+        # else:
+        #     fmt = "[{shard}] Waited {time}s at semapohre to IDENTIFY"
         self.state = "Pending send IDENTIFY/RESUME"
         # async with self.identify_semaphore.log(self.shard_id, fmt):
         async with self.identify_semaphore:
@@ -667,7 +686,7 @@ class GatewayShard:
             self.message_task.cancel()
         if self.socket and not self.socket.closed:
             try:
-                await asyncio.wait_for(self.socket.close(code=0), timeout=1)
+                await asyncio.wait_for(self.socket.close(code=code), timeout=1)
             except asyncio.TimeoutError:
                 pass
         self.state = "Closed"
@@ -711,9 +730,13 @@ class GatewayShard:
                 return
             for beat_attempt in range(1_000):
                 try:
+                    self.heartbeat_received.clear()
                     await self.send(GatewayOpcode.HEARTBEAT, self.sequence)
                     await asyncio.wait_for(self.heartbeat_received.wait(), timeout=10)
                 except asyncio.CancelledError:
+                    log.debug("[%s] Heartbeat has been cancelled", self.shard_id)
+                    return
+                except asyncio.TimeoutError:
                     if beat_attempt <= 5:
                         log.debug(
                             (
@@ -730,9 +753,7 @@ class GatewayShard:
                         ),
                         self.shard_id, beat_attempt,
                     )
-                    t = asyncio.create_task(self.connect(resume=True))
-                    self.running_tasks.add(t)
-                    t.add_done_callback(self.running_tasks.discard)
+                    self.reconnect(resume=True)
                     return
                 except ValueError:
                     log.debug(
@@ -740,11 +761,9 @@ class GatewayShard:
                             "[%s] Socket closed so could not send heartbeat - "
                             "reconnecting"
                         ),
-                        beat_attempt,
+                        self.shard_id,
                     )
-                    t = asyncio.create_task(self.connect(resume=True))
-                    self.running_tasks.add(t)
-                    t.add_done_callback(self.running_tasks.discard)
+                    self.reconnect(resume=True)
                     return
                 else:
                     break
@@ -898,24 +917,20 @@ class GatewayShard:
 
                 # Deal with reconnects
                 case GatewayOpcode.RECONNECT:
-                    t = asyncio.create_task(self.reconnect())
-                    self.running_tasks.add(t)
-                    t.add_done_callback(self.running_tasks.discard)
+                    self.reconnect()
                     return
 
                 # Deal with invalid sesions
                 case GatewayOpcode.INVALIDATE_SESSION:
+                    resumable = bool(message)
                     log.info(
-                        (
-                            "[%s] Session invalidated (resumable: %s) - "
-                            "creating a new session in 5s"
-                        ),
-                        self.shard_id, str(message).lower(),
+                        "[%s] Session invalidated (resumable: %s) - reconnecting in 5s",
+                        self.shard_id,
+                        str(resumable).lower(),
                     )
                     await asyncio.sleep(5)
-                    t = asyncio.create_task(self.send_resume_identify(resume=message))
-                    self.running_tasks.add(t)
-                    t.add_done_callback(self.running_tasks.discard)
+                    self.reconnect(resume=resumable)
+                    return
 
                 # Everything else
                 case _:
