@@ -585,11 +585,6 @@ class GatewayShard:
                     )
 
                     log.info("[%s] Closing current connection and opening new one", self.shard_id)
-                    if self.message_task:
-                        self.message_task.cancel()
-                    if self.heartbeat_task:
-                        self.heartbeat_task.cancel()
-
                     await self.close(code=0)
                     await asyncio.sleep(5)
 
@@ -628,6 +623,7 @@ class GatewayShard:
                 "[%s] Failed to connect to websocket (%s - %s), reattempting (%s)",
                 self.shard_id, type(e), e, attempt,
             )
+            await self.close(code=0)
             return await self._connect(
                 ws_url=ws_url,
                 resume=resume,
@@ -640,6 +636,7 @@ class GatewayShard:
                 "[%s] Failed to get a HELLO after %ss (%s), reattempting (%s)",
                 self.shard_id, HELLO_TIMEOUT, e, attempt,
             )
+            await self.close(code=0)
             return await self._connect(
                 ws_url=ws_url,
                 resume=resume,
@@ -652,10 +649,21 @@ class GatewayShard:
                 "[%s] Failed to get a READY from the gateway after 60s; reattempting connect (%s)",
                 self.shard_id, attempt,
             )
-            if self.message_task:
-                self.message_task.cancel()
-            if self.heartbeat_task:
-                self.heartbeat_task.cancel()
+            await self.close(code=0)
+
+            if resume and attempt >= 3:
+                log.debug(
+                    "[%s] Resume timed out repeatedly; falling back to fresh IDENTIFY",
+                    self.shard_id,
+                )
+                self.session_id = None
+                self.sequence = None
+                self.resume_url = self.ws_url
+                return await self._connect(
+                    ws_url=self.ws_url,
+                    resume=False,
+                    attempt=1,
+                )
             return await self._connect(
                 ws_url=ws_url,
                 resume=resume,
@@ -668,10 +676,7 @@ class GatewayShard:
                 "[%s] Hit generic exception during connect (%s), reattempting (%s)",
                 self.shard_id, e, attempt,
             )
-            if self.message_task:
-                self.message_task.cancel()
-            if self.heartbeat_task:
-                self.heartbeat_task.cancel()
+            await self.close(code=0)
             return await self._connect(
                 ws_url=ws_url,
                 resume=resume,
@@ -682,9 +687,6 @@ class GatewayShard:
         """
         Send the RESUME/IDENTIFY payload to Discord and wait for a response.
         """
-
-        self.state = "Ready"
-        self.connecting.clear()
 
         self.connecting.set()
         self.ready_received.clear()
@@ -738,13 +740,23 @@ class GatewayShard:
                 self.message_task is not None,
                 self.socket and not self.socket.closed)):
             log.info("[%s] Closing shard connection", self.shard_id)
-        if self.heartbeat_task is not None:
-            self.heartbeat_task.cancel()
-        if self.message_task is not None:
-            self.message_task.cancel()
+
+        tasks_to_cancel = [
+            task
+            for task in (self.heartbeat_task, self.message_task)
+            if task is not None
+            and not task.done()
+            and task is not asyncio.current_task()
+        ]
+
+        for task in tasks_to_cancel:
+            task.cancel()
+        if tasks_to_cancel:
+            await asyncio.gather(*tasks_to_cancel, return_exceptions=True)
+
         if self.socket and not self.socket.closed:
             try:
-                await asyncio.wait_for(self.socket.close(code=code), timeout=1)
+                await asyncio.wait_for(self.socket.close(code=code), timeout=1.0)
             except asyncio.TimeoutError:
                 pass
         self.state = "Closed"
