@@ -57,6 +57,13 @@ log = logging.getLogger("novus.gateway.socket")
 dump = json.dumps
 
 
+class GatewayInvalidSession(Exception):
+
+    def __init__(self, resumable: bool) -> None:
+        self.resumable = resumable
+        super().__init__(f"Gateway invalid session; resumable={resumable}")
+
+
 class GatewayConnection:
 
     def __init__(self, parent: HTTPConnection) -> None:
@@ -190,6 +197,8 @@ class GatewayShard:
         self.connecting = asyncio.Event()
         self.ready_received = asyncio.Event()
         self.heartbeat_received = asyncio.Event()
+        self.invalid_session_received = asyncio.Event()
+        self.invalid_session_resumable: bool | None = None
 
         self.state: str = "Closed"
 
@@ -567,6 +576,39 @@ class GatewayShard:
                 self.message_task = asyncio.create_task(self.message_handler())
                 try:
                     await self.send_resume_identify(resume=resume)
+                except GatewayInvalidSession as e:
+                    log.info(
+                        "[%s] Gateway invalidated session during %s; resumable=%s",
+                        self.shard_id,
+                        "RESUME" if resume else "IDENTIFY",
+                        str(e.resumable).lower(),
+                    )
+
+                    log.info("[%s] Closing current connection and opening new one", self.shard_id)
+                    if self.message_task:
+                        self.message_task.cancel()
+                    if self.heartbeat_task:
+                        self.heartbeat_task.cancel()
+
+                    await self.close(code=0)
+                    await asyncio.sleep(5)
+
+                    if e.resumable:
+                        return await self._connect(
+                            ws_url=self.resume_url,
+                            resume=True,
+                            attempt=attempt + 1,
+                        )
+
+                    self.session_id = None
+                    self.sequence = None
+                    self.resume_url = self.ws_url
+
+                    return await self._connect(
+                        ws_url=self.ws_url,
+                        resume=False,
+                        attempt=attempt + 1,
+                    )
                 except asyncio.TimeoutError as e:
                     raise AssertionError("Failed to receive READY/RESUMED in time") from e
 
@@ -641,14 +683,15 @@ class GatewayShard:
         Send the RESUME/IDENTIFY payload to Discord and wait for a response.
         """
 
+        self.state = "Ready"
+        self.connecting.clear()
+
         self.connecting.set()
         self.ready_received.clear()
-        # if resume:
-        #     fmt = "[{shard}] Waited {time}s at semapohre to RESUME"
-        # else:
-        #     fmt = "[{shard}] Waited {time}s at semapohre to IDENTIFY"
+        self.invalid_session_received.clear()
+        self.invalid_session_resumable = None
+
         self.state = "Pending send IDENTIFY/RESUME"
-        # async with self.identify_semaphore.log(self.shard_id, fmt):
         async with self.identify_semaphore:
             self.state = "Sending IDENTIFY/RESUME"
             if resume:
@@ -657,14 +700,29 @@ class GatewayShard:
                 await self.identify()
 
             # Wait for a ready or resume
-            log.debug("[%s] Waiting for a READY/RESUMED", self.shard_id)
+            log.debug("[%s] Waiting for READY/RESUMED or INVALID_SESSION", self.shard_id)
             self.state = "Waiting for READY/RESUMED"
-            try:
-                await asyncio.wait_for(self.ready_received.wait(), timeout=60.0)
-            except asyncio.TimeoutError:
-                raise
 
-        # We are no longer connecting
+            ready_task = asyncio.create_task(self.ready_received.wait())
+            invalid_task = asyncio.create_task(self.invalid_session_received.wait())
+
+            try:
+                done, _ = await asyncio.wait(
+                    {ready_task, invalid_task},
+                    timeout=60.0,
+                    return_when=asyncio.FIRST_COMPLETED,
+                )
+                if not done:
+                    raise asyncio.TimeoutError
+                if invalid_task in done:
+                    resumable = bool(self.invalid_session_resumable)
+                    raise GatewayInvalidSession(resumable)
+                # Otherwise READY/RESUMED happened.
+            finally:
+                for task in (ready_task, invalid_task):
+                    if not task.done():
+                        task.cancel()
+
         self.state = "Ready"
         self.connecting.clear()
 
@@ -924,12 +982,12 @@ class GatewayShard:
                 case GatewayOpcode.INVALIDATE_SESSION:
                     resumable = bool(message)
                     log.info(
-                        "[%s] Session invalidated (resumable: %s) - reconnecting in 5s",
+                        "[%s] Session invalidated (resumable: %s)",
                         self.shard_id,
                         str(resumable).lower(),
                     )
-                    await asyncio.sleep(5)
-                    self.reconnect(resume=resumable)
+                    self.invalid_session_resumable = resumable
+                    self.invalid_session_received.set()
                     return
 
                 # Everything else
