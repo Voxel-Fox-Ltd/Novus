@@ -796,18 +796,18 @@ class GatewayShard:
                     "[%s] Starting heartbeat - initial %ss, "
                     "normally %ss"
                 ),
-                self.shard_id, format(wait / 100, ".2f"),
-                format(heartbeat_interval / 100, ".2f"),
+                self.shard_id, format(wait / 1e3, ".2f"),
+                format(heartbeat_interval / 1e3, ".2f"),
             )
         else:
             log.debug(
                 "[%s] Starting heartbeat at %ss",
-                self.shard_id, format(heartbeat_interval / 100, ".2f"),
+                self.shard_id, format(heartbeat_interval / 1e3, ".2f"),
             )
         while True:
             try:
                 if not skip_first_wait:
-                    await asyncio.sleep(wait / 1_000)
+                    await asyncio.sleep(wait / 1e3)
                 skip_first_wait = False
             except asyncio.CancelledError:
                 log.debug("[%s] Heartbeat has been cancelled", self.shard_id)
