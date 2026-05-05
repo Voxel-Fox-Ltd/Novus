@@ -64,6 +64,13 @@ class GatewayInvalidSession(Exception):
         super().__init__(f"Gateway invalid session; resumable={resumable}")
 
 
+class GatewayReconnectRequired(Exception):
+
+    def __init__(self, *, resume: bool, ws_url: str | None = None) -> None:
+        self.resume = resume
+        self.ws_url = ws_url
+
+
 class GatewayConnection:
 
     def __init__(self, parent: HTTPConnection) -> None:
@@ -585,24 +592,20 @@ class GatewayShard:
                     )
 
                     log.info("[%s] Closing current connection and opening new one", self.shard_id)
-                    await self.close(code=0)
-                    await asyncio.sleep(5)
 
                     if e.resumable:
-                        return await self._connect(
-                            ws_url=self.resume_url,
+                        raise GatewayReconnectRequired(
                             resume=True,
-                            attempt=attempt + 1,
+                            ws_url=self.resume_url,
                         )
 
                     self.session_id = None
                     self.sequence = None
                     self.resume_url = self.ws_url
 
-                    return await self._connect(
-                        ws_url=self.ws_url,
+                    raise GatewayReconnectRequired(
                         resume=False,
-                        attempt=attempt + 1,
+                        ws_url=self.ws_url,
                     )
                 except asyncio.TimeoutError as e:
                     raise AssertionError("Failed to receive READY/RESUMED in time") from e
@@ -667,6 +670,17 @@ class GatewayShard:
             return await self._connect(
                 ws_url=ws_url,
                 resume=resume,
+                attempt=attempt + 1,
+            )
+
+        # Failed to connect due to invalid session
+        except GatewayReconnectRequired as e:
+            await self.close(code=0)
+            await asyncio.sleep(5)
+
+            return await self._connect(
+                ws_url=e.ws_url,
+                resume=e.resume,
                 attempt=attempt + 1,
             )
 
