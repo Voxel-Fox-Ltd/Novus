@@ -356,17 +356,19 @@ class PartialApplicationCommand:
         type: int
         name: str
         name_localizations: Localization
-        description: str | None
+        description: str
         description_localizations: Localization
         options: list[ApplicationCommandOption]
         default_member_permissions: flags.Permissions
         dm_permission: bool
         nsfw: bool
+        integration_types: list[int] | None
+        contexts: list[int] | None
 
     def __init__(
             self,
             name: str,
-            description: str | None,
+            description: str,
             type: int,
             *,
             name_localizations: LocType = MISSING,
@@ -374,7 +376,9 @@ class PartialApplicationCommand:
             options: list[ApplicationCommandOption] = MISSING,
             default_member_permissions: Permissions | None = MISSING,
             dm_permission: bool = True,
-            nsfw: bool = False):
+            nsfw: bool = False,
+            integration_types: list[int] | None = None,
+            contexts: list[int] | None = None) -> None:
         self.type = type
         self.name = name
         self.name_localizations = flatten_localization(name_localizations)
@@ -387,6 +391,8 @@ class PartialApplicationCommand:
             self.default_member_permissions = default_member_permissions
         self.dm_permission = dm_permission
         self.nsfw = nsfw
+        self.integration_types = integration_types
+        self.contexts = contexts
 
     __repr__ = generate_repr(('name', 'description', 'options', 'type',))
 
@@ -417,6 +423,10 @@ class PartialApplicationCommand:
                 d["default_member_permissions"] = str(self.default_member_permissions.value)
         if self.options:
             d["options"] = [i._to_data() for i in self.options]
+        if self.integration_types is not None:
+            d["integration_types"] = self.integration_types
+        if self.contexts is not None:
+            d["contexts"] = self.contexts
         return d
 
     @classmethod
@@ -435,6 +445,8 @@ class PartialApplicationCommand:
             default_member_permissions=permissions,
             dm_permission=data.get("dm_permission", True),
             nsfw=data.get("nsfw", False),
+            integration_types=data.get("integration_types"),
+            contexts=data.get("contexts"),
         )
 
 
@@ -442,7 +454,7 @@ class ApplicationCommand(PartialApplicationCommand):
     """
     An application command object.
 
-    .. note:: This should not be user instantiated.
+    .. note:: This should not be user instantiated. Use `novus.PartialApplicationCommand` instead.
 
     Attributes
     ----------
@@ -489,6 +501,8 @@ class ApplicationCommand(PartialApplicationCommand):
         default_member_permissions: flags.Permissions
         dm_permission: bool
         nsfw: bool
+        integration_types: list[int] | None
+        contexts: list[int] | None
         version: int
 
     def __init__(
@@ -511,6 +525,9 @@ class ApplicationCommand(PartialApplicationCommand):
                 ApplicationCommandOption._from_data(d)
                 for d in data.get("options", [])
             ],
+            integration_types=data.get("integration_types"),
+            contexts=data.get("contexts"),
+            nsfw=data.get("nsfw", False),
         )
         self.id = try_snowflake(data["id"])
         self.application_id = try_snowflake(data["application_id"])

@@ -202,7 +202,7 @@ class Command:
 
         return n.ApplicationCommandOption(
             name=self.name.split(" ")[-1],
-            description=self.application_command.description,
+            description=self.application_command.description,  # pyright: ignore
             type=n.ApplicationOptionType.SUB_COMMAND,
             name_localizations=self.application_command.name_localizations,
             description_localizations=self.application_command.description_localizations,
@@ -532,7 +532,10 @@ class CommandGroup(Command):
                     t_names[language][depth].add(name_segment)
         for lang in t_names:
             if len(t_names[lang][0]) > 1:
-                raise CommandError("Cannot have multiple base names for group (command %s) (language %s)" % (t_names[lang][0], lang))
+                raise CommandError(
+                    "Cannot have multiple base names for group (command %s) (language %s)"
+                    % (t_names[lang][0], lang)
+                )
 
         # Do some other validity checks
         permission_set = None
@@ -699,6 +702,8 @@ def command(
         default_member_permissions: n.Permissions | None = None,
         dm_permission: bool = True,
         nsfw: bool = False,
+        integration_types: list[int] | None = None,
+        contexts: list[int] | None = None,
         guild_ids: list[int] | None = None,
         cls: Type[Command] = Command,
         **kwargs: Any) -> Callable[[CommandCallback], Command]:
@@ -733,6 +738,14 @@ def command(
         Whether the command can be run in DMs.
     nsfw : bool
         Whether the comamnd is set to only work in NSFW channels or not.
+    integration_types : list[int] | None
+        The integration types that the command will be added to.
+
+        .. seealso:: `novus.ApplicationIntegrationType`
+    contexts : list[int] | None
+        The contexts in which this command can be run.
+
+        .. seealso:: `novus.ApplicationCommandContext`
     guild_ids : list[int]
         The guilds that the command will be added to. If not set, then the
         command will be added globally.
@@ -788,6 +801,8 @@ def command(
                 default_member_permissions=default_member_permissions,
                 dm_permission=dm_permission,
                 nsfw=nsfw,
+                integration_types=integration_types,
+                contexts=contexts,
                 **kwargs
             ),
             guild_ids=guild_ids or [],

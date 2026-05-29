@@ -34,7 +34,9 @@ from .user import *
 
 __all__: tuple[str, ...] = (
     "ActivityType",
+    "ApplicationCommandContext",
     "ApplicationCommandType",
+    "ApplicationIntegrationType",
     "ApplicationOptionType",
     "AuditLogEventType",
     "AutoModerationActionType",
@@ -55,8 +57,6 @@ __all__: tuple[str, ...] = (
     "InteractionResponseType",
     "InteractionType",
     "MFALevel",
-    "TeamMemberRole",
-    "TeamMemberState",
     "MessageType",
     "NSFWLevel",
     "NotificationLevel",
@@ -66,6 +66,8 @@ __all__: tuple[str, ...] = (
     "Status",
     "StickerFormat",
     "StickerType",
+    "TeamMemberRole",
+    "TeamMemberState",
     "TextInputStyle",
     "TimestampFormat",
     "UserPremiumType",

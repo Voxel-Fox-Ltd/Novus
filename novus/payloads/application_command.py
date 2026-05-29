@@ -81,6 +81,8 @@ class PartialApplicationCommand(TypedDict):
     default_member_permissions: str | None
     dm_permission: NotRequired[bool]
     nsfw: NotRequired[bool]
+    integration_types: NotRequired[list[int]]
+    contexts: NotRequired[list[int]]
 
 
 class ApplicationCommand(PartialApplicationCommand):

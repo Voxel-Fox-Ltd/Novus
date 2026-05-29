@@ -5,6 +5,8 @@ Enums
 
 .. autoclass:: ApplicationCommandType
 .. autoclass:: ApplicationOptionType
+.. autoclass:: ApplicationIntegrationType
+.. autoclass:: ApplicationCommandContext
 .. autoclass:: AuditLogEventType
 .. autoclass:: AutoModerationActionType
 .. autoclass:: AutoModerationEventType

@@ -18,8 +18,10 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from .utils import Enum
 
 __all__ = (
-    'ApplicationCommandType',
-    'ApplicationOptionType',
+    "ApplicationCommandType",
+    "ApplicationOptionType",
+    "ApplicationIntegrationType",
+    "ApplicationCommandContext",
 )
 
 
@@ -49,3 +51,23 @@ class ApplicationOptionType(Enum):
     MENIONABLE = 9
     NUMBER = 10
     ATTACHMENT = 11
+
+
+class ApplicationIntegrationType(Enum):
+    """
+    The places in which a given command can be installed. May also be referred to as an
+    installation context.
+    """
+
+    GUILD_INSTALL = 0
+    USER_INSTALL = 1
+
+
+class ApplicationCommandContext(Enum):
+    """
+    The context where an interaction is used or where it was triggered from.
+    """
+
+    GUILD = 0
+    BOT_DM = 1
+    PRIVATE_CHANNEL = 2
