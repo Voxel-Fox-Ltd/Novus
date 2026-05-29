@@ -477,6 +477,10 @@ class CommandGroup(Command):
                 app.dm_permission = d.dm_permission
             if d.nsfw is not n.utils.MISSING:
                 app.nsfw = d.nsfw
+            if d.integration_types is not n.utils.MISSING:
+                app.integration_types = d.integration_types
+            if d.contexts is not n.utils.MISSING:
+                app.contexts = d.contexts
         for option in app.options:
             if option.name in d.children:
                 cls._add_description(option, d.children[option.name])
@@ -542,6 +546,8 @@ class CommandGroup(Command):
         dm_permission_set = None
         nsfw_set = None
         guild_ids_set = None
+        integration_set = None
+        contexts_set = None
         if run_checks:
             permission_set = set(
                 i.application_command.default_member_permissions
@@ -567,12 +573,26 @@ class CommandGroup(Command):
             )
             if len(guild_ids_set) > 1:
                 raise CommandError("Cannot have different guild IDs for group")
+            integration_set = set(
+                tuple(i.application_command.integration_types or ())
+                for i in command_map.values()
+            )
+            if len(integration_set) > 1:
+                raise CommandError("Cannot have different integration types for group")
+            contexts_set = set(
+                tuple(i.application_command.contexts or ())
+                for i in command_map.values()
+            )
+            if len(contexts_set) > 1:
+                raise CommandError("Cannot have different guild IDs for group")
         else:
-            for i in commands:
-                permission_set = [i.application_command.default_member_permissions]  # type: ignore
-                dm_permission_set = [i.application_command.dm_permission]  # type: ignore
-                nsfw_set = [i.application_command.nsfw]  # type: ignore
-                guild_ids_set = [i.guild_ids]  # type: ignore
+            for i in commands:  # make this a loop but get the first item only by breaking
+                permission_set = [i.application_command.default_member_permissions]
+                dm_permission_set = [i.application_command.dm_permission]
+                nsfw_set = [i.application_command.nsfw]
+                guild_ids_set = [i.guild_ids]
+                integration_set = [tuple(i.application_command.integration_types or ())]
+                contexts_set = [tuple(i.application_command.contexts or ())]
                 break
         assert permission_set is not None
         assert dm_permission_set is not None
@@ -592,7 +612,10 @@ class CommandGroup(Command):
             name_localizations={
                 lang: name.split(" ")[0]
                 for lang, name in first_command.application_command.name_localizations.items()
-            }
+            },
+            # tuples are close enough to lists
+            integration_types=integration_set[0] or None,  # pyright: ignore
+            contexts=contexts_set[0] or None,  # pyright: ignore
         )
         built_options[()] = app  # pyright: ignore
 
@@ -680,7 +703,9 @@ class CommandDescription:
             dm_permission: bool = n.utils.MISSING,
             nsfw: bool = n.utils.MISSING,
             guild_ids: list[int] | None = n.utils.MISSING,
-            children: dict[str, CommandDescription] | None = None):
+            children: dict[str, CommandDescription] | None = None,
+            integration_types: list[int] | None = n.utils.MISSING,
+            contexts: list[int] | None = n.utils.MISSING) -> None:
         self.description = description
         self.name_localizations = n.utils.flatten_localization(name_localizations)
         self.description_localizations = n.utils.flatten_localization(description_localizations)
@@ -689,6 +714,8 @@ class CommandDescription:
         self.nsfw = nsfw
         self.guild_ids = guild_ids
         self.children: dict[str, CommandDescription] = children or {}
+        self.integration_types = integration_types
+        self.contexts = contexts
 
     __repr__ = n.utils.generate_repr(('description',))
 
