@@ -95,6 +95,10 @@ class CustomCloseCLI(AsynchronousCli):
 
     def __init__(self, *args: Any, bot: client.Client, **kwargs: Any):
         super().__init__(*args, *kwargs)
+        self.commands["stop"] = (
+            self.exit_command,
+            ArgumentParser(description="Exit the interface."),
+        )
         self.bot = bot
 
     async def exit_command(self, reader: StreamReader, writer: StreamWriter) -> NoReturn:
