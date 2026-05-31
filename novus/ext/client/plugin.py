@@ -88,10 +88,14 @@ class PluginMeta(type):
         groups: dict[str, CommandGroup] = {}
         for _, subs in subcommands.items():
             base_name = list(subs)[0].name.split(" ")[0]
-            created_group = CommandGroup.from_commands(
-                subs,
-                run_checks=base_name not in descriptions
-            )
+            try:
+                created_group = CommandGroup.from_commands(
+                    subs,
+                    run_checks=base_name not in descriptions
+                )
+            except Exception:
+                log.error(f"Failed to create command group for {base_name}", exc_info=True)
+                raise
             cls._commands.add(created_group)
             groups[created_group.name] = created_group
         for g, d in descriptions.items():

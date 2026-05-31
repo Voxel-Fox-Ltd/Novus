@@ -585,19 +585,16 @@ class CommandGroup(Command):
             )
             if len(contexts_set) > 1:
                 raise CommandError("Cannot have different guild IDs for group")
+        for i in commands:  # make this a loop but get the first item only by breaking
+            permission_final = i.application_command.default_member_permissions
+            dm_permission_final = i.application_command.dm_permission
+            nsfw_final = i.application_command.nsfw
+            integration_final = i.application_command.integration_types
+            contexts_final = i.application_command.contexts
+            guild_ids_final = i.guild_ids
+            break
         else:
-            for i in commands:  # make this a loop but get the first item only by breaking
-                permission_set = [i.application_command.default_member_permissions]
-                dm_permission_set = [i.application_command.dm_permission]
-                nsfw_set = [i.application_command.nsfw]
-                guild_ids_set = [i.guild_ids]
-                integration_set = [tuple(i.application_command.integration_types or ())]
-                contexts_set = [tuple(i.application_command.contexts or ())]
-                break
-        assert permission_set is not None
-        assert dm_permission_set is not None
-        assert nsfw_set is not None
-        assert guild_ids_set is not None
+            raise CommandError("No commands provided to group")
 
         # Make up a place for our options to go after we've built them
         built_options: dict[tuple[str, ...], n.ApplicationCommandOption] = {}
@@ -606,16 +603,15 @@ class CommandGroup(Command):
             name=list(names[0])[0],
             description="...",
             type=n.ApplicationCommandType.CHAT_INPUT,
-            default_member_permissions=list(permission_set)[0],
-            dm_permission=list(dm_permission_set)[0],
-            nsfw=list(nsfw_set)[0],
+            default_member_permissions=permission_final,
+            dm_permission=dm_permission_final,
+            nsfw=nsfw_final,
+            integration_types=integration_final,
+            contexts=contexts_final,
             name_localizations={
                 lang: name.split(" ")[0]
                 for lang, name in first_command.application_command.name_localizations.items()
             },
-            # tuples are close enough to lists
-            integration_types=integration_set[0] or None,  # pyright: ignore
-            contexts=contexts_set[0] or None,  # pyright: ignore
         )
         built_options[()] = app  # pyright: ignore
 
@@ -642,7 +638,7 @@ class CommandGroup(Command):
         return cls(
             app,
             commands,
-            list(list(guild_ids_set)[0])
+            guild_ids_final,
         )
 
     @override
