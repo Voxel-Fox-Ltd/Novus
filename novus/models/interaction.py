@@ -716,7 +716,10 @@ class Interaction(Generic[IData]):
                 flags = MessageFlags()
             flags.is_components_v2 = True
         if message_reference is not MISSING:
-            data["message_reference"] = message_reference
+            if isinstance(message_reference, dict):
+                data["message_reference"] = message_reference
+            else:
+                data["message_reference"] = message_reference.to_reference()
         if stickers is not MISSING:
             data["stickers"] = stickers
         if files is not MISSING:
@@ -798,7 +801,10 @@ class Interaction(Generic[IData]):
         if components is not MISSING:
             data["components"] = components
         if message_reference is not MISSING:
-            data["message_reference"] = message_reference
+            if isinstance(message_reference, dict):
+                data["message_reference"] = message_reference
+            else:
+                data["message_reference"] = message_reference.to_reference()
         if stickers is not MISSING:
             data["stickers"] = stickers
         if files is not MISSING:
@@ -891,7 +897,10 @@ class Interaction(Generic[IData]):
         if components is not MISSING:
             data["components"] = components
         if message_reference is not MISSING:
-            data["message_reference"] = message_reference
+            if message_reference is None or isinstance(message_reference, dict):
+                data["message_reference"] = message_reference
+            else:
+                data["message_reference"] = message_reference.to_reference()
         if stickers is not MISSING:
             data["stickers"] = stickers
         if files is not MISSING:

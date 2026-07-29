@@ -214,12 +214,12 @@ class ChannelHTTPConnection:
                 "type": (
                     "content",
                     "tts",
+                    "message_reference",
                 ),
                 "object": (
                     "embeds",
                     "allowed_mentions",
                     "components",
-                    "message_reference",
                 ),
                 "flags": (
                     "flags",
@@ -422,6 +422,7 @@ class ChannelHTTPConnection:
             {
                 "type": (
                     "content",
+                    "message_reference",
                 ),
                 "object": (
                     "embeds",

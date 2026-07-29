@@ -380,7 +380,7 @@ class Webhook:
             added to your flags.
         allowed_mentions : novus.AllowedMentions
             The mentions you want parsed in the message.
-        message_reference : novus.MessageReference
+        message_reference : novus.Message
             A reference to a message you want replied to.
         stickers : list[novus.Sticker]
             A list of stickers to add to the message.
@@ -408,7 +408,10 @@ class Webhook:
         if allowed_mentions is not MISSING:
             data["allowed_mentions"] = allowed_mentions
         if message_reference is not MISSING:
-            data["message_reference"] = message_reference
+            if isinstance(message_reference, dict):
+                data["message_reference"] = message_reference
+            else:
+                data["message_reference"] = message_reference.to_reference()
         if stickers is not MISSING:
             data["stickers"] = stickers
         if files is not MISSING:
@@ -458,7 +461,7 @@ class InteractionWebhook(Webhook):
             The components that you want added to the message.
         allowed_mentions : novus.AllowedMentions
             The mentions you want parsed in the message.
-        message_reference : novus.MessageReference
+        message_reference : novus.Message
             A reference to a message you want replied to.
         stickers : list[novus.Sticker]
             A list of stickers to add to the message.
@@ -481,7 +484,10 @@ class InteractionWebhook(Webhook):
         if allowed_mentions is not MISSING:
             data["allowed_mentions"] = allowed_mentions
         if message_reference is not MISSING:
-            data["message_reference"] = message_reference
+            if isinstance(message_reference, dict):
+                data["message_reference"] = message_reference
+            else:
+                data["message_reference"] = message_reference.to_reference()
         if stickers is not MISSING:
             data["stickers"] = stickers
         if files is not MISSING:

@@ -57,6 +57,7 @@ __all__: tuple[str, ...] = (
     "InteractionResponseType",
     "InteractionType",
     "MFALevel",
+    "MessageReferenceType",
     "MessageType",
     "NSFWLevel",
     "NotificationLevel",

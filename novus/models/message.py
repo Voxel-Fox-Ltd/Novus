@@ -157,7 +157,7 @@ class Message(Hashable):
     application_id : int | None
         If the message is an interaction, or application-owned webhook, this
         is the ID of the application.
-    message_reference : novus.MessageReference | None
+    message_reference : novus.Message | None
         Data showing the source of a crosspost, channel follow, pin, or reply.
     interaction : novus.MessageInteraction | None
         Interaction data associated with the message.
@@ -362,6 +362,41 @@ class Message(Hashable):
         self.position = data.get("position")  # position of message in a thread
         # self.role_subscription_data = data["role_subscription_data"]
         return self
+
+    def to_reference(
+            self,
+            type: int = 0,
+            *,
+            fail_if_not_exists: bool = MISSING) -> payloads.MessageReference:
+        """
+        Get this message as a message reference payload.
+
+        Parameters
+        ----------
+        type : int
+            The type of reference that should be created.
+
+            .. seealso:: `novus.MessageReferenceType`
+        fail_if_not_exists : bool
+            Whether or not the Discord API should return an error on the referenced message not
+            existing.
+
+        Returns
+        -------
+        dict
+            The message reference payload.
+        """
+
+        v: payloads.MessageReference = {
+            "type": type,
+            "message_id": str(self.id),
+            "channel_id": str(self.channel.id),
+        }
+        if self.guild is not None:
+            v["guild_id"] = str(self.guild.id)
+        if fail_if_not_exists is not MISSING:
+            v["fail_if_not_exists"] = fail_if_not_exists
+        return v
 
     # API methods
 
@@ -630,7 +665,11 @@ class Message(Hashable):
         add_not_missing(update, "embeds", embeds)
         add_not_missing(update, "allowed_mentions", allowed_mentions)
         add_not_missing(update, "components", components)
-        add_not_missing(update, "message_reference", message_reference)
+        if message_reference is not MISSING:
+            if message_reference is None or isinstance(message_reference, dict):
+                update["message_reference"] = message_reference
+            else:
+                update["message_reference"] = message_reference.to_reference()
         add_not_missing(update, "stickers", stickers)
         add_not_missing(update, "files", files)
         add_not_missing(update, "flags", flags)

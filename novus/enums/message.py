@@ -18,7 +18,8 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 from .utils import Enum
 
 __all__ = (
-    'MessageType',
+    "MessageType",
+    "MessageReferenceType",
 )
 
 
@@ -50,3 +51,9 @@ class MessageType(Enum):
     ROLE_SUBSCRIPTION_PURCHASE = 25
     INTERACTION_PREMIUM_UPSELL = 26
     GUILD_APPLICATION_PREMIUM_SUBSCRIPTION = 32
+
+
+class MessageReferenceType(Enum):
+    DEFAULT = 0
+    REPLY = 0
+    FORWARD = 1

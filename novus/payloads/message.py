@@ -88,11 +88,12 @@ class MessageActivity(_MessageActivityOptional):
     type: int
 
 
-class MessageReference(TypedDict, total=False):
-    message_id: Snowflake
-    channel_id: Snowflake
-    guild_id: Snowflake
-    fail_if_not_exists: bool
+class MessageReference(TypedDict):
+    type: NotRequired[int]
+    message_id: NotRequired[Snowflake]
+    channel_id: NotRequired[Snowflake]
+    guild_id: NotRequired[Snowflake]
+    fail_if_not_exists: NotRequired[bool]
 
 
 class MessageInteraction(TypedDict):
