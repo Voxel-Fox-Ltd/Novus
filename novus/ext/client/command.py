@@ -389,6 +389,27 @@ class Command:
             return await interaction.send_autocomplete([])
         return await interaction.send_autocomplete(data)
 
+    def get_parsed_command(
+            self,
+            interaction: n.Interaction[n.ApplicationCommandData]
+            ) -> tuple[Command, n.InteractionOption | None]:
+        """
+        Fold down a command into its qualified subcommand given an interaction invokation.
+
+        Parameters
+        ----------
+        interaction : novus.Interaction
+            The interaction that was invoked.
+
+        Returns
+        -------
+        tuple[novus.Command, novus.InteractionOption | None]
+            A tuple of the command that will be run, and the option inside of the interaction that
+            the subcommand corresponds to (or ``None`` if the invoked command is not a subcommand).
+        """
+
+        return self, None
+
 
 class CommandGroup(Command):
     """
@@ -654,12 +675,8 @@ class CommandGroup(Command):
             The interaction that invoked the command.
         """
 
-        command_name_parts = [self.name]
-        option = interaction.data.options[0]
-        while option.type == n.ApplicationOptionType.SUB_COMMAND_GROUP:
-            command_name_parts.append(option.name)
-            option = option.options[0]
-        command = self.commands[" ".join([*command_name_parts, option.name])]
+        command, option = self.get_parsed_command(interaction)
+        assert option is not None, "Impossible state for a CommandGroup with a real Interaction"
         return await command.run(interaction, option.options)
 
     @override
@@ -675,13 +692,36 @@ class CommandGroup(Command):
             The interaction that invoked the autocomplete.
         """
 
+        command, option = self.get_parsed_command(interaction)
+        assert option is not None, "Impossible state for a CommandGroup with a real Interaction"
+        return await command.run_autocomplete(interaction, option.options)
+
+    def get_parsed_command(
+            self,
+            interaction: n.Interaction[n.ApplicationCommandData]
+            ) -> tuple[Command, n.InteractionOption | None]:
+        """
+        Fold down a command into its qualified subcommand given an interaction invokation.
+
+        Parameters
+        ----------
+        interaction : novus.Interaction
+            The interaction that was invoked.
+
+        Returns
+        -------
+        tuple[novus.Command, novus.InteractionOption | None]
+            A tuple of the command that will be run, and the option inside of the interaction that
+            the subcommand corresponds to (or ``None`` if the invoked command is not a subcommand).
+        """
+
         command_name_parts = [self.name]
         option = interaction.data.options[0]
         while option.type == n.ApplicationOptionType.SUB_COMMAND_GROUP:
             command_name_parts.append(option.name)
             option = option.options[0]
         command = self.commands[" ".join([*command_name_parts, option.name])]
-        return await command.run_autocomplete(interaction, option.options)
+        return command, option
 
 
 class CommandDescription:

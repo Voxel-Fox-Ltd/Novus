@@ -628,10 +628,11 @@ class Client:
         if command is not None:
             assert interaction is not None
             if interaction.type != n.InteractionType.AUTOCOMPLETE:
+                real_command, _ = command.get_parsed_command(interaction)  # parse down subcommands
                 self.stats.increment(
                     "novus.command.invoked",
                     tags={
-                        "command": command.name,
+                        "command": real_command.name,
                         "guild": True if interaction.guild else False,
                         # "user_id": str(interaction.user.id),
                         # "channel_id": str(interaction.channel.id),
